@@ -256,6 +256,33 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "hands above",
     "wrists",
   ]),
+  tag("foreplay", "oral", "Oral & mouth play", [
+    "oral",
+    "tongue",
+    "suck",
+    "lick",
+    "mouth",
+    "nipple",
+  ]),
+  tag("foreplay", "anal", "Anal tease", [
+    "anal",
+    "ass",
+    "rim",
+    "butt",
+  ]),
+  tag("foreplay", "spanking", "Spanking & impact", [
+    "spank",
+    "stinging",
+    "slap",
+  ]),
+  tag("foreplay", "film", "Film & photo", [
+    "photo",
+    "video",
+    "picture",
+    "porn",
+    "camera",
+    "record",
+  ]),
   tag("foreplay", "open", "Open / mixed foreplay", [], true),
 
   // Stage 3 — Step It Up
@@ -326,7 +353,32 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
   tag("step_it_up", "oral", "Oral escalation", [
     "oral",
     "tongue",
-    "mouth on",
+    "mouth",
+    "lick",
+    "eat",
+    "throat",
+  ]),
+  tag("step_it_up", "anal", "Anal play", [
+    "anal",
+    "ass",
+    "rim",
+    "butt",
+  ]),
+  tag("step_it_up", "film", "Film & photo", [
+    "photo",
+    "video",
+    "picture",
+    "camera",
+    "record",
+    "clip",
+  ]),
+  tag("step_it_up", "restraints", "Restraints & binding", [
+    "tie",
+    "bound",
+    "scarf",
+    "pin",
+    "wrists",
+    "hands above",
   ]),
   tag("step_it_up", "power", "Commands & control", [
     "command",
@@ -335,6 +387,7 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "instruction",
     "edge",
     "pin",
+    "dirty",
   ]),
   tag("step_it_up", "open", "Open / mixed heat", [], true),
 
@@ -353,10 +406,35 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "edging",
     "hold back",
   ]),
-  tag("finish_off", "oral", "Oral focus", [
+  tag("finish_off", "oral", "Oral finish", [
     "oral",
     "tongue",
     "mouth",
+    "swallow",
+    "throat",
+  ]),
+  tag("finish_off", "anal", "Anal finish", [
+    "anal",
+    "ass",
+    "butt",
+  ]),
+  tag("finish_off", "creampie", "Creampie / finish inside", [
+    "creampie",
+    "deep inside",
+    "stay completely",
+    "finish inside",
+    "holding their hips",
+  ]),
+  tag("finish_off", "body", "Finish on the body", [
+    "face",
+    "chest",
+    "stomach",
+    "paint",
+    "splash",
+    "tribute",
+    "cum across",
+    "cum over",
+    "tits",
   ]),
   tag("finish_off", "manual", "Hands-only / manual", [
     "manual",
@@ -426,6 +504,13 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "hair",
     "kiss",
     "touch",
+    "lotion",
+    "oil",
+  ]),
+  tag("afterglow", "anal", "Ass care after play", [
+    "ass",
+    "sore",
+    "cheeks",
   ]),
   tag("afterglow", "affirm", "Compliments & affirmations", [
     "compliment",
@@ -434,6 +519,8 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "love",
     "affirm",
     "proud",
+    "praise",
+    "whisper two",
   ]),
   tag("afterglow", "recap", "Morning-after / recap", [
     "morning",
@@ -441,6 +528,8 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "recap",
     "favorite moment",
     "tonight",
+    "mirror",
+    "inspect",
   ]),
   tag("afterglow", "open", "Open / mixed afterglow", [], true),
 ];
