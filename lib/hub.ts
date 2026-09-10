@@ -107,9 +107,9 @@ export const CHECK_IN_METRIC_META: {
     | "compass-outline";
 }[] = [
   { key: "tonight", label: "Are we fucking today?", icon: "flame-outline" },
+  { key: "loveTank", label: "Love tank", icon: "heart-outline" },
   { key: "battery", label: "Battery / energy", icon: "battery-charging-outline" },
   { key: "mood", label: "Mood forecast", icon: "partly-sunny-outline" },
-  { key: "loveTank", label: "Love tank", icon: "heart-outline" },
   { key: "socialBattery", label: "Social battery", icon: "people-outline" },
   { key: "todayNeed", label: "What I need today", icon: "compass-outline" },
   { key: "desireGauge", label: "Spicy gauge", icon: "flame-outline" },
@@ -166,14 +166,14 @@ export function checkInLines(checkIn: CheckIn): string[] {
   const lines: string[] = [];
   const tonight = tonightLabel(checkIn.tonight);
   if (tonight) lines.push(`Are we fucking today? ${tonight}`);
+  if (checkIn.loveTank != null) {
+    lines.push(`Love tank ${checkIn.loveTank}/10`);
+  }
   if (checkIn.energy != null) {
     lines.push(`Battery ${checkIn.energy}/10`);
   }
   if (checkIn.mood) {
     lines.push(`Mood · ${moodMeta(checkIn.mood).label}`);
-  }
-  if (checkIn.loveTank != null) {
-    lines.push(`Love tank ${checkIn.loveTank}/10`);
   }
   const social = socialBatteryMeta(checkIn.socialBattery);
   if (social) lines.push(`Social · ${social.title}`);

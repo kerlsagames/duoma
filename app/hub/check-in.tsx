@@ -1,6 +1,6 @@
 import { HubScreen } from "@/components/hub/HubScreen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { isSunday, localDateKey } from "@/lib/dates";
+import { localDateKey } from "@/lib/dates";
 import {
   batteryLabel,
   CHECK_IN_METRIC_META,
@@ -10,7 +10,6 @@ import {
   MOODS,
   partnerHint,
   TONIGHT_SEX,
-  RITUALS,
   SOCIAL_BATTERY,
   TODAY_NEEDS,
 } from "@/lib/hub";
@@ -54,7 +53,7 @@ function Choice<T extends string>({
   columns = 2,
 }: {
   options: { id: T; title: string; detail: string }[];
-  value: T;
+  value: T | null;
   onChange: (id: T) => void;
   columns?: 1 | 2;
 }) {
@@ -125,8 +124,6 @@ export default function CheckInScreen() {
     submitCheckIn,
     requestCheckIn,
     incomingCheckInRequest,
-    ritualChecks,
-    toggleRitual,
   } = useApp();
   const today = localDateKey();
   const myCheckIn = checkIns.find(
@@ -145,12 +142,12 @@ export default function CheckInScreen() {
   const [socialOn, setSocialOn] = useState(false);
   const [needOn, setNeedOn] = useState(false);
   const [spicyOn, setSpicyOn] = useState(false);
-  const [energy, setEnergy] = useState(7);
-  const [mood, setMood] = useState<MoodWeather>("cloudy");
-  const [loveTank, setLoveTank] = useState(8);
-  const [socialBattery, setSocialBattery] = useState<SocialBattery>("balanced");
-  const [todayNeed, setTodayNeed] = useState<TodayNeed>("listen");
-  const [desireGauge, setDesireGauge] = useState<DesireGauge>("medium");
+  const [energy, setEnergy] = useState(0);
+  const [mood, setMood] = useState<MoodWeather | null>(null);
+  const [loveTank, setLoveTank] = useState(0);
+  const [socialBattery, setSocialBattery] = useState<SocialBattery | null>(null);
+  const [todayNeed, setTodayNeed] = useState<TodayNeed | null>(null);
+  const [desireGauge, setDesireGauge] = useState<DesireGauge | null>(null);
   const [requested, setRequested] = useState<CheckInMetricKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -207,9 +204,9 @@ export default function CheckInScreen() {
     setSaving(true);
     try {
       await submitCheckIn({
-        energy: !simple && batteryOn ? energy : null,
+        energy: !simple && batteryOn && energy > 0 ? energy : null,
         mood: !simple && moodOn ? mood : null,
-        loveTank: !simple && loveOn ? loveTank : null,
+        loveTank: !simple && loveOn && loveTank > 0 ? loveTank : null,
         socialBattery: !simple && socialOn ? socialBattery : null,
         todayNeed: !simple && needOn ? todayNeed : null,
         desireGauge: !simple && spicyOn ? desireGauge : null,
@@ -358,15 +355,31 @@ export default function CheckInScreen() {
           </Text>
 
           <MetricCard
+            icon="heart-outline"
+            title={`Love tank${loveOn && loveTank > 0 ? ` (${loveTank}/10)` : ""}`}
+            enabled={loveOn}
+            onToggle={() => setLoveOn((v) => !v)}
+          >
+            <Gauge value={loveTank} onChange={setLoveTank} />
+            {loveTank > 0 ? (
+              <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
+                {loveTankLabel(loveTank)}
+              </Text>
+            ) : null}
+          </MetricCard>
+
+          <MetricCard
             icon="battery-charging-outline"
-            title={`Battery / energy${batteryOn ? ` (${energy}/10)` : ""}`}
+            title={`Battery / energy${batteryOn && energy > 0 ? ` (${energy}/10)` : ""}`}
             enabled={batteryOn}
             onToggle={() => setBatteryOn((v) => !v)}
           >
             <Gauge value={energy} onChange={setEnergy} />
-            <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
-              {batteryLabel(energy)}
-            </Text>
+            {energy > 0 ? (
+              <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
+                {batteryLabel(energy)}
+              </Text>
+            ) : null}
           </MetricCard>
 
           <MetricCard
@@ -384,18 +397,6 @@ export default function CheckInScreen() {
               value={mood}
               onChange={setMood}
             />
-          </MetricCard>
-
-          <MetricCard
-            icon="heart-outline"
-            title={`Love tank${loveOn ? ` (${loveTank}/10)` : ""}`}
-            enabled={loveOn}
-            onToggle={() => setLoveOn((v) => !v)}
-          >
-            <Gauge value={loveTank} onChange={setLoveTank} />
-            <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
-              {loveTankLabel(loveTank)}
-            </Text>
           </MetricCard>
 
           <MetricCard
@@ -531,40 +532,6 @@ export default function CheckInScreen() {
           Nothing from them yet today. Request an update if you need it.
         </Text>
       ) : null}
-
-      <Text className="mt-8 text-[12px] font-bold uppercase tracking-[2px] text-neon">
-        Rituals
-      </Text>
-      {isSunday() ? (
-        <Text className="mt-2 text-[14px] text-mist/65">
-          Sunday. Open the jar together tonight.
-        </Text>
-      ) : null}
-      <View className="mt-3 gap-2">
-        {RITUALS.map((ritual) => {
-          const on = ritualChecks.some(
-            (row) =>
-              row.ritualId === ritual.id &&
-              row.date === today &&
-              row.userId === user?.id
-          );
-          return (
-            <Pressable
-              key={ritual.id}
-              onPress={() => void toggleRitual(ritual.id)}
-              className={`rounded-3xl border px-4 py-3 ${
-                on ? "border-neon bg-neon/15" : "border-white/10 bg-white/5"
-              }`}
-            >
-              <Text className="text-[16px] font-semibold text-mist">
-                {on ? "Done · " : ""}
-                {ritual.title}
-              </Text>
-              <Text className="mt-1 text-[13px] text-mist/55">{ritual.detail}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
     </HubScreen>
   );
 }

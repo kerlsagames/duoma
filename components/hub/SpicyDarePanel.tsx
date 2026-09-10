@@ -178,7 +178,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
 
   if (compose) {
     return (
-      <ScrollView keyboardShouldPersistTaps="handled">
+      <ScrollView key="compose" keyboardShouldPersistTaps="handled">
         <View className="mb-4 flex-row items-center justify-between">
           <Pressable
             onPress={() => {
@@ -435,7 +435,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <ScrollView keyboardShouldPersistTaps="handled">
+    <ScrollView key="browse" keyboardShouldPersistTaps="handled">
       <View className="mb-4 flex-row items-center justify-between">
         <Text
           style={{
