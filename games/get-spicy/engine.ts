@@ -1,5 +1,6 @@
 import type { Card, CardStage, DefaultCardSeed, StageCounts } from "@/lib/types";
 import { shuffle } from "@/lib/ids";
+import { cardAllowedByFlavorTags } from "@/games/get-spicy/flavor-tags";
 
 export const STAGE_ORDER: CardStage[] = [
   "pre_foreplay",
@@ -42,25 +43,34 @@ export function pickRandomFromBank(
   bank: Card[],
   stage: CardStage,
   count: number,
-  excludeIds: Set<string> = new Set()
+  excludeIds: Set<string> = new Set(),
+  enabledFlavorTags?: string[] | null
 ): Card[] {
   const pool = bank.filter(
     (card) =>
       card.stage === stage &&
       card.isActive &&
-      !excludeIds.has(card.id)
+      !excludeIds.has(card.id) &&
+      cardAllowedByFlavorTags(card, enabledFlavorTags ?? null)
   );
   return shuffle(pool).slice(0, Math.max(0, count));
 }
 
 export function buildRandomDeck(
   bank: Card[],
-  counts: StageCounts
+  counts: StageCounts,
+  enabledFlavorTags?: string[] | null
 ): Card[] {
   const picked: Card[] = [];
   const used = new Set<string>();
   for (const stage of STAGE_ORDER) {
-    const next = pickRandomFromBank(bank, stage, counts[stage], used);
+    const next = pickRandomFromBank(
+      bank,
+      stage,
+      counts[stage],
+      used,
+      enabledFlavorTags
+    );
     next.forEach((card) => used.add(card.id));
     picked.push(...next);
   }
@@ -70,9 +80,10 @@ export function buildRandomDeck(
 export function replacementCard(
   bank: Card[],
   stage: CardStage,
-  usedIds: Set<string>
+  usedIds: Set<string>,
+  enabledFlavorTags?: string[] | null
 ): Card | null {
-  return pickRandomFromBank(bank, stage, 1, usedIds)[0] ?? null;
+  return pickRandomFromBank(bank, stage, 1, usedIds, enabledFlavorTags)[0] ?? null;
 }
 
 export function seedToPreview(seed: DefaultCardSeed) {
@@ -80,6 +91,5 @@ export function seedToPreview(seed: DefaultCardSeed) {
     stage: seed.category,
     title: seed.title,
     body: seed.description,
-    sortOrder: seed.order,
   };
 }

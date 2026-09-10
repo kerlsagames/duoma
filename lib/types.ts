@@ -71,6 +71,8 @@ export type GameSession = {
   mode: GameMode | null;
   blockLimit: number;
   stageCounts: StageCounts;
+  /** Enabled flavor tag ids from Get Spicy setup checkboxes. */
+  flavorTags: string[];
   currentStage: CardStage | null;
   activeCardId: string | null;
   turnUserId: string | null;

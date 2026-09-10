@@ -6,6 +6,11 @@ import {
   replacementCard,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
+import {
+  cardAllowedByFlavorTags,
+  defaultEnabledFlavorTags,
+  normalizeFlavorTags,
+} from "@/games/get-spicy/flavor-tags";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { localDateKey } from "@/lib/dates";
 import {
@@ -365,6 +370,7 @@ type AppContextValue = {
     mode: GameMode;
     blockLimit: number;
     stageCounts: StageCounts;
+    flavorTags: string[];
   }) => Promise<void>;
   toggleDeckPick: (cardId: string) => Promise<void>;
   fillPicksRandomly: () => Promise<void>;
@@ -915,6 +921,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       mode: null,
       blockLimit: 1,
       stageCounts: { ...DEFAULT_STAGE_COUNTS },
+      flavorTags: defaultEnabledFlavorTags(),
       currentStage: null,
       activeCardId: null,
       turnUserId: user.id,
@@ -1006,12 +1013,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       mode: GameMode;
       blockLimit: number;
       stageCounts: StageCounts;
+      flavorTags: string[];
     }) => {
       if (!game || !couple?.partnerA || !couple.partnerB) return;
       const blockLimit = Math.min(3, Math.max(1, input.blockLimit));
       const stageCounts = normalizeStageCounts(input.stageCounts);
+      const flavorTags = normalizeFlavorTags(input.flavorTags);
+      if (flavorTags.length === 0) {
+        throw new Error("Pick at least one flavor for the deck.");
+      }
       if (input.mode === "random") {
-        const picked = buildRandomDeck(cards, stageCounts);
+        const picked = buildRandomDeck(cards, stageCounts, flavorTags);
         db = {
           ...db,
           games: db.games.map((row) =>
@@ -1020,6 +1032,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                   mode: input.mode,
                   blockLimit,
                   stageCounts,
+                  flavorTags,
                 })
               : row
           ),
@@ -1041,6 +1054,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                   mode: input.mode,
                   blockLimit,
                   stageCounts,
+                  flavorTags,
                   status: "selecting",
                   privateUnlocked: stageCounts.pre_foreplay === 0,
                 })
@@ -1063,6 +1077,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!game || game.status !== "selecting") return;
       const card = cards.find((item) => item.id === cardId);
       if (!card || !card.isActive) return;
+      if (!cardAllowedByFlavorTags(card, game.flavorTags)) return;
       const existing = db.deck.find(
         (item) => item.gameId === game.id && item.cardId === cardId
       );
@@ -1115,7 +1130,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       remaining.push(
         ...buildRandomDeck(
           cards.filter((card) => !selectedIds.has(card.id)),
-          stageCounts
+          stageCounts,
+          game.flavorTags
         )
       );
     }
@@ -1308,7 +1324,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw new Error("Nothing to block yet. Wait until they play.");
     }
     const usedIds = new Set(currentDeck.map((item) => item.cardId));
-    const replacement = replacementCard(cards, active.stage, usedIds);
+    const replacement = replacementCard(
+      cards,
+      active.stage,
+      usedIds,
+      game.flavorTags
+    );
     let nextDeck = db.deck.map((item) =>
       item.id === active.id ? { ...item, status: "blocked" as const } : item
     );

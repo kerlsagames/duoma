@@ -17,3 +17,12 @@ export {
   totalCards,
   normalizeStageCounts,
 } from "./engine";
+export {
+  SPICY_FLAVOR_TAGS,
+  ALL_FLAVOR_TAG_IDS,
+  flavorTagsForStage,
+  defaultEnabledFlavorTags,
+  normalizeFlavorTags,
+  cardAllowedByFlavorTags,
+  summarizeFlavorSelection,
+} from "./flavor-tags";

@@ -1,6 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { cardAllowedByFlavorTags } from "@/games/get-spicy/flavor-tags";
 import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
@@ -25,7 +26,12 @@ export default function SelectScreen() {
     () => new Set(deck.map((item) => item.cardId)),
     [deck]
   );
-  const stageCards = cards.filter((card) => card.stage === stage && card.isActive);
+  const stageCards = cards.filter(
+    (card) =>
+      card.stage === stage &&
+      card.isActive &&
+      cardAllowedByFlavorTags(card, game?.flavorTags)
+  );
   const selectedInStage = deck.filter((item) => item.stage === stage).length;
   const limit = game?.stageCounts[stage] ?? 0;
   const filled = STAGE_ORDER.every(

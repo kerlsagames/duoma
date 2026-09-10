@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import { defaultEnabledFlavorTags } from "@/games/get-spicy/flavor-tags";
 import type { AppDB, GameSession } from "@/lib/types";
 
 export const DB_KEY = "duoma:db";
@@ -91,6 +92,10 @@ function hydrateGame(game: GameSession): GameSession {
     awaitingPrivate: game.awaitingPrivate ?? false,
     privateUnlocked: game.privateUnlocked ?? false,
     playedDate: game.playedDate ?? null,
+    flavorTags:
+      Array.isArray(game.flavorTags) && game.flavorTags.length > 0
+        ? game.flavorTags
+        : defaultEnabledFlavorTags(),
   };
 }
 
