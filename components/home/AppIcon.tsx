@@ -32,20 +32,20 @@ function IconWell({
         pointerEvents="none"
         style={{
           position: "absolute",
-          width: size + 6,
-          height: size + 6,
-          borderRadius: radius + 6,
+          width: size + 2,
+          height: size + 2,
+          borderRadius: radius + 2,
           backgroundColor: glow,
-          opacity: 0.7,
+          opacity: 0.38,
           ...(Platform.OS === "web"
             ? {
-                filter: "blur(7px)",
-                boxShadow: `0 0 18px 8px ${glow}`,
+                filter: "blur(4px)",
+                boxShadow: `0 0 10px 3px ${glow}`,
               }
             : {
                 shadowColor: "#FF007F",
-                shadowOpacity: 0.9,
-                shadowRadius: 16,
+                shadowOpacity: 0.45,
+                shadowRadius: 10,
                 shadowOffset: { width: 0, height: 0 },
               }),
         }}
@@ -100,7 +100,7 @@ export function AppIcon({ label, icon, onPress, live, hot }: Props) {
         icon={icon}
         size={64}
         radius={20}
-        glow={hot ? "rgba(255,77,166,0.95)" : "rgba(255,0,127,0.7)"}
+        glow={hot ? "rgba(255,77,166,0.55)" : "rgba(255,0,127,0.4)"}
         glyph={28}
       />
       {live ? (
@@ -167,7 +167,7 @@ export function FeatureApp({
             icon={icon}
             size={56}
             radius={18}
-            glow="rgba(255,77,166,0.9)"
+            glow="rgba(255,77,166,0.5)"
             glyph={26}
           />
           <View className="ml-2 flex-1">
