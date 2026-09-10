@@ -1,10 +1,12 @@
+import { SPICY_DARE_DECK_ID, SPICY_DARE_LEGACY_ID, SPICY_DARES } from "@/lib/spicy-dares";
+
 export type QuestionStatus = "unplayed" | "played";
 
 export type CategoryId =
   | "icebreakers"
   | "deep-reflections"
   | "bedroom-throwbacks"
-  | "secret-desires"
+  | "spicy-dares"
   | "future-dreams"
   | "intimacy-romance"
   | "daily-checkin"
@@ -17,6 +19,7 @@ export type Question = {
   id: string;
   text: string;
   status?: QuestionStatus;
+  tags?: string[];
 };
 
 export type Category = {
@@ -232,68 +235,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a night that started vanilla and did not stay there?",
     "When did we feel like beginners again, in a good way?"
   ]),
-  deck("secret-desires", "Secret Desires & Fantasies", "flame", "sd", [
-    "What is a want you have been editing before you say it to me?",
-    "If we had a locked door and no clock, what do you actually want?",
-    "What is a word you want me to use in bed that I do not use enough?",
-    "Where do you want my mouth first the next time we are alone?",
-    "What is a fantasy that is more mood than choreography?",
-    "What should we stop treating as 'too much' between us?",
-    "If I took the lead from the first kiss, what does that look like?",
-    "What is a piece of clothing you want me to keep on longer than I think?",
-    "What is a no that is still a no, so the yeses can get louder?",
-    "Where on your body feels ignored lately?",
-    "What is a scene you want to try once, not as a new identity?",
-    "If we wrote rules for one night, what is rule one?",
-    "What kind of eye contact do you want when things get intense?",
-    "What is a pace you crave that we skip when we are tired?",
-    "If I talked more, what do you want to hear?",
-    "If I talked less, what should replace the words?",
-    "What is a public-to-private tease you want on a regular day?",
-    "What do you want me to ask permission for, even if you will say yes?",
-    "What is a fantasy that is actually about feeling chosen, not acrobatics?",
-    "Where do you want to be touched in a way that is not a shortcut to sex?",
-    "What is a role, a tone, or a power tilt you are curious about with me?",
-    "What should I do with my hands when your mouth is busy?",
-    "What is a time-of-day desire you have been pretending is random?",
-    "If we used a toy, a mirror, or a playlist, which one first and why?",
-    "What is a yes you wish I would offer without being asked?",
-    "What is a boundary you want me to repeat back so you can relax?",
-    "If we had an hour with a 'no phones' rule, how do we start?",
-    "What is a kiss that is not a greeting — describe it.",
-    "Where do you want me to be a little ruder, with care?",
-    "Where do you want me to be a lot softer, with intent?",
-    "What is a fantasy that includes the morning after, not just the night?",
-    "What do you want me to notice about you that I have been missing?",
-    "If I planned a night around your body, what is the opening scene?",
-    "What is something you want to watch me enjoy, not just receive?",
-    "What kind of aftercare would make a spicier night feel safe?",
-    "What is a word, a look, or a grip that means 'more' for you?",
-    "What is a word, a look, or a pause that means 'ease up' for you?",
-    "If we named a desire out loud this week, which one deserves air?",
-    "What is a place in the house that should get promoted?",
-    "What do you want me to wear that is for you, not for the world?",
-    "What is a fantasy about being interrupted — in a good way?",
-    "What is a fantasy about taking our time until it is almost mean?",
-    "If we swapped who initiates for a week, what would you try?",
-    "What is a secret you have been saving for a better moment? This can be it.",
-    "What kind of praise do you want while we are in it?",
-    "What kind of praise do you want after, when the lights are ordinary?",
-    "If we used a safe word even for vanilla nights, what would you pick?",
-    "What is a curiosity that is 20% scary and 80% interesting?",
-    "Where do you want my attention when you are close?",
-    "What is a desire that has nothing to do with orgasm and everything to do with us?",
-    "If I asked 'tell me what you want' at the right time, what would you say?",
-    "What is a fantasy involving travel, a key, or a closed door?",
-    "What should we try that is quieter than we think 'spicy' has to be?",
-    "What should we try that is louder than we usually allow?",
-    "What is a way you want to be looked at when you are undressing?",
-    "If we made a 'heat list' of five, what is number three — the honest middle?",
-    "What is a desire you want me to remember even on a low-energy night?",
-    "What is something you want to give me that you are not sure I will ask for?",
-    "If tonight was for you, what is the first instruction?",
-    "If tonight was for me, what do you hope I ask for?"
-  ]),
+  {
+    id: SPICY_DARE_DECK_ID,
+    name: "Spicy Challenges & Dares",
+    iconName: "flame",
+    questions: SPICY_DARES.map((dare) => ({
+      id: dare.id,
+      text: dare.text,
+      status: dare.status ?? "unplayed",
+      tags: [...dare.categories],
+    })),
+  },
   deck("future-dreams", "Future & Dreams", "compass-outline", "fut", [
     "Where should we be standing a year from now, in a photo nobody posts?",
     "What is a trip we should stop only talking about?",
@@ -731,7 +683,8 @@ export const LETS_TALK_DECK: Category[] = [
 ];
 
 export function categoryById(id: string): Category {
-  const category = LETS_TALK_DECK.find((row) => row.id === id);
+  const resolved = id === SPICY_DARE_LEGACY_ID ? SPICY_DARE_DECK_ID : id;
+  const category = LETS_TALK_DECK.find((row) => row.id === resolved);
   if (!category) {
     throw new Error(`Unknown Let's Talk category: ${id}`);
   }

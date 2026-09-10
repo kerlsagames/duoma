@@ -289,6 +289,30 @@ export type TalkDraw = {
   createdAt: string;
 };
 
+export type DareDirection = "i-do-you" | "you-do-me";
+
+export type DareTimeframe = "tonight" | "24h" | "custom";
+
+export type DarePlayStatus = "offered" | "accepted" | "declined" | "done";
+
+export type SpicyDarePlay = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  dareId: string | null;
+  text: string;
+  categories: string[];
+  direction: DareDirection;
+  timeframe: DareTimeframe;
+  customWhen: string | null;
+  dueAt: string | null;
+  status: DarePlayStatus;
+  createdAt: string;
+  answeredAt: string | null;
+  completedAt: string | null;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -311,6 +335,7 @@ export type AppDB = {
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
   talkDraws: TalkDraw[];
+  spicyDares: SpicyDarePlay[];
 };
 
 export type GameModule = {

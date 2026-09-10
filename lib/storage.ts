@@ -21,6 +21,7 @@ const hubEmpty = () => ({
   pushSubscriptions: [],
   talkDecks: [],
   talkDraws: [],
+  spicyDares: [],
 });
 
 export function emptyDb(): AppDB {
@@ -85,6 +86,19 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     pushSubscriptions: raw.pushSubscriptions ?? [],
     talkDecks: raw.talkDecks ?? [],
     talkDraws: raw.talkDraws ?? [],
+    spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
+  };
+}
+
+function hydrateSpicyDare(row: AppDB["spicyDares"][number]): AppDB["spicyDares"][number] {
+  return {
+    ...row,
+    dareId: row.dareId ?? null,
+    categories: row.categories ?? [],
+    customWhen: row.customWhen ?? null,
+    dueAt: row.dueAt ?? null,
+    answeredAt: row.answeredAt ?? null,
+    completedAt: row.completedAt ?? null,
   };
 }
 

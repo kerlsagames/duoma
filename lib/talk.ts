@@ -4,6 +4,7 @@ import {
   type CategoryId,
   type Question,
 } from "@/lib/promptsData";
+import { isSpicyDareDeck } from "@/lib/spicy-dares";
 import type { TalkDeckState, TalkDraw } from "@/lib/types";
 import { localDateKey } from "@/lib/dates";
 
@@ -93,5 +94,7 @@ export function remainingToday(
       .filter((row) => row.userId === userId && row.date === date)
       .map((row) => row.categoryId)
   );
-  return LETS_TALK_DECK.filter((category) => !used.has(category.id)).length;
+  return LETS_TALK_DECK.filter(
+    (category) => !isSpicyDareDeck(category.id) && !used.has(category.id)
+  ).length;
 }

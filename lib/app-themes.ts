@@ -42,6 +42,7 @@ export const TALK_DECK_TINT: Record<string, string> = {
   "deep-reflections": "#8FA8C8",
   "bedroom-throwbacks": "#D0896A",
   "secret-desires": "#C97B8A",
+  "spicy-dares": "#C97B8A",
   "future-dreams": "#8BB89A",
   "intimacy-romance": "#D4A0B0",
   "daily-checkin": "#E8D5A3",

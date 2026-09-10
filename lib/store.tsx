@@ -62,6 +62,9 @@ import type {
   TalkDeckState,
   TalkDraw,
   TalkReaction,
+  DareDirection,
+  DareTimeframe,
+  SpicyDarePlay,
 } from "@/lib/types";
 import {
   categoryById,
@@ -70,6 +73,12 @@ import {
   rotatePlayed,
   todaysDraw,
 } from "@/lib/talk";
+import {
+  SPICY_DARE_DECK_ID,
+  dareById,
+  dueAtForTimeframe,
+  isSpicyDareDeck,
+} from "@/lib/spicy-dares";
 import {
   createContext,
   useCallback,
@@ -334,6 +343,7 @@ type AppContextValue = {
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
   talkDraws: TalkDraw[];
+  spicyDares: SpicyDarePlay[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -379,6 +389,16 @@ type AppContextValue = {
     body: string;
     reaction: TalkReaction | null;
   }) => Promise<void>;
+  sendSpicyDare: (input: {
+    dareId: string | null;
+    text: string;
+    categories?: string[];
+    direction: DareDirection;
+    timeframe: DareTimeframe;
+    customWhen?: string | null;
+  }) => Promise<void>;
+  respondSpicyDare: (id: string, status: "accepted" | "declined") => Promise<void>;
+  completeSpicyDare: (id: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -632,6 +652,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const talkDraws = useMemo(
     () => db.talkDraws.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const spicyDares = useMemo(
+    () => db.spicyDares.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1605,6 +1630,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) {
         throw new Error("Pair first, then pull a card.");
       }
+      if (isSpicyDareDeck(categoryId)) {
+        throw new Error("Spicy Challenges stays open. Browse instead of drawing.");
+      }
       categoryById(categoryId);
       const today = localDateKey();
       const existing = todaysDraw(db.talkDraws, {
@@ -1714,6 +1742,144 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     },
     [couple, partner, user]
+  );
+
+  const sendSpicyDare = useCallback(
+    async (input: {
+      dareId: string | null;
+      text: string;
+      categories?: string[];
+      direction: DareDirection;
+      timeframe: DareTimeframe;
+      customWhen?: string | null;
+    }) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then send a dare.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before sending a dare.");
+      }
+      const text = input.text.trim();
+      if (!text) throw new Error("Write the dare, or tweak the one you picked.");
+      if (input.timeframe === "custom" && !input.customWhen?.trim()) {
+        throw new Error("Say when this should happen.");
+      }
+      const catalog = input.dareId ? dareById(input.dareId) : null;
+      const categories =
+        input.categories && input.categories.length > 0
+          ? input.categories
+          : catalog
+            ? [...catalog.categories]
+            : [];
+      const row: SpicyDarePlay = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        dareId: catalog?.id ?? input.dareId,
+        text,
+        categories,
+        direction: input.direction,
+        timeframe: input.timeframe,
+        customWhen: input.timeframe === "custom" ? input.customWhen!.trim() : null,
+        dueAt: dueAtForTimeframe(input.timeframe),
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+        completedAt: null,
+      };
+      let talkDecks = db.talkDecks;
+      if (catalog) {
+        const previous = talkDecks.find(
+          (item) =>
+            item.coupleId === couple.id &&
+            item.userId === user.id &&
+            isSpicyDareDeck(item.categoryId)
+        );
+        const rotated = rotatePlayed(
+          ensureDeck(previous, {
+            id: previous?.id ?? createId(),
+            coupleId: couple.id,
+            userId: user.id,
+            categoryId: SPICY_DARE_DECK_ID,
+          }),
+          catalog.id
+        );
+        talkDecks = [...talkDecks.filter((item) => item.id !== rotated.id), rotated];
+      }
+      db = {
+        ...db,
+        spicyDares: [...db.spicyDares, row],
+        talkDecks,
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Spicy dare",
+        body:
+          input.direction === "i-do-you"
+            ? `${user.displayName} wants to do this to you.`
+            : `${user.displayName} dared you — if you're up for it.`,
+        url: "/hub/talk",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondSpicyDare = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = db.spicyDares.find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      const demoHold = Boolean(
+        partner?.isDemo &&
+          existing.toUserId === partner.id &&
+          existing.fromUserId === user.id
+      );
+      if (existing.toUserId !== user.id && !demoHold) return;
+      db = {
+        ...db,
+        spicyDares: db.spicyDares.map((row) =>
+          row.id === id
+            ? { ...row, status, answeredAt: nowIso() }
+            : row
+        ),
+      };
+      await persist();
+      if (!demoHold) {
+        pingPartner(couple, user, partner, {
+          title: "Spicy dare",
+          body:
+            status === "accepted"
+              ? `${user.displayName} is up for the dare.`
+              : `${user.displayName} passed on this one.`,
+          url: "/hub/talk",
+        });
+      }
+    },
+    [couple, partner, user]
+  );
+
+  const completeSpicyDare = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        spicyDares: db.spicyDares.map((row) => {
+          const involved = row.fromUserId === user.id || row.toUserId === user.id;
+          const demoHold = Boolean(
+            partner?.isDemo &&
+              (row.toUserId === partner.id || row.fromUserId === partner.id)
+          );
+          if (row.id === id && row.status === "accepted" && (involved || demoHold)) {
+            return { ...row, status: "done", completedAt: nowIso() };
+          }
+          return row;
+        }),
+      };
+      await persist();
+    },
+    [partner, user]
   );
 
   const addMilestone = useCallback(
@@ -2094,6 +2260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     curiosityAnswers,
     talkDecks,
     talkDraws,
+    spicyDares,
     milestones,
     desireToggles,
     coupons,
@@ -2128,6 +2295,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitCuriosity,
     drawTalkQuestion,
     submitTalkAnswer,
+    sendSpicyDare,
+    respondSpicyDare,
+    completeSpicyDare,
     addMilestone,
     removeMilestone,
     toggleDesire,

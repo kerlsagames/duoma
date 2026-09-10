@@ -22,6 +22,7 @@ export function CurrentStatus({
     bucketItems,
     talkDraws,
     scratches,
+    spicyDares,
   } = useApp();
 
   const rows = buildHomeNotifications({
@@ -37,6 +38,7 @@ export function CurrentStatus({
     bucketItems,
     talkDraws,
     scratches,
+    spicyDares,
   });
 
   const openGame = () => {

@@ -2,6 +2,7 @@ import { STAGE_META } from "@/games/get-spicy/engine";
 import { daysUntil, formatLongDate, isSunday, localDateKey, parseDateKey } from "@/lib/dates";
 import { moodMeta } from "@/lib/hub";
 import { categoryById } from "@/lib/promptsData";
+import { isSpicyDareDeck, timeframeLabel } from "@/lib/spicy-dares";
 import type {
   BucketItem,
   CheckIn,
@@ -13,6 +14,7 @@ import type {
   Milestone,
   Profile,
   ScratchReveal,
+  SpicyDarePlay,
   TalkDraw,
 } from "@/lib/types";
 import type { Href } from "expo-router";
@@ -120,6 +122,7 @@ export function buildHomeNotifications(input: {
   bucketItems?: BucketItem[];
   talkDraws?: TalkDraw[];
   scratches?: ScratchReveal[];
+  spicyDares?: SpicyDarePlay[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -228,7 +231,8 @@ export function buildHomeNotifications(input: {
       (row) =>
         row.userId === input.partner?.id &&
         row.date === today &&
-        row.answeredAt
+        row.answeredAt &&
+        !isSpicyDareDeck(row.categoryId)
     )
     .forEach((draw) => {
       let name = "Talk to me";
@@ -243,6 +247,30 @@ export function buildHomeNotifications(input: {
         when: recentWhen(draw.answeredAt ?? draw.createdAt),
         href: "/hub/talk",
         sortAt: Date.parse(draw.answeredAt ?? draw.createdAt) || now,
+      });
+    });
+
+  (input.spicyDares ?? [])
+    .filter((row) => row.status === "offered" || row.status === "accepted")
+    .forEach((play) => {
+      const incoming = play.toUserId === myId;
+      const outgoing = play.fromUserId === myId;
+      if (!incoming && !outgoing) return;
+      const when = timeframeLabel(play.timeframe, play.customWhen);
+      const line =
+        play.status === "offered" && incoming
+          ? play.direction === "you-do-me"
+            ? "Dare for you · if you're up for it"
+            : "They want to do this to you"
+          : play.status === "offered"
+            ? `Dare sent · ${when}`
+            : `Dare on · ${when}`;
+      items.push({
+        id: `dare-${play.id}`,
+        line,
+        when: recentWhen(play.answeredAt ?? play.createdAt),
+        href: "/hub/talk",
+        sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
       });
     });
 
