@@ -6,11 +6,12 @@ import { PhoneShell } from "@/components/PhoneShell";
 import { AppProvider } from "@/lib/store";
 import { colorScheme } from "nativewind";
 import { useFonts } from "expo-font";
+import Head from "expo-router/head";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
@@ -40,12 +41,21 @@ export default function RootLayout() {
     }
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      document.title = "Duoma";
+    }
+  }, []);
+
   if (!loaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507" }}>
       <SafeAreaProvider>
         <AppProvider>
+          <Head>
+            <title>Duoma</title>
+          </Head>
           <PhoneShell>
             <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
               <View style={{ flex: 1 }}>
