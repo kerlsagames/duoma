@@ -901,6 +901,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       seededLists.find((row) => row.starterKey === "movies")?.id ??
       seededLists[0]?.id ??
       createId();
+    const eatListId =
+      seededLists.find((row) => row.starterKey === "places_eat")?.id ??
+      moviesListId;
+    const pastMovieId = createId();
+    const pastEatId = createId();
     db = {
       ...db,
       profiles: [...db.profiles, demo],
@@ -999,11 +1004,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
           listId: moviesListId,
           coupleId: couple.id,
           title: "Past Lives",
-          notes: "Bring tissues.",
+          notes: "",
           createdBy: demo.id,
           createdAt: nowIso(),
           completedAt: null,
           completedBy: null,
+        },
+        {
+          id: pastMovieId,
+          listId: moviesListId,
+          coupleId: couple.id,
+          title: "Before Sunrise",
+          notes: "",
+          createdBy: demo.id,
+          createdAt: nowIso(),
+          completedAt: stamp,
+          completedBy: demo.id,
+        },
+        {
+          id: createId(),
+          listId: moviesListId,
+          coupleId: couple.id,
+          title: "The Grand Budapest Hotel",
+          notes: "",
+          createdBy: demo.id,
+          createdAt: nowIso(),
+          completedAt: stamp,
+          completedBy: demo.id,
+        },
+        {
+          id: pastEatId,
+          listId: eatListId,
+          coupleId: couple.id,
+          title: "Night market noodles",
+          notes: "",
+          createdBy: demo.id,
+          createdAt: nowIso(),
+          completedAt: stamp,
+          completedBy: demo.id,
+        },
+      ],
+      listEntryRatings: [
+        ...db.listEntryRatings,
+        {
+          id: createId(),
+          entryId: pastMovieId,
+          coupleId: couple.id,
+          userId: demo.id,
+          stars: 8.4,
+          createdAt: stamp,
+        },
+        {
+          id: createId(),
+          entryId: pastEatId,
+          coupleId: couple.id,
+          userId: demo.id,
+          stars: 9.1,
+          createdAt: stamp,
         },
       ],
     };
