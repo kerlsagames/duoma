@@ -1,5 +1,6 @@
 import { AppIcon } from "@/components/home/AppIcon";
 import { CurrentStatus } from "@/components/home/CurrentStatus";
+import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
 import { gameResumeHref } from "@/lib/home-status";
 import { useApp } from "@/lib/store";
@@ -64,15 +65,9 @@ export default function HomeScreen() {
   return (
     <Screen scroll>
       <View className="pt-1 pb-2">
-        <Text
-          className="mb-2 text-center text-[22px] font-black tracking-tight text-mist"
-          style={{
-            textShadowColor: "rgba(255,0,127,0.7)",
-            textShadowRadius: 12,
-          }}
-        >
-          DUOMA
-        </Text>
+        <View className="mb-3 items-center pt-1">
+          <DuomaLogo size={44} />
+        </View>
 
         <CurrentStatus onStartSpicy={() => void startSpicy()} />
 

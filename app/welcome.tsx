@@ -1,3 +1,4 @@
+import { DuomaLogo } from "@/components/DuomaLogo";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,15 +17,11 @@ export default function WelcomeScreen() {
           <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
             Couples
           </Text>
-          <Text
-            className="mt-4 text-[52px] font-black tracking-tight text-mist"
-            style={{
-              textShadowColor: "rgba(255,0,127,0.85)",
-              textShadowRadius: 24,
-            }}
-          >
-            DUOMA
-          </Text>
+          <View className="mt-4">
+            <View className="items-start">
+              <DuomaLogo size={52} />
+            </View>
+          </View>
           <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/80">
             Two phones. One heat. Pair once — stay paired.
           </Text>
