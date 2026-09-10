@@ -1,8 +1,14 @@
+import { DealHand } from "@/components/DealHand";
+import { FinishReveal } from "@/components/FinishReveal";
 import { RealtimeCardStage } from "@/components/RealtimeCardStage";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_ORDER } from "@/games/get-spicy/engine";
-import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
+import {
+  personalizeCard,
+  resolveCardGenders,
+  resolveCardNames,
+} from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -34,18 +40,24 @@ export default function PlayScreen() {
     cards,
     deck,
     ratings,
-    playCard,
+    dealHand,
+    shuffleHand,
+    chooseHandCard,
+    resolveFinishReveal,
     blockCard,
     unlockPrivate,
     rateCard,
     finishRatings,
     endGame,
     myBlocksRemaining,
-    partnerBlocksRemaining,
+    myShufflesRemaining,
     user,
     partner,
   } = useApp();
+
   const [error, setError] = useState<string | null>(null);
+  const [dealing, setDealing] = useState(false);
+  const [dealKey, setDealKey] = useState(0);
 
   useEffect(() => {
     if (!game) router.replace("/(tabs)");
@@ -53,21 +65,29 @@ export default function PlayScreen() {
 
   const active = deck.find((item) => item.status === "active") ?? null;
   const card = cards.find((item) => item.id === active?.cardId);
-  const resolved = deck.filter((item) =>
-    ["played", "blocked", "active"].includes(item.status)
-  ).length;
-  const remaining = deck.filter((item) => item.status === "queued").length;
   const played = deck.filter((item) => item.status === "played");
-  const completed =
-    game?.status === "completed" ||
-    (!active && remaining === 0 && deck.length > 0 && game?.status !== "rating");
   const myTurn =
     Boolean(partner?.isDemo) || !game?.turnUserId || game.turnUserId === user?.id;
-  const turnName =
-    game?.turnUserId === user?.id
-      ? "your"
-      : `${partner?.displayName ?? "their"}'s`;
-  const canBlock =
+
+  const handCards = useMemo(
+    () =>
+      (game?.handCardIds ?? [])
+        .map((id) => cards.find((row) => row.id === id))
+        .filter((row): row is NonNullable<typeof row> => Boolean(row)),
+    [cards, game?.handCardIds]
+  );
+
+  const completed =
+    game?.status === "completed" ||
+    (played.length > 0 &&
+      !active &&
+      handCards.length === 0 &&
+      !game?.awaitingFinishReveal &&
+      !game?.awaitingPrivate &&
+      game?.status !== "rating" &&
+      game?.status !== "playing");
+
+  const canPass =
     myBlocksRemaining > 0 &&
     Boolean(active) &&
     (Boolean(partner?.isDemo) || game?.activePlayedBy !== user?.id);
@@ -92,12 +112,42 @@ export default function PlayScreen() {
       ? partner?.displayName
       : user?.displayName;
 
-  const progressLabel = useMemo(() => {
-    if (!deck.length) return "No cards dealt";
-    return `${Math.max(resolved, active ? 1 : 0)} / ${deck.length}`;
-  }, [active, deck.length, resolved]);
+  const stagePlayed = played.filter(
+    (item) => item.stage === game?.currentStage
+  ).length;
+  const stageNeed = game?.currentStage
+    ? game.stageCounts[game.currentStage]
+    : 0;
+  const progressLabel = `${stagePlayed} / ${stageNeed} this stage`;
 
-  const onPlay = async () => {
+  useEffect(() => {
+    if (!game || game.status !== "playing") return;
+    if (game.awaitingPrivate || game.awaitingFinishReveal) return;
+    if (!myTurn) return;
+    if (handCards.length > 0) return;
+    if (dealing) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        setError(null);
+        setDealing(true);
+        setDealKey((key) => key + 1);
+        await dealHand();
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not deal");
+          setDealing(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dealHand, dealing, game, handCards.length, myTurn]);
+
+  const onPick = async (cardId: string) => {
     setError(null);
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -105,18 +155,31 @@ export default function PlayScreen() {
       // native-only
     }
     try {
-      await playCard();
+      await chooseHandCard(cardId);
+      setDealing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not play");
     }
   };
 
-  const onBlock = async () => {
+  const onShuffle = async () => {
+    setError(null);
+    try {
+      setDealing(true);
+      setDealKey((key) => key + 1);
+      await shuffleHand();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not shuffle");
+      setDealing(false);
+    }
+  };
+
+  const onPass = async () => {
     setError(null);
     try {
       await blockCard();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not block");
+      setError(err instanceof Error ? err.message : "Could not pass");
     }
   };
 
@@ -136,7 +199,7 @@ export default function PlayScreen() {
           </Text>
           <View className="mt-8 gap-3">
             <PrimaryButton
-              label="We're ready for private sexy time"
+              label="We are ready for private sexy time"
               onPress={() => void unlockPrivate()}
             />
             <PrimaryButton
@@ -146,6 +209,32 @@ export default function PlayScreen() {
             />
           </View>
         </View>
+      </Screen>
+    );
+  }
+
+  if (game?.awaitingFinishReveal) {
+    const finishName =
+      game.finishPickerId === user?.id
+        ? user?.displayName
+        : game.finishPickerId === partner?.id
+          ? partner?.displayName
+          : null;
+    const afterglowName =
+      game.afterglowPickerId === user?.id
+        ? user?.displayName
+        : game.afterglowPickerId === partner?.id
+          ? partner?.displayName
+          : null;
+    return (
+      <Screen>
+        <FinishReveal
+          youName={user?.displayName ?? "You"}
+          partnerName={partner?.displayName ?? "Partner"}
+          revealedName={finishName}
+          afterglowName={afterglowName}
+          onReveal={() => resolveFinishReveal()}
+        />
       </Screen>
     );
   }
@@ -173,19 +262,22 @@ export default function PlayScreen() {
             Both of you rate the cards you actually played. High scores land in
             your bank so you can find them again.
           </Text>
-
           <View className="mt-6 gap-3">
             {played.length === 0 ? (
               <View className="rounded-3xl border border-white/10 bg-white/5 p-5">
                 <Text className="text-[16px] text-mist/70">
-                  No played cards to rate. The blocked ones stay out of this list.
+                  No played cards to rate.
                 </Text>
               </View>
             ) : (
               played.map((item) => {
                 const playedCard = cards.find((row) => row.id === item.cardId);
                 if (!playedCard) return null;
-                const copy = personalizeCard(playedCard, previewNames, previewGenders);
+                const copy = personalizeCard(
+                  playedCard,
+                  previewNames,
+                  previewGenders
+                );
                 const current =
                   mine.find((row) => row.cardId === playedCard.id)?.stars ?? 0;
                 return (
@@ -213,7 +305,6 @@ export default function PlayScreen() {
               })
             )}
           </View>
-
           <View className="mt-8 gap-3">
             <PrimaryButton
               label="Save ratings"
@@ -245,8 +336,7 @@ export default function PlayScreen() {
           </Text>
           <Text className="mt-3 text-[36px] font-bold text-mist">You made it.</Text>
           <Text className="mt-3 text-[16px] leading-6 text-mist/70">
-            Afterglow is closed. You stay paired — same code, same history. Come
-            back tomorrow without making a new invite.
+            Afterglow is closed. You stay paired — same code, same history.
           </Text>
           <View className="mt-8">
             <PrimaryButton
@@ -262,8 +352,14 @@ export default function PlayScreen() {
     );
   }
 
+  const showHand = myTurn && handCards.length > 0;
+  const shuffleLabel =
+    myShufflesRemaining < 0
+      ? "Shuffle hand · unlimited"
+      : `Shuffle hand · ${myShufflesRemaining} left`;
+
   return (
-    <Screen>
+    <Screen scroll={showHand}>
       <View className="flex-1 py-3">
         <View className="mb-2 flex-row justify-between">
           {STAGE_ORDER.map((stage) => {
@@ -271,7 +367,7 @@ export default function PlayScreen() {
             return (
               <View
                 key={stage}
-                className={`h-1.5 flex-1 mx-0.5 rounded-full ${
+                className={`mx-0.5 h-1.5 flex-1 rounded-full ${
                   on ? "bg-neon" : "bg-white/15"
                 }`}
               />
@@ -279,57 +375,67 @@ export default function PlayScreen() {
           })}
         </View>
 
-        <RealtimeCardStage
-          stage={active?.stage ?? game?.currentStage ?? null}
-          active={active}
-          card={card}
-          names={names}
-          genders={genders}
-          actorLabel={actor ? `${actor} played` : "Live card"}
-          progressLabel={progressLabel}
-          emptyTitle={
-            myTurn ? "Your turn" : `Waiting on ${partner?.displayName ?? "them"}`
-          }
-          emptyBody={
-            deck.length
-              ? myTurn
-                ? `Play a card. It will name you first, then ${partner?.displayName ?? "your partner"}.`
-                : `${partner?.displayName ?? "Your partner"} plays next. You can block what they just played if you don't want in.`
-              : "The deck is empty. Head back and deal again."
-          }
-        />
+        {showHand ? (
+          <View className="flex-1">
+            <DealHand
+              key={dealKey}
+              cards={handCards}
+              names={names}
+              genders={genders}
+              dealing={dealing}
+              onDealt={() => setDealing(false)}
+              onPick={(cardId) => void onPick(cardId)}
+              disabled={!myTurn}
+            />
+          </View>
+        ) : (
+          <RealtimeCardStage
+            stage={active?.stage ?? game?.currentStage ?? null}
+            active={active}
+            card={card}
+            names={names}
+            genders={genders}
+            actorLabel={actor ? `${actor} played` : "Live card"}
+            progressLabel={progressLabel}
+            emptyTitle={
+              myTurn
+                ? "Dealing your hand…"
+                : `Waiting on ${partner?.displayName ?? "them"}`
+            }
+            emptyBody={
+              myTurn
+                ? "Three cards are on the way. Pick one to play."
+                : `${partner?.displayName ?? "Your partner"} is choosing. You can pass if you do not want in.`
+            }
+          />
+        )}
 
         <View className="mt-4 flex-row justify-between">
           <Text className="text-[13px] text-mist/50">
-            {myTurn ? "Your turn to play" : `${turnName} turn`}
+            {myTurn ? "Your turn" : `${partner?.displayName ?? "Partner"}'s turn`}
           </Text>
           <Text className="text-[13px] text-mist/50">
-            Blocks · you {myBlocksRemaining} / {partner?.displayName ?? "them"}{" "}
-            {partnerBlocksRemaining}
+            Passes {myBlocksRemaining} · Shuffles{" "}
+            {myShufflesRemaining < 0 ? "∞" : myShufflesRemaining}
           </Text>
         </View>
 
         {error ? <Text className="mt-2 text-[13px] text-crimson">{error}</Text> : null}
 
         <View className="mt-4 gap-3 pb-3">
+          {showHand ? (
+            <PrimaryButton
+              label={shuffleLabel}
+              tone="ghost"
+              disabled={!myTurn || dealing || myShufflesRemaining === 0}
+              onPress={() => void onShuffle()}
+            />
+          ) : null}
           <PrimaryButton
-            label={
-              active
-                ? myTurn
-                  ? "Play next card"
-                  : `Waiting — ${partner?.displayName ?? "partner"}'s turn`
-                : myTurn
-                  ? "Play card"
-                  : `Waiting — ${partner?.displayName ?? "partner"}'s turn`
-            }
-            disabled={!myTurn}
-            onPress={() => void onPlay()}
-          />
-          <PrimaryButton
-            label="Block — I don't participate"
+            label="Pass — I do not participate"
             tone="danger"
-            disabled={!canBlock}
-            onPress={() => void onBlock()}
+            disabled={!canPass}
+            onPress={() => void onPass()}
           />
           <PrimaryButton
             label="End session"

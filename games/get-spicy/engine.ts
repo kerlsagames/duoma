@@ -93,3 +93,58 @@ export function seedToPreview(seed: DefaultCardSeed) {
     body: seed.description,
   };
 }
+
+export const HAND_SIZE = 3;
+
+/** Passes ("I don't participate"): 0–5. */
+export function normalizePassLimit(value: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(5, Math.max(0, Math.round(value)));
+}
+
+/** Shuffles: 0–10, or -1 for unlimited. */
+export function normalizeShuffleLimit(value: number): number {
+  if (!Number.isFinite(value)) return 3;
+  const rounded = Math.round(value);
+  if (rounded < 0) return -1;
+  return Math.min(10, rounded);
+}
+
+export function firstActiveStage(counts: StageCounts): CardStage | null {
+  for (const stage of STAGE_ORDER) {
+    if (counts[stage] > 0) return stage;
+  }
+  return null;
+}
+
+export function nextActiveStage(
+  counts: StageCounts,
+  from: CardStage
+): CardStage | null {
+  const index = STAGE_ORDER.indexOf(from);
+  if (index < 0) return firstActiveStage(counts);
+  for (let i = index + 1; i < STAGE_ORDER.length; i += 1) {
+    const stage = STAGE_ORDER[i];
+    if (counts[stage] > 0) return stage;
+  }
+  return null;
+}
+
+export function playedCountForStage(
+  deck: { stage: CardStage; status: string }[],
+  stage: CardStage
+): number {
+  return deck.filter(
+    (item) => item.stage === stage && item.status === "played"
+  ).length;
+}
+
+export function dealHandFromBank(
+  bank: Card[],
+  stage: CardStage,
+  excludeIds: Set<string>,
+  enabledFlavorTags?: string[] | null,
+  count: number = HAND_SIZE
+): Card[] {
+  return pickRandomFromBank(bank, stage, count, excludeIds, enabledFlavorTags);
+}

@@ -31,7 +31,7 @@ export type StatusItem = {
 export function gameResumeHref(game: GameSession | null): Href | null {
   if (!game) return null;
   if (game.status === "setup") return "/game/setup";
-  if (game.status === "selecting") return "/game/select";
+  if (game.status === "selecting") return "/game/play";
   if (game.status === "playing" || game.status === "rating") return "/game/play";
   return null;
 }
@@ -91,10 +91,13 @@ function gameAlert(input: {
     return { id: "game", line: "Spicy Game · finish setup", when: "Now", href, sortAt };
   }
   if (game.status === "selecting") {
-    const stage = game.currentStage
-      ? STAGE_META[game.currentStage].short
-      : "cards";
-    return { id: "game", line: `Spicy Game · picking ${stage}`, when: "Now", href, sortAt };
+    return {
+      id: "game",
+      line: "Spicy Game · your deal",
+      when: "Now",
+      href,
+      sortAt,
+    };
   }
   if (game.status === "rating") {
     return { id: "game", line: "Spicy Game · rate tonight", when: "Now", href, sortAt };

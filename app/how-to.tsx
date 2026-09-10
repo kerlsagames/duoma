@@ -10,19 +10,34 @@ const STEPS = [
     body: "Create a pair once. The invite code is yours forever. Sign out if you want — you are still linked. Do not make a new code just to play again.",
   },
   {
-    kicker: "Turns",
-    title: "You take turns playing",
-    body: "When it is your turn, Play Card. The card names you as the one doing it, and names your partner as the one receiving. Example: Alex, finish Riley off with oral.",
+    kicker: "Male / Female",
+    title: "Set once at the start",
+    body: "When you create or join Duoma, pick Male or Female so cards use the right anatomy. Fix a mistake anytime in Settings — not inside the spicy game.",
   },
   {
-    kicker: "Blocks",
-    title: "Block means you sit this one out",
-    body: "You cannot block your own card. If your partner just played something you do not want to do, Block — I don't participate. That card is discarded and replaced.",
+    kicker: "Deal three",
+    title: "Pick one card to play",
+    body: "On your turn the app deals three cards with a little animation. Tap the one you want. Play then moves to your partner.",
+  },
+  {
+    kicker: "Shuffle",
+    title: "Redraw your hand",
+    body: "Do not like the three you got? Shuffle for a fresh hand. Setup sets how many shuffles each of you gets — or unlimited.",
+  },
+  {
+    kicker: "Pass",
+    title: "Pass means you sit this one out",
+    body: "You cannot pass your own card. If your partner just played something you do not want to do, Pass — I don't participate. They deal again.",
   },
   {
     kicker: "Stage 1",
     title: "Pre-foreplay is daytime",
     body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
+  },
+  {
+    kicker: "Finish Off",
+    title: "A suspense toss chooses who picks",
+    body: "Before Finish Off and Afterglow, a reveal picks who chooses the Finish Off card. The other person chooses Afterglow. Defaults are one card each.",
   },
   {
     kicker: "Home",
@@ -33,11 +48,6 @@ const STEPS = [
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
     body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications in Settings. Push does not work inside a regular Safari tab.",
-  },
-  {
-    kicker: "The close",
-    title: "Finish Off, then Afterglow",
-    body: "Finish Off is climax. Afterglow is post-sex care — water, towels, cuddles. Rate the cards you both used. Your best ones live in the Card Bank.",
   },
 ];
 

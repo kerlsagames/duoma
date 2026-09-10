@@ -1,4 +1,3 @@
-import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import {
@@ -13,26 +12,61 @@ import {
   summarizeFlavorSelection,
 } from "@/games/get-spicy/flavor-tags";
 import { useApp } from "@/lib/store";
-import type { CardStage, GameMode, StageCounts } from "@/lib/types";
+import type { CardStage, StageCounts } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+function Stepper({
+  value,
+  onChange,
+  min,
+  max,
+  unlimited,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+  min: number;
+  max: number;
+  unlimited?: boolean;
+}) {
+  const label = unlimited && value < 0 ? "Unlimited" : String(value);
+  return (
+    <View className="flex-row items-center gap-4">
+      <Pressable
+        onPress={() => {
+          if (unlimited && value < 0) onChange(max);
+          else onChange(Math.max(min, value - 1));
+        }}
+        className="h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5"
+      >
+        <Text className="text-[22px] text-mist/70">−</Text>
+      </Pressable>
+      <Text className="min-w-[72px] text-center text-[18px] font-bold text-mist">
+        {label}
+      </Text>
+      <Pressable
+        onPress={() => {
+          if (unlimited && value >= max) onChange(-1);
+          else if (value < 0) onChange(min);
+          else onChange(Math.min(max, value + 1));
+        }}
+        className="h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5"
+      >
+        <Text className="text-[22px] text-mist/70">+</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function SetupScreen() {
   const router = useRouter();
-  const {
-    game,
-    user,
-    partner,
-    configureGame,
-    endGame,
-    setProfileGender,
-  } = useApp();
-  const [mode, setMode] = useState<GameMode>("random");
-  const [blockLimit, setBlockLimit] = useState(1);
+  const { game, user, partner, configureGame, endGame } = useApp();
+  const [passLimit, setPassLimit] = useState(1);
+  const [shuffleLimit, setShuffleLimit] = useState(3);
   const [counts, setCounts] = useState<StageCounts>({ ...DEFAULT_STAGE_COUNTS });
-  const [flavorTags, setFlavorTags] = useState<string[]>(defaultEnabledFlavorTags);
+  const [flavorTags, setFlavorTags] = useState<string[]>(defaultEnabledFlavorTags());
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -40,8 +74,9 @@ export default function SetupScreen() {
       router.replace("/(tabs)");
       return;
     }
-    if (game.status === "selecting") router.replace("/game/select");
-    if (game.status === "playing") router.replace("/game/play");
+    if (game.status === "selecting" || game.status === "playing") {
+      router.replace("/game/play");
+    }
   }, [game, router]);
 
   const bump = (stage: keyof StageCounts, delta: number) => {
@@ -74,12 +109,12 @@ export default function SetupScreen() {
     setLoading(true);
     try {
       await configureGame({
-        mode,
-        blockLimit,
+        blockLimit: passLimit,
+        shuffleLimit,
         stageCounts: counts,
         flavorTags,
       });
-      router.replace(mode === "random" ? "/game/play" : "/game/select");
+      router.replace("/game/play");
     } finally {
       setLoading(false);
     }
@@ -93,14 +128,13 @@ export default function SetupScreen() {
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Setup</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          Confirm names and Male / Female so cards can say the right anatomy —
-          then tick the flavors you want in the deck. Unchecked flavors drop
-          matching cards (e.g. turn off At home together to skip in-person
-          teases like ear play).
+          Each turn deals three cards — pick one to play. Passes skip a card you
+          don’t want. Shuffles redraw your hand. Finish Off and Afterglow stay
+          at one each unless you bump them.
         </Text>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Who's playing
+          Tonight’s pair
         </Text>
         <View className="mt-3 gap-3">
           <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
@@ -110,13 +144,13 @@ export default function SetupScreen() {
             <Text className="mt-1 text-[20px] font-bold text-mist">
               {user?.displayName ?? "You"}
             </Text>
-            <View className="mt-3">
-              <GenderPicker
-                value={user?.gender ?? null}
-                onChange={(gender) => void setProfileGender("you", gender)}
-                label="I am"
-              />
-            </View>
+            <Text className="mt-1 text-[13px] text-mist/50">
+              {user?.gender === "male"
+                ? "Male"
+                : user?.gender === "female"
+                  ? "Female"
+                  : "Gender not set"}
+            </Text>
           </View>
           <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <Text className="text-[11px] font-semibold uppercase tracking-widest text-neon">
@@ -125,62 +159,55 @@ export default function SetupScreen() {
             <Text className="mt-1 text-[20px] font-bold text-mist">
               {partner?.displayName ?? "Partner"}
             </Text>
-            <View className="mt-3">
-              <GenderPicker
-                value={partner?.gender ?? null}
-                onChange={(gender) => void setProfileGender("partner", gender)}
-                label="They are"
-              />
-            </View>
+            <Text className="mt-1 text-[13px] text-mist/50">
+              {partner?.gender === "male"
+                ? "Male"
+                : partner?.gender === "female"
+                  ? "Female"
+                  : "Gender not set"}
+            </Text>
           </View>
         </View>
         {!gendersReady ? (
-          <Text className="mt-3 text-[14px] text-crimson">
-            Set Male or Female for both of you before starting.
-          </Text>
+          <View className="mt-3 rounded-3xl border border-crimson/40 bg-crimson/10 p-4">
+            <Text className="text-[14px] leading-5 text-crimson">
+              Male / Female is chosen when you start Duoma. Fix a mistake in
+              Settings before starting.
+            </Text>
+            <View className="mt-3">
+              <PrimaryButton
+                label="Open Settings"
+                tone="ghost"
+                onPress={() => router.push("/hub/settings" as Href)}
+              />
+            </View>
+          </View>
         ) : null}
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Mode
+          Passes each — I don’t participate
         </Text>
-        <View className="mt-3 gap-3">
-          {(["random", "pick_your_own"] as GameMode[]).map((option) => (
-            <Pressable
-              key={option}
-              onPress={() => setMode(option)}
-              className={`rounded-3xl border p-4 ${
-                mode === option ? "border-neon bg-neon/10" : "border-white/10 bg-white/5"
-              }`}
-            >
-              <Text className="text-[17px] font-semibold text-mist">
-                {option === "random" ? "Random mode" : "Pick your own"}
-              </Text>
-              <Text className="mt-1 text-[14px] leading-5 text-mist/60">
-                {option === "random"
-                  ? "The app deals live cards across the stages you keep on."
-                  : "Set the counts, then both of you choose the exact cards."}
-              </Text>
-            </Pressable>
-          ))}
+        <Text className="mt-1 text-[13px] leading-5 text-mist/50">
+          After your partner plays a card, you can pass (0–5).
+        </Text>
+        <View className="mt-3">
+          <Stepper value={passLimit} onChange={setPassLimit} min={0} max={5} />
         </View>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Blocks each — I don't participate
+          Shuffles each
         </Text>
-        <View className="mt-3 flex-row gap-2">
-          {[1, 2, 3].map((value) => (
-            <Pressable
-              key={value}
-              onPress={() => setBlockLimit(value)}
-              className={`h-12 flex-1 items-center justify-center rounded-2xl border ${
-                blockLimit === value
-                  ? "border-neon bg-neon/15"
-                  : "border-white/10 bg-white/5"
-              }`}
-            >
-              <Text className="text-[16px] font-bold text-mist">{value}</Text>
-            </Pressable>
-          ))}
+        <Text className="mt-1 text-[13px] leading-5 text-mist/50">
+          Redraw your three cards (0–10, or unlimited).
+        </Text>
+        <View className="mt-3">
+          <Stepper
+            value={shuffleLimit}
+            onChange={setShuffleLimit}
+            min={0}
+            max={10}
+            unlimited
+          />
         </View>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -192,9 +219,16 @@ export default function SetupScreen() {
               key={stage}
               className="flex-row items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
             >
-              <Text className="text-[15px] font-semibold text-mist">
-                {STAGE_META[stage].label}
-              </Text>
+              <View className="flex-1 pr-3">
+                <Text className="text-[15px] font-semibold text-mist">
+                  {STAGE_META[stage].label}
+                </Text>
+                {stage === "finish_off" || stage === "afterglow" ? (
+                  <Text className="mt-0.5 text-[12px] text-mist/45">
+                    Suggested: 1
+                  </Text>
+                ) : null}
+              </View>
               <View className="flex-row items-center gap-4">
                 <Pressable onPress={() => bump(stage, -1)}>
                   <Text className="text-[22px] text-mist/70">−</Text>
@@ -260,7 +294,7 @@ export default function SetupScreen() {
                     className="rounded-full border border-white/15 px-3 py-1.5"
                   >
                     <Text className="text-[12px] font-semibold text-mist/70">
-                      {stageOn ? "Uncheck stage" : stageSome ? "Check stage" : "Check stage"}
+                      {stageOn ? "Uncheck stage" : "Check stage"}
                     </Text>
                   </Pressable>
                 </View>
@@ -272,7 +306,9 @@ export default function SetupScreen() {
                         key={tag.id}
                         onPress={() => toggleTag(tag.id)}
                         className={`flex-row items-center rounded-2xl border px-3 py-3 ${
-                          on ? "border-neon/50 bg-neon/10" : "border-white/10 bg-night/40"
+                          on
+                            ? "border-neon/50 bg-neon/10"
+                            : "border-white/10 bg-night/40"
                         }`}
                       >
                         <View

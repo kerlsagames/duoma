@@ -87,8 +87,18 @@ function hydrateCheckIn(row: AppDB["checkIns"][number]): AppDB["checkIns"][numbe
 function hydrateGame(game: GameSession): GameSession {
   return {
     ...game,
+    mode: game.mode === "deal" || game.mode === "random" || game.mode === "pick_your_own"
+      ? game.mode
+      : game.mode ?? "deal",
+    blockLimit: typeof game.blockLimit === "number" ? game.blockLimit : 1,
+    shuffleLimit:
+      typeof game.shuffleLimit === "number" ? game.shuffleLimit : 3,
     turnUserId: game.turnUserId ?? game.initiatorId ?? null,
     activePlayedBy: game.activePlayedBy ?? null,
+    handCardIds: Array.isArray(game.handCardIds) ? game.handCardIds : [],
+    awaitingFinishReveal: Boolean(game.awaitingFinishReveal),
+    finishPickerId: game.finishPickerId ?? null,
+    afterglowPickerId: game.afterglowPickerId ?? null,
     awaitingPrivate: game.awaitingPrivate ?? false,
     privateUnlocked: game.privateUnlocked ?? false,
     playedDate: game.playedDate ?? null,
@@ -115,7 +125,12 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     couples: raw.couples ?? [],
     cards: raw.cards ?? [],
     games: (raw.games ?? []).map(hydrateGame),
-    gamePlayers: raw.gamePlayers ?? [],
+    gamePlayers: (raw.gamePlayers ?? []).map((row) => ({
+      ...row,
+      blocksRemaining: typeof row.blocksRemaining === "number" ? row.blocksRemaining : 0,
+      shufflesRemaining:
+        typeof row.shufflesRemaining === "number" ? row.shufflesRemaining : 0,
+    })),
     deck: raw.deck ?? [],
     ratings: raw.ratings ?? [],
     checkIns: (raw.checkIns ?? []).map(hydrateCheckIn),

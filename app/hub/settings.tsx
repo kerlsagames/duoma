@@ -1,5 +1,6 @@
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { PushSetupCard } from "@/components/PushSetupCard";
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
@@ -48,7 +49,15 @@ function Section({ children }: { children: ReactNode }) {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, couple, partner, signOut, nights, bestCards } = useApp();
+  const {
+    user,
+    couple,
+    partner,
+    signOut,
+    nights,
+    bestCards,
+    setProfileGender,
+  } = useApp();
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
@@ -77,6 +86,32 @@ export default function SettingsScreen() {
         </View>
 
         <View className="gap-3">
+          <Section>
+            <Text className="text-[12px] uppercase tracking-widest text-mist/40">
+              Male / Female
+            </Text>
+            <Text className="mt-2 text-[14px] leading-5 text-mist/60">
+              Set once when you create or join Duoma. Change it here if you got
+              it wrong — Get Spicy uses this for anatomy wording.
+            </Text>
+            <View className="mt-4 gap-4">
+              <GenderPicker
+                value={user?.gender ?? null}
+                onChange={(gender) => void setProfileGender("you", gender)}
+                label="I am"
+              />
+              <GenderPicker
+                value={partner?.gender ?? null}
+                onChange={(gender) => void setProfileGender("partner", gender)}
+                label={
+                  partner
+                    ? `${partner.displayName} is`
+                    : "Partner is"
+                }
+              />
+            </View>
+          </Section>
+
           <SettingsRow
             label="Card Bank"
             hint="Toggle rotation. Write custom cards with your names."
@@ -85,7 +120,7 @@ export default function SettingsScreen() {
           />
           <SettingsRow
             label="How to play"
-            hint="Turns, blocks, daytime pause, Home Screen install."
+            hint="Deal three, pick one, passes, shuffles, daytime pause."
             icon="book"
             onPress={() => router.push("/how-to" as Href)}
           />

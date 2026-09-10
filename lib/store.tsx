@@ -1,8 +1,15 @@
 import { cloneDefaultDeck, GET_SPICY_SEEDS } from "@/games/get-spicy";
 import {
   buildRandomDeck,
+  dealHandFromBank,
   DEFAULT_STAGE_COUNTS,
+  firstActiveStage,
+  HAND_SIZE,
+  nextActiveStage,
+  normalizePassLimit,
+  normalizeShuffleLimit,
   normalizeStageCounts,
+  playedCountForStage,
   replacementCard,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
@@ -330,6 +337,8 @@ type AppContextValue = {
   ratings: CardRating[];
   myBlocksRemaining: number;
   partnerBlocksRemaining: number;
+  myShufflesRemaining: number;
+  partnerShufflesRemaining: number;
   incomingInvite: GameSession | null;
   savedPair: {
     user: Profile;
@@ -369,14 +378,18 @@ type AppContextValue = {
   acceptInvite: () => Promise<void>;
   declineInvite: () => Promise<void>;
   configureGame: (input: {
-    mode: GameMode;
     blockLimit: number;
+    shuffleLimit: number;
     stageCounts: StageCounts;
     flavorTags: string[];
   }) => Promise<void>;
   toggleDeckPick: (cardId: string) => Promise<void>;
   fillPicksRandomly: () => Promise<void>;
   lockInPicks: () => Promise<void>;
+  dealHand: () => Promise<void>;
+  shuffleHand: () => Promise<void>;
+  chooseHandCard: (cardId: string) => Promise<void>;
+  resolveFinishReveal: () => Promise<void>;
   playCard: () => Promise<void>;
   blockCard: () => Promise<void>;
   unlockPrivate: () => Promise<void>;
@@ -575,6 +588,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db.gamePlayers.find(
         (row) => row.gameId === game?.id && row.userId === partner?.id
       )?.blocksRemaining ?? 0,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const myShufflesRemaining = useMemo(
+    () =>
+      db.gamePlayers.find(
+        (row) => row.gameId === game?.id && row.userId === user?.id
+      )?.shufflesRemaining ?? 0,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const partnerShufflesRemaining = useMemo(
+    () =>
+      db.gamePlayers.find(
+        (row) => row.gameId === game?.id && row.userId === partner?.id
+      )?.shufflesRemaining ?? 0,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -941,12 +970,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       initiatorId: user.id,
       mode: null,
       blockLimit: 1,
+      shuffleLimit: 3,
       stageCounts: { ...DEFAULT_STAGE_COUNTS },
       flavorTags: defaultEnabledFlavorTags(),
       currentStage: null,
       activeCardId: null,
       turnUserId: user.id,
       activePlayedBy: null,
+      handCardIds: [],
+      awaitingFinishReveal: false,
+      finishPickerId: null,
+      afterglowPickerId: null,
       awaitingPrivate: false,
       privateUnlocked: false,
       playedDate: null,
@@ -988,9 +1022,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, [game]);
 
-  const seedPlayers = (gameId: string, blockLimit: number, a: string, b: string) => [
-    { gameId, userId: a, blocksRemaining: blockLimit },
-    { gameId, userId: b, blocksRemaining: blockLimit },
+  const seedPlayers = (
+    gameId: string,
+    blockLimit: number,
+    shuffleLimit: number,
+    a: string,
+    b: string
+  ) => [
+    {
+      gameId,
+      userId: a,
+      blocksRemaining: blockLimit,
+      shufflesRemaining: shuffleLimit,
+    },
+    {
+      gameId,
+      userId: b,
+      blocksRemaining: blockLimit,
+      shufflesRemaining: shuffleLimit,
+    },
   ];
 
   const writeDeck = (gameId: string, picked: Card[]): DeckCard[] => {
@@ -1015,84 +1065,199 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return items;
   };
 
+  const partnerIdOf = (coupleIdUser: string) => {
+    if (!couple) return null;
+    return couple.partnerA === coupleIdUser
+      ? couple.partnerB
+      : couple.partnerA;
+  };
+
+  const exclusiveTurnForStage = (
+    row: GameSession,
+    stage: CardStage | null,
+    fallbackUserId: string
+  ) => {
+    if (stage === "finish_off" && row.finishPickerId) return row.finishPickerId;
+    if (stage === "afterglow" && row.afterglowPickerId) {
+      return row.afterglowPickerId;
+    }
+    return fallbackUserId;
+  };
+
+  const usedCardIdsForGame = (gameId: string) =>
+    new Set(
+      db.deck
+        .filter((item) => item.gameId === gameId)
+        .map((item) => item.cardId)
+    );
+
+  const commitActiveToPlayed = (gameId: string, deckRows: DeckCard[]) =>
+    deckRows.map((item) =>
+      item.gameId === gameId && item.status === "active"
+        ? { ...item, status: "played" as const, playedBy: item.playedBy }
+        : item
+    );
+
+  const advanceAfterPlay = (
+    row: GameSession,
+    deckRows: DeckCard[],
+    justPlayedStage: CardStage,
+    currentUserId: string,
+    passToUserId: string
+  ): Partial<GameSession> => {
+    const stageCounts = normalizeStageCounts(row.stageCounts);
+    const playedInStage = playedCountForStage(deckRows, justPlayedStage);
+    const stageDone = playedInStage >= stageCounts[justPlayedStage];
+
+    if (!stageDone) {
+      return {
+        currentStage: justPlayedStage,
+        turnUserId: exclusiveTurnForStage(row, justPlayedStage, passToUserId),
+        handCardIds: [],
+        awaitingFinishReveal: false,
+      };
+    }
+
+    const next = nextActiveStage(stageCounts, justPlayedStage);
+    if (!next) {
+      return {
+        currentStage: justPlayedStage,
+        turnUserId: null,
+        handCardIds: [],
+        activeCardId: null,
+        activePlayedBy: null,
+        status: "rating",
+      };
+    }
+
+    // Leaving daytime tease → private gate
+    if (
+      justPlayedStage === "pre_foreplay" &&
+      next !== "pre_foreplay" &&
+      !row.privateUnlocked
+    ) {
+      return {
+        currentStage: next,
+        turnUserId: currentUserId,
+        handCardIds: [],
+        activeCardId: null,
+        activePlayedBy: null,
+        awaitingPrivate: true,
+      };
+    }
+
+    // Entering climax stages → suspense reveal for who picks Finish Off
+    if (
+      (next === "finish_off" || next === "afterglow") &&
+      !row.finishPickerId &&
+      !row.afterglowPickerId
+    ) {
+      return {
+        currentStage: next,
+        turnUserId: null,
+        handCardIds: [],
+        activeCardId: null,
+        activePlayedBy: null,
+        awaitingFinishReveal: true,
+      };
+    }
+
+    return {
+      currentStage: next,
+      turnUserId: exclusiveTurnForStage(row, next, passToUserId),
+      handCardIds: [],
+      awaitingFinishReveal: false,
+    };
+  };
+
   const startPlayingPatch = (
     row: GameSession,
     extra: Partial<GameSession>
-  ): GameSession =>
-    sessionFields(row, {
+  ): GameSession => {
+    const stageCounts = normalizeStageCounts(
+      extra.stageCounts ?? row.stageCounts
+    );
+    const opening = firstActiveStage(stageCounts);
+    const needsReveal =
+      opening === "finish_off" || opening === "afterglow";
+    return sessionFields(row, {
       status: "playing",
-      currentStage: STAGE_ORDER[0],
-      turnUserId: row.initiatorId,
+      mode: "deal",
+      currentStage: opening,
+      turnUserId: needsReveal
+        ? null
+        : exclusiveTurnForStage(
+            { ...row, ...extra, finishPickerId: extra.finishPickerId ?? null, afterglowPickerId: extra.afterglowPickerId ?? null } as GameSession,
+            opening,
+            row.initiatorId
+          ),
+      activeCardId: null,
       activePlayedBy: null,
+      handCardIds: [],
+      awaitingFinishReveal: Boolean(needsReveal),
+      finishPickerId: extra.finishPickerId ?? null,
+      afterglowPickerId: extra.afterglowPickerId ?? null,
       awaitingPrivate: false,
-      privateUnlocked: (extra.stageCounts ?? row.stageCounts).pre_foreplay === 0,
+      privateUnlocked: stageCounts.pre_foreplay === 0,
       ...extra,
+      stageCounts,
     });
+  };
 
   const configureGame = useCallback(
     async (input: {
-      mode: GameMode;
       blockLimit: number;
+      shuffleLimit: number;
       stageCounts: StageCounts;
       flavorTags: string[];
     }) => {
       if (!game || !couple?.partnerA || !couple.partnerB) return;
-      const blockLimit = Math.min(3, Math.max(1, input.blockLimit));
+      const blockLimit = normalizePassLimit(input.blockLimit);
+      const shuffleLimit = normalizeShuffleLimit(input.shuffleLimit);
       const stageCounts = normalizeStageCounts(input.stageCounts);
       const flavorTags = normalizeFlavorTags(input.flavorTags);
       if (flavorTags.length === 0) {
         throw new Error("Pick at least one flavor for the deck.");
       }
-      if (input.mode === "random") {
-        const picked = buildRandomDeck(cards, stageCounts, flavorTags);
-        db = {
-          ...db,
-          games: db.games.map((row) =>
-            row.id === game.id
-              ? startPlayingPatch(row, {
-                  mode: input.mode,
-                  blockLimit,
-                  stageCounts,
-                  flavorTags,
-                })
-              : row
-          ),
-          gamePlayers: [
-            ...db.gamePlayers.filter((row) => row.gameId !== game.id),
-            ...seedPlayers(game.id, blockLimit, couple.partnerA, couple.partnerB),
-          ],
-          deck: [
-            ...db.deck.filter((row) => row.gameId !== game.id),
-            ...writeDeck(game.id, picked),
-          ],
-        };
-      } else {
-        db = {
-          ...db,
-          games: db.games.map((row) =>
-            row.id === game.id
-              ? sessionFields(row, {
-                  mode: input.mode,
-                  blockLimit,
-                  stageCounts,
-                  flavorTags,
-                  status: "selecting",
-                  privateUnlocked: stageCounts.pre_foreplay === 0,
-                })
-              : row
-          ),
-          gamePlayers: [
-            ...db.gamePlayers.filter((row) => row.gameId !== game.id),
-            ...seedPlayers(game.id, blockLimit, couple.partnerA, couple.partnerB),
-          ],
-          deck: db.deck.filter((row) => row.gameId !== game.id),
-        };
+      if (totalCardsMissing(stageCounts)) {
+        throw new Error("Turn on at least one stage card.");
       }
+      db = {
+        ...db,
+        games: db.games.map((row) =>
+          row.id === game.id
+            ? startPlayingPatch(row, {
+                mode: "deal",
+                blockLimit,
+                shuffleLimit,
+                stageCounts,
+                flavorTags,
+                finishPickerId: null,
+                afterglowPickerId: null,
+              })
+            : row
+        ),
+        gamePlayers: [
+          ...db.gamePlayers.filter((row) => row.gameId !== game.id),
+          ...seedPlayers(
+            game.id,
+            blockLimit,
+            shuffleLimit,
+            couple.partnerA,
+            couple.partnerB
+          ),
+        ],
+        deck: db.deck.filter((row) => row.gameId !== game.id),
+      };
       await persist();
     },
     [cards, couple, game]
   );
 
+  const totalCardsMissing = (counts: StageCounts) =>
+    STAGE_ORDER.every((stage) => counts[stage] <= 0);
+
+  // Legacy pick-your-own helpers kept for old saves still mid-selecting.
   const toggleDeckPick = useCallback(
     async (cardId: string) => {
       if (!game || game.status !== "selecting") return;
@@ -1121,7 +1286,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               gameId: game.id,
               cardId: card.id,
               stage: card.stage,
-              sortOrder: db.deck.filter((item) => item.gameId === game.id).length,
+              sortOrder: db.deck.filter((item) => item.gameId === game.id)
+                .length,
               status: "queued",
               playedBy: null,
             },
@@ -1136,7 +1302,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const fillPicksRandomly = useCallback(async () => {
     if (!game || game.status !== "selecting") return;
     const selectedIds = new Set(
-      db.deck.filter((item) => item.gameId === game.id).map((item) => item.cardId)
+      db.deck
+        .filter((item) => item.gameId === game.id)
+        .map((item) => item.cardId)
     );
     const remaining: Card[] = [];
     const counts = normalizeStageCounts(game.stageCounts);
@@ -1188,6 +1356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       games: db.games.map((row) =>
         row.id === game.id
           ? startPlayingPatch(row, {
+              mode: "deal",
               currentStage: ordered[0]?.stage ?? null,
               privateUnlocked:
                 ordered.every((item) => item.stage !== "pre_foreplay") ||
@@ -1202,8 +1371,240 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const closeNight = (_gameId: string, hasPlayed: boolean): GameSession["status"] =>
     hasPlayed ? "rating" : "completed";
 
+  const dealHand = useCallback(async () => {
+    if (!game || !user || !couple || game.status !== "playing") return;
+    if (game.awaitingPrivate || game.awaitingFinishReveal) return;
+    const demo = Boolean(partner?.isDemo);
+    if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+      throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
+    }
+    const stage = game.currentStage;
+    if (!stage) return;
+    if (
+      (stage === "finish_off" &&
+        game.finishPickerId &&
+        game.finishPickerId !== user.id &&
+        !demo) ||
+      (stage === "afterglow" &&
+        game.afterglowPickerId &&
+        game.afterglowPickerId !== user.id &&
+        !demo)
+    ) {
+      throw new Error("This stage belongs to your partner.");
+    }
+    if ((game.handCardIds?.length ?? 0) > 0) return;
+
+    let deckRows = db.deck.filter((item) => item.gameId === game.id);
+    // Commit previous active card when the next player deals
+    if (deckRows.some((item) => item.status === "active")) {
+      deckRows = commitActiveToPlayed(game.id, deckRows);
+    }
+
+    const used = new Set(deckRows.map((item) => item.cardId));
+    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    if (dealt.length === 0) {
+      throw new Error("No cards left for this stage. Add more in the bank or change flavors.");
+    }
+
+    db = {
+      ...db,
+      deck: [
+        ...db.deck.filter((item) => item.gameId !== game.id),
+        ...deckRows,
+      ],
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              handCardIds: dealt.map((card) => card.id),
+              activeCardId: null,
+              activePlayedBy: null,
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [cards, couple, game, partner, user]);
+
+  const shuffleHand = useCallback(async () => {
+    if (!game || !user || game.status !== "playing") return;
+    const demo = Boolean(partner?.isDemo);
+    if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+      throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
+    }
+    const stage = game.currentStage;
+    if (!stage) return;
+    const player = db.gamePlayers.find(
+      (row) => row.gameId === game.id && row.userId === user.id
+    );
+    if (!player) return;
+    if (player.shufflesRemaining === 0) {
+      throw new Error("No shuffles left.");
+    }
+    if ((game.handCardIds?.length ?? 0) === 0) {
+      throw new Error("Deal a hand before shuffling.");
+    }
+
+    const used = usedCardIdsForGame(game.id);
+    // Also exclude the current hand so reshuffle feels fresh when possible
+    game.handCardIds.forEach((id) => used.add(id));
+    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    if (dealt.length === 0) {
+      throw new Error("No alternate cards left to shuffle in.");
+    }
+
+    const nextShuffles =
+      player.shufflesRemaining < 0 ? -1 : player.shufflesRemaining - 1;
+
+    db = {
+      ...db,
+      gamePlayers: db.gamePlayers.map((row) =>
+        row.gameId === game.id && row.userId === user.id
+          ? { ...row, shufflesRemaining: nextShuffles }
+          : row
+      ),
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              handCardIds: dealt.map((card) => card.id),
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [cards, game, partner, user]);
+
+  const chooseHandCard = useCallback(
+    async (cardId: string) => {
+      if (!game || !user || !couple || game.status !== "playing") return;
+      const demo = Boolean(partner?.isDemo);
+      if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+        throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
+      }
+      if (!(game.handCardIds ?? []).includes(cardId)) {
+        throw new Error("Pick one of the three dealt cards.");
+      }
+      const card = cards.find((item) => item.id === cardId);
+      if (!card || card.stage !== game.currentStage) {
+        throw new Error("That card is not available right now.");
+      }
+
+      const partnerId = partnerIdOf(user.id);
+      const passTo =
+        partnerId && !demo
+          ? exclusiveTurnForStage(game, game.currentStage, partnerId)
+          : user.id;
+
+      let deckRows = commitActiveToPlayed(
+        game.id,
+        db.deck.filter((item) => item.gameId === game.id)
+      );
+      const maxOrder = deckRows.reduce(
+        (max, item) => Math.max(max, item.sortOrder),
+        -1
+      );
+      const activeRow: DeckCard = {
+        id: createId(),
+        gameId: game.id,
+        cardId: card.id,
+        stage: card.stage,
+        sortOrder: maxOrder + 1,
+        status: "active",
+        playedBy: user.id,
+      };
+      // Count this play toward the stage immediately
+      const countedRows: DeckCard[] = [
+        ...deckRows,
+        { ...activeRow, status: "played" },
+      ];
+      const patch = advanceAfterPlay(
+        game,
+        countedRows,
+        card.stage,
+        user.id,
+        passTo
+      );
+
+      // Keep the chosen card visible as active unless we cleared it for a gate/reveal
+      const keepActive = !patch.awaitingPrivate && !patch.awaitingFinishReveal && patch.status !== "rating";
+      const finalDeck = [
+        ...deckRows,
+        keepActive ? activeRow : { ...activeRow, status: "played" as const },
+      ];
+
+      db = {
+        ...db,
+        deck: [
+          ...db.deck.filter((item) => item.gameId !== game.id),
+          ...finalDeck,
+        ],
+        games: db.games.map((row) =>
+          row.id === game.id
+            ? sessionFields(row, {
+                ...patch,
+                activeCardId: keepActive ? activeRow.id : null,
+                activePlayedBy: keepActive ? user.id : null,
+                handCardIds: [],
+                status: patch.status ?? "playing",
+              })
+            : row
+        ),
+      };
+      await persist();
+    },
+    [cards, couple, game, partner, user]
+  );
+
+  const resolveFinishReveal = useCallback(async () => {
+    if (!game || !couple?.partnerA || !couple.partnerB) return;
+    if (!game.awaitingFinishReveal) return;
+    const pickFinish =
+      Math.random() < 0.5 ? couple.partnerA : couple.partnerB;
+    const pickAfterglow =
+      pickFinish === couple.partnerA ? couple.partnerB : couple.partnerA;
+    const stageCounts = normalizeStageCounts(game.stageCounts);
+    let stage =
+      stageCounts.finish_off > 0
+        ? ("finish_off" as CardStage)
+        : stageCounts.afterglow > 0
+          ? ("afterglow" as CardStage)
+          : null;
+    const turnUserId =
+      stage === "finish_off"
+        ? pickFinish
+        : stage === "afterglow"
+          ? pickAfterglow
+          : null;
+
+    db = {
+      ...db,
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              awaitingFinishReveal: false,
+              finishPickerId: pickFinish,
+              afterglowPickerId: pickAfterglow,
+              currentStage: stage,
+              turnUserId,
+              handCardIds: [],
+              activeCardId: null,
+              activePlayedBy: null,
+              status: stage ? "playing" : closeNight(game.id, true),
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [couple, game]);
+
+  // Kept for older mid-session random decks; deal mode uses chooseHandCard.
   const playCard = useCallback(async () => {
     if (!game || !user || !couple || game.status !== "playing") return;
+    if (game.mode === "deal" || !game.mode) {
+      if ((game.handCardIds?.length ?? 0) === 0) {
+        await dealHand();
+      }
+      return;
+    }
     const demo = Boolean(partner?.isDemo);
     if (!demo && game.turnUserId && game.turnUserId !== user.id) {
       throw new Error(`It's ${profileName(game.turnUserId)}'s turn to play.`);
@@ -1214,7 +1615,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => a.sortOrder - b.sortOrder);
     const active = currentDeck.find((item) => item.status === "active");
     const next = currentDeck.find((item) => item.status === "queued");
-    const partnerId = otherUserId(couple, user.id);
+    const partnerId = partnerIdOf(user.id);
     const passTo = partnerId && !demo ? partnerId : user.id;
     const playedCount = currentDeck.filter((item) => item.status === "played").length;
 
@@ -1247,7 +1648,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...db,
         deck: db.deck.map((item) =>
           active && item.id === active.id
-            ? { ...item, status: "played" as const, playedBy: item.playedBy ?? user.id }
+            ? {
+                ...item,
+                status: "played" as const,
+                playedBy: item.playedBy ?? user.id,
+              }
             : item
         ),
         games: db.games.map((row) =>
@@ -1287,7 +1692,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...db,
       deck: db.deck.map((item) => {
         if (active && item.id === active.id) {
-          return { ...item, status: "played", playedBy: item.playedBy ?? user.id };
+          return {
+            ...item,
+            status: "played",
+            playedBy: item.playedBy ?? user.id,
+          };
         }
         if (next && item.id === next.id) {
           return { ...item, status: "active", playedBy: user.id };
@@ -1307,10 +1716,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [couple, game, partner, user]);
+  }, [couple, dealHand, game, partner, user]);
 
   const unlockPrivate = useCallback(async () => {
     if (!game || !game.awaitingPrivate) return;
+    const stageCounts = normalizeStageCounts(game.stageCounts);
+    const stage = game.currentStage;
+    const needsReveal =
+      (stage === "finish_off" || stage === "afterglow") &&
+      !game.finishPickerId;
+
     db = {
       ...db,
       games: db.games.map((row) =>
@@ -1318,6 +1733,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ? sessionFields(row, {
               awaitingPrivate: false,
               privateUnlocked: true,
+              awaitingFinishReveal: Boolean(needsReveal),
+              turnUserId: needsReveal
+                ? null
+                : exclusiveTurnForStage(row, stage, row.turnUserId ?? row.initiatorId),
+              handCardIds: [],
             })
           : row
       ),
@@ -1329,64 +1749,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!game || !user || game.status !== "playing") return;
     const demo = Boolean(partner?.isDemo);
     if (!demo && game.activePlayedBy && game.activePlayedBy === user.id) {
-      throw new Error("You can't block your own card. That's your partner's call.");
+      throw new Error("You can't pass your own card. That's your partner's call.");
     }
     const player = db.gamePlayers.find(
       (row) => row.gameId === game.id && row.userId === user.id
     );
     if (!player || player.blocksRemaining <= 0) {
-      throw new Error("No block cards left.");
+      throw new Error("No passes left.");
     }
     const currentDeck = db.deck
       .filter((item) => item.gameId === game.id)
       .sort((a, b) => a.sortOrder - b.sortOrder);
     const active = currentDeck.find((item) => item.status === "active");
     if (!active) {
-      throw new Error("Nothing to block yet. Wait until they play.");
+      throw new Error("Nothing to pass on yet. Wait until they play.");
     }
-    const usedIds = new Set(currentDeck.map((item) => item.cardId));
-    const replacement = replacementCard(
-      cards,
-      active.stage,
-      usedIds,
-      game.flavorTags
-    );
-    let nextDeck = db.deck.map((item) =>
+
+    // Mark blocked and give the turn back so they deal a replacement hand.
+    const nextDeck = db.deck.map((item) =>
       item.id === active.id ? { ...item, status: "blocked" as const } : item
     );
-    let activeCardId: string | null = null;
-    let currentStage = active.stage;
-    let activePlayedBy = game.activePlayedBy;
-    if (replacement) {
-      const replacementRow: DeckCard = {
-        id: createId(),
-        gameId: game.id,
-        cardId: replacement.id,
-        stage: active.stage,
-        sortOrder: active.sortOrder + 0.5,
-        status: "active",
-        playedBy: active.playedBy,
-      };
-      nextDeck = [...nextDeck, replacementRow];
-      activeCardId = replacementRow.id;
-    } else {
-      const queued = nextDeck
-        .filter((item) => item.gameId === game.id && item.status === "queued")
-        .sort((a, b) => a.sortOrder - b.sortOrder)[0];
-      if (queued) {
-        nextDeck = nextDeck.map((item) =>
-          item.id === queued.id
-            ? { ...item, status: "active" as const, playedBy: user.id }
-            : item
-        );
-        activeCardId = queued.id;
-        currentStage = queued.stage;
-        activePlayedBy = user.id;
-      }
-    }
-    const remainingPlayed = nextDeck.filter(
-      (item) => item.gameId === game.id && item.status === "played"
-    ).length;
+    const returnTo = active.playedBy ?? game.activePlayedBy ?? game.turnUserId;
+
     db = {
       ...db,
       deck: nextDeck,
@@ -1398,18 +1782,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       games: db.games.map((row) =>
         row.id === game.id
           ? sessionFields(row, {
-              activeCardId,
-              activePlayedBy: activeCardId ? activePlayedBy : null,
-              currentStage: activeCardId ? currentStage : row.currentStage,
-              status: activeCardId
-                ? "playing"
-                : closeNight(game.id, remainingPlayed > 0),
+              activeCardId: null,
+              activePlayedBy: null,
+              handCardIds: [],
+              turnUserId: returnTo,
+              currentStage: active.stage,
+              status: "playing",
             })
           : row
       ),
     };
     await persist();
-  }, [cards, game, partner, user]);
+  }, [game, partner, user]);
 
   const rateCard = useCallback(
     async (cardId: string, stars: number) => {
@@ -2384,6 +2768,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ratings,
     myBlocksRemaining,
     partnerBlocksRemaining,
+    myShufflesRemaining,
+    partnerShufflesRemaining,
     incomingInvite,
     savedPair,
     nights,
@@ -2418,6 +2804,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleDeckPick,
     fillPicksRandomly,
     lockInPicks,
+    dealHand,
+    shuffleHand,
+    chooseHandCard,
+    resolveFinishReveal,
     playCard,
     blockCard,
     unlockPrivate,

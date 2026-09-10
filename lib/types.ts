@@ -10,7 +10,8 @@ export type CardStage = (typeof STAGES)[number];
 
 export type GameKey = "get-spicy" | "lets-talk";
 
-export type GameMode = "random" | "pick_your_own";
+/** Live deal-3 play. Legacy random / pick_your_own may still appear in old saves. */
+export type GameMode = "deal" | "random" | "pick_your_own";
 
 export type GameStatus =
   | "inviting"
@@ -25,6 +26,9 @@ export type GameStatus =
 export type DeckCardStatus = "queued" | "active" | "played" | "blocked";
 
 export type StageCounts = Record<CardStage, number>;
+
+/** Shuffle budget: 0–10, or -1 for unlimited. */
+export type ShuffleLimit = number;
 
 export type Gender = "male" | "female";
 
@@ -72,7 +76,13 @@ export type GameSession = {
   status: GameStatus;
   initiatorId: string;
   mode: GameMode | null;
+  /** Passes each player gets ("I don't participate"). 0–5. */
   blockLimit: number;
+  /**
+   * Shuffles each player gets to redraw their 3-card hand.
+   * 0–10, or -1 for unlimited.
+   */
+  shuffleLimit: ShuffleLimit;
   stageCounts: StageCounts;
   /** Enabled flavor tag ids from Get Spicy setup checkboxes. */
   flavorTags: string[];
@@ -80,6 +90,14 @@ export type GameSession = {
   activeCardId: string | null;
   turnUserId: string | null;
   activePlayedBy: string | null;
+  /** Card ids currently dealt to the turn player (up to 3). */
+  handCardIds: string[];
+  /** Suspense reveal before Finish Off / Afterglow assignment. */
+  awaitingFinishReveal: boolean;
+  /** Who chooses the Finish Off card(s). */
+  finishPickerId: string | null;
+  /** Who chooses the Afterglow card(s). */
+  afterglowPickerId: string | null;
   awaitingPrivate: boolean;
   privateUnlocked: boolean;
   playedDate: string | null;
@@ -90,7 +108,10 @@ export type GameSession = {
 export type GamePlayer = {
   gameId: string;
   userId: string;
+  /** Passes remaining ("I don't participate"). */
   blocksRemaining: number;
+  /** Shuffles remaining; -1 means unlimited. */
+  shufflesRemaining: number;
 };
 
 export type DeckCard = {
