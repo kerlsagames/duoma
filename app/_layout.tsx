@@ -1,9 +1,8 @@
 import "react-native-gesture-handler";
 import { GameInvitationModal } from "@/components/GameInvitationModal";
 import { AppProvider } from "@/lib/store";
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -15,19 +14,6 @@ import "../global.css";
 export { ErrorBoundary } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
-
-const nightTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: "#0B0B0E",
-    card: "#0B0B0E",
-    primary: "#FF007F",
-    text: "#F4F4F6",
-    border: "rgba(255,255,255,0.08)",
-    notification: "#E60039",
-  },
-};
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -48,7 +34,6 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
       <SafeAreaProvider>
         <AppProvider>
-          <ThemeProvider value={nightTheme}>
             <View
               style={{
                 flex: 1,
@@ -83,7 +68,6 @@ export default function RootLayout() {
               </View>
             </View>
             <StatusBar style="light" />
-          </ThemeProvider>
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
