@@ -1,4 +1,5 @@
 import { STAGE_META } from "@/games/get-spicy/engine";
+import { personalizeCard, resolveCardNames, type NamePair } from "@/lib/personalize";
 import type { Card, CardStage, DeckCard } from "@/lib/types";
 import { Text, View } from "react-native";
 
@@ -6,20 +7,25 @@ type Props = {
   stage: CardStage | null;
   active: DeckCard | null;
   card: Card | undefined;
+  names: NamePair;
   progressLabel: string;
   emptyTitle: string;
   emptyBody: string;
+  actorLabel?: string | null;
 };
 
 export function RealtimeCardStage({
   stage,
   active,
   card,
+  names,
   progressLabel,
   emptyTitle,
   emptyBody,
+  actorLabel,
 }: Props) {
   const meta = stage ? STAGE_META[stage] : null;
+  const copy = card ? personalizeCard(card, names) : null;
 
   return (
     <View className="flex-1">
@@ -32,16 +38,16 @@ export function RealtimeCardStage({
 
       <View className="flex-1 justify-center">
         <View className="min-h-[280px] rounded-[28px] border border-neon/30 bg-white/5 p-7">
-          {active && card ? (
+          {active && copy ? (
             <>
               <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
-                Live card
+                {actorLabel ?? "Live card"}
               </Text>
-              <Text className="mt-5 text-[28px] font-bold leading-8 text-mist">
-                {card.title}
+              <Text className="mt-4 text-[15px] font-semibold text-mist/55">
+                {copy.title}
               </Text>
-              <Text className="mt-4 text-[17px] leading-7 text-mist/80">
-                {card.body}
+              <Text className="mt-3 text-[26px] font-bold leading-8 text-mist">
+                {copy.body}
               </Text>
             </>
           ) : (
@@ -61,4 +67,11 @@ export function RealtimeCardStage({
       </View>
     </View>
   );
+}
+
+export function usePreviewNames(
+  userName: string | null | undefined,
+  partnerName: string | null | undefined
+): NamePair {
+  return resolveCardNames({ userName, partnerName });
 }

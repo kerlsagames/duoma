@@ -18,6 +18,7 @@ export type GameStatus =
   | "setup"
   | "selecting"
   | "playing"
+  | "rating"
   | "completed"
   | "cancelled";
 
@@ -72,6 +73,10 @@ export type GameSession = {
   stageCounts: StageCounts;
   currentStage: CardStage | null;
   activeCardId: string | null;
+  turnUserId: string | null;
+  activePlayedBy: string | null;
+  awaitingPrivate: boolean;
+  privateUnlocked: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -92,6 +97,16 @@ export type DeckCard = {
   playedBy: string | null;
 };
 
+export type CardRating = {
+  id: string;
+  coupleId: string;
+  gameId: string;
+  cardId: string;
+  userId: string;
+  stars: number;
+  createdAt: string;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -99,6 +114,7 @@ export type AppDB = {
   games: GameSession[];
   gamePlayers: GamePlayer[];
   deck: DeckCard[];
+  ratings: CardRating[];
 };
 
 export type GameModule = {

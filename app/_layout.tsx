@@ -59,6 +59,7 @@ export default function RootLayout() {
                 <Stack.Screen name="create" />
                 <Stack.Screen name="join" />
                 <Stack.Screen name="waiting" />
+                <Stack.Screen name="how-to" />
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="game" />
               </Stack>

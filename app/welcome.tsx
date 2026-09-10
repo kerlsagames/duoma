@@ -3,9 +3,11 @@ import { Screen } from "@/components/ui/Screen";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
+import { useApp } from "@/lib/store";
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { savedPair, continueAsSaved } = useApp();
 
   return (
     <Screen>
@@ -18,7 +20,7 @@ export default function WelcomeScreen() {
             FUSE
           </Text>
           <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/70">
-            Pair up. Deal the night. Play every card on the same beat.
+            Pair once. Stay paired. Cards that use your names.
           </Text>
         </View>
 
@@ -39,14 +41,37 @@ export default function WelcomeScreen() {
         </View>
 
         <View className="gap-3 pb-4">
+          {savedPair ? (
+            <>
+              <Text className="text-center text-[14px] leading-5 text-mist/60">
+                {savedPair.partner
+                  ? `${savedPair.user.displayName} is still paired with ${savedPair.partner.displayName}. Same code. No new invite.`
+                  : `${savedPair.user.displayName} still has an open invite code.`}
+              </Text>
+              <PrimaryButton
+                label={`Continue as ${savedPair.user.displayName}`}
+                onPress={() => {
+                  void continueAsSaved().then(() => {
+                    router.replace("/");
+                  });
+                }}
+              />
+            </>
+          ) : null}
           <PrimaryButton
-            label="Create your pair"
+            label={savedPair ? "Start a new pair" : "Create your pair"}
+            tone={savedPair ? "ghost" : "neon"}
             onPress={() => router.push("/create")}
           />
           <PrimaryButton
             label="I have a code"
             tone="ghost"
             onPress={() => router.push("/join")}
+          />
+          <PrimaryButton
+            label="How to play"
+            tone="ghost"
+            onPress={() => router.push("/how-to")}
           />
         </View>
       </View>

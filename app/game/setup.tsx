@@ -50,7 +50,8 @@ export default function SetupScreen() {
         <Text className="mt-2 text-[32px] font-bold text-mist">Setup</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
           {partner?.displayName ?? "Your partner"} is on this session with you.
-          Choose how the deck is built, and how many blocks each of you gets.
+          Cards will use both of your names. You take turns playing. A block
+          means they do not participate in the card you just played.
         </Text>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -78,7 +79,7 @@ export default function SetupScreen() {
         </View>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Block cards each
+          Blocks each — I don't participate
         </Text>
         <View className="mt-3 flex-row gap-2">
           {[1, 2, 3].map((value) => (
@@ -128,6 +129,11 @@ export default function SetupScreen() {
             label={mode === "random" ? "Deal the night" : "Choose cards"}
             loading={loading}
             onPress={() => void start()}
+          />
+          <PrimaryButton
+            label="How to play"
+            tone="ghost"
+            onPress={() => router.push("/how-to")}
           />
           <PrimaryButton
             label="Cancel session"

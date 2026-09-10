@@ -8,7 +8,8 @@ Fuse is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_URL
 2. In the SQL editor, run:
    - `supabase/migrations/001_init.sql`
    - `supabase/migrations/002_afterglow.sql` (if 001 was already applied)
-   - `supabase/seed.sql` (450 default Get Spicy cards across 5 stages)
+   - `supabase/migrations/003_turns_ratings.sql`
+   - `supabase/seed.sql` (named-card Get Spicy decks across 5 stages)
 3. Enable Authentication (email, magic link, or Apple/Google).
 4. Copy the project URL and anon key into `.env`:
 
@@ -28,7 +29,7 @@ Invite codes use `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no `0/O/1/I`).
 
 ## Realtime
 
-`couples`, `games`, `game_players`, and `game_deck` are added to `supabase_realtime` with `REPLICA IDENTITY FULL`. Subscribe on `couple_id` to push invites, setup mode, `active_card_id`, and block counts to both devices.
+`couples`, `games`, `game_players`, `game_deck`, and `card_ratings` are added to `supabase_realtime` with `REPLICA IDENTITY FULL`. Subscribe on `couple_id` to push invites, setup mode, `active_card_id`, turns, and block counts to both devices.
 
 ## Seed refresh
 

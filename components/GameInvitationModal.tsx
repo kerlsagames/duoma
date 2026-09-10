@@ -24,8 +24,8 @@ export function GameInvitationModal() {
             Get Spicy tonight?
           </Text>
           <Text className="mt-3 text-center text-[15px] leading-6 text-mist/70">
-            Your partner just sent a live session. Accept to pick a mode, or
-            decline and stay in the night as it is.
+            Your partner sent tonight's game — not a new pair code. Accept to
+            pick a mode, or decline and stay as you are.
           </Text>
           <View className="mt-6 gap-3">
             <PrimaryButton label="Accept" onPress={() => void accept()} />

@@ -45,8 +45,8 @@ export default function WaitingScreen() {
             Send the code
           </Text>
           <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-            Open a second phone — or another browser tab — and join with this
-            code. The moment they land, both of you go live.
+            Open Fuse on a second phone — or another browser tab — and join with
+            this code. You only do this once. After they join, you stay paired.
           </Text>
         </View>
 

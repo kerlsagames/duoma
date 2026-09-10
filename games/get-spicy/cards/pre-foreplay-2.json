@@ -1,52 +1,302 @@
 [
-  { "category": "pre_foreplay", "title": "Smile Tease", "description": "Text your partner asking them to send a 5-second video showing only their smile.", "order": 51 },
-  { "category": "pre_foreplay", "title": "First Garment", "description": "Send a text describing the exact piece of clothing you want them to take off first tonight.", "order": 52 },
-  { "category": "pre_foreplay", "title": "Soundtrack Hint", "description": "Text your partner a song and tell them to listen to the lyrics while thinking of you.", "order": 53 },
-  { "category": "pre_foreplay", "title": "Location Tease", "description": "Send a voice note dropping a hint about what room in the house you want to start in tonight.", "order": 54 },
-  { "category": "pre_foreplay", "title": "Kiss Count", "description": "Text your partner asking them to pick a random number between 1 and 10—that’s how many kisses they owe you the second you walk through the door.", "order": 55 },
-  { "category": "pre_foreplay", "title": "Color Guess", "description": "Send a sneaky text asking them to guess what color underwear you wore today.", "order": 56 },
-  { "category": "pre_foreplay", "title": "Target Practice", "description": "Text your partner a photo of a spot on your body where you want a kiss later.", "order": 57 },
-  { "category": "pre_foreplay", "title": "Wildcard Pass", "description": "Send a text giving them permission to interrupt you once tonight with a passionate kiss, no matter what you are doing.", "order": 58 },
-  { "category": "pre_foreplay", "title": "Single Word", "description": "Text your partner a single naughty word that sums up your mood today.", "order": 59 },
-  { "category": "pre_foreplay", "title": "Waist Boundary", "description": "Send a teaser text telling your partner they aren't allowed to touch your waist until you say so.", "order": 60 },
-  { "category": "pre_foreplay", "title": "Doorway Welcome", "description": "Meet your partner at the front door and give them a 5-second lingering kiss on the lips before saying 'welcome home.'", "order": 61 },
-  { "category": "pre_foreplay", "title": "Jacket Assist", "description": "Gently trace your thumb over their collarbone while helping them take off their jacket or bag.", "order": 62 },
-  { "category": "pre_foreplay", "title": "Kitchen Lean", "description": "Stand next to them while they make coffee or dinner and quietly rest your head on their shoulder for 15 seconds.", "order": 63 },
-  { "category": "pre_foreplay", "title": "Red Light Hold", "description": "Reach across the car console and hold their hand firmly at every red light.", "order": 64 },
-  { "category": "pre_foreplay", "title": "Pocket Pinch", "description": "Walk past your partner and slip your hand into their back pocket for a gentle squeeze.", "order": 65 },
-  { "category": "pre_foreplay", "title": "Counter Contact", "description": "Stand close enough that your hips touch while washing dishes or preparing food.", "order": 66 },
-  { "category": "pre_foreplay", "title": "Hallway Graze", "description": "Lightly graze your fingers down the back of their arm while walking past them in the hallway.", "order": 67 },
-  { "category": "pre_foreplay", "title": "Belt Loop Pull", "description": "Pull your partner in by their belt loops or waistband for a quick, firm kiss.", "order": 68 },
-  { "category": "pre_foreplay", "title": "Face Hold", "description": "Touch the side of their face with both hands and tell them they look incredible today.", "order": 69 },
-  { "category": "pre_foreplay", "title": "Silent Sway", "description": "Hold your partner by the hips and slowly sway together for 30 seconds with no music playing.", "order": 70 },
-  { "category": "pre_foreplay", "title": "Lip Bite Stare", "description": "Bite your bottom lip while looking at them from across the kitchen counter.", "order": 71 },
-  { "category": "pre_foreplay", "title": "Breath on Cheek", "description": "Lean in close, pretend you are going to tell them a secret, and just breathe gently onto their cheek.", "order": 72 },
-  { "category": "pre_foreplay", "title": "Silent Demand", "description": "Catch their eye, point to your lips, and point to them—demanding a kiss without speaking.", "order": 73 },
-  { "category": "pre_foreplay", "title": "Secret Smile", "description": "Look at your partner, smile slowly, and shake your head like you’re holding back a secret.", "order": 74 },
-  { "category": "pre_foreplay", "title": "Lip Glance", "description": "Pause mid-sentence while talking, look down at their lips, then look back up into their eyes before continuing.", "order": 75 },
-  { "category": "pre_foreplay", "title": "Warm Look", "description": "Give your partner a warm, lingering look, then slowly tilt your head and smile.", "order": 76 },
-  { "category": "pre_foreplay", "title": "Ear Confession", "description": "Whisper 'I've been distracted by you all afternoon' right against their ear.", "order": 77 },
-  { "category": "pre_foreplay", "title": "Seated Collarbone", "description": "Stand behind them while they are seated and rest both hands lightly on their collarbones.", "order": 78 },
-  { "category": "pre_foreplay", "title": "Outfitter Rule", "description": "Rule: The initiator gets to choose what both of you wear for the next hour.", "order": 79 },
-  { "category": "pre_foreplay", "title": "Screen Blackout", "description": "Rule: Neither of you can use your phone for the next 30 minutes—only focus on each other.", "order": 80 },
-  { "category": "pre_foreplay", "title": "Room Transit", "description": "Rule: You must hold hands every time you move from one room to another for the rest of the evening.", "order": 81 },
-  { "category": "pre_foreplay", "title": "Kneeling Drink", "description": "Pour your partner a cold glass of water or a warm drink and serve it to them on your knees.", "order": 82 },
-  { "category": "pre_foreplay", "title": "Mood Lighting", "description": "Turn off all main overhead lighting and switch to warm lamps or candlelight only.", "order": 83 },
-  { "category": "pre_foreplay", "title": "Quick Foot Rub", "description": "Give your partner a slow 2-minute foot rub while they relax on the couch.", "order": 84 },
-  { "category": "pre_foreplay", "title": "Pamper Check", "description": "Ask your partner: 'What's one small thing I can do tonight to make you feel completely pampered?'", "order": 85 },
-  { "category": "pre_foreplay", "title": "Room Temp Shift", "description": "Put on a slow, ambient playlist and set the room temperature to cozy.", "order": 86 },
-  { "category": "pre_foreplay", "title": "Initial Trace", "description": "Trace your initial onto their forearm with your fingertip and make them guess what you wrote.", "order": 87 },
-  { "category": "pre_foreplay", "title": "Cold Metal Trace", "description": "Tell your partner to close their eyes while you lightly run a cold silver spoon down their arm.", "order": 88 },
-  { "category": "pre_foreplay", "title": "Mirror Note", "description": "Write a romantic or playful note on their bathroom mirror using a dry-erase marker or lip balm.", "order": 89 },
-  { "category": "pre_foreplay", "title": "Stress Reduction", "description": "Ask your partner to rate their stress level from 1 to 10 and give them a massage until it drops by two points.", "order": 90 },
-  { "category": "pre_foreplay", "title": "Sweet Bite", "description": "Feed your partner a sweet treat (like a piece of chocolate or fruit) while holding their eyes locked with yours.", "order": 91 },
-  { "category": "pre_foreplay", "title": "Trio Kisses", "description": "Give your partner three gentle kisses—one on the forehead, one on the tip of the nose, and one on the lips.", "order": 92 },
-  { "category": "pre_foreplay", "title": "Two Buttons", "description": "Unbutton just the top two buttons of your partner's shirt, then step back.", "order": 93 },
-  { "category": "pre_foreplay", "title": "Day Catchup", "description": "Trace your finger around their earlobe while asking them about the best part of their day.", "order": 94 },
-  { "category": "pre_foreplay", "title": "Lap Rest", "description": "Sit next to your partner on the couch and rest your legs across their lap.", "order": 95 },
-  { "category": "pre_foreplay", "title": "Balm Application", "description": "Gently apply lip balm to your partner's lips using your finger.", "order": 96 },
-  { "category": "pre_foreplay", "title": "Palmed Kiss", "description": "Kiss the palm of their hand, close their fingers into a fist, and say 'keep that for later.'", "order": 97 },
-  { "category": "pre_foreplay", "title": "Knee Rest", "description": "Rest your hand gently on their knee while watching TV or chatting.", "order": 98 },
-  { "category": "pre_foreplay", "title": "Synced Breath", "description": "Stand face-to-face and take five slow, deep breaths in unison.", "order": 99 },
-  { "category": "pre_foreplay", "title": "Bedroom Summon", "description": "Walk up, whisper 'You're mine tonight,' and walk into the bedroom.", "order": 100 }
+  {
+    "category": "pre_foreplay",
+    "title": "Smile Tease",
+    "description": "{player}, text {partner} asking them to send a 5-second video showing only their smile.",
+    "order": 51
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "First Garment",
+    "description": "{player}, send a text describing the exact piece of clothing you want them to take off first tonight.",
+    "order": 52
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Soundtrack Hint",
+    "description": "{player}, text {partner} a song and tell them to listen to the lyrics while thinking of you.",
+    "order": 53
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Location Tease",
+    "description": "{player}, send a voice note dropping a hint about what room in the house you want to start in tonight.",
+    "order": 54
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Kiss Count",
+    "description": "{player}, text {partner} asking them to pick a random number between 1 and 10—that’s how many kisses they owe you the second you walk through the door.",
+    "order": 55
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Color Guess",
+    "description": "{player}, send a sneaky text asking them to guess what color underwear you wore today.",
+    "order": 56
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Target Practice",
+    "description": "{player}, text {partner} a photo of a spot on your body where you want a kiss later.",
+    "order": 57
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Wildcard Pass",
+    "description": "{player}, send a text giving them permission to interrupt you once tonight with a passionate kiss, no matter what you are doing.",
+    "order": 58
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Single Word",
+    "description": "{player}, text {partner} a single naughty word that sums up your mood today.",
+    "order": 59
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Waist Boundary",
+    "description": "{player}, send a teaser text telling {partner} they aren't allowed to touch your waist until you say so.",
+    "order": 60
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Doorway Welcome",
+    "description": "{player}, meet {partner} at the front door and give them a 5-second lingering kiss on the lips before saying 'welcome home.'.",
+    "order": 61
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Jacket Assist",
+    "description": "{player}, gently trace your thumb over their collarbone while helping them take off their jacket or bag.",
+    "order": 62
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Kitchen Lean",
+    "description": "{player}, stand next to them while they make coffee or dinner and quietly rest your head on their shoulder for 15 seconds.",
+    "order": 63
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Red Light Hold",
+    "description": "{player}, reach across the car console and hold their hand firmly at every red light.",
+    "order": 64
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Pocket Pinch",
+    "description": "{player}, walk past {partner} and slip your hand into their back pocket for a gentle squeeze.",
+    "order": 65
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Counter Contact",
+    "description": "{player}, stand close enough that your hips touch while washing dishes or preparing food.",
+    "order": 66
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Hallway Graze",
+    "description": "{player}, lightly graze your fingers down the back of their arm while walking past them in the hallway.",
+    "order": 67
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Belt Loop Pull",
+    "description": "{player}, pull {partner} in by their belt loops or waistband for a quick, firm kiss.",
+    "order": 68
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Face Hold",
+    "description": "{player}, touch the side of their face with both hands and tell them they look incredible today.",
+    "order": 69
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Silent Sway",
+    "description": "{player}, hold {partner} by the hips and slowly sway together for 30 seconds with no music playing.",
+    "order": 70
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Lip Bite Stare",
+    "description": "{player}, bite your bottom lip while looking at them from across the kitchen counter.",
+    "order": 71
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Breath on Cheek",
+    "description": "{player}, lean in close, pretend you are going to tell them a secret, and just breathe gently onto their cheek.",
+    "order": 72
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Silent Demand",
+    "description": "{player}, catch their eye, point to your lips, and point to them—demanding a kiss without speaking.",
+    "order": 73
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Secret Smile",
+    "description": "{player}, look at {partner}, smile slowly, and shake your head like you’re holding back a secret.",
+    "order": 74
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Lip Glance",
+    "description": "{player}, pause mid-sentence while talking, look down at their lips, then look back up into their eyes before continuing.",
+    "order": 75
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Warm Look",
+    "description": "{player}, give {partner} a warm, lingering look, then slowly tilt your head and smile.",
+    "order": 76
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Ear Confession",
+    "description": "{player}, whisper 'I've been distracted by you all afternoon' right against their ear.",
+    "order": 77
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Seated Collarbone",
+    "description": "{player}, stand behind them while they are seated and rest both hands lightly on their collarbones.",
+    "order": 78
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Outfitter Rule",
+    "description": "{player}, rule: The initiator gets to choose what both of you wear for the next hour.",
+    "order": 79
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Screen Blackout",
+    "description": "{player}, rule: Neither of you can use your phone for the next 30 minutes—only focus on each other.",
+    "order": 80
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Room Transit",
+    "description": "{player}, rule: You must hold hands every time you move from one room to another for the rest of the evening.",
+    "order": 81
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Kneeling Drink",
+    "description": "{player}, pour {partner} a cold glass of water or a warm drink and serve it to them on your knees.",
+    "order": 82
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Mood Lighting",
+    "description": "{player}, turn off all main overhead lighting and switch to warm lamps or candlelight only.",
+    "order": 83
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Quick Foot Rub",
+    "description": "{player}, give {partner} a slow 2-minute foot rub while they relax on the couch.",
+    "order": 84
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Pamper Check",
+    "description": "{player}, ask {partner}: 'What's one small thing I can do tonight to make you feel completely pampered?'.",
+    "order": 85
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Room Temp Shift",
+    "description": "{player}, put on a slow, ambient playlist and set the room temperature to cozy.",
+    "order": 86
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Initial Trace",
+    "description": "{player}, trace your initial onto their forearm with your fingertip and make them guess what you wrote.",
+    "order": 87
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Cold Metal Trace",
+    "description": "{player}, tell {partner} to close their eyes while you lightly run a cold silver spoon down their arm.",
+    "order": 88
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Mirror Note",
+    "description": "{player}, write a romantic or playful note on their bathroom mirror using a dry-erase marker or lip balm.",
+    "order": 89
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Stress Reduction",
+    "description": "{player}, ask {partner} to rate their stress level from 1 to 10 and give them a massage until it drops by two points.",
+    "order": 90
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Sweet Bite",
+    "description": "{player}, feed {partner} a sweet treat (like a piece of chocolate or fruit) while holding their eyes locked with yours.",
+    "order": 91
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Trio Kisses",
+    "description": "{player}, give {partner} three gentle kisses—one on the forehead, one on the tip of the nose, and one on the lips.",
+    "order": 92
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Two Buttons",
+    "description": "{player}, unbutton just the top two buttons of {partner}'s shirt, then step back.",
+    "order": 93
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Day Catchup",
+    "description": "{player}, trace your finger around their earlobe while asking them about the best part of their day.",
+    "order": 94
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Lap Rest",
+    "description": "{player}, sit next to {partner} on the couch and rest your legs across their lap.",
+    "order": 95
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Balm Application",
+    "description": "{player}, gently apply lip balm to {partner}'s lips using your finger.",
+    "order": 96
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Palmed Kiss",
+    "description": "{player}, kiss the palm of their hand, close their fingers into a fist, and say 'keep that for later.'.",
+    "order": 97
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Knee Rest",
+    "description": "{player}, rest your hand gently on their knee while watching TV or chatting.",
+    "order": 98
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Synced Breath",
+    "description": "{player}, stand face-to-face and take five slow, deep breaths in unison.",
+    "order": 99
+  },
+  {
+    "category": "pre_foreplay",
+    "title": "Bedroom Summon",
+    "description": "{player}, walk up, whisper 'You're mine tonight,' and walk into the bedroom.",
+    "order": 100
+  }
 ]

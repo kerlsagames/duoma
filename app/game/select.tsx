@@ -1,6 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
 import { useRouter } from "expo-router";
@@ -9,13 +10,14 @@ import { Pressable, Text, View } from "react-native";
 
 export default function SelectScreen() {
   const router = useRouter();
-  const { game, cards, deck, toggleDeckPick, fillPicksRandomly, lockInPicks } =
+  const { game, cards, deck, toggleDeckPick, fillPicksRandomly, lockInPicks, user, partner } =
     useApp();
   const [stage, setStage] = useState<CardStage>("pre_foreplay");
 
   useEffect(() => {
     if (!game) router.replace("/(tabs)");
-    else if (game.status === "playing") router.replace("/game/play");
+    else if (game.status === "playing" || game.status === "rating")
+      router.replace("/game/play");
     else if (game.status === "setup") router.replace("/game/setup");
   }, [game, router]);
 
@@ -31,6 +33,10 @@ export default function SelectScreen() {
       deck.filter((item) => item.stage === key).length ===
       (game?.stageCounts[key] ?? 0)
   );
+  const names = resolveCardNames({
+    userName: user?.displayName,
+    partnerName: partner?.displayName,
+  });
 
   return (
     <Screen scroll>
@@ -40,8 +46,9 @@ export default function SelectScreen() {
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Build the deck</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          Both of you see the same bank. Tap cards up to the limit for each
-          stage. The night starts when the counts are locked.
+          Both of you see the same bank, already filled in with your names. The
+          person who later plays a card is named first. Tap up to the limit for
+          each stage.
         </Text>
 
         <View className="mt-5 flex-row flex-wrap gap-2">
@@ -75,6 +82,7 @@ export default function SelectScreen() {
         <View className="mt-3 gap-3">
           {stageCards.map((card) => {
             const on = selectedIds.has(card.id);
+            const copy = personalizeCard(card, names);
             return (
               <Pressable
                 key={card.id}
@@ -83,11 +91,11 @@ export default function SelectScreen() {
                   on ? "border-neon bg-neon/15" : "border-white/10 bg-white/5"
                 }`}
               >
-                <Text className="text-[16px] font-semibold text-mist">
-                  {card.title}
+                <Text className="text-[15px] font-semibold text-mist/70">
+                  {copy.title}
                 </Text>
-                <Text className="mt-1 text-[14px] leading-5 text-mist/70">
-                  {card.body}
+                <Text className="mt-1 text-[15px] leading-6 text-mist">
+                  {copy.body}
                 </Text>
               </Pressable>
             );

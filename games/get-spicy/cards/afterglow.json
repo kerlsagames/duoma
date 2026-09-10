@@ -1,52 +1,518 @@
 [
-  { "category": "afterglow", "title": "Three-Minute Lock", "description": "Immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.", "order": 1 },
-  { "category": "afterglow", "title": "Chest Heartbeat", "description": "Rest your head directly over your partner's chest and listen to their heartbeat slow down.", "order": 2 },
-  { "category": "afterglow", "title": "Water Delivery", "description": "Bring your partner a fresh, cold glass of water and hold it for them while they drink.", "order": 3 },
-  { "category": "afterglow", "title": "Warm Towel Care", "description": "Use a warm, damp towel to gently clean and care for your partner.", "order": 4 },
-  { "category": "afterglow", "title": "No-Screen Snuggle", "description": "Set a 30-minute timer, pull the covers up, and snuggle with zero phones or screens.", "order": 5 },
-  { "category": "afterglow", "title": "Ten Facial Kisses", "description": "Hold your partner's face in your hands and give them ten soft kisses across their forehead and cheeks.", "order": 6 },
-  { "category": "afterglow", "title": "Peaceful Hair Stroke", "description": "Gently stroke your partner's hair while breathing together in total peace.", "order": 7 },
-  { "category": "afterglow", "title": "Favorite Moment Query", "description": "Ask your partner: 'What was your absolute favorite moment or card from tonight?'", "order": 8 },
-  { "category": "afterglow", "title": "Lazy Back Circles", "description": "Trace light, lazy circles on your partner's back or shoulder while they relax against you.", "order": 9 },
-  { "category": "afterglow", "title": "Three Love Declarations", "description": "Whisper three sincere things you deeply love about your relationship.", "order": 10 },
-  { "category": "afterglow", "title": "Interlocked Recovery", "description": "Lay side-by-side holding hands with interlocked fingers until your heart rates slow down.", "order": 11 },
-  { "category": "afterglow", "title": "Body Comfort Scale", "description": "Ask your partner: 'How does your body feel right now on a scale of 1 to 10?'", "order": 12 },
-  { "category": "afterglow", "title": "Stomach Lower Back Rub", "description": "Give your partner a slow, gentle lower back rub while they rest on their stomach.", "order": 13 },
-  { "category": "afterglow", "title": "Shoulder Head Rest", "description": "Pull your partner's head onto your shoulder and wrap both arms tightly around them.", "order": 14 },
-  { "category": "afterglow", "title": "Nose Kiss Gratitude", "description": "Kiss the tip of your partner's nose and say, 'Thank you for tonight.'", "order": 15 },
-  { "category": "afterglow", "title": "Stomach Initial Trace", "description": "Lightly trace your initials onto your partner's stomach with your fingertip.", "order": 16 },
-  { "category": "afterglow", "title": "Repeat Wish", "description": "Ask your partner: 'Is there anything we did tonight that you'd love to repeat next time?'", "order": 17 },
-  { "category": "afterglow", "title": "Palms Over Hearts", "description": "Place your palm flat over your partner's heart and let them place theirs over yours.", "order": 18 },
-  { "category": "afterglow", "title": "Five Silent Minutes", "description": "Keep the lights dim, close your eyes, and cuddle in complete silence for 5 minutes.", "order": 19 },
-  { "category": "afterglow", "title": "Rear Spoon Kisses", "description": "Kiss your partner's neck and shoulders while spooning them from behind.", "order": 20 },
-  { "category": "afterglow", "title": "Foot Tension Release", "description": "Softly massage your partner's feet or calves to release any lingering physical tension.", "order": 21 },
-  { "category": "afterglow", "title": "Playful Memory Share", "description": "Share one sweet or funny thought that popped into your head while playing tonight.", "order": 22 },
-  { "category": "afterglow", "title": "Warm Blanket Burrito", "description": "Wrap your partner up like a burrito in a warm blanket and pull them close.", "order": 23 },
-  { "category": "afterglow", "title": "Temple Kiss & Hair Brush", "description": "Brush stray hair away from your partner's forehead and press a long kiss to their temple.", "order": 24 },
-  { "category": "afterglow", "title": "Surprise Card Inquiry", "description": "Ask your partner: 'Which card surprised you the most tonight?'", "order": 25 },
-  { "category": "afterglow", "title": "Chest Waist Lock", "description": "Lay chest-to-chest with your arms locked around each other's waist for 5 minutes.", "order": 26 },
-  { "category": "afterglow", "title": "Wrist Kiss to Cheek", "description": "Kiss your partner's inner wrist and hold their hand against your cheek.", "order": 27 },
-  { "category": "afterglow", "title": "Desired Praise", "description": "Tell your partner one specific way they made you feel desired tonight.", "order": 28 },
-  { "category": "afterglow", "title": "Cozy Clothes Fetch", "description": "Offer to grab your partner a cozy shirt or hoodie to slip into.", "order": 29 },
-  { "category": "afterglow", "title": "Tent Kiss", "description": "Pull the blanket over both of your heads and share one deep, slow kiss in your private tent.", "order": 30 },
-  { "category": "afterglow", "title": "Shoulder Squeezes", "description": "Take turns giving each other three gentle shoulder squeezes.", "order": 31 },
-  { "category": "afterglow", "title": "Collarbone Skim", "description": "Lightly run your fingertips over your partner's collarbones while looking into their eyes.", "order": 32 },
-  { "category": "afterglow", "title": "Future Plan Question", "description": "Ask your partner: 'What is one goal or trip you want us to plan together soon?'", "order": 33 },
-  { "category": "afterglow", "title": "Pinky Lip Outline", "description": "Trace the outline of your partner's lips with your pinky finger.", "order": 34 },
-  { "category": "afterglow", "title": "Scented Hand Rub", "description": "Give your partner a slow 2-minute hand massage using scented hand lotion.", "order": 35 },
-  { "category": "afterglow", "title": "Knee Stroke", "description": "Rest your leg across your partner's lap and let them gently stroke your knee.", "order": 36 },
-  { "category": "afterglow", "title": "Early Relationship Memory", "description": "Whisper a favorite memory from early on in your relationship.", "order": 37 },
-  { "category": "afterglow", "title": "One Song Breath Sync", "description": "Put on a single, ultra-relaxing song and focus only on feeling each other breathe.", "order": 38 },
-  { "category": "afterglow", "title": "Final Soft Bite", "description": "Softly bite your partner's lower lip one last time, followed by a sweet kiss.", "order": 39 },
-  { "category": "afterglow", "title": "Relaxation Scale", "description": "Ask your partner to rate their current relaxation level from 1 to 10.", "order": 40 },
-  { "category": "afterglow", "title": "Front-to-Back Comb", "description": "Gently comb your fingers through your partner's hair from front to back.", "order": 41 },
-  { "category": "afterglow", "title": "Knuckle Kisses", "description": "Hold your partner's hand and kiss every single one of their knuckles.", "order": 42 },
-  { "category": "afterglow", "title": "Full Weight Rest", "description": "Lay back and let your partner rest their full weight on top of you for a cozy minute.", "order": 43 },
-  { "category": "afterglow", "title": "Smile Inquiry", "description": "Ask your partner: 'What made you smile the most during our game?'", "order": 44 },
-  { "category": "afterglow", "title": "Thermal Breath Warmup", "description": "Lightly blow cold air on your partner's neck, then warm it back up with a kiss.", "order": 45 },
-  { "category": "afterglow", "title": "Seated Stretch Assist", "description": "Offer your partner a quick neck and shoulder stretch while sitting up together.", "order": 46 },
-  { "category": "afterglow", "title": "Three-Point Kiss Trail", "description": "Give your partner three slow kisses: one on the chin, one on the lip, and one on the forehead.", "order": 47 },
-  { "category": "afterglow", "title": "Lucky Ear Whisper", "description": "Hold your partner close and whisper 'I'm so lucky to have you' into their ear.", "order": 48 },
-  { "category": "afterglow", "title": "Staring Contest", "description": "Lay side-by-side facing each other and just hold eye contact until one of you blinks.", "order": 49 },
-  { "category": "afterglow", "title": "Tuck In Sleep", "description": "Tuck the blanket around your partner's shoulders and hold them tight until they drift off.", "order": 50 }
+  {
+    "category": "afterglow",
+    "title": "Three-Minute Lock",
+    "description": "{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",
+    "order": 1
+  },
+  {
+    "category": "afterglow",
+    "title": "Chest Heartbeat",
+    "description": "{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",
+    "order": 2
+  },
+  {
+    "category": "afterglow",
+    "title": "Water Delivery",
+    "description": "{player}, bring {partner} a fresh, cold glass of water and hold it for them while they drink.",
+    "order": 3
+  },
+  {
+    "category": "afterglow",
+    "title": "Warm Towel Care",
+    "description": "{player}, use a warm, damp towel to gently clean and care for {partner}.",
+    "order": 4
+  },
+  {
+    "category": "afterglow",
+    "title": "No-Screen Snuggle",
+    "description": "{player}, set a 30-minute timer, pull the covers up, and snuggle with zero phones or screens.",
+    "order": 5
+  },
+  {
+    "category": "afterglow",
+    "title": "Ten Facial Kisses",
+    "description": "{player}, hold {partner}'s face in your hands and give them ten soft kisses across their forehead and cheeks.",
+    "order": 6
+  },
+  {
+    "category": "afterglow",
+    "title": "Peaceful Hair Stroke",
+    "description": "{player}, gently stroke {partner}'s hair while breathing together in total peace.",
+    "order": 7
+  },
+  {
+    "category": "afterglow",
+    "title": "Favorite Moment Query",
+    "description": "{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",
+    "order": 8
+  },
+  {
+    "category": "afterglow",
+    "title": "Lazy Back Circles",
+    "description": "{player}, trace light, lazy circles on {partner}'s back or shoulder while they relax against you.",
+    "order": 9
+  },
+  {
+    "category": "afterglow",
+    "title": "Three Love Declarations",
+    "description": "{player}, whisper three sincere things you deeply love about your relationship.",
+    "order": 10
+  },
+  {
+    "category": "afterglow",
+    "title": "Interlocked Recovery",
+    "description": "{player}, lay side-by-side holding hands with interlocked fingers until your heart rates slow down.",
+    "order": 11
+  },
+  {
+    "category": "afterglow",
+    "title": "Body Comfort Scale",
+    "description": "{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",
+    "order": 12
+  },
+  {
+    "category": "afterglow",
+    "title": "Stomach Lower Back Rub",
+    "description": "{player}, give {partner} a slow, gentle lower back rub while they rest on their stomach.",
+    "order": 13
+  },
+  {
+    "category": "afterglow",
+    "title": "Shoulder Head Rest",
+    "description": "{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",
+    "order": 14
+  },
+  {
+    "category": "afterglow",
+    "title": "Nose Kiss Gratitude",
+    "description": "{player}, kiss the tip of {partner}'s nose and say, 'Thank you for tonight.'.",
+    "order": 15
+  },
+  {
+    "category": "afterglow",
+    "title": "Stomach Initial Trace",
+    "description": "{player}, lightly trace your initials onto {partner}'s stomach with your fingertip.",
+    "order": 16
+  },
+  {
+    "category": "afterglow",
+    "title": "Repeat Wish",
+    "description": "{player}, ask {partner}: 'Is there anything we did tonight that you'd love to repeat next time?'.",
+    "order": 17
+  },
+  {
+    "category": "afterglow",
+    "title": "Palms Over Hearts",
+    "description": "{player}, place your palm flat over {partner}'s heart and let them place theirs over yours.",
+    "order": 18
+  },
+  {
+    "category": "afterglow",
+    "title": "Five Silent Minutes",
+    "description": "{player}, keep the lights dim, close your eyes, and cuddle in complete silence for 5 minutes.",
+    "order": 19
+  },
+  {
+    "category": "afterglow",
+    "title": "Rear Spoon Kisses",
+    "description": "{player}, kiss {partner}'s neck and shoulders while spooning them from behind.",
+    "order": 20
+  },
+  {
+    "category": "afterglow",
+    "title": "Foot Tension Release",
+    "description": "{player}, softly massage {partner}'s feet or calves to release any lingering physical tension.",
+    "order": 21
+  },
+  {
+    "category": "afterglow",
+    "title": "Playful Memory Share",
+    "description": "{player}, share one sweet or funny thought that popped into your head while playing tonight.",
+    "order": 22
+  },
+  {
+    "category": "afterglow",
+    "title": "Warm Blanket Burrito",
+    "description": "{player}, wrap {partner} up like a burrito in a warm blanket and pull them close.",
+    "order": 23
+  },
+  {
+    "category": "afterglow",
+    "title": "Temple Kiss & Hair Brush",
+    "description": "{player}, brush stray hair away from {partner}'s forehead and press a long kiss to their temple.",
+    "order": 24
+  },
+  {
+    "category": "afterglow",
+    "title": "Surprise Card Inquiry",
+    "description": "{player}, ask {partner}: 'Which card surprised you the most tonight?'.",
+    "order": 25
+  },
+  {
+    "category": "afterglow",
+    "title": "Chest Waist Lock",
+    "description": "{player}, lay chest-to-chest with your arms locked around each other's waist for 5 minutes.",
+    "order": 26
+  },
+  {
+    "category": "afterglow",
+    "title": "Wrist Kiss to Cheek",
+    "description": "{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",
+    "order": 27
+  },
+  {
+    "category": "afterglow",
+    "title": "Desired Praise",
+    "description": "{player}, tell {partner} one specific way they made you feel desired tonight.",
+    "order": 28
+  },
+  {
+    "category": "afterglow",
+    "title": "Cozy Clothes Fetch",
+    "description": "{player}, offer to grab {partner} a cozy shirt or hoodie to slip into.",
+    "order": 29
+  },
+  {
+    "category": "afterglow",
+    "title": "Tent Kiss",
+    "description": "{player}, pull the blanket over both of your heads and share one deep, slow kiss in your private tent.",
+    "order": 30
+  },
+  {
+    "category": "afterglow",
+    "title": "Shoulder Squeezes",
+    "description": "{player}, take turns giving each other three gentle shoulder squeezes.",
+    "order": 31
+  },
+  {
+    "category": "afterglow",
+    "title": "Collarbone Skim",
+    "description": "{player}, lightly run your fingertips over {partner}'s collarbones while looking into their eyes.",
+    "order": 32
+  },
+  {
+    "category": "afterglow",
+    "title": "Future Plan Question",
+    "description": "{player}, ask {partner}: 'What is one goal or trip you want us to plan together soon?'.",
+    "order": 33
+  },
+  {
+    "category": "afterglow",
+    "title": "Pinky Lip Outline",
+    "description": "{player}, trace the outline of {partner}'s lips with your pinky finger.",
+    "order": 34
+  },
+  {
+    "category": "afterglow",
+    "title": "Scented Hand Rub",
+    "description": "{player}, give {partner} a slow 2-minute hand massage using scented hand lotion.",
+    "order": 35
+  },
+  {
+    "category": "afterglow",
+    "title": "Knee Stroke",
+    "description": "{player}, rest your leg across {partner}'s lap and let them gently stroke your knee.",
+    "order": 36
+  },
+  {
+    "category": "afterglow",
+    "title": "Early Relationship Memory",
+    "description": "{player}, whisper a favorite memory from early on in your relationship.",
+    "order": 37
+  },
+  {
+    "category": "afterglow",
+    "title": "One Song Breath Sync",
+    "description": "{player}, put on a single, ultra-relaxing song and focus only on feeling each other breathe.",
+    "order": 38
+  },
+  {
+    "category": "afterglow",
+    "title": "Final Soft Bite",
+    "description": "{player}, softly bite {partner}'s lower lip one last time, followed by a sweet kiss.",
+    "order": 39
+  },
+  {
+    "category": "afterglow",
+    "title": "Relaxation Scale",
+    "description": "{player}, ask {partner} to rate their current relaxation level from 1 to 10.",
+    "order": 40
+  },
+  {
+    "category": "afterglow",
+    "title": "Front-to-Back Comb",
+    "description": "{player}, gently comb your fingers through {partner}'s hair from front to back.",
+    "order": 41
+  },
+  {
+    "category": "afterglow",
+    "title": "Knuckle Kisses",
+    "description": "{player}, hold {partner}'s hand and kiss every single one of their knuckles.",
+    "order": 42
+  },
+  {
+    "category": "afterglow",
+    "title": "Full Weight Rest",
+    "description": "{player}, lay back and let {partner} rest their full weight on top of you for a cozy minute.",
+    "order": 43
+  },
+  {
+    "category": "afterglow",
+    "title": "Smile Inquiry",
+    "description": "{player}, ask {partner}: 'What made you smile the most during our game?'.",
+    "order": 44
+  },
+  {
+    "category": "afterglow",
+    "title": "Thermal Breath Warmup",
+    "description": "{player}, lightly blow cold air on {partner}'s neck, then warm it back up with a kiss.",
+    "order": 45
+  },
+  {
+    "category": "afterglow",
+    "title": "Seated Stretch Assist",
+    "description": "{player}, offer {partner} a quick neck and shoulder stretch while sitting up together.",
+    "order": 46
+  },
+  {
+    "category": "afterglow",
+    "title": "Three-Point Kiss Trail",
+    "description": "{player}, give {partner} three slow kisses: one on the chin, one on the lip, and one on the forehead.",
+    "order": 47
+  },
+  {
+    "category": "afterglow",
+    "title": "Lucky Ear Whisper",
+    "description": "{player}, hold {partner} close and whisper 'I'm so lucky to have you' into their ear.",
+    "order": 48
+  },
+  {
+    "category": "afterglow",
+    "title": "Staring Contest",
+    "description": "{player}, lay side-by-side facing each other and just hold eye contact until one of you blinks.",
+    "order": 49
+  },
+  {
+    "category": "afterglow",
+    "title": "Tuck In Sleep",
+    "description": "{player}, tuck the blanket around {partner}'s shoulders and hold them tight until they drift off.",
+    "order": 50
+  },
+  {
+    "category": "afterglow",
+    "title": "Linger Pulse",
+    "description": "{player}, after climax, remain completely still and connected for 60 seconds without moving.",
+    "order": 51
+  },
+  {
+    "category": "afterglow",
+    "title": "Afterglow Hug",
+    "description": "{player}, immediately wrap both arms and legs around partner in a tight embrace post-climax.",
+    "order": 52
+  },
+  {
+    "category": "afterglow",
+    "title": "Whispered Thanks",
+    "description": "{player}, whisper three heartfelt, intimate thank-yous directly against {partner}'s ear after finishing.",
+    "order": 53
+  },
+  {
+    "category": "afterglow",
+    "title": "Chest Rest",
+    "description": "{player}, lay your head directly over {partner}'s heart and listen to their heartbeat slow down.",
+    "order": 54
+  },
+  {
+    "category": "afterglow",
+    "title": "Hair Stroke Afterglow",
+    "description": "{player}, slowly stroke {partner}'s hair while breathing together in total silence for 2 minutes.",
+    "order": 55
+  },
+  {
+    "category": "afterglow",
+    "title": "Soft Kisses Only",
+    "description": "{player}, cover {partner}'s face and eyes with gentle, soft kisses after the intensity drops.",
+    "order": 56
+  },
+  {
+    "category": "afterglow",
+    "title": "Hydration Service",
+    "description": "{player}, bring {partner} a cold glass of water and hold it for them as they drink.",
+    "order": 57
+  },
+  {
+    "category": "afterglow",
+    "title": "Cuddle Lock",
+    "description": "{player}, pull covers up and hold partner close in full spooning position with no phones for 10 minutes.",
+    "order": 58
+  },
+  {
+    "category": "afterglow",
+    "title": "Immediate Stillness",
+    "description": "{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",
+    "order": 59
+  },
+  {
+    "category": "afterglow",
+    "title": "Heart Listen Shift",
+    "description": "{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",
+    "order": 60
+  },
+  {
+    "category": "afterglow",
+    "title": "Hydration Rescue",
+    "description": "{player}, bring {partner} a fresh, cold glass of water and help them drink it.",
+    "order": 61
+  },
+  {
+    "category": "afterglow",
+    "title": "Warm Damp Wipe",
+    "description": "{player}, use a warm, damp towel to gently clean and care for {partner}.",
+    "order": 62
+  },
+  {
+    "category": "afterglow",
+    "title": "30-Min Snuggle Timer",
+    "description": "{player}, put on a soft 30-minute timer, pull the covers up, and snuggle without any phones or distractions.",
+    "order": 63
+  },
+  {
+    "category": "afterglow",
+    "title": "Silent Hair Stroke",
+    "description": "{player}, gently stroke {partner}'s hair while breathing together in total peace.",
+    "order": 64
+  },
+  {
+    "category": "afterglow",
+    "title": "Favorite Moment Ask",
+    "description": "{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",
+    "order": 65
+  },
+  {
+    "category": "afterglow",
+    "title": "Three Love Qualities",
+    "description": "{player}, whisper three sincere things you love about your relationship while holding them close.",
+    "order": 66
+  },
+  {
+    "category": "afterglow",
+    "title": "Side Hand Lock",
+    "description": "{player}, lay side-by-side holding hands with your fingers interlocked until your breathing normalizes.",
+    "order": 67
+  },
+  {
+    "category": "afterglow",
+    "title": "Body Sensation Rating",
+    "description": "{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",
+    "order": 68
+  },
+  {
+    "category": "afterglow",
+    "title": "Lower Back Soothe",
+    "description": "{player}, give {partner} a slow, gentle lower back rub while they lie on their stomach.",
+    "order": 69
+  },
+  {
+    "category": "afterglow",
+    "title": "Shoulder Pillow Hug",
+    "description": "{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",
+    "order": 70
+  },
+  {
+    "category": "afterglow",
+    "title": "Nose Kiss Thanks",
+    "description": "{player}, kiss the tip of {partner}'s nose and say 'thank you for tonight.'.",
+    "order": 71
+  },
+  {
+    "category": "afterglow",
+    "title": "Stomach Initial",
+    "description": "{player}, lightly trace your initial onto their stomach while you cool down together.",
+    "order": 72
+  },
+  {
+    "category": "afterglow",
+    "title": "Future Repeat Question",
+    "description": "{player}, ask {partner}: 'Is there anything special you'd like to try again next time we play?'.",
+    "order": 73
+  },
+  {
+    "category": "afterglow",
+    "title": "Mutual Heart Palms",
+    "description": "{player}, place your hand flat over {partner}'s heart and let them place theirs over yours.",
+    "order": 74
+  },
+  {
+    "category": "afterglow",
+    "title": "Dim Silent Cuddle",
+    "description": "{player}, keep the lights dim, close your eyes, and just cuddle in total silence for 5 minutes.",
+    "order": 75
+  },
+  {
+    "category": "afterglow",
+    "title": "Spooned Neck Kisses",
+    "description": "{player}, gently kiss {partner}'s shoulders and neck while spooning from behind.",
+    "order": 76
+  },
+  {
+    "category": "afterglow",
+    "title": "Calf Release",
+    "description": "{player}, softly massage {partner}'s feet or calves to release any remaining tension.",
+    "order": 77
+  },
+  {
+    "category": "afterglow",
+    "title": "Funny Mid-Game Thought",
+    "description": "{player}, share one funny or sweet thought that popped into your head during the game.",
+    "order": 78
+  },
+  {
+    "category": "afterglow",
+    "title": "Blanket Burrito",
+    "description": "{player}, wrap {partner} up like a burrito in a warm blanket and give them a huge hug.",
+    "order": 79
+  },
+  {
+    "category": "afterglow",
+    "title": "Temple Kiss Wipe",
+    "description": "{player}, gently wipe away any stray hair from {partner}'s sweaty forehead and kiss their temple.",
+    "order": 80
+  },
+  {
+    "category": "afterglow",
+    "title": "Surprise Card Ask",
+    "description": "{player}, ask {partner} to name one card from tonight that surprised them the most.",
+    "order": 81
+  },
+  {
+    "category": "afterglow",
+    "title": "Chest-to-Chest Lock",
+    "description": "{player}, lay chest-to-chest with your arms around each other's waist for 5 uninterrupted minutes.",
+    "order": 82
+  },
+  {
+    "category": "afterglow",
+    "title": "Wrist Kiss Cheek",
+    "description": "{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",
+    "order": 83
+  },
+  {
+    "category": "afterglow",
+    "title": "Desire Praise",
+    "description": "{player}, tell {partner} one specific way they made you feel deeply loved or desired tonight.",
+    "order": 84
+  },
+  {
+    "category": "afterglow",
+    "title": "Hoodie Fetch",
+    "description": "{player}, offer to get {partner} a cozy shirt or hoodie to slip into.",
+    "order": 85
+  },
+  {
+    "category": "afterglow",
+    "title": "Blanket Fort Finale",
+    "description": "{player}, lock arms, pull the blanket over your heads, and share one final deep kiss before falling asleep.",
+    "order": 86
+  }
 ]

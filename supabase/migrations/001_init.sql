@@ -22,6 +22,7 @@ do $$ begin
     'setup',
     'selecting',
     'playing',
+    'rating',
     'completed',
     'cancelled'
   );

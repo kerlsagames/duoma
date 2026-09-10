@@ -1,6 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
 import { useMemo, useState } from "react";
@@ -14,18 +15,29 @@ import {
 } from "react-native";
 
 export default function CardBankScreen() {
-  const { cards, toggleCardActive, addCustomCard } = useApp();
+  const { cards, toggleCardActive, addCustomCard, user, partner, ratings } =
+    useApp();
   const [stage, setStage] = useState<CardStage>("pre_foreplay");
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const names = resolveCardNames({
+    userName: user?.displayName,
+    partnerName: partner?.displayName,
+  });
 
   const visible = useMemo(
     () => cards.filter((card) => card.stage === stage),
     [cards, stage]
   );
   const activeCount = visible.filter((card) => card.isActive).length;
+
+  const avgFor = (cardId: string) => {
+    const votes = ratings.filter((row) => row.cardId === cardId);
+    if (!votes.length) return null;
+    return votes.reduce((sum, row) => sum + row.stars, 0) / votes.length;
+  };
 
   const save = async () => {
     setError(null);
@@ -47,8 +59,9 @@ export default function CardBankScreen() {
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Card Bank</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          Full default decks in every stage. Toggle what you want in rotation, or
-          write your own.
+          Every card names you and {partner?.displayName ?? "your partner"}. The
+          person who plays it is named first. Toggle what stays in rotation, or
+          write your own with {"{player}"} and {"{partner}"}.
         </Text>
 
         <View className="mt-5 flex-row flex-wrap gap-2">
@@ -93,37 +106,42 @@ export default function CardBankScreen() {
               </Text>
             </View>
           ) : (
-            visible.map((card) => (
-              <View
-                key={card.id}
-                className="rounded-3xl border border-white/10 bg-white/5 p-4"
-              >
-                <View className="flex-row items-start justify-between gap-3">
-                  <View className="flex-1">
-                    <Text className="text-[11px] font-semibold uppercase tracking-widest text-crimson">
-                      {card.isDefault ? "Default" : "Custom"} · {card.sortOrder}
-                    </Text>
-                    <Text className="mt-1 text-[17px] font-semibold text-mist">
-                      {card.title}
-                    </Text>
-                    <Text className="mt-2 text-[14px] leading-5 text-mist/70">
-                      {card.body}
-                    </Text>
-                  </View>
-                  <View className="items-center">
-                    <Text className="mb-1 text-[10px] uppercase tracking-widest text-mist/40">
-                      {card.isActive ? "On" : "Off"}
-                    </Text>
-                    <Switch
-                      value={card.isActive}
-                      onValueChange={() => void toggleCardActive(card.id)}
-                      trackColor={{ false: "#2A2A30", true: "#FF007F" }}
-                      thumbColor="#F4F4F6"
-                    />
+            visible.map((card) => {
+              const copy = personalizeCard(card, names);
+              const avg = avgFor(card.id);
+              return (
+                <View
+                  key={card.id}
+                  className="rounded-3xl border border-white/10 bg-white/5 p-4"
+                >
+                  <View className="flex-row items-start justify-between gap-3">
+                    <View className="flex-1">
+                      <Text className="text-[11px] font-semibold uppercase tracking-widest text-crimson">
+                        {card.isDefault ? "Default" : "Custom"}
+                        {avg ? ` · ${avg.toFixed(1)}★` : ""}
+                      </Text>
+                      <Text className="mt-1 text-[15px] font-semibold text-mist/70">
+                        {copy.title}
+                      </Text>
+                      <Text className="mt-2 text-[16px] leading-6 text-mist">
+                        {copy.body}
+                      </Text>
+                    </View>
+                    <View className="items-center">
+                      <Text className="mb-1 text-[10px] uppercase tracking-widest text-mist/40">
+                        {card.isActive ? "On" : "Off"}
+                      </Text>
+                      <Switch
+                        value={card.isActive}
+                        onValueChange={() => void toggleCardActive(card.id)}
+                        trackColor={{ false: "#2A2A30", true: "#FF007F" }}
+                        thumbColor="#F4F4F6"
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </View>
@@ -137,17 +155,21 @@ export default function CardBankScreen() {
             <Text className="mt-2 text-[24px] font-bold text-mist">
               New custom card
             </Text>
+            <Text className="mt-2 text-[14px] leading-5 text-mist/60">
+              Use {"{player}"} for whoever plays it and {"{partner}"} for the
+              other name. Example: {"{player}, finish {partner} off with oral."}
+            </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="Title"
+              placeholder="Short title"
               placeholderTextColor="rgba(244,244,246,0.35)"
               className="mt-5 h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
             />
             <TextInput
               value={body}
               onChangeText={setBody}
-              placeholder="What should they do?"
+              placeholder="{player}, finish {partner} off with oral."
               placeholderTextColor="rgba(244,244,246,0.35)"
               multiline
               className="mt-3 min-h-[120px] rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[16px] text-mist"
