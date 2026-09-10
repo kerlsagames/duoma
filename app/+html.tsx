@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export default function Root({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -14,14 +14,18 @@ export default function Root({ children }: { children: ReactNode }) {
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
-      <body>{children}</body>
+      <body className="dark">{children}</body>
     </html>
   );
 }
 
 const responsiveBackground = `
 html, body, #root {
-  background-color: #0B0B0E;
+  background-color: #050507;
   color: #F4F4F6;
+  height: 100%;
+}
+html {
+  color-scheme: dark;
 }
 `;
