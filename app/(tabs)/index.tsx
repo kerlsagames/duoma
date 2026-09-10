@@ -64,12 +64,10 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll>
-      <View className="pt-1 pb-2">
+      <View className="pt-1 pb-8">
         <View className="mb-3 items-center pt-1">
           <DuomaLogo size={44} />
         </View>
-
-        <CurrentStatus onStartSpicy={() => void startSpicy()} />
 
         {loading ? (
           <Text className="mb-2 text-center text-[12px] text-neon">Lighting it up…</Text>
@@ -96,6 +94,8 @@ export default function HomeScreen() {
             />
           ))}
         </View>
+
+        <CurrentStatus onStartSpicy={() => void startSpicy()} />
       </View>
     </Screen>
   );
