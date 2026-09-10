@@ -25,9 +25,9 @@ const STEPS = [
     body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
   },
   {
-    kicker: "Us",
-    title: "The couple account",
-    body: "Us is the shared record: daily check-in, curiosity question, calendar, countdowns, desire matches, coupons, scratch-offs, the appreciation jar, and the date-night list. Sign out does not delete the pair.",
+    kicker: "Home",
+    title: "It's a home screen of apps",
+    body: "The Spicy Game is a whole day leading to a steamy conclusion. Talk to me is the conversation packs. Check-in, curiosity, calendar, desire, coupons, scratch-offs, the jar, and date night each have their own app icon. Sign out does not delete the pair.",
   },
   {
     kicker: "iPhone",

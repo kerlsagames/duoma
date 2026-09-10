@@ -25,7 +25,7 @@ export function HubScreen({ kicker, title, body, children }: Props) {
         ) : null}
         <View className="mt-6">{children}</View>
         <View className="mt-8">
-          <PrimaryButton label="Back to Us" tone="ghost" onPress={() => router.back()} />
+          <PrimaryButton label="Home" tone="ghost" onPress={() => router.back()} />
         </View>
       </View>
     </Screen>

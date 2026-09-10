@@ -7,43 +7,43 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#0B0B0E",
-          borderTopColor: "rgba(255,255,255,0.08)",
+          backgroundColor: "#07070A",
+          borderTopColor: "rgba(255,0,127,0.35)",
           height: 64,
           paddingBottom: 8,
           paddingTop: 8,
+          shadowColor: "#FF007F",
+          shadowOpacity: 0.35,
+          shadowRadius: 16,
         },
         tabBarActiveTintColor: "#FF007F",
-        tabBarInactiveTintColor: "rgba(244,244,246,0.4)",
+        tabBarInactiveTintColor: "rgba(244,244,246,0.38)",
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "600",
-          letterSpacing: 0.6,
+          fontWeight: "700",
+          letterSpacing: 0.4,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Tonight",
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame" color={color} size={size} />
+            <Ionicons name="grid" color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
         name="us"
         options={{
-          title: "Us",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" color={color} size={size} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="cards"
         options={{
-          title: "Card Bank",
+          title: "Cards",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="albums" color={color} size={size} />
           ),

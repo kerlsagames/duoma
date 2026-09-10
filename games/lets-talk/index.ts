@@ -2,7 +2,7 @@ import type { GameModule } from "@/lib/types";
 
 export const letsTalkGame: GameModule = {
   key: "lets-talk",
-  title: "Let's Talk",
-  tagline: "Prompts that get you closer — launching next.",
+  title: "Talk to me",
+  tagline: "Heat, us, or a dare — read it out loud.",
   available: false,
 };

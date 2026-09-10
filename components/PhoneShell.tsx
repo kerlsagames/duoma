@@ -48,9 +48,9 @@ export function PhoneShell({ children }: Props) {
           backgroundColor: "#0B0B0E",
           overflow: "hidden",
           shadowColor: "#FF007F",
-          shadowOpacity: 0.18,
-          shadowRadius: 40,
-          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: 0.28,
+          shadowRadius: 48,
+          shadowOffset: { width: 0, height: 10 },
         }}
       >
         <View

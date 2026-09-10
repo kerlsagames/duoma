@@ -56,13 +56,17 @@ export function PrimaryButton({
         colors={colors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={{
-          height: 52,
-          borderRadius: 18,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: disabled || loading ? 0.55 : 1,
-        }}
+          style={{
+            height: 52,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: disabled || loading ? 0.55 : 1,
+            shadowColor: "#FF007F",
+            shadowOpacity: 0.55,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 0 },
+          }}
       >
         {loading ? (
           <ActivityIndicator color="#F4F4F6" />

@@ -16,11 +16,17 @@ export default function WelcomeScreen() {
           <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
             Couples
           </Text>
-          <Text className="mt-4 text-[52px] font-bold tracking-tight text-mist">
+          <Text
+            className="mt-4 text-[52px] font-black tracking-tight text-mist"
+            style={{
+              textShadowColor: "rgba(255,0,127,0.85)",
+              textShadowRadius: 24,
+            }}
+          >
             DUOMA
           </Text>
-          <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/70">
-            Pair once. Stay paired. Cards that use your names.
+          <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/80">
+            Two phones. One heat. Pair once — stay paired.
           </Text>
         </View>
 
@@ -29,13 +35,15 @@ export default function WelcomeScreen() {
             colors={["#1A0810", "#0B0B0E"]}
             style={{ padding: 22 }}
           >
-            <Text className="text-[13px] font-semibold uppercase tracking-[2px] text-crimson">
-              Tonight's game
+            <Text className="text-[13px] font-semibold uppercase tracking-[2px] text-neon">
+              The Spicy Game
             </Text>
-            <Text className="mt-2 text-[24px] font-bold text-mist">Get Spicy</Text>
-            <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-              Five stages, two phones, one live deck. Tease through the day.
-              Close the night in afterglow.
+            <Text className="mt-2 text-[24px] font-bold text-mist">
+              A whole day. A steamy close.
+            </Text>
+            <Text className="mt-2 text-[15px] leading-6 text-mist/70">
+              Tease through daylight. Unlock private time together. Finish loud.
+              Afterglow after.
             </Text>
           </LinearGradient>
         </View>

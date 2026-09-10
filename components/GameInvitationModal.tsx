@@ -21,7 +21,7 @@ export function GameInvitationModal() {
             Incoming
           </Text>
           <Text className="mt-3 text-center text-[28px] font-bold text-mist">
-            Get Spicy tonight?
+            The Spicy Game. Tonight?
           </Text>
           <Text className="mt-3 text-center text-[15px] leading-6 text-mist/70">
             Your partner sent tonight's game — not a new pair code. Accept to

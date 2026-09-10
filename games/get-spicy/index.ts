@@ -2,8 +2,8 @@ import type { GameModule } from "@/lib/types";
 
 export const getSpicyGame: GameModule = {
   key: "get-spicy",
-  title: "Get Spicy",
-  tagline: "Take turns. Cards that use your names. Tease all day, then go private.",
+  title: "The Spicy Game",
+  tagline: "A whole day leading to a steamy conclusion.",
   available: true,
 };
 
