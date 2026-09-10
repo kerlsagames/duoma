@@ -150,10 +150,12 @@ export function buildHomeNotifications(input: {
     const bits: string[] = [];
     const tonight =
       partnerCheckIn.tonight === "yes"
-        ? "Hell yeh"
-        : partnerCheckIn.tonight === "no"
-          ? "Nah not today"
-          : null;
+        ? "Hell yeah"
+        : partnerCheckIn.tonight === "maybe"
+          ? "We're on"
+          : partnerCheckIn.tonight === "no"
+            ? "Nah, not feeling it today"
+            : null;
     if (tonight) bits.push(tonight);
     if (partnerCheckIn.mood) bits.push(moodMeta(partnerCheckIn.mood).label);
     if (partnerCheckIn.energy != null) bits.push(`energy ${partnerCheckIn.energy}`);

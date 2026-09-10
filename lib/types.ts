@@ -127,7 +127,7 @@ export type TodayNeed =
 
 export type DesireGauge = "off" | "medium" | "high" | "hot";
 
-export type TonightSex = "yes" | "no";
+export type TonightSex = "yes" | "maybe" | "no";
 
 export type CheckInMetricKey =
   | "tonight"

@@ -9,9 +9,9 @@ import {
   loveTankLabel,
   MOODS,
   partnerHint,
-  TONIGHT_SEX,
   SOCIAL_BATTERY,
   TODAY_NEEDS,
+  TONIGHT_SEX,
 } from "@/lib/hub";
 import { useApp } from "@/lib/store";
 import type {
@@ -23,7 +23,13 @@ import type {
   TonightSex,
 } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import { Pressable, Switch, Text, View } from "react-native";
 
 function Gauge({
@@ -39,7 +45,9 @@ function Gauge({
         <Pressable
           key={n}
           onPress={() => onChange(n)}
-          className={`h-6 flex-1 rounded-md ${n <= value ? "bg-neon" : "bg-white/10"}`}
+          className={`h-6 flex-1 rounded-md ${
+            n <= value ? "bg-neon" : "bg-white/10"
+          }`}
         />
       ))}
     </View>
@@ -58,21 +66,33 @@ function Choice<T extends string>({
   columns?: 1 | 2;
 }) {
   return (
-    <View className={`mt-2 flex-row flex-wrap ${columns === 2 ? "justify-between" : ""}`}>
+    <View
+      className={`mt-2 flex-row flex-wrap ${
+        columns === 2 ? "justify-between" : ""
+      }`}
+    >
       {options.map((item) => {
         const on = item.id === value;
         return (
           <Pressable
             key={item.id}
             onPress={() => onChange(item.id)}
-            className={`${columns === 2 ? "mb-2 w-[48%]" : "mb-2 w-full"} rounded-xl border p-2.5 ${
+            className={`${
+              columns === 2 ? "mb-2 w-[48%]" : "mb-2 w-full"
+            } rounded-xl border p-2.5 ${
               on ? "border-neon bg-neon/20" : "border-white/10 bg-white/5"
             }`}
           >
-            <Text className={`text-[12px] font-semibold ${on ? "text-mist" : "text-mist/80"}`}>
+            <Text
+              className={`text-[12px] font-semibold ${
+                on ? "text-mist" : "text-mist/80"
+              }`}
+            >
               {item.title}
             </Text>
-            <Text className="mt-0.5 text-[11px] leading-4 text-mist/55">{item.detail}</Text>
+            <Text className="mt-0.5 text-[11px] leading-4 text-mist/55">
+              {item.detail}
+            </Text>
           </Pressable>
         );
       })}
@@ -96,7 +116,9 @@ function MetricCard({
   return (
     <View
       className={`mb-3 rounded-2xl border p-4 ${
-        enabled ? "border-neon/40 bg-night" : "border-white/10 bg-white/5 opacity-60"
+        enabled
+          ? "border-neon/40 bg-night"
+          : "border-white/10 bg-white/5 opacity-60"
       }`}
     >
       <View className="flex-row items-center justify-between">
@@ -134,20 +156,20 @@ export default function CheckInScreen() {
   );
 
   const [mode, setMode] = useState<"checkin" | "request">("checkin");
-  const [simple, setSimple] = useState(true);
-  const [tonight, setTonight] = useState<TonightSex | null>(null);
+  const [loveOn, setLoveOn] = useState(false);
   const [batteryOn, setBatteryOn] = useState(false);
   const [moodOn, setMoodOn] = useState(false);
-  const [loveOn, setLoveOn] = useState(false);
   const [socialOn, setSocialOn] = useState(false);
   const [needOn, setNeedOn] = useState(false);
   const [spicyOn, setSpicyOn] = useState(false);
+  const [simpleOn, setSimpleOn] = useState(false);
+  const [loveTank, setLoveTank] = useState(0);
   const [energy, setEnergy] = useState(0);
   const [mood, setMood] = useState<MoodWeather | null>(null);
-  const [loveTank, setLoveTank] = useState(0);
   const [socialBattery, setSocialBattery] = useState<SocialBattery | null>(null);
   const [todayNeed, setTodayNeed] = useState<TodayNeed | null>(null);
   const [desireGauge, setDesireGauge] = useState<DesireGauge | null>(null);
+  const [tonight, setTonight] = useState<TonightSex | null>(null);
   const [requested, setRequested] = useState<CheckInMetricKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -156,61 +178,69 @@ export default function CheckInScreen() {
 
   useEffect(() => {
     if (!myCheckIn) return;
+    setLoveOn(myCheckIn.loveTank != null);
     setBatteryOn(myCheckIn.energy != null);
     setMoodOn(myCheckIn.mood != null);
-    setLoveOn(myCheckIn.loveTank != null);
     setSocialOn(myCheckIn.socialBattery != null);
     setNeedOn(myCheckIn.todayNeed != null);
     setSpicyOn(myCheckIn.desireGauge != null);
-    setTonight(myCheckIn.tonight);
-    const extras =
-      myCheckIn.energy != null ||
-      myCheckIn.mood != null ||
-      myCheckIn.loveTank != null ||
-      myCheckIn.socialBattery != null ||
-      myCheckIn.todayNeed != null ||
-      myCheckIn.desireGauge != null;
-    setSimple(!extras);
-    if (myCheckIn.energy != null) setEnergy(myCheckIn.energy);
-    if (myCheckIn.mood) setMood(myCheckIn.mood === "bright" ? "sunny" : myCheckIn.mood);
+    setSimpleOn(myCheckIn.tonight != null);
     if (myCheckIn.loveTank != null) setLoveTank(myCheckIn.loveTank);
+    if (myCheckIn.energy != null) setEnergy(myCheckIn.energy);
+    if (myCheckIn.mood) {
+      setMood(myCheckIn.mood === "bright" ? "sunny" : myCheckIn.mood);
+    }
     if (myCheckIn.socialBattery) setSocialBattery(myCheckIn.socialBattery);
     if (myCheckIn.todayNeed) setTodayNeed(myCheckIn.todayNeed);
     if (myCheckIn.desireGauge) setDesireGauge(myCheckIn.desireGauge);
+    if (myCheckIn.tonight) setTonight(myCheckIn.tonight);
   }, [myCheckIn]);
 
   useEffect(() => {
     if (!incomingCheckInRequest || myCheckIn) return;
     const keys = new Set(incomingCheckInRequest.metrics);
+    if (keys.has("loveTank")) setLoveOn(true);
     if (keys.has("battery")) setBatteryOn(true);
     if (keys.has("mood")) setMoodOn(true);
-    if (keys.has("loveTank")) setLoveOn(true);
     if (keys.has("socialBattery")) setSocialOn(true);
     if (keys.has("todayNeed")) setNeedOn(true);
     if (keys.has("desireGauge")) setSpicyOn(true);
-    const wantsDetail = incomingCheckInRequest.metrics.some((key) => key !== "tonight");
-    if (wantsDetail) setSimple(false);
+    if (keys.has("tonight")) setSimpleOn(true);
   }, [incomingCheckInRequest, myCheckIn]);
 
   const requestedLabels = useMemo(() => {
     if (!incomingCheckInRequest) return [];
     return incomingCheckInRequest.metrics.map(
-      (key) => CHECK_IN_METRIC_META.find((item) => item.key === key)?.label ?? key
+      (key) =>
+        CHECK_IN_METRIC_META.find((item) => item.key === key)?.label ?? key
     );
   }, [incomingCheckInRequest]);
 
+  const canSave =
+    (loveOn && loveTank > 0) ||
+    (batteryOn && energy > 0) ||
+    (moodOn && mood != null) ||
+    (socialOn && socialBattery != null) ||
+    (needOn && todayNeed != null) ||
+    (spicyOn && desireGauge != null) ||
+    (simpleOn && tonight != null);
+
   const save = async () => {
     setError(null);
+    if (!canSave) {
+      setError("Toggle on at least one area and fill it in.");
+      return;
+    }
     setSaving(true);
     try {
       await submitCheckIn({
-        energy: !simple && batteryOn && energy > 0 ? energy : null,
-        mood: !simple && moodOn ? mood : null,
-        loveTank: !simple && loveOn && loveTank > 0 ? loveTank : null,
-        socialBattery: !simple && socialOn ? socialBattery : null,
-        todayNeed: !simple && needOn ? todayNeed : null,
-        desireGauge: !simple && spicyOn ? desireGauge : null,
-        tonight,
+        energy: batteryOn && energy > 0 ? energy : null,
+        mood: moodOn ? mood : null,
+        loveTank: loveOn && loveTank > 0 ? loveTank : null,
+        socialBattery: socialOn ? socialBattery : null,
+        todayNeed: needOn ? todayNeed : null,
+        desireGauge: spicyOn ? desireGauge : null,
+        tonight: simpleOn ? tonight : null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not share");
@@ -240,16 +270,13 @@ export default function CheckInScreen() {
   };
 
   return (
-    <HubScreen
-      kicker="Check-in"
-      title="Are we fucking today?"
-      body="Hell yeh or nah. Keep it simple, or add how you're actually doing."
-    >
+    <HubScreen kicker="Check-in" title="Daily Check in">
       <View className="mb-5 flex-row rounded-2xl bg-white/5 p-1">
         <Pressable
           onPress={() => setMode("checkin")}
-          className={`flex-1 items-center rounded-xl py-2.5 ${mode === "checkin" ? "bg-neon" : ""}`}
-          style={{ cursor: "pointer" }}
+          className={`flex-1 items-center rounded-xl py-2.5 ${
+            mode === "checkin" ? "bg-neon" : ""
+          }`}
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -261,8 +288,9 @@ export default function CheckInScreen() {
         </Pressable>
         <Pressable
           onPress={() => setMode("request")}
-          className={`flex-1 items-center rounded-xl py-2.5 ${mode === "request" ? "bg-neon" : ""}`}
-          style={{ cursor: "pointer" }}
+          className={`flex-1 items-center rounded-xl py-2.5 ${
+            mode === "request" ? "bg-neon" : ""
+          }`}
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -287,69 +315,6 @@ export default function CheckInScreen() {
             </View>
           ) : null}
 
-          <View className="mb-4 flex-row rounded-2xl border border-white/10 bg-white/5 p-1">
-            <Pressable
-              onPress={() => setSimple(true)}
-              className={`flex-1 items-center rounded-xl py-2.5 ${simple ? "bg-neon" : ""}`}
-            >
-              <Text
-                className={`text-[13px] font-semibold ${
-                  simple ? "text-night" : "text-mist/55"
-                }`}
-              >
-                Keep it simple
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setSimple(false)}
-              className={`flex-1 items-center rounded-xl py-2.5 ${!simple ? "bg-neon" : ""}`}
-            >
-              <Text
-                className={`text-[13px] font-semibold ${
-                  !simple ? "text-night" : "text-mist/55"
-                }`}
-              >
-                More detail
-              </Text>
-            </Pressable>
-          </View>
-
-          <View className="mb-4 flex-row gap-2">
-            {TONIGHT_SEX.map((option) => {
-              const on = tonight === option.id;
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => setTonight(option.id)}
-                  className={`flex-1 rounded-3xl border px-3 py-5 ${
-                    on
-                      ? option.id === "yes"
-                        ? "border-neon bg-neon"
-                        : "border-white/30 bg-white/15"
-                      : "border-white/10 bg-white/5"
-                  }`}
-                >
-                  <Text
-                    className={`text-center text-[18px] font-bold ${
-                      on && option.id === "yes" ? "text-night" : "text-mist"
-                    }`}
-                  >
-                    {option.title}
-                  </Text>
-                  <Text
-                    className={`mt-1 text-center text-[12px] leading-4 ${
-                      on && option.id === "yes" ? "text-night/70" : "text-mist/55"
-                    }`}
-                  >
-                    {option.detail}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {!simple ? (
-            <>
           <Text className="mb-3 text-center text-[12px] text-mist/50">
             Toggle on only the areas you want to share right now.
           </Text>
@@ -370,7 +335,9 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="battery-charging-outline"
-            title={`Battery / energy${batteryOn && energy > 0 ? ` (${energy}/10)` : ""}`}
+            title={`Battery / energy${
+              batteryOn && energy > 0 ? ` (${energy}/10)` : ""
+            }`}
             enabled={batteryOn}
             onToggle={() => setBatteryOn((v) => !v)}
           >
@@ -450,17 +417,35 @@ export default function CheckInScreen() {
               onChange={setDesireGauge}
             />
           </MetricCard>
-            </>
-          ) : null}
+
+          <MetricCard
+            icon="sparkles-outline"
+            title="Keep it simple"
+            enabled={simpleOn}
+            onToggle={() => setSimpleOn((v) => !v)}
+          >
+            <Choice
+              options={TONIGHT_SEX.map((item) => ({
+                id: item.id,
+                title: item.title,
+                detail: item.detail,
+              }))}
+              value={tonight}
+              onChange={setTonight}
+              columns={1}
+            />
+          </MetricCard>
 
           {error && mode === "checkin" ? (
-            <Text className="mb-3 text-center text-[13px] text-crimson">{error}</Text>
+            <Text className="mb-3 text-center text-[13px] text-crimson">
+              {error}
+            </Text>
           ) : null}
 
           <PrimaryButton
             label={myCheckIn ? "Update my check-in" : "Share my check-in"}
             loading={saving}
-            disabled={tonight == null}
+            disabled={!canSave}
             onPress={() => void save()}
           />
         </View>
@@ -481,7 +466,9 @@ export default function CheckInScreen() {
               >
                 <View className="flex-1 flex-row items-center pr-3">
                   <Ionicons name={item.icon} size={20} color="#FF007F" />
-                  <Text className="ml-3 text-[15px] font-semibold text-mist">{item.label}</Text>
+                  <Text className="ml-3 text-[15px] font-semibold text-mist">
+                    {item.label}
+                  </Text>
                 </View>
                 <Text
                   className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${
@@ -496,7 +483,9 @@ export default function CheckInScreen() {
             );
           })}
           {error && mode === "request" ? (
-            <Text className="mb-3 text-center text-[13px] text-crimson">{error}</Text>
+            <Text className="mb-3 text-center text-[13px] text-crimson">
+              {error}
+            </Text>
           ) : null}
           <PrimaryButton
             label="Send request"
@@ -507,7 +496,8 @@ export default function CheckInScreen() {
           />
           {sent ? (
             <Text className="mt-3 text-center text-[13px] text-neon">
-              Request sent. It'll ping their lock screen if notifications are on.
+              Request sent. It'll ping their lock screen if notifications are
+              on.
             </Text>
           ) : null}
         </View>

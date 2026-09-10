@@ -76,8 +76,9 @@ export const TONIGHT_SEX: {
   title: string;
   detail: string;
 }[] = [
-  { id: "yes", title: "Hell yeh", detail: "That's the plan. We're on." },
-  { id: "no", title: "Nah not today", detail: "Not tonight. Still us." },
+  { id: "yes", title: "Hell yeah", detail: "That's the plan." },
+  { id: "maybe", title: "We're on", detail: "Open to it if the night goes there." },
+  { id: "no", title: "Nah, not feeling it today", detail: "Not tonight. Still us." },
 ];
 
 export function tonightLabel(id: TonightSex | null | undefined): string | null {
@@ -105,15 +106,16 @@ export const CHECK_IN_METRIC_META: {
     | "partly-sunny-outline"
     | "heart-outline"
     | "people-outline"
-    | "compass-outline";
+    | "compass-outline"
+    | "sparkles-outline";
 }[] = [
-  { key: "tonight", label: "Are we fucking today?", icon: "flame-outline" },
   { key: "loveTank", label: "Love tank", icon: "heart-outline" },
   { key: "battery", label: "Battery / energy", icon: "battery-charging-outline" },
   { key: "mood", label: "Mood forecast", icon: "partly-sunny-outline" },
   { key: "socialBattery", label: "Social battery", icon: "people-outline" },
   { key: "todayNeed", label: "What I need today", icon: "compass-outline" },
   { key: "desireGauge", label: "Spicy gauge", icon: "flame-outline" },
+  { key: "tonight", label: "Keep it simple", icon: "sparkles-outline" },
 ];
 
 export function socialBatteryMeta(id: SocialBattery | null | undefined) {
@@ -130,7 +132,10 @@ export function desireGaugeMeta(id: DesireGauge | null | undefined) {
 
 export function partnerHint(checkIn: CheckIn): string {
   if (checkIn.tonight === "yes") {
-    return "Hell yeh. Make the night easy to say yes to — lock the door, skip the extra plans.";
+    return "Hell yeah. Make the night easy to say yes to — lock the door, skip the extra plans.";
+  }
+  if (checkIn.tonight === "maybe") {
+    return "They're on if the night goes there. Keep the door open without pressure.";
   }
   if (checkIn.tonight === "no") {
     return "Nah not today. Keep it close without making it a thing.";
@@ -165,8 +170,6 @@ export function partnerHint(checkIn: CheckIn): string {
 
 export function checkInLines(checkIn: CheckIn): string[] {
   const lines: string[] = [];
-  const tonight = tonightLabel(checkIn.tonight);
-  if (tonight) lines.push(`Are we fucking today? ${tonight}`);
   if (checkIn.loveTank != null) {
     lines.push(`Love tank ${checkIn.loveTank}/10`);
   }
@@ -182,6 +185,8 @@ export function checkInLines(checkIn: CheckIn): string[] {
   if (need) lines.push(`Need · ${need.title}`);
   const spicy = desireGaugeMeta(checkIn.desireGauge);
   if (spicy) lines.push(`Spicy · ${spicy.title}`);
+  const tonight = tonightLabel(checkIn.tonight);
+  if (tonight) lines.push(`Keep it simple · ${tonight}`);
   return lines;
 }
 

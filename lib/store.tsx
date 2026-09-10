@@ -1530,7 +1530,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         input.desireGauge,
         input.tonight,
       ].some((value) => value != null);
-      if (!shared) throw new Error("Pick Hell yeh or Nah not today — or add more detail.");
+      if (!shared) {
+        throw new Error("Toggle on at least one check-in area and fill it in.");
+      }
       const today = localDateKey();
       const row: CheckIn = {
         id: createId(),
