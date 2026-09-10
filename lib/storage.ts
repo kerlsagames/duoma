@@ -37,6 +37,17 @@ export function emptyDb(): AppDB {
   };
 }
 
+function hydrateCuriosity(
+  row: AppDB["curiosityAnswers"][number]
+): AppDB["curiosityAnswers"][number] {
+  return {
+    ...row,
+    answerIndex: row.answerIndex ?? null,
+    guessIndex: row.guessIndex ?? null,
+    body: row.body ?? "",
+  };
+}
+
 function hydrateCheckIn(row: AppDB["checkIns"][number]): AppDB["checkIns"][number] {
   return {
     ...row,
@@ -74,7 +85,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     ratings: raw.ratings ?? [],
     checkIns: (raw.checkIns ?? []).map(hydrateCheckIn),
     checkInRequests: raw.checkInRequests ?? [],
-    curiosityAnswers: raw.curiosityAnswers ?? [],
+    curiosityAnswers: (raw.curiosityAnswers ?? []).map(hydrateCuriosity),
     milestones: raw.milestones ?? [],
     desireToggles: raw.desireToggles ?? [],
     coupons: raw.coupons ?? [],

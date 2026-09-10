@@ -1,3 +1,4 @@
+import { dailyCuriosityQuestion } from "@/lib/curiosityQuestions";
 import type {
   CheckIn,
   CheckInMetricKey,
@@ -184,45 +185,9 @@ export function checkInLines(checkIn: CheckIn): string[] {
   return lines;
 }
 
-export const CURIOSITY_QUESTIONS = [
-  { id: "q1", prompt: "What is one quiet thing I did this week that you noticed?" },
-  { id: "q2", prompt: "If tonight had a soundtrack, what song is playing?" },
-  { id: "q3", prompt: "What would make tomorrow feel 10% easier?" },
-  { id: "q4", prompt: "Where in our home do you feel the most like yourself?" },
-  { id: "q5", prompt: "What is a small luxury you want us to stop treating as extra?" },
-  { id: "q6", prompt: "When did you last feel proud of us as a team?" },
-  { id: "q7", prompt: "What should we say no to this month?" },
-  { id: "q8", prompt: "What is a memory from this year you want to keep on purpose?" },
-  { id: "q9", prompt: "How full is your social battery right now, 1 to 10?" },
-  { id: "q10", prompt: "What meal should we cook together before the month ends?" },
-  { id: "q11", prompt: "What is one way I can make you feel chosen this week?" },
-  { id: "q12", prompt: "If we had a free Saturday with no errands, how do we spend it?" },
-  { id: "q13", prompt: "What habit of mine actually helps you more than I realize?" },
-  { id: "q14", prompt: "What are you quietly excited about?" },
-  { id: "q15", prompt: "What do you want more of in our evenings?" },
-  { id: "q16", prompt: "What do you want less of in our evenings?" },
-  { id: "q17", prompt: "Who outside of us has been good for you lately?" },
-  { id: "q18", prompt: "What is a trip we should stop only talking about?" },
-  { id: "q19", prompt: "When do you feel most attractive with me?" },
-  { id: "q20", prompt: "What apology do you still need — or still want to give?" },
-  { id: "q21", prompt: "What is the kindest thing we did for each other recently?" },
-  { id: "q22", prompt: "If our week had a weather report, what is it?" },
-  { id: "q23", prompt: "What should we celebrate that we usually skip?" },
-  { id: "q24", prompt: "What is a boundary you want us to honor better?" },
-  { id: "q25", prompt: "What is one thing you want me to ask you more often?" },
-  { id: "q26", prompt: "Where should our money go that would actually feel good?" },
-  { id: "q27", prompt: "What is a silly future you can picture for us?" },
-  { id: "q28", prompt: "What made you laugh this week that I missed?" },
-  { id: "q29", prompt: "What does support look like for you tonight, specifically?" },
-  { id: "q30", prompt: "What is a yes you wish I would offer without being asked?" },
-];
-
 export function curiosityFor(coupleId: string, date: string) {
-  let hash = 0;
-  const key = `${coupleId}:${date}`;
-  for (let i = 0; i < key.length; i += 1) hash += key.charCodeAt(i) * (i + 3);
-  const question = CURIOSITY_QUESTIONS[hash % CURIOSITY_QUESTIONS.length];
-  return question;
+  const question = dailyCuriosityQuestion(coupleId, date);
+  return { id: question.id, prompt: question.question };
 }
 
 export const DESIRE_CATEGORIES = [

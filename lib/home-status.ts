@@ -1,3 +1,4 @@
+import { isCuriosityComplete } from "@/lib/curiosity";
 import { STAGE_META } from "@/games/get-spicy/engine";
 import { daysUntil, formatLongDate, isSunday, localDateKey, parseDateKey } from "@/lib/dates";
 import { moodMeta } from "@/lib/hub";
@@ -201,15 +202,18 @@ export function buildHomeNotifications(input: {
   }
 
   const myCuriosity = input.curiosityAnswers.find(
-    (row) => row.userId === myId && row.date === today
+    (row) => row.userId === myId && row.date === today && isCuriosityComplete(row)
   );
   const partnerCuriosity = input.curiosityAnswers.find(
-    (row) => row.userId === input.partner?.id && row.date === today
+    (row) =>
+      row.userId === input.partner?.id &&
+      row.date === today &&
+      isCuriosityComplete(row)
   );
   if (partnerCuriosity && !myCuriosity) {
     items.push({
       id: `curiosity-${partnerCuriosity.id}`,
-      line: "They answered curiosity",
+      line: "Curiosity sync · their turn is in",
       when: recentWhen(partnerCuriosity.createdAt),
       href: "/hub/curiosity",
       sortAt: Date.parse(partnerCuriosity.createdAt) || now,
@@ -217,12 +221,20 @@ export function buildHomeNotifications(input: {
   } else if (partnerCuriosity && myCuriosity) {
     items.push({
       id: `curiosity-both-${partnerCuriosity.id}`,
-      line: "Curiosity answers are in",
+      line: "Curiosity match results are in",
       when: recentWhen(
         [partnerCuriosity.createdAt, myCuriosity.createdAt].sort().slice(-1)[0]
       ),
       href: "/hub/curiosity",
       sortAt: Date.parse(partnerCuriosity.createdAt) || now,
+    });
+  } else if (myCuriosity && !partnerCuriosity) {
+    items.push({
+      id: `curiosity-waiting-${myCuriosity.id}`,
+      line: "Curiosity · waiting on them",
+      when: recentWhen(myCuriosity.createdAt),
+      href: "/hub/curiosity",
+      sortAt: Date.parse(myCuriosity.createdAt) || now,
     });
   }
 

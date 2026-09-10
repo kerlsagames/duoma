@@ -10,10 +10,14 @@ import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { localDateKey } from "@/lib/dates";
 import {
   ALL_DESIRE_OPTIONS,
-  curiosityFor,
   hashPick,
   SCRATCH_POOLS,
 } from "@/lib/hub";
+import {
+  curiositySynergy,
+  dailyCuriosityQuestion,
+  isCuriosityComplete,
+} from "@/lib/curiosity";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import {
   registerDuomaWorker,
@@ -332,6 +336,11 @@ type AppContextValue = {
   checkInRequests: CheckInRequest[];
   incomingCheckInRequest: CheckInRequest | null;
   curiosityAnswers: CuriosityAnswer[];
+  curiosityMatchScore: {
+    matchScore: number;
+    daysPlayed: number;
+    matchRate: number;
+  };
   milestones: Milestone[];
   desireToggles: DesireToggle[];
   coupons: Coupon[];
@@ -382,7 +391,10 @@ type AppContextValue = {
     tonight: TonightSex | null;
   }) => Promise<void>;
   requestCheckIn: (metrics: CheckInMetricKey[]) => Promise<void>;
-  submitCuriosity: (body: string) => Promise<void>;
+  submitCuriosity: (input: {
+    answerIndex: number;
+    guessIndex: number;
+  }) => Promise<void>;
   drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
   submitTalkAnswer: (input: {
     categoryId: string;
@@ -645,6 +657,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
+  const curiosityMatchScore = useMemo(() => {
+    const synergy = curiositySynergy(
+      db.curiosityAnswers.filter((row) => row.coupleId === couple?.id)
+    );
+    return synergy;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version]);
   const talkDecks = useMemo(
     () => db.talkDecks.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1550,23 +1569,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const submitCuriosity = useCallback(
-    async (body: string) => {
-      if (!user || !couple) return;
-      const text = body.trim();
-      if (!text) throw new Error("Write an answer first.");
+    async (input: { answerIndex: number; guessIndex: number }) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then play Curiosity.");
+      }
+      const question = dailyCuriosityQuestion(couple.id, localDateKey());
+      if (
+        input.answerIndex < 0 ||
+        input.answerIndex >= question.options.length ||
+        input.guessIndex < 0 ||
+        input.guessIndex >= question.options.length
+      ) {
+        throw new Error("Pick your answer and your guess.");
+      }
       const today = localDateKey();
-      const question = curiosityFor(couple.id, today);
       const firstSubmit = !db.curiosityAnswers.some(
         (row) =>
           row.coupleId === couple.id &&
           row.userId === user.id &&
-          row.date === today
+          row.date === today &&
+          isCuriosityComplete(row)
       );
       const theyAlreadyAnswered = db.curiosityAnswers.some(
         (row) =>
           row.coupleId === couple.id &&
           row.userId === partner?.id &&
-          row.date === today
+          row.date === today &&
+          isCuriosityComplete(row)
       );
       const mine: CuriosityAnswer = {
         id: createId(),
@@ -1574,7 +1603,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         userId: user.id,
         date: today,
         questionId: question.id,
-        body: text,
+        answerIndex: input.answerIndex,
+        guessIndex: input.guessIndex,
+        body: question.options[input.answerIndex] ?? "",
         createdAt: nowIso(),
       };
       const extra: CuriosityAnswer[] = [];
@@ -1583,16 +1614,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           (row) =>
             row.coupleId === couple.id &&
             row.userId === partner.id &&
-            row.date === today
+            row.date === today &&
+            isCuriosityComplete(row)
         );
         if (!already) {
+          // Demo partner: answer something plausible, guess the user's answer often.
+          const demoAnswer =
+            (input.answerIndex + 1) % question.options.length;
+          const demoGuess =
+            Math.random() > 0.35 ? input.answerIndex : demoAnswer;
           extra.push({
             id: createId(),
             coupleId: couple.id,
             userId: partner.id,
             date: today,
             questionId: question.id,
-            body: "The quiet way you checked on me without making it a thing.",
+            answerIndex: demoAnswer,
+            guessIndex: demoGuess,
+            body: question.options[demoAnswer] ?? "",
             createdAt: nowIso(),
           });
         }
@@ -1614,10 +1653,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ritualChecks: upsertRitual(couple.id, user.id, "curiosity", today),
       };
       await persist();
-      if (firstSubmit && !theyAlreadyAnswered) {
+      if (firstSubmit && !theyAlreadyAnswered && !partner?.isDemo) {
         pingPartner(couple, user, partner, {
           title: "Daily curiosity",
-          body: `${user.displayName} answered. Yours is still hidden until you submit.`,
+          body: `${user.displayName} locked today's sync. Your turn.`,
           url: "/hub/curiosity",
         });
       }
@@ -2258,6 +2297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkInRequests,
     incomingCheckInRequest,
     curiosityAnswers,
+    curiosityMatchScore,
     talkDecks,
     talkDraws,
     spicyDares,

@@ -159,12 +159,26 @@ export type CheckInRequest = {
   answeredAt: string | null;
 };
 
+export type CuriosityCategory = "flirty" | "fun" | "life" | "deep";
+
+export type CuriosityQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  category: CuriosityCategory;
+};
+
 export type CuriosityAnswer = {
   id: string;
   coupleId: string;
   userId: string;
   date: string;
   questionId: string;
+  /** Selected option index for Step 1 */
+  answerIndex: number | null;
+  /** Guess of partner's answer for Step 2 */
+  guessIndex: number | null;
+  /** Display text of own answer (legacy + UI) */
   body: string;
   createdAt: string;
 };
