@@ -146,7 +146,9 @@ function TicketCard({
         {" · "}
         {status === "redeemed"
           ? `Used ${formatExpiry(coupon.redeemedAt)}`
-          : `Use by ${formatExpiry(coupon.expiresAt)}`}
+          : coupon.expiresAt
+            ? `Use by ${formatExpiry(coupon.expiresAt)}`
+            : "No expiry"}
       </Text>
 
       {!outgoing && status === "offered" && onAccept ? (
