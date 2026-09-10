@@ -25,6 +25,7 @@ export default function ListsScreen() {
   const {
     user,
     partner,
+    couple,
     coupleLists,
     listEntries,
     listEntryRatings,
@@ -199,7 +200,9 @@ export default function ListsScreen() {
                 }}
               >
                 <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
-                  Seeding your starter lists…
+                  {!couple
+                    ? "Pair with your partner first, then your starter lists will appear here."
+                    : "Warming up your bucket lists…"}
                 </Text>
               </View>
             ) : (
