@@ -40,8 +40,8 @@ export const JAR_TONE = {
   background: "#100E0C",
   accent: "#D4A35A",
   accentSoft: "rgba(212,163,90,0.18)",
-  glass: "rgba(168, 196, 188, 0.14)",
-  glassBorder: "rgba(210, 230, 220, 0.35)",
+  glass: "rgba(255, 245, 230, 0.04)",
+  glassBorder: "rgba(246, 239, 226, 0.28)",
   cork: "#8B5A2B",
   corkLight: "#B8793C",
   paper: "#F2E4C4",
@@ -53,7 +53,14 @@ export const JAR_TONE = {
   surfaceRaised: "#221C16",
   border: "rgba(212,163,90,0.3)",
   seal: "#C45C4A",
+  handwriting: "#3A2A18",
 } as const;
+
+export const HANDWRITING: TextStyle["fontFamily"] = Platform.select({
+  ios: "Snell Roundhand",
+  android: "serif",
+  default: '"Segoe Script", "Bradley Hand", "Apple Chancery", "Palatino Linotype", cursive',
+});
 
 export const HUB_TONES: Record<
   HubTone,
