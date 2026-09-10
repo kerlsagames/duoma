@@ -1,7 +1,14 @@
+import { ScoreSlider } from "@/components/ScoreSlider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LISTS_DISPLAY, LISTS_ROUNDED, LISTS_TONE } from "@/lib/app-themes";
-import { averageStars, starsLabel, starterDef } from "@/lib/lists";
+import {
+  averageScore,
+  formatDoneDate,
+  listFieldCopy,
+  scoreLabel,
+  starterDef,
+} from "@/lib/lists";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
@@ -18,7 +25,11 @@ const T = LISTS_TONE;
 
 export default function ListDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, section } = useLocalSearchParams<{
+    id: string;
+    section?: string;
+  }>();
+  const focusVault = section === "vault";
   const {
     user,
     partner,
@@ -33,17 +44,21 @@ export default function ListDetailScreen() {
   } = useApp();
 
   const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [rateEntryId, setRateEntryId] = useState<string | null>(null);
-  const [pendingStars, setPendingStars] = useState(5);
+  const [pendingScore, setPendingScore] = useState(7.5);
 
   useEffect(() => {
     void ensureStarterLists();
   }, [ensureStarterLists]);
 
   const list = coupleLists.find((row) => row.id === id) ?? null;
+
+  const copy = listFieldCopy({
+    starterKey: list?.starterKey,
+    title: list?.title,
+  });
 
   const openItems = useMemo(
     () =>
@@ -71,9 +86,8 @@ export default function ListDetailScreen() {
     setError(null);
     setSaving(true);
     try {
-      await addListEntry({ listId: list.id, title, notes });
+      await addListEntry({ listId: list.id, title, notes: "" });
       setTitle("");
-      setNotes("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not add");
     } finally {
@@ -85,7 +99,7 @@ export default function ListDetailScreen() {
     setError(null);
     try {
       await completeListEntry(entryId);
-      setPendingStars(5);
+      setPendingScore(7.5);
       setRateEntryId(entryId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not complete");
@@ -96,7 +110,7 @@ export default function ListDetailScreen() {
     if (!rateEntryId) return;
     setError(null);
     try {
-      await rateListEntry(rateEntryId, pendingStars);
+      await rateListEntry(rateEntryId, pendingScore);
       setRateEntryId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not rate");
@@ -130,6 +144,218 @@ export default function ListDetailScreen() {
 
   const hint = starterDef(list.starterKey)?.hint;
 
+  const openSection = (
+    <>
+      <Text
+        style={{
+          marginTop: focusVault ? 26 : 26,
+          fontFamily: LISTS_DISPLAY,
+          fontSize: 20,
+          color: T.ink,
+          fontWeight: "700",
+        }}
+      >
+        Open · {openItems.length}
+      </Text>
+      <View style={{ marginTop: 10, gap: 10 }}>
+        {openItems.length === 0 ? (
+          <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
+            Empty for now. Drop in the first idea.
+          </Text>
+        ) : (
+          openItems.map((entry) => {
+            const who =
+              entry.createdBy === user?.id
+                ? "You added"
+                : entry.createdBy === partner?.id
+                  ? `${partner?.displayName ?? "Partner"} added`
+                  : "Added";
+            return (
+              <View
+                key={entry.id}
+                style={{
+                  borderRadius: 22,
+                  borderWidth: 1,
+                  borderColor: T.border,
+                  backgroundColor: T.surface,
+                  padding: 14,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: LISTS_ROUNDED,
+                    fontSize: 11,
+                    color: T.teal,
+                    fontWeight: "700",
+                    letterSpacing: 0.6,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {who}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 4,
+                    fontFamily: LISTS_DISPLAY,
+                    fontSize: 20,
+                    color: T.ink,
+                    fontWeight: "700",
+                  }}
+                >
+                  {entry.title}
+                </Text>
+                <Pressable
+                  onPress={() => void markDone(entry.id)}
+                  style={{
+                    marginTop: 12,
+                    alignSelf: "flex-start",
+                    borderRadius: 999,
+                    backgroundColor: T.accent,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: LISTS_ROUNDED,
+                      fontWeight: "700",
+                      color: "#1A120E",
+                      fontSize: 13,
+                    }}
+                  >
+                    {copy.doneLabel} ✓
+                  </Text>
+                </Pressable>
+              </View>
+            );
+          })
+        )}
+      </View>
+    </>
+  );
+
+  const vaultSection =
+    doneItems.length > 0 || focusVault ? (
+      <>
+        <Text
+          style={{
+            marginTop: focusVault ? 18 : 28,
+            fontFamily: LISTS_DISPLAY,
+            fontSize: 20,
+            color: T.sticky,
+            fontWeight: "700",
+          }}
+        >
+          {copy.vaultTitle} · {doneItems.length}
+        </Text>
+        <View style={{ marginTop: 10, gap: 10 }}>
+          {doneItems.length === 0 ? (
+            <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
+              No memories here yet.
+            </Text>
+          ) : (
+            doneItems.map((entry) => {
+              const ratings = listEntryRatings.filter(
+                (row) => row.entryId === entry.id
+              );
+              const mine = ratings.find((row) => row.userId === user?.id);
+              const theirs = ratings.find(
+                (row) => row.userId === partner?.id
+              );
+              const avg = averageScore(ratings);
+              const doneOn = formatDoneDate(entry.completedAt);
+              return (
+                <View
+                  key={entry.id}
+                  style={{
+                    borderRadius: 22,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,209,102,0.35)",
+                    backgroundColor: T.sky,
+                    padding: 14,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: LISTS_DISPLAY,
+                      fontSize: 18,
+                      color: T.ink,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {entry.title}
+                  </Text>
+                  {doneOn ? (
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        fontFamily: LISTS_ROUNDED,
+                        fontSize: 12,
+                        color: T.teal,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {copy.doneLabel} · {doneOn}
+                    </Text>
+                  ) : null}
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontFamily: LISTS_ROUNDED,
+                      fontSize: 13,
+                      color: T.muted,
+                    }}
+                  >
+                    Avg {scoreLabel(avg)} · You{" "}
+                    {mine ? scoreLabel(mine.stars) : "rate me"} ·{" "}
+                    {partner?.displayName ?? "Them"}{" "}
+                    {theirs ? scoreLabel(theirs.stars) : "—"}
+                  </Text>
+                  <View
+                    style={{
+                      marginTop: 10,
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 10,
+                    }}
+                  >
+                    <Pressable
+                      onPress={() => {
+                        setPendingScore(mine?.stars ?? 7.5);
+                        setRateEntryId(entry.id);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: T.sticky,
+                          fontFamily: LISTS_ROUNDED,
+                          fontWeight: "700",
+                          fontSize: 13,
+                        }}
+                      >
+                        {mine ? "Update my score" : "Add my score"}
+                      </Text>
+                    </Pressable>
+                    <Pressable onPress={() => void reopenListEntry(entry.id)}>
+                      <Text
+                        style={{
+                          color: T.muted,
+                          fontFamily: LISTS_ROUNDED,
+                          fontSize: 13,
+                        }}
+                      >
+                        Move back to open
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
+      </>
+    ) : null;
+
   return (
     <Screen scroll background={T.background}>
       <View className="pb-10 pt-2">
@@ -139,7 +365,7 @@ export default function ListDetailScreen() {
         >
           <Ionicons name="chevron-back" size={18} color={T.teal} />
           <Text style={{ color: T.teal, fontFamily: LISTS_ROUNDED, fontWeight: "700" }}>
-            All lists
+            {focusVault ? "Vault" : "All lists"}
           </Text>
         </Pressable>
 
@@ -165,7 +391,7 @@ export default function ListDetailScreen() {
               fontWeight: "700",
             }}
           >
-            {list.title}
+            {focusVault ? copy.vaultTitle : list.title}
           </Text>
           <Text
             style={{
@@ -176,277 +402,76 @@ export default function ListDetailScreen() {
               lineHeight: 20,
             }}
           >
-            {hint ??
-              "Both of you can add ideas. When you do one, mark it done and rate it."}
+            {focusVault
+              ? `Past ${copy.doneLabel.toLowerCase()} items with both of your scores.`
+              : hint ??
+                "Both of you can add ideas. When you do one, mark it done and rate it."}
           </Text>
         </View>
 
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: LISTS_DISPLAY,
-            fontSize: 20,
-            color: T.sticky,
-            fontWeight: "700",
-          }}
-        >
-          Add something
-        </Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="What should we do?"
-          placeholderTextColor="rgba(243,255,251,0.35)"
-          style={{
-            marginTop: 10,
-            height: 48,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: T.border,
-            backgroundColor: T.surface,
-            paddingHorizontal: 14,
-            color: T.ink,
-            fontFamily: LISTS_ROUNDED,
-            fontSize: 16,
-          }}
-        />
-        <TextInput
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Notes (optional)"
-          placeholderTextColor="rgba(243,255,251,0.35)"
-          style={{
-            marginTop: 8,
-            height: 44,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: T.border,
-            backgroundColor: T.surface,
-            paddingHorizontal: 14,
-            color: T.ink,
-            fontFamily: LISTS_ROUNDED,
-            fontSize: 15,
-          }}
-        />
-        {error ? (
-          <Text
-            style={{
-              marginTop: 8,
-              color: T.accent,
-              fontFamily: LISTS_ROUNDED,
-            }}
-          >
-            {error}
-          </Text>
-        ) : null}
-        <View style={{ marginTop: 12 }}>
-          <PrimaryButton
-            label="Add to list"
-            loading={saving}
-            onPress={() => void addItem()}
-          />
-        </View>
-
-        <Text
-          style={{
-            marginTop: 26,
-            fontFamily: LISTS_DISPLAY,
-            fontSize: 20,
-            color: T.ink,
-            fontWeight: "700",
-          }}
-        >
-          Open · {openItems.length}
-        </Text>
-        <View style={{ marginTop: 10, gap: 10 }}>
-          {openItems.length === 0 ? (
-            <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
-              Empty for now. Drop in the first idea.
-            </Text>
-          ) : (
-            openItems.map((entry) => {
-              const who =
-                entry.createdBy === user?.id
-                  ? "You added"
-                  : entry.createdBy === partner?.id
-                    ? `${partner?.displayName ?? "Partner"} added`
-                    : "Added";
-              return (
-                <View
-                  key={entry.id}
-                  style={{
-                    borderRadius: 22,
-                    borderWidth: 1,
-                    borderColor: T.border,
-                    backgroundColor: T.surface,
-                    padding: 14,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: LISTS_ROUNDED,
-                      fontSize: 11,
-                      color: T.teal,
-                      fontWeight: "700",
-                      letterSpacing: 0.6,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {who}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      fontFamily: LISTS_DISPLAY,
-                      fontSize: 20,
-                      color: T.ink,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {entry.title}
-                  </Text>
-                  {entry.notes ? (
-                    <Text
-                      style={{
-                        marginTop: 4,
-                        fontFamily: LISTS_ROUNDED,
-                        fontSize: 13,
-                        color: T.muted,
-                      }}
-                    >
-                      {entry.notes}
-                    </Text>
-                  ) : null}
-                  <Pressable
-                    onPress={() => void markDone(entry.id)}
-                    style={{
-                      marginTop: 12,
-                      alignSelf: "flex-start",
-                      borderRadius: 999,
-                      backgroundColor: T.accent,
-                      paddingHorizontal: 14,
-                      paddingVertical: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: LISTS_ROUNDED,
-                        fontWeight: "700",
-                        color: "#1A120E",
-                        fontSize: 13,
-                      }}
-                    >
-                      We did this ✓
-                    </Text>
-                  </Pressable>
-                </View>
-              );
-            })
-          )}
-        </View>
-
-        {doneItems.length > 0 ? (
+        {!focusVault ? (
           <>
             <Text
               style={{
-                marginTop: 28,
+                marginTop: 22,
                 fontFamily: LISTS_DISPLAY,
                 fontSize: 20,
                 color: T.sticky,
                 fontWeight: "700",
               }}
             >
-              In the vault · {doneItems.length}
+              Add something
             </Text>
-            <View style={{ marginTop: 10, gap: 10 }}>
-              {doneItems.map((entry) => {
-                const ratings = listEntryRatings.filter(
-                  (row) => row.entryId === entry.id
-                );
-                const mine = ratings.find((row) => row.userId === user?.id);
-                const theirs = ratings.find(
-                  (row) => row.userId === partner?.id
-                );
-                const avg = averageStars(ratings);
-                return (
-                  <View
-                    key={entry.id}
-                    style={{
-                      borderRadius: 22,
-                      borderWidth: 1,
-                      borderColor: "rgba(255,209,102,0.35)",
-                      backgroundColor: T.sky,
-                      padding: 14,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: LISTS_DISPLAY,
-                        fontSize: 18,
-                        color: T.ink,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {entry.title}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 6,
-                        fontFamily: LISTS_ROUNDED,
-                        fontSize: 13,
-                        color: T.muted,
-                      }}
-                    >
-                      Avg {starsLabel(avg)} · You{" "}
-                      {mine ? `${mine.stars}★` : "rate me"} ·{" "}
-                      {partner?.displayName ?? "Them"}{" "}
-                      {theirs ? `${theirs.stars}★` : "—"}
-                    </Text>
-                    <View
-                      style={{
-                        marginTop: 10,
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: 10,
-                      }}
-                    >
-                      <Pressable
-                        onPress={() => {
-                          setPendingStars(mine?.stars ?? 5);
-                          setRateEntryId(entry.id);
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: T.sticky,
-                            fontFamily: LISTS_ROUNDED,
-                            fontWeight: "700",
-                            fontSize: 13,
-                          }}
-                        >
-                          {mine ? "Update my rating" : "Add my rating"}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => void reopenListEntry(entry.id)}
-                      >
-                        <Text
-                          style={{
-                            color: T.muted,
-                            fontFamily: LISTS_ROUNDED,
-                            fontSize: 13,
-                          }}
-                        >
-                          Move back to open
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                );
-              })}
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder={copy.itemPlaceholder}
+              placeholderTextColor="rgba(243,255,251,0.35)"
+              style={{
+                marginTop: 10,
+                height: 48,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: T.border,
+                backgroundColor: T.surface,
+                paddingHorizontal: 14,
+                color: T.ink,
+                fontFamily: LISTS_ROUNDED,
+                fontSize: 16,
+              }}
+            />
+            {error ? (
+              <Text
+                style={{
+                  marginTop: 8,
+                  color: T.accent,
+                  fontFamily: LISTS_ROUNDED,
+                }}
+              >
+                {error}
+              </Text>
+            ) : null}
+            <View style={{ marginTop: 12 }}>
+              <PrimaryButton
+                label="Add to list"
+                loading={saving}
+                onPress={() => void addItem()}
+              />
             </View>
           </>
         ) : null}
+
+        {focusVault ? (
+          <>
+            {vaultSection}
+            {openSection}
+          </>
+        ) : (
+          <>
+            {openSection}
+            {vaultSection}
+          </>
+        )}
       </View>
 
       <Modal
@@ -482,7 +507,7 @@ export default function ListDetailScreen() {
                 textTransform: "uppercase",
               }}
             >
-              Rate it
+              Your score
             </Text>
             <Text
               style={{
@@ -503,31 +528,20 @@ export default function ListDetailScreen() {
                 color: T.muted,
               }}
             >
-              Your stars go in the vault. {partner?.displayName ?? "Your partner"}{" "}
-              can add theirs too.
+              Rate from 0 to 10 (decimals ok).{" "}
+              {partner?.displayName ?? "Your partner"} can add theirs too.
             </Text>
-            <View
-              style={{
-                marginTop: 16,
-                flexDirection: "row",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Pressable
-                  key={star}
-                  onPress={() => setPendingStars(star)}
-                  style={{ padding: 4 }}
-                >
-                  <Text style={{ fontSize: 30 }}>
-                    {star <= pendingStars ? "★" : "☆"}
-                  </Text>
-                </Pressable>
-              ))}
+            <View style={{ marginTop: 18 }}>
+              <ScoreSlider
+                value={pendingScore}
+                onChange={setPendingScore}
+                accent={list.accent}
+                track="rgba(243,255,251,0.18)"
+                labelColor={T.ink}
+              />
             </View>
             <View style={{ marginTop: 18, gap: 10 }}>
-              <PrimaryButton label="Save rating" onPress={() => void saveRating()} />
+              <PrimaryButton label="Save score" onPress={() => void saveRating()} />
               <PrimaryButton
                 label="Skip for now"
                 tone="ghost"

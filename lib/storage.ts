@@ -143,9 +143,9 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     desireToggles: raw.desireToggles ?? [],
     coupons: (raw.coupons ?? []).map(hydrateCoupon),
     scratches: raw.scratches ?? [],
-    coupleLists: raw.coupleLists ?? [],
+    coupleLists: (raw.coupleLists ?? []).map(hydrateCoupleList),
     listEntries: (raw.listEntries ?? []).map(hydrateListEntry),
-    listEntryRatings: raw.listEntryRatings ?? [],
+    listEntryRatings: (raw.listEntryRatings ?? []).map(hydrateListEntryRating),
     jarNotes: (raw.jarNotes ?? []).map(hydrateJarNote),
     jarOpenVotes: raw.jarOpenVotes ?? [],
     bucketItems: raw.bucketItems ?? [],
@@ -169,12 +169,30 @@ function hydrateSpicyDare(row: AppDB["spicyDares"][number]): AppDB["spicyDares"]
   };
 }
 
+function hydrateCoupleList(row: AppDB["coupleLists"][number]): AppDB["coupleLists"][number] {
+  return {
+    ...row,
+    starterKey: row.starterKey ?? null,
+    hiddenAt: row.hiddenAt ?? null,
+  };
+}
+
 function hydrateListEntry(row: AppDB["listEntries"][number]): AppDB["listEntries"][number] {
   return {
     ...row,
     notes: row.notes ?? "",
     completedAt: row.completedAt ?? null,
     completedBy: row.completedBy ?? null,
+  };
+}
+
+function hydrateListEntryRating(
+  row: AppDB["listEntryRatings"][number]
+): AppDB["listEntryRatings"][number] {
+  const stars = Number(row.stars);
+  return {
+    ...row,
+    stars: Number.isFinite(stars) ? Math.round(Math.max(0, Math.min(10, stars)) * 10) / 10 : 0,
   };
 }
 

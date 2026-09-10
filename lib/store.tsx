@@ -28,6 +28,7 @@ import {
 import {
   CUSTOM_LIST_ACCENTS,
   STARTER_LISTS,
+  clampScore,
 } from "@/lib/lists";
 import {
   curiositySynergy,
@@ -466,6 +467,7 @@ type AppContextValue = {
     title: string;
     emoji?: string;
   }) => Promise<CoupleList | null>;
+  setListHidden: (listId: string, hidden: boolean) => Promise<void>;
   addListEntry: (input: {
     listId: string;
     title: string;
@@ -891,6 +893,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       emoji: def.emoji,
       accent: def.accent,
       starterKey: def.key,
+      hiddenAt: null,
       createdBy: demo.id,
       createdAt: new Date(Date.parse(stamp) + index).toISOString(),
     }));
@@ -2615,6 +2618,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       emoji: def.emoji,
       accent: def.accent,
       starterKey: def.key,
+      hiddenAt: null,
       createdBy,
       createdAt: new Date(Date.parse(stamp) + index).toISOString(),
     }));
@@ -2645,6 +2649,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         emoji: (input.emoji?.trim() || "✨").slice(0, 4),
         accent: CUSTOM_LIST_ACCENTS[count % CUSTOM_LIST_ACCENTS.length],
         starterKey: null,
+        hiddenAt: null,
         createdBy: user.id,
         createdAt: nowIso(),
       };
@@ -2653,6 +2658,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return row;
     },
     [couple, ensureStarterLists, user]
+  );
+
+  const setListHidden = useCallback(
+    async (listId: string, hidden: boolean) => {
+      if (!user || !couple) return;
+      const list = db.coupleLists.find(
+        (row) => row.id === listId && row.coupleId === couple.id
+      );
+      if (!list) throw new Error("List not found.");
+      db = {
+        ...db,
+        coupleLists: db.coupleLists.map((row) =>
+          row.id === listId
+            ? { ...row, hiddenAt: hidden ? nowIso() : null }
+            : row
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
   );
 
   const addListEntry = useCallback(
@@ -2712,7 +2737,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!entry.completedAt) {
         throw new Error("Mark it done before rating.");
       }
-      const score = Math.max(1, Math.min(5, Math.round(stars)));
+      const score = clampScore(stars);
       const existing = db.listEntryRatings.find(
         (row) => row.entryId === entryId && row.userId === user.id
       );
@@ -3068,6 +3093,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     scratchCard,
     ensureStarterLists,
     createCoupleList,
+    setListHidden,
     addListEntry,
     completeListEntry,
     rateListEntry,

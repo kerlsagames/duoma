@@ -269,6 +269,8 @@ export type CoupleList = {
   emoji: string;
   accent: string;
   starterKey: string | null;
+  /** When set, list is hidden from the Open lists screen. */
+  hiddenAt: string | null;
   createdBy: string;
   createdAt: string;
 };

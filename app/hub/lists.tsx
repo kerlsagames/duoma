@@ -1,7 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LISTS_DISPLAY, LISTS_ROUNDED, LISTS_TONE } from "@/lib/app-themes";
-import { averageStars, starsLabel, starterDef } from "@/lib/lists";
+import { listFieldCopy, starterDef } from "@/lib/lists";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -23,18 +23,17 @@ const EMOJI_PICKS = ["✨", "🌟", "🎈", "🧭", "🎢", "🧁", "🏕️", "
 export default function ListsScreen() {
   const router = useRouter();
   const {
-    user,
-    partner,
     couple,
     coupleLists,
     listEntries,
-    listEntryRatings,
     ensureStarterLists,
     createCoupleList,
+    setListHidden,
   } = useApp();
 
   const [tab, setTab] = useState<Tab>("lists");
   const [createOpen, setCreateOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [emoji, setEmoji] = useState("✨");
   const [error, setError] = useState<string | null>(null);
@@ -53,19 +52,31 @@ export default function ListsScreen() {
     return map;
   }, [listEntries]);
 
-  const vaultEntries = useMemo(
-    () =>
-      listEntries
-        .filter((entry) => entry.completedAt)
-        .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? "")),
-    [listEntries]
+  const doneByList = useMemo(() => {
+    const map = new Map<string, number>();
+    listEntries.forEach((entry) => {
+      if (!entry.completedAt) return;
+      map.set(entry.listId, (map.get(entry.listId) ?? 0) + 1);
+    });
+    return map;
+  }, [listEntries]);
+
+  const visibleLists = useMemo(
+    () => coupleLists.filter((row) => !row.hiddenAt),
+    [coupleLists]
   );
 
-  const listTitle = (listId: string) =>
-    coupleLists.find((row) => row.id === listId)?.title ?? "List";
-
-  const listEmoji = (listId: string) =>
-    coupleLists.find((row) => row.id === listId)?.emoji ?? "✨";
+  const vaultLists = useMemo(
+    () =>
+      coupleLists
+        .filter((list) => (doneByList.get(list.id) ?? 0) > 0)
+        .sort((a, b) => {
+          const aCount = doneByList.get(a.id) ?? 0;
+          const bCount = doneByList.get(b.id) ?? 0;
+          return bCount - aCount;
+        }),
+    [coupleLists, doneByList]
+  );
 
   const saveList = async () => {
     setError(null);
@@ -121,23 +132,39 @@ export default function ListsScreen() {
                 color: T.muted,
               }}
             >
-              Dream it up together, tick it off, then stash the memory in the
-              vault with both your ratings.
+              Dream it up together, tick it off, then open each vault by list.
             </Text>
           </View>
-          <View
-            style={{
-              marginTop: 4,
-              height: 54,
-              width: 54,
-              borderRadius: 18,
-              backgroundColor: T.sticky,
-              alignItems: "center",
-              justifyContent: "center",
-              transform: [{ rotate: "6deg" }],
-            }}
-          >
-            <Text style={{ fontSize: 26 }}>🗺️</Text>
+          <View style={{ alignItems: "flex-end", gap: 8 }}>
+            <Pressable
+              onPress={() => setSettingsOpen(true)}
+              accessibilityLabel="List settings"
+              style={{
+                height: 44,
+                width: 44,
+                borderRadius: 16,
+                backgroundColor: T.sky,
+                borderWidth: 1,
+                borderColor: T.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="settings-outline" size={20} color={T.teal} />
+            </Pressable>
+            <View
+              style={{
+                height: 54,
+                width: 54,
+                borderRadius: 18,
+                backgroundColor: T.sticky,
+                alignItems: "center",
+                justifyContent: "center",
+                transform: [{ rotate: "6deg" }],
+              }}
+            >
+              <Text style={{ fontSize: 26 }}>🗺️</Text>
+            </View>
           </View>
         </View>
 
@@ -189,7 +216,7 @@ export default function ListsScreen() {
 
         {tab === "lists" ? (
           <View style={{ marginTop: 18, gap: 12 }}>
-            {coupleLists.length === 0 ? (
+            {visibleLists.length === 0 ? (
               <View
                 style={{
                   borderRadius: 22,
@@ -202,11 +229,13 @@ export default function ListsScreen() {
                 <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
                   {!couple
                     ? "Pair with your partner first, then your starter lists will appear here."
-                    : "Warming up your bucket lists…"}
+                    : coupleLists.length > 0
+                      ? "All lists are hidden. Open settings to show some again."
+                      : "Warming up your bucket lists…"}
                 </Text>
               </View>
             ) : (
-              coupleLists.map((list, index) => {
+              visibleLists.map((list, index) => {
                 const openCount = openByList.get(list.id) ?? 0;
                 const hint = starterDef(list.starterKey)?.hint;
                 const tilt = index % 2 === 0 ? "-1.2deg" : "1.4deg";
@@ -345,11 +374,11 @@ export default function ListsScreen() {
                   opacity: 0.8,
                 }}
               >
-                Done items land here with both of your star ratings.
+                Tap a list to open only that history — movies, places, and more stay separate.
               </Text>
             </View>
 
-            {vaultEntries.length === 0 ? (
+            {vaultLists.length === 0 ? (
               <Text
                 style={{
                   marginTop: 8,
@@ -361,77 +390,72 @@ export default function ListsScreen() {
                 Nothing in the vault yet. Mark something done from a list.
               </Text>
             ) : (
-              vaultEntries.map((entry) => {
-                const ratings = listEntryRatings.filter(
-                  (row) => row.entryId === entry.id
-                );
-                const mine = ratings.find((row) => row.userId === user?.id);
-                const theirs = ratings.find((row) => row.userId === partner?.id);
-                const avg = averageStars(ratings);
+              vaultLists.map((list, index) => {
+                const count = doneByList.get(list.id) ?? 0;
+                const copy = listFieldCopy({
+                  starterKey: list.starterKey,
+                  title: list.title,
+                });
+                const tilt = index % 2 === 0 ? "1deg" : "-1.2deg";
                 return (
                   <Pressable
-                    key={entry.id}
+                    key={list.id}
                     onPress={() =>
-                      router.push(`/hub/list/${entry.listId}` as Href)
+                      router.push(
+                        `/hub/list/${list.id}?section=vault` as Href
+                      )
                     }
                     style={{
-                      borderRadius: 22,
-                      borderWidth: 1,
-                      borderColor: T.border,
-                      backgroundColor: T.surface,
+                      borderRadius: 24,
+                      borderWidth: 2,
+                      borderColor: list.accent,
+                      backgroundColor: T.surfaceRaised,
                       padding: 16,
+                      transform: [{ rotate: tilt }],
                     }}
                   >
-                    <Text
-                      style={{
-                        fontFamily: LISTS_ROUNDED,
-                        fontSize: 12,
-                        color: T.teal,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {listEmoji(entry.listId)} {listTitle(entry.listId)}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 6,
-                        fontFamily: LISTS_DISPLAY,
-                        fontSize: 20,
-                        color: T.ink,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {entry.title}
-                    </Text>
-                    {entry.notes ? (
-                      <Text
-                        style={{
-                          marginTop: 4,
-                          fontFamily: LISTS_ROUNDED,
-                          fontSize: 13,
-                          color: T.muted,
-                        }}
-                      >
-                        {entry.notes}
-                      </Text>
-                    ) : null}
                     <View
                       style={{
-                        marginTop: 10,
                         flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: 8,
+                        alignItems: "center",
+                        gap: 12,
                       }}
                     >
-                      <Stamp label={`Avg ${starsLabel(avg)}`} hot />
-                      <Stamp
-                        label={`You ${mine ? `${mine.stars}★` : "—"}`}
-                      />
-                      <Stamp
-                        label={`${partner?.displayName ?? "Them"} ${
-                          theirs ? `${theirs.stars}★` : "—"
-                        }`}
-                      />
+                      <View
+                        style={{
+                          height: 52,
+                          width: 52,
+                          borderRadius: 18,
+                          backgroundColor: `${list.accent}33`,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ fontSize: 26 }}>{list.emoji}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontFamily: LISTS_DISPLAY,
+                            fontSize: 22,
+                            color: T.ink,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {copy.vaultTitle}
+                        </Text>
+                        <Text
+                          style={{
+                            marginTop: 4,
+                            fontFamily: LISTS_ROUNDED,
+                            fontSize: 13,
+                            color: T.muted,
+                          }}
+                        >
+                          {count === 1 ? "1 memory" : `${count} memories`}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color={T.teal} />
                     </View>
                   </Pressable>
                 );
@@ -440,6 +464,141 @@ export default function ListsScreen() {
           </View>
         )}
       </View>
+
+      <Modal
+        visible={settingsOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setSettingsOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.72)",
+          }}
+        >
+          <View
+            style={{
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              backgroundColor: T.sky,
+              borderWidth: 1,
+              borderColor: T.border,
+              paddingHorizontal: 20,
+              paddingTop: 16,
+              paddingBottom: 28,
+              maxHeight: "80%",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: LISTS_DISPLAY,
+                  fontSize: 24,
+                  color: T.ink,
+                  fontWeight: "700",
+                }}
+              >
+                List settings
+              </Text>
+              <Pressable onPress={() => setSettingsOpen(false)}>
+                <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
+                  Close
+                </Text>
+              </Pressable>
+            </View>
+            <Text
+              style={{
+                fontFamily: LISTS_ROUNDED,
+                fontSize: 13,
+                color: T.muted,
+                marginBottom: 14,
+                lineHeight: 18,
+              }}
+            >
+              Hide lists you are not using. Hidden lists stay in the vault if they have memories.
+            </Text>
+            <View style={{ gap: 10 }}>
+              {coupleLists.length === 0 ? (
+                <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
+                  No lists yet.
+                </Text>
+              ) : (
+                coupleLists.map((list) => {
+                  const hidden = Boolean(list.hiddenAt);
+                  return (
+                    <View
+                      key={list.id}
+                      style={{
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        borderColor: T.border,
+                        backgroundColor: T.surface,
+                        padding: 14,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 22 }}>{list.emoji}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontFamily: LISTS_ROUNDED,
+                            fontWeight: "700",
+                            fontSize: 15,
+                            color: T.ink,
+                          }}
+                        >
+                          {list.title}
+                        </Text>
+                        <Text
+                          style={{
+                            marginTop: 2,
+                            fontFamily: LISTS_ROUNDED,
+                            fontSize: 12,
+                            color: T.muted,
+                          }}
+                        >
+                          {hidden ? "Hidden from Open lists" : "Visible"}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => void setListHidden(list.id, !hidden)}
+                        style={{
+                          borderRadius: 999,
+                          paddingHorizontal: 12,
+                          paddingVertical: 8,
+                          backgroundColor: hidden ? T.sticky : T.tealSoft,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: LISTS_ROUNDED,
+                            fontWeight: "700",
+                            fontSize: 12,
+                            color: hidden ? T.stickyInk : T.teal,
+                          }}
+                        >
+                          {hidden ? "Show" : "Hide"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={createOpen}
@@ -565,29 +724,5 @@ export default function ListsScreen() {
         </View>
       </Modal>
     </Screen>
-  );
-}
-
-function Stamp({ label, hot }: { label: string; hot?: boolean }) {
-  return (
-    <View
-      style={{
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        backgroundColor: hot ? T.sticky : T.tealSoft,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: LISTS_ROUNDED,
-          fontSize: 12,
-          fontWeight: "700",
-          color: hot ? T.stickyInk : T.teal,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
   );
 }
