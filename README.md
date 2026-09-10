@@ -26,7 +26,7 @@ npm run web
 
 `npm run web` starts Expo on port **43127** and a local push sender on **43128**. Open the site over that port.
 
-On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow **You → Enable notifications**.
+On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow **Settings → Enable notifications**.
 
 ### Pairing on web
 
@@ -41,7 +41,7 @@ Web push does **not** run inside a regular Safari tab. Both of you:
 1. Open the HTTPS site in Safari.
 2. Share → **Add to Home Screen**.
 3. Launch Duoma from that icon.
-4. On **You**, tap **Enable notifications** and allow the prompt.
+4. Open **Settings**, tap **Enable notifications**, and allow the prompt.
 
 Android Chrome can subscribe from the browser tab; Home Screen install still feels like an app.
 
@@ -65,7 +65,7 @@ Vercel serverless functions live in `api/push/`. Netlify functions live in `netl
 ## Layout
 
 ```
-app/(tabs)/you.tsx       Enable notifications + iOS Home Screen copy
+app/hub/settings.tsx     Card Bank, notifications, pair code, sign out
 public/sw.js             Push event + notification click
 public/manifest.webmanifest
 api/push/send.js         Vercel: web-push + VAPID

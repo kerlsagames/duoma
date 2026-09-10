@@ -4,6 +4,7 @@ import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   Modal,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 
 export default function CardBankScreen() {
+  const router = useRouter();
   const { cards, toggleCardActive, addCustomCard, user, partner, ratings } =
     useApp();
   const [stage, setStage] = useState<CardStage>("pre_foreplay");
@@ -143,6 +145,13 @@ export default function CardBankScreen() {
               );
             })
           )}
+        </View>
+        <View className="pb-8">
+          <PrimaryButton
+            label="Back to Settings"
+            tone="ghost"
+            onPress={() => router.back()}
+          />
         </View>
       </View>
 

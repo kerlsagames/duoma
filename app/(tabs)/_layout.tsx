@@ -23,6 +23,9 @@ export default function TabLayout() {
           fontWeight: "700",
           letterSpacing: 0.4,
         },
+        tabBarItemStyle: {
+          flex: 1,
+        },
       }}
     >
       <Tabs.Screen
@@ -30,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid" color={color} size={size} />
+            <Ionicons name="home" color={color} size={size} />
           ),
         }}
       />
@@ -43,19 +46,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cards"
         options={{
-          title: "Cards",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="albums" color={color} size={size} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="you"
         options={{
-          title: "You",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" color={color} size={size} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

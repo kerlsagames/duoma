@@ -1,6 +1,7 @@
-import { AppIcon, FeatureApp } from "@/components/home/AppIcon";
-import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
+import { AppIcon } from "@/components/home/AppIcon";
+import { CurrentStatus } from "@/components/home/CurrentStatus";
 import { Screen } from "@/components/ui/Screen";
+import { gameResumeHref } from "@/lib/home-status";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,7 +12,15 @@ import { Text, View } from "react-native";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
-const MINI_APPS: { label: string; icon: IconName; href: string; hot?: boolean }[] = [
+const APPS: {
+  label: string;
+  icon: IconName;
+  href?: string;
+  spicy?: boolean;
+  hot?: boolean;
+}[] = [
+  { label: "Spicy Game", icon: "flame", spicy: true, hot: true },
+  { label: "Talk to me", icon: "chatbubbles", href: "/hub/talk" },
   { label: "Check-in", icon: "battery-charging", href: "/hub/check-in", hot: true },
   { label: "Curiosity", icon: "sparkles", href: "/hub/curiosity" },
   { label: "Calendar", icon: "calendar", href: "/hub/calendar" },
@@ -21,6 +30,7 @@ const MINI_APPS: { label: string; icon: IconName; href: string; hot?: boolean }[
   { label: "Scratch", icon: "gift", href: "/hub/scratch" },
   { label: "The jar", icon: "file-tray", href: "/hub/jar" },
   { label: "Date night", icon: "wine", href: "/hub/planner", hot: true },
+  { label: "Settings", icon: "settings-sharp", href: "/hub/settings" },
 ];
 
 export default function HomeScreen() {
@@ -29,24 +39,18 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const resume = () => {
-    if (!game) return;
-    if (game.status === "setup") router.push("/game/setup");
-    else if (game.status === "selecting") router.push("/game/select");
-    else if (["playing", "rating"].includes(game.status)) router.push("/game/play");
-  };
-
   const live = Boolean(
     game && ["setup", "selecting", "playing", "rating", "inviting"].includes(game.status)
   );
 
   const startSpicy = async () => {
     setError(null);
-    if (game?.status === "inviting") return;
-    if (game && ["setup", "selecting", "playing", "rating"].includes(game.status)) {
-      resume();
+    const resume = gameResumeHref(game);
+    if (resume) {
+      router.push(resume);
       return;
     }
+    if (game?.status === "inviting") return;
     setLoading(true);
     try {
       await sendSpicyInvite();
@@ -88,30 +92,11 @@ export default function HomeScreen() {
           >
             DUOMA
           </Text>
-          <Text className="mt-1 text-[14px] text-mist/70">
-            Pick an app. Spark something.
-          </Text>
         </View>
 
         <View className="mt-4">
-          <PartnerConnectionBanner />
+          <CurrentStatus onStartSpicy={() => void startSpicy()} />
         </View>
-
-        <FeatureApp
-          kicker={live ? "In motion" : "Tonight"}
-          title="The Spicy Game"
-          blurb="A whole day leading to a steamy conclusion."
-          icon="flame"
-          live={live}
-          onPress={() => void startSpicy()}
-        />
-        <FeatureApp
-          kicker="Talk"
-          title="Talk to me"
-          blurb="Heat, us, or a dare. Read it out loud."
-          icon="chatbubbles"
-          onPress={() => router.push("/hub/talk" as Href)}
-        />
 
         {loading ? (
           <Text className="mb-3 text-center text-[13px] text-neon">Lighting it up…</Text>
@@ -120,17 +105,21 @@ export default function HomeScreen() {
           <Text className="mb-3 text-center text-[13px] text-crimson">{error}</Text>
         ) : null}
 
-        <Text className="mb-3 mt-2 text-[11px] font-bold uppercase tracking-[3px] text-neon">
-          Your apps
-        </Text>
         <View className="flex-row flex-wrap justify-between">
-          {MINI_APPS.map((app) => (
+          {APPS.map((app) => (
             <AppIcon
-              key={app.href}
+              key={app.label}
               label={app.label}
               icon={app.icon}
               hot={app.hot}
-              onPress={() => router.push(app.href as Href)}
+              live={app.spicy ? live : false}
+              onPress={() => {
+                if (app.spicy) {
+                  void startSpicy();
+                  return;
+                }
+                if (app.href) router.push(app.href as Href);
+              }}
             />
           ))}
         </View>

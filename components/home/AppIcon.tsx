@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import type { ComponentProps } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
@@ -112,78 +111,6 @@ export function AppIcon({ label, icon, onPress, live, hot }: Props) {
       >
         {label}
       </Text>
-    </Pressable>
-  );
-}
-
-type FeatureProps = {
-  kicker: string;
-  title: string;
-  blurb: string;
-  icon: IconName;
-  onPress: () => void;
-  live?: boolean;
-};
-
-export function FeatureApp({
-  kicker,
-  title,
-  blurb,
-  icon,
-  onPress,
-  live,
-}: FeatureProps) {
-  return (
-    <Pressable onPress={onPress} className="mb-3">
-      <View
-        style={{
-          borderRadius: 24,
-          overflow: "hidden",
-          backgroundColor: "#2A0818",
-          borderWidth: 1,
-          borderColor: "rgba(255,0,127,0.45)",
-          ...(Platform.OS === "web"
-            ? { boxShadow: "0 0 22px 2px rgba(255,0,127,0.28)" }
-            : {
-                shadowColor: "#FF007F",
-                shadowOpacity: 0.35,
-                shadowRadius: 20,
-                shadowOffset: { width: 0, height: 0 },
-              }),
-        }}
-      >
-        <LinearGradient
-          colors={["#4A1530", "#220814"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            paddingVertical: 12,
-            paddingHorizontal: 12,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <IconWell
-            icon={icon}
-            size={56}
-            radius={18}
-            glow="rgba(255,77,166,0.5)"
-            glyph={26}
-          />
-          <View className="ml-2 flex-1">
-            <View className="flex-row items-center">
-              <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
-                {kicker}
-              </Text>
-              {live ? (
-                <Text className="ml-2 text-[11px] font-bold text-crimson">LIVE</Text>
-              ) : null}
-            </View>
-            <Text className="mt-0.5 text-[18px] font-bold text-mist">{title}</Text>
-            <Text className="mt-0.5 text-[13px] leading-5 text-mist/70">{blurb}</Text>
-          </View>
-        </LinearGradient>
-      </View>
     </Pressable>
   );
 }

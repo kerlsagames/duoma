@@ -27,12 +27,12 @@ const STEPS = [
   {
     kicker: "Home",
     title: "It's a home screen of apps",
-    body: "The Spicy Game is a whole day leading to a steamy conclusion. Talk to me is the conversation packs. Check-in, curiosity, calendar, desire, coupons, scratch-offs, the jar, and date night each have their own app icon. Sign out does not delete the pair.",
+    body: "The top of Home is Now — their mood, whose spicy-game turn it is, and what's next. Twelve app icons sit under that, including Spicy Game, Talk to me, and Settings in the bottom right. Card Bank, notifications, and sign-out live in Settings. The only tab is Home.",
   },
   {
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
-    body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications on You. Push does not work inside a regular Safari tab.",
+    body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications in Settings. Push does not work inside a regular Safari tab.",
   },
   {
     kicker: "The close",
