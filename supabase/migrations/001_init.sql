@@ -9,7 +9,8 @@ do $$ begin
     'pre_foreplay',
     'foreplay',
     'step_it_up',
-    'finish_off'
+    'finish_off',
+    'afterglow'
   );
 exception when duplicate_object then null;
 end $$;
@@ -80,7 +81,7 @@ create table if not exists public.games (
   initiator_id uuid not null references public.profiles (id),
   mode public.game_mode,
   block_limit int not null default 1 check (block_limit between 1 and 3),
-  stage_counts jsonb not null default '{"pre_foreplay":2,"foreplay":2,"step_it_up":2,"finish_off":1}'::jsonb,
+  stage_counts jsonb not null default '{"pre_foreplay":2,"foreplay":2,"step_it_up":2,"finish_off":1,"afterglow":1}'::jsonb,
   current_stage public.card_stage,
   active_card_id uuid,
   created_at timestamptz not null default now(),

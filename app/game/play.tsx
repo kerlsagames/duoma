@@ -64,11 +64,12 @@ export default function PlayScreen() {
       <Screen>
         <View className="flex-1 justify-center">
           <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
-            Afterglow
+            Deck complete
           </Text>
           <Text className="mt-3 text-[36px] font-bold text-mist">You made it.</Text>
           <Text className="mt-3 text-[16px] leading-6 text-mist/70">
-            Every stage is closed. Stay close. The deck is done for tonight.
+            Every stage is closed, including afterglow. Stay close. The deck is
+            done for tonight.
           </Text>
           <View className="mt-8">
             <PrimaryButton

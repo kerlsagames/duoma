@@ -6,6 +6,7 @@ export const STAGE_ORDER: CardStage[] = [
   "foreplay",
   "step_it_up",
   "finish_off",
+  "afterglow",
 ];
 
 export const STAGE_META: Record<
@@ -16,6 +17,7 @@ export const STAGE_META: Record<
   foreplay: { label: "Foreplay", short: "Warm", heat: "Stage 2" },
   step_it_up: { label: "Step It Up", short: "Heat", heat: "Stage 3" },
   finish_off: { label: "Finish Off", short: "Finish", heat: "Stage 4" },
+  afterglow: { label: "Afterglow", short: "Glow", heat: "Stage 5" },
 };
 
 export const DEFAULT_STAGE_COUNTS: StageCounts = {
@@ -23,7 +25,14 @@ export const DEFAULT_STAGE_COUNTS: StageCounts = {
   foreplay: 2,
   step_it_up: 2,
   finish_off: 1,
+  afterglow: 1,
 };
+
+export function normalizeStageCounts(
+  counts?: Partial<StageCounts> | null
+): StageCounts {
+  return { ...DEFAULT_STAGE_COUNTS, ...(counts ?? {}) };
+}
 
 export function totalCards(counts: StageCounts): number {
   return STAGE_ORDER.reduce((sum, stage) => sum + counts[stage], 0);

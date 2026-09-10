@@ -8,9 +8,14 @@ const path = require("path");
 
 const files = [
   "pre-foreplay.json",
+  "pre-foreplay-2.json",
   "foreplay.json",
+  "foreplay-2.json",
   "step-it-up.json",
+  "step-it-up-2.json",
   "finish-off.json",
+  "finish-off-2.json",
+  "afterglow.json",
 ];
 
 const cardsDir = path.join(__dirname, "..", "games", "get-spicy", "cards");

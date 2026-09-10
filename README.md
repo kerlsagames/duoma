@@ -8,7 +8,7 @@ Palette: rich black `#0B0B0E`, neon pink `#FF007F`, crimson `#E60039`, mist `#F4
 
 - **6-character invite codes** — User A creates a profile, gets a code, shares it (native share sheet or copy). User B joins. Two browser tabs on the same machine also pair, so you can demo without two devices.
 - **Get Spicy** — Send “Get Spicy tonight?”, accept/decline, then **Random** or **Pick Your Own**. Shared play screen: **Play Card** reveals `active_card_id` on both clients. **Block / Skip** discards the live card and draws a replacement (1–3 blocks each).
-- **Four seeded decks** (50 cards each, your copy): Pre-Foreplay, Foreplay, Step It Up, Finish Off.
+- **Five seeded decks:** 100 cards each in Pre-Foreplay, Foreplay, Step It Up, and Finish Off, plus 50 Afterglow cards (more coming).
 - **Card Bank** — View defaults, toggle Active/Inactive, add custom cards per stage.
 - **Modular games** — logic lives in `/games/get-spicy` with a `/games/lets-talk` stub for the next title.
 

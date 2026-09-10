@@ -7,7 +7,8 @@ Fuse is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_URL
 1. Create a project at [supabase.com](https://supabase.com).
 2. In the SQL editor, run:
    - `supabase/migrations/001_init.sql`
-   - `supabase/seed.sql` (200 default Get Spicy cards)
+   - `supabase/migrations/002_afterglow.sql` (if 001 was already applied)
+   - `supabase/seed.sql` (450 default Get Spicy cards across 5 stages)
 3. Enable Authentication (email, magic link, or Apple/Google).
 4. Copy the project URL and anon key into `.env`:
 

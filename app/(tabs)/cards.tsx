@@ -47,7 +47,7 @@ export default function CardBankScreen() {
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Card Bank</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          Fifty defaults in every stage. Toggle what you want in rotation, or
+          Full default decks in every stage. Toggle what you want in rotation, or
           write your own.
         </Text>
 
@@ -89,7 +89,7 @@ export default function CardBankScreen() {
                 No cards in this stage yet
               </Text>
               <Text className="mt-2 text-[14px] text-mist/60">
-                Pair up to clone the default 50-card decks, then write your own.
+                Pair up to clone the default decks, then write your own.
               </Text>
             </View>
           ) : (

@@ -3,6 +3,7 @@ export const STAGES = [
   "foreplay",
   "step_it_up",
   "finish_off",
+  "afterglow",
 ] as const;
 
 export type CardStage = (typeof STAGES)[number];

@@ -32,8 +32,8 @@ export default function WelcomeScreen() {
             </Text>
             <Text className="mt-2 text-[24px] font-bold text-mist">Get Spicy</Text>
             <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-              Four stages, two phones, one live deck. Tease through the day.
-              Finish the night together.
+              Five stages, two phones, one live deck. Tease through the day.
+              Close the night in afterglow.
             </Text>
           </LinearGradient>
         </View>

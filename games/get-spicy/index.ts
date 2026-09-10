@@ -3,7 +3,7 @@ import type { GameModule } from "@/lib/types";
 export const getSpicyGame: GameModule = {
   key: "get-spicy",
   title: "Get Spicy",
-  tagline: "Four stages. One night. Cards you play together.",
+  tagline: "Five stages. One night. Cards you play together.",
   available: true,
 };
 
@@ -15,4 +15,5 @@ export {
   buildRandomDeck,
   replacementCard,
   totalCards,
+  normalizeStageCounts,
 } from "./engine";

@@ -1,7 +1,8 @@
-import { cloneDefaultDeck } from "@/games/get-spicy";
+import { cloneDefaultDeck, GET_SPICY_SEEDS } from "@/games/get-spicy";
 import {
   buildRandomDeck,
   DEFAULT_STAGE_COUNTS,
+  normalizeStageCounts,
   replacementCard,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
@@ -62,6 +63,48 @@ function uniqueInviteCode(): string {
   let code = createInviteCode();
   while (existing.has(code)) code = createInviteCode();
   return code;
+}
+
+function seedKey(stage: string, title: string, body: string) {
+  return `${stage}::${title}::${body}`;
+}
+
+function syncDefaultCards(): boolean {
+  let added = false;
+  for (const couple of db.couples) {
+    const existingKeys = new Set(
+      db.cards
+        .filter((card) => card.coupleId === couple.id && card.isDefault)
+        .map((card) => seedKey(card.stage, card.title, card.body))
+    );
+    const missing = GET_SPICY_SEEDS.filter(
+      (seed) =>
+        !existingKeys.has(
+          seedKey(seed.category, seed.title, seed.description)
+        )
+    );
+    if (!missing.length) continue;
+    added = true;
+    db = {
+      ...db,
+      cards: [
+        ...db.cards,
+        ...missing.map((seed) => ({
+          id: createId(),
+          coupleId: couple.id,
+          stage: seed.category,
+          title: seed.title,
+          body: seed.description,
+          isDefault: true,
+          isActive: true,
+          sortOrder: seed.order,
+          createdBy: couple.partnerA,
+          createdAt: nowIso(),
+        })),
+      ],
+    };
+  }
+  return added;
 }
 
 function coupleForUser(userId: string | null): Couple | null {
@@ -142,7 +185,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (async () => {
       db = await readDb();
       sessionUserId = await readSessionUserId();
-      bump();
+      if (syncDefaultCards()) {
+        await persist();
+      } else {
+        bump();
+      }
       setReady(true);
     })();
 
@@ -494,20 +541,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db.deck.filter((item) => item.gameId === game.id).map((item) => item.cardId)
     );
     const remaining: Card[] = [];
+    const counts = normalizeStageCounts(game.stageCounts);
     for (const stage of STAGE_ORDER) {
       const have = db.deck.filter(
         (item) => item.gameId === game.id && item.stage === stage
       ).length;
-      const need = game.stageCounts[stage] - have;
+      const need = Math.max(0, counts[stage] - have);
+      const stageCounts = Object.fromEntries(
+        STAGE_ORDER.map((key) => [key, key === stage ? need : 0])
+      ) as StageCounts;
       remaining.push(
         ...buildRandomDeck(
           cards.filter((card) => !selectedIds.has(card.id)),
-          {
-            pre_foreplay: stage === "pre_foreplay" ? need : 0,
-            foreplay: stage === "foreplay" ? need : 0,
-            step_it_up: stage === "step_it_up" ? need : 0,
-            finish_off: stage === "finish_off" ? need : 0,
-          }
+          stageCounts
         )
       );
     }

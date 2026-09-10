@@ -70,7 +70,7 @@ export default function SetupScreen() {
               </Text>
               <Text className="mt-1 text-[14px] leading-5 text-mist/60">
                 {option === "random"
-                  ? "The app deals live cards across all four stages."
+                  ? "The app deals live cards across all five stages."
                   : "Set the counts, then both of you choose the exact cards."}
               </Text>
             </Pressable>
