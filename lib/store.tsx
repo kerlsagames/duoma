@@ -7,6 +7,13 @@ import {
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
+import { localDateKey } from "@/lib/dates";
+import {
+  ALL_DESIRE_OPTIONS,
+  curiosityFor,
+  hashPick,
+  SCRATCH_POOLS,
+} from "@/lib/hub";
 import {
   emptyDb,
   readDb,
@@ -18,14 +25,26 @@ import {
 } from "@/lib/storage";
 import type {
   AppDB,
+  BucketItem,
+  BucketKind,
   Card,
   CardRating,
   CardStage,
+  CheckIn,
+  Coupon,
   Couple,
+  CuriosityAnswer,
   DeckCard,
+  DesireToggle,
   GameMode,
   GameSession,
+  JarNote,
+  Milestone,
+  MilestoneKind,
+  MoodWeather,
   Profile,
+  ScratchKind,
+  ScratchReveal,
   StageCounts,
 } from "@/lib/types";
 import {
@@ -192,6 +211,33 @@ function otherUserId(couple: Couple, userId: string): string | null {
   return null;
 }
 
+function upsertRitual(
+  coupleId: string,
+  userId: string,
+  ritualId: string,
+  date: string
+) {
+  const exists = db.ritualChecks.some(
+    (row) =>
+      row.coupleId === coupleId &&
+      row.ritualId === ritualId &&
+      row.date === date &&
+      row.userId === userId
+  );
+  if (exists) return db.ritualChecks;
+  return [
+    ...db.ritualChecks,
+    {
+      id: createId(),
+      coupleId,
+      ritualId,
+      date,
+      userId,
+      createdAt: nowIso(),
+    },
+  ];
+}
+
 function activeGameForCouple(coupleId: string | null): GameSession | null {
   if (!coupleId) return null;
   return (
@@ -239,6 +285,16 @@ type AppContextValue = {
   } | null;
   nights: GameSession[];
   bestCards: BestCard[];
+  checkIns: CheckIn[];
+  curiosityAnswers: CuriosityAnswer[];
+  milestones: Milestone[];
+  desireToggles: DesireToggle[];
+  coupons: Coupon[];
+  scratches: ScratchReveal[];
+  jarNotes: JarNote[];
+  bucketItems: BucketItem[];
+  ritualChecks: AppDB["ritualChecks"];
+  jarOpenVotes: AppDB["jarOpenVotes"];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -267,16 +323,51 @@ type AppContextValue = {
     title: string;
     body: string;
   }) => Promise<void>;
+  submitCheckIn: (input: {
+    energy: number;
+    mood: MoodWeather;
+    loveTank: number;
+  }) => Promise<void>;
+  submitCuriosity: (body: string) => Promise<void>;
+  addMilestone: (input: {
+    title: string;
+    kind: MilestoneKind;
+    date: string;
+  }) => Promise<void>;
+  removeMilestone: (id: string) => Promise<void>;
+  toggleDesire: (optionId: string) => Promise<void>;
+  createCoupon: (input: { title: string; body: string }) => Promise<void>;
+  acceptCoupon: (id: string) => Promise<void>;
+  redeemCoupon: (id: string) => Promise<void>;
+  scratchCard: (kind: ScratchKind) => Promise<ScratchReveal | null>;
+  addJarNote: (body: string) => Promise<void>;
+  voteOpenJar: () => Promise<void>;
+  addBucketItem: (input: {
+    title: string;
+    kind: BucketKind;
+    notes?: string;
+    scheduledOn?: string | null;
+  }) => Promise<void>;
+  spinDateNight: () => Promise<BucketItem | null>;
+  markBucketDone: (id: string) => Promise<void>;
+  toggleRitual: (ritualId: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 function sessionFields(game: GameSession, extra: Partial<GameSession>): GameSession {
-  return {
+  const next: GameSession = {
     ...game,
     ...extra,
     updatedAt: nowIso(),
   };
+  if (
+    (next.status === "rating" || next.status === "completed") &&
+    !next.playedDate
+  ) {
+    next.playedDate = localDateKey();
+  }
+  return next;
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -437,6 +528,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
 
+  const ritualChecks = useMemo(
+    () => db.ritualChecks.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const jarOpenVotes = useMemo(
+    () => db.jarOpenVotes.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const checkIns = useMemo(
+    () => db.checkIns.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const curiosityAnswers = useMemo(
+    () => db.curiosityAnswers.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const milestones = useMemo(
+    () =>
+      db.milestones
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const desireToggles = useMemo(
+    () => db.desireToggles.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const coupons = useMemo(
+    () => db.coupons.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const scratches = useMemo(
+    () => db.scratches.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const jarNotes = useMemo(
+    () => db.jarNotes.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const bucketItems = useMemo(
+    () => db.bucketItems.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
   const rememberUser = async (userId: string) => {
     sessionUserId = userId;
     lastUserId = userId;
@@ -510,6 +655,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isDemo: true,
       createdAt: nowIso(),
     };
+    const today = localDateKey();
+    const anniversary = new Date();
+    anniversary.setMonth(anniversary.getMonth() + 2);
     db = {
       ...db,
       profiles: [...db.profiles, demo],
@@ -518,6 +666,79 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ? { ...row, partnerB: demo.id, pairedAt: nowIso() }
           : row
       ),
+      checkIns: [
+        ...db.checkIns,
+        {
+          id: createId(),
+          coupleId: couple.id,
+          userId: demo.id,
+          date: today,
+          energy: 3,
+          mood: "rain",
+          loveTank: 4,
+          createdAt: nowIso(),
+        },
+      ],
+      desireToggles: [
+        ...db.desireToggles,
+        ...ALL_DESIRE_OPTIONS.filter((_, index) => index % 3 !== 2).map(
+          (option) => ({
+            id: createId(),
+            coupleId: couple.id,
+            userId: demo.id,
+            optionId: option.id,
+            createdAt: nowIso(),
+          })
+        ),
+      ],
+      milestones: [
+        ...db.milestones,
+        {
+          id: createId(),
+          coupleId: couple.id,
+          title: "Weekend getaway",
+          kind: "trip" as const,
+          date: localDateKey(anniversary),
+          createdBy: demo.id,
+          createdAt: nowIso(),
+        },
+      ],
+      jarNotes: [
+        ...db.jarNotes,
+        {
+          id: createId(),
+          coupleId: couple.id,
+          fromUserId: demo.id,
+          body: "Thank you for making coffee before I asked.",
+          createdAt: nowIso(),
+          openedAt: null,
+        },
+      ],
+      bucketItems: [
+        ...db.bucketItems,
+        {
+          id: createId(),
+          coupleId: couple.id,
+          title: "Oyster night at the market",
+          kind: "meal" as const,
+          notes: "Weeknight. No occasion required.",
+          scheduledOn: null,
+          doneAt: null,
+          createdBy: demo.id,
+          createdAt: nowIso(),
+        },
+        {
+          id: createId(),
+          coupleId: couple.id,
+          title: "Coast overnight",
+          kind: "trip" as const,
+          notes: "Cheap motel is fine.",
+          scheduledOn: null,
+          doneAt: null,
+          createdBy: demo.id,
+          createdAt: nowIso(),
+        },
+      ],
     };
     await persist();
   }, [couple]);
@@ -551,6 +772,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activePlayedBy: null,
       awaitingPrivate: false,
       privateUnlocked: false,
+      playedDate: null,
       createdAt: nowIso(),
       updatedAt: nowIso(),
     };
@@ -1033,6 +1255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               status: "completed",
               activeCardId: null,
               activePlayedBy: null,
+              playedDate: row.playedDate ?? localDateKey(),
             })
           : row
       ),
@@ -1091,6 +1314,403 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const submitCheckIn = useCallback(
+    async (input: { energy: number; mood: MoodWeather; loveTank: number }) => {
+      if (!user || !couple) return;
+      const today = localDateKey();
+      const row: CheckIn = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        date: today,
+        energy: Math.min(10, Math.max(1, input.energy)),
+        mood: input.mood,
+        loveTank: Math.min(10, Math.max(1, input.loveTank)),
+        createdAt: nowIso(),
+      };
+      db = {
+        ...db,
+        checkIns: [
+          ...db.checkIns.filter(
+            (item) =>
+              !(
+                item.coupleId === couple.id &&
+                item.userId === user.id &&
+                item.date === today
+              )
+          ),
+          row,
+        ],
+        ritualChecks: upsertRitual(couple.id, user.id, "check-in", today),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const submitCuriosity = useCallback(
+    async (body: string) => {
+      if (!user || !couple) return;
+      const text = body.trim();
+      if (!text) throw new Error("Write an answer first.");
+      const today = localDateKey();
+      const question = curiosityFor(couple.id, today);
+      const mine: CuriosityAnswer = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        date: today,
+        questionId: question.id,
+        body: text,
+        createdAt: nowIso(),
+      };
+      const extra: CuriosityAnswer[] = [];
+      if (partner?.isDemo) {
+        const already = db.curiosityAnswers.some(
+          (row) =>
+            row.coupleId === couple.id &&
+            row.userId === partner.id &&
+            row.date === today
+        );
+        if (!already) {
+          extra.push({
+            id: createId(),
+            coupleId: couple.id,
+            userId: partner.id,
+            date: today,
+            questionId: question.id,
+            body: "The quiet way you checked on me without making it a thing.",
+            createdAt: nowIso(),
+          });
+        }
+      }
+      db = {
+        ...db,
+        curiosityAnswers: [
+          ...db.curiosityAnswers.filter(
+            (row) =>
+              !(
+                row.coupleId === couple.id &&
+                row.userId === user.id &&
+                row.date === today
+              )
+          ),
+          mine,
+          ...extra,
+        ],
+        ritualChecks: upsertRitual(couple.id, user.id, "curiosity", today),
+      };
+      await persist();
+    },
+    [couple, partner, user]
+  );
+
+  const addMilestone = useCallback(
+    async (input: { title: string; kind: MilestoneKind; date: string }) => {
+      if (!user || !couple) return;
+      const title = input.title.trim();
+      if (!title || !input.date) throw new Error("Add a title and a date.");
+      const row: Milestone = {
+        id: createId(),
+        coupleId: couple.id,
+        title,
+        kind: input.kind,
+        date: input.date,
+        createdBy: user.id,
+        createdAt: nowIso(),
+      };
+      db = { ...db, milestones: [...db.milestones, row] };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const removeMilestone = useCallback(async (id: string) => {
+    db = { ...db, milestones: db.milestones.filter((row) => row.id !== id) };
+    await persist();
+  }, []);
+
+  const toggleDesire = useCallback(
+    async (optionId: string) => {
+      if (!user || !couple) return;
+      const existing = db.desireToggles.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.optionId === optionId
+      );
+      db = {
+        ...db,
+        desireToggles: existing
+          ? db.desireToggles.filter((row) => row.id !== existing.id)
+          : [
+              ...db.desireToggles,
+              {
+                id: createId(),
+                coupleId: couple.id,
+                userId: user.id,
+                optionId,
+                createdAt: nowIso(),
+              },
+            ],
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const createCoupon = useCallback(
+    async (input: { title: string; body: string }) => {
+      if (!user || !couple?.partnerB) {
+        throw new Error("Pair up before sending a coupon.");
+      }
+      const title = input.title.trim();
+      if (!title) throw new Error("Name the favor.");
+      const toUserId =
+        couple.partnerB === user.id ? couple.partnerA : couple.partnerB;
+      if (!toUserId) throw new Error("Pair up before sending a coupon.");
+      const demoTarget = Boolean(partner?.isDemo && toUserId === partner.id);
+      const row: Coupon = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        title,
+        body: input.body.trim(),
+        status: demoTarget ? "accepted" : "offered",
+        createdAt: nowIso(),
+        acceptedAt: demoTarget ? nowIso() : null,
+        redeemedAt: null,
+      };
+      db = { ...db, coupons: [...db.coupons, row] };
+      await persist();
+    },
+    [couple, partner, user]
+  );
+
+  const acceptCoupon = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        coupons: db.coupons.map((row) =>
+          row.id === id && row.toUserId === user.id && row.status === "offered"
+            ? { ...row, status: "accepted", acceptedAt: nowIso() }
+            : row
+        ),
+      };
+      await persist();
+    },
+    [user]
+  );
+
+  const redeemCoupon = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        coupons: db.coupons.map((row) => {
+          const mine = row.toUserId === user.id;
+          const demoHold = Boolean(partner?.isDemo && row.toUserId === partner.id);
+          if (
+            row.id === id &&
+            row.status === "accepted" &&
+            (mine || demoHold)
+          ) {
+            return { ...row, status: "redeemed", redeemedAt: nowIso() };
+          }
+          return row;
+        }),
+      };
+      await persist();
+    },
+    [partner, user]
+  );
+
+  const scratchCard = useCallback(
+    async (kind: ScratchKind) => {
+      if (!user || !couple) return null;
+      const pick = hashPick(
+        SCRATCH_POOLS[kind],
+        `${couple.id}:${user.id}:${kind}:${Date.now()}`
+      );
+      const row: ScratchReveal = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        kind,
+        title: pick.title,
+        body: pick.body,
+        createdAt: nowIso(),
+      };
+      db = { ...db, scratches: [...db.scratches, row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const addJarNote = useCallback(
+    async (body: string) => {
+      if (!user || !couple) return;
+      const text = body.trim();
+      if (!text) throw new Error("Write a note first.");
+      const row: JarNote = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        body: text,
+        createdAt: nowIso(),
+        openedAt: null,
+      };
+      db = { ...db, jarNotes: [...db.jarNotes, row] };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const voteOpenJar = useCallback(async () => {
+    if (!user || !couple) return;
+    const today = localDateKey();
+    const already = db.jarOpenVotes.some(
+      (row) =>
+        row.coupleId === couple.id &&
+        row.userId === user.id &&
+        row.date === today
+    );
+    let votes = already
+      ? db.jarOpenVotes
+      : [
+          ...db.jarOpenVotes,
+          {
+            id: createId(),
+            coupleId: couple.id,
+            userId: user.id,
+            date: today,
+          },
+        ];
+    if (partner?.isDemo) {
+      const demoVoted = votes.some(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === partner.id &&
+          row.date === today
+      );
+      if (!demoVoted) {
+        votes = [
+          ...votes,
+          {
+            id: createId(),
+            coupleId: couple.id,
+            userId: partner.id,
+            date: today,
+          },
+        ];
+      }
+    }
+    const needed = partner ? 2 : 1;
+    const count = votes.filter(
+      (row) => row.coupleId === couple.id && row.date === today
+    ).length;
+    const openNow = count >= needed;
+    db = {
+      ...db,
+      jarOpenVotes: votes,
+      jarNotes: openNow
+        ? db.jarNotes.map((note) =>
+            note.coupleId === couple.id && !note.openedAt
+              ? { ...note, openedAt: nowIso() }
+              : note
+          )
+        : db.jarNotes,
+      ritualChecks: openNow
+        ? upsertRitual(couple.id, user.id, "jar-sunday", today)
+        : db.ritualChecks,
+    };
+    await persist();
+  }, [couple, partner, user]);
+
+  const addBucketItem = useCallback(
+    async (input: {
+      title: string;
+      kind: BucketKind;
+      notes?: string;
+      scheduledOn?: string | null;
+    }) => {
+      if (!user || !couple) return;
+      const title = input.title.trim();
+      if (!title) throw new Error("Name the plan.");
+      const row: BucketItem = {
+        id: createId(),
+        coupleId: couple.id,
+        title,
+        kind: input.kind,
+        notes: input.notes?.trim() ?? "",
+        scheduledOn: input.scheduledOn || null,
+        doneAt: null,
+        createdBy: user.id,
+        createdAt: nowIso(),
+      };
+      db = { ...db, bucketItems: [...db.bucketItems, row] };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const spinDateNight = useCallback(async () => {
+    if (!couple) return null;
+    const open = db.bucketItems.filter(
+      (row) => row.coupleId === couple.id && !row.doneAt
+    );
+    if (!open.length) return null;
+    const pick = open[Math.floor(Math.random() * open.length)];
+    db = {
+      ...db,
+      bucketItems: db.bucketItems.map((row) =>
+        row.id === pick.id
+          ? { ...row, scheduledOn: row.scheduledOn ?? localDateKey() }
+          : row
+      ),
+      ritualChecks: user
+        ? upsertRitual(couple.id, user.id, "date-night", localDateKey())
+        : db.ritualChecks,
+    };
+    await persist();
+    return pick;
+  }, [couple, user]);
+
+  const markBucketDone = useCallback(async (id: string) => {
+    db = {
+      ...db,
+      bucketItems: db.bucketItems.map((row) =>
+        row.id === id ? { ...row, doneAt: nowIso() } : row
+      ),
+    };
+    await persist();
+  }, []);
+
+  const toggleRitual = useCallback(
+    async (ritualId: string) => {
+      if (!user || !couple) return;
+      const today = localDateKey();
+      const existing = db.ritualChecks.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.ritualId === ritualId &&
+          row.date === today &&
+          row.userId === user.id
+      );
+      db = {
+        ...db,
+        ritualChecks: existing
+          ? db.ritualChecks.filter((row) => row.id !== existing.id)
+          : upsertRitual(couple.id, user.id, ritualId, today),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
   const value: AppContextValue = {
     ready,
     usingCloud: false,
@@ -1107,6 +1727,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savedPair,
     nights,
     bestCards,
+    checkIns,
+    curiosityAnswers,
+    milestones,
+    desireToggles,
+    coupons,
+    scratches,
+    jarNotes,
+    bucketItems,
+    ritualChecks,
+    jarOpenVotes,
     createAccount,
     joinWithCode,
     continueAsSaved,
@@ -1127,6 +1757,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     endGame,
     toggleCardActive,
     addCustomCard,
+    submitCheckIn,
+    submitCuriosity,
+    addMilestone,
+    removeMilestone,
+    toggleDesire,
+    createCoupon,
+    acceptCoupon,
+    redeemCoupon,
+    scratchCard,
+    addJarNote,
+    voteOpenJar,
+    addBucketItem,
+    spinDateNight,
+    markBucketDone,
+    toggleRitual,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

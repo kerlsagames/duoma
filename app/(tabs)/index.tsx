@@ -61,18 +61,18 @@ export default function HomeScreen() {
         <PartnerConnectionBanner />
 
         <Pressable
-          onPress={() => router.push("/how-to" as Href)}
+          onPress={() => router.push("/(tabs)/us" as Href)}
           className="mb-5 rounded-3xl border border-white/10 bg-white/5 p-5"
         >
           <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
-            How to play
+            Couple hub
           </Text>
           <Text className="mt-2 text-[16px] font-semibold text-mist">
-            Turns, daytime tease, then private time.
+            Check in, plan a date, open the jar.
           </Text>
           <Text className="mt-1 text-[14px] leading-5 text-mist/65">
-            Cards name both of you. Block means you sit their card out. You stay
-            paired after tonight.
+            Daily weather, curiosity, calendar, and the rest of Us. Games stay
+            here on Tonight.
           </Text>
         </Pressable>
 

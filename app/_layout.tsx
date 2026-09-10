@@ -61,6 +61,7 @@ export default function RootLayout() {
                 <Stack.Screen name="waiting" />
                 <Stack.Screen name="how-to" />
                 <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="hub" />
                 <Stack.Screen name="game" />
               </Stack>
               <GameInvitationModal />

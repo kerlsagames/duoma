@@ -77,6 +77,7 @@ export type GameSession = {
   activePlayedBy: string | null;
   awaitingPrivate: boolean;
   privateUnlocked: boolean;
+  playedDate: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -107,6 +108,115 @@ export type CardRating = {
   createdAt: string;
 };
 
+export type MoodWeather = "sunny" | "bright" | "cloudy" | "rain" | "storm";
+
+export type CheckIn = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  date: string;
+  energy: number;
+  mood: MoodWeather;
+  loveTank: number;
+  createdAt: string;
+};
+
+export type CuriosityAnswer = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  date: string;
+  questionId: string;
+  body: string;
+  createdAt: string;
+};
+
+export type MilestoneKind = "anniversary" | "date" | "trip" | "other";
+
+export type Milestone = {
+  id: string;
+  coupleId: string;
+  title: string;
+  kind: MilestoneKind;
+  date: string;
+  createdBy: string;
+  createdAt: string;
+};
+
+export type DesireToggle = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  optionId: string;
+  createdAt: string;
+};
+
+export type CouponStatus = "offered" | "accepted" | "redeemed";
+
+export type Coupon = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  title: string;
+  body: string;
+  status: CouponStatus;
+  createdAt: string;
+  acceptedAt: string | null;
+  redeemedAt: string | null;
+};
+
+export type ScratchKind = "date" | "evening" | "dare";
+
+export type ScratchReveal = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  kind: ScratchKind;
+  title: string;
+  body: string;
+  createdAt: string;
+};
+
+export type JarNote = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  body: string;
+  createdAt: string;
+  openedAt: string | null;
+};
+
+export type JarOpenVote = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  date: string;
+};
+
+export type BucketKind = "place" | "meal" | "trip" | "other";
+
+export type BucketItem = {
+  id: string;
+  coupleId: string;
+  title: string;
+  kind: BucketKind;
+  notes: string;
+  scheduledOn: string | null;
+  doneAt: string | null;
+  createdBy: string;
+  createdAt: string;
+};
+
+export type RitualCheck = {
+  id: string;
+  coupleId: string;
+  ritualId: string;
+  date: string;
+  userId: string;
+  createdAt: string;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -115,6 +225,16 @@ export type AppDB = {
   gamePlayers: GamePlayer[];
   deck: DeckCard[];
   ratings: CardRating[];
+  checkIns: CheckIn[];
+  curiosityAnswers: CuriosityAnswer[];
+  milestones: Milestone[];
+  desireToggles: DesireToggle[];
+  coupons: Coupon[];
+  scratches: ScratchReveal[];
+  jarNotes: JarNote[];
+  jarOpenVotes: JarOpenVote[];
+  bucketItems: BucketItem[];
+  ritualChecks: RitualCheck[];
 };
 
 export type GameModule = {

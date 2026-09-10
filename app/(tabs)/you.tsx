@@ -39,7 +39,7 @@ export default function YouScreen() {
             </Text>
             <Text className="mt-2 text-[14px] leading-5 text-mist/60">
               {partner
-                ? `You stay paired with ${partner.displayName}${partner.isDemo ? " (demo)" : ""}. Sign out does not unpair you. Do not make a new code for the next night.`
+                ? `You stay paired with ${partner.displayName}${partner.isDemo ? " (demo)" : ""}. Check-ins, nights, dates, and notes live on this account. Sign out does not unpair you.`
                 : "Share this code so your partner can join. It stays yours."}
             </Text>
           </View>
@@ -108,6 +108,11 @@ export default function YouScreen() {
         </View>
 
         <View className="mt-8 gap-3">
+          <PrimaryButton
+            label="Open the shared calendar"
+            tone="ghost"
+            onPress={() => router.push("/hub/calendar" as Href)}
+          />
           <PrimaryButton
             label="How to play"
             tone="ghost"

@@ -25,6 +25,11 @@ const STEPS = [
     body: "Texts, looks, light touch throughout the day. When those cards are done, Fuse pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
   },
   {
+    kicker: "Us",
+    title: "The couple account",
+    body: "Us is the shared record: daily check-in, curiosity question, calendar, countdowns, desire matches, coupons, scratch-offs, the appreciation jar, and the date-night list. Sign out does not delete the pair.",
+  },
+  {
     kicker: "The close",
     title: "Finish Off, then Afterglow",
     body: "Finish Off is climax. Afterglow is post-sex care — water, towels, cuddles. Rate the cards you both used. Your best ones live in the Card Bank.",
@@ -42,7 +47,7 @@ export default function HowToScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">How to play</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Two phones. One deck. Names on every card.
+          Two phones. One pair. Games and a shared life record.
         </Text>
 
         <View className="mt-7 gap-3">

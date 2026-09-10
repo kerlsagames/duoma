@@ -6,6 +6,19 @@ export const DB_KEY = "fuse:db";
 export const SESSION_KEY = "fuse:session";
 export const LAST_USER_KEY = "fuse:lastUser";
 
+const hubEmpty = () => ({
+  checkIns: [],
+  curiosityAnswers: [],
+  milestones: [],
+  desireToggles: [],
+  coupons: [],
+  scratches: [],
+  jarNotes: [],
+  jarOpenVotes: [],
+  bucketItems: [],
+  ritualChecks: [],
+});
+
 export function emptyDb(): AppDB {
   return {
     profiles: [],
@@ -15,6 +28,7 @@ export function emptyDb(): AppDB {
     gamePlayers: [],
     deck: [],
     ratings: [],
+    ...hubEmpty(),
   };
 }
 
@@ -25,6 +39,7 @@ function hydrateGame(game: GameSession): GameSession {
     activePlayedBy: game.activePlayedBy ?? null,
     awaitingPrivate: game.awaitingPrivate ?? false,
     privateUnlocked: game.privateUnlocked ?? false,
+    playedDate: game.playedDate ?? null,
   };
 }
 
@@ -39,6 +54,16 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     gamePlayers: raw.gamePlayers ?? [],
     deck: raw.deck ?? [],
     ratings: raw.ratings ?? [],
+    checkIns: raw.checkIns ?? [],
+    curiosityAnswers: raw.curiosityAnswers ?? [],
+    milestones: raw.milestones ?? [],
+    desireToggles: raw.desireToggles ?? [],
+    coupons: raw.coupons ?? [],
+    scratches: raw.scratches ?? [],
+    jarNotes: raw.jarNotes ?? [],
+    jarOpenVotes: raw.jarOpenVotes ?? [],
+    bucketItems: raw.bucketItems ?? [],
+    ritualChecks: raw.ritualChecks ?? [],
   };
 }
 
