@@ -261,6 +261,30 @@ export type PushSubscriptionRow = {
   updatedAt: string;
 };
 
+export type TalkReaction = "up" | "down";
+
+export type TalkDeckState = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  categoryId: string;
+  queue: string[];
+  played: string[];
+};
+
+export type TalkDraw = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  categoryId: string;
+  questionId: string;
+  date: string;
+  body: string;
+  reaction: TalkReaction | null;
+  answeredAt: string | null;
+  createdAt: string;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -281,6 +305,8 @@ export type AppDB = {
   bucketItems: BucketItem[];
   ritualChecks: RitualCheck[];
   pushSubscriptions: PushSubscriptionRow[];
+  talkDecks: TalkDeckState[];
+  talkDraws: TalkDraw[];
 };
 
 export type GameModule = {

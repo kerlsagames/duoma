@@ -58,7 +58,17 @@ import type {
   SocialBattery,
   StageCounts,
   TodayNeed,
+  TalkDeckState,
+  TalkDraw,
+  TalkReaction,
 } from "@/lib/types";
+import {
+  categoryById,
+  ensureDeck,
+  nextQuestionId,
+  rotatePlayed,
+  todaysDraw,
+} from "@/lib/talk";
 import {
   createContext,
   useCallback,
@@ -321,6 +331,8 @@ type AppContextValue = {
   ritualChecks: AppDB["ritualChecks"];
   jarOpenVotes: AppDB["jarOpenVotes"];
   pushSubscriptions: PushSubscriptionRow[];
+  talkDecks: TalkDeckState[];
+  talkDraws: TalkDraw[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -359,6 +371,12 @@ type AppContextValue = {
   }) => Promise<void>;
   requestCheckIn: (metrics: CheckInMetricKey[]) => Promise<void>;
   submitCuriosity: (body: string) => Promise<void>;
+  drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
+  submitTalkAnswer: (input: {
+    categoryId: string;
+    body: string;
+    reaction: TalkReaction | null;
+  }) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -602,6 +620,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [version]);
   const curiosityAnswers = useMemo(
     () => db.curiosityAnswers.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const talkDecks = useMemo(
+    () => db.talkDecks.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const talkDraws = useMemo(
+    () => db.talkDraws.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1566,6 +1594,122 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, partner, user]
   );
 
+  const drawTalkQuestion = useCallback(
+    async (categoryId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then pull a card.");
+      }
+      categoryById(categoryId);
+      const today = localDateKey();
+      const existing = todaysDraw(db.talkDraws, {
+        userId: user.id,
+        categoryId,
+        date: today,
+      });
+      if (existing) return existing;
+
+      const previous = db.talkDecks.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.categoryId === categoryId
+      );
+      const deck = ensureDeck(previous, {
+        id: previous?.id ?? createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        categoryId,
+      });
+      const questionId = nextQuestionId(deck);
+      const row: TalkDraw = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        categoryId,
+        questionId,
+        date: today,
+        body: "",
+        reaction: null,
+        answeredAt: null,
+        createdAt: nowIso(),
+      };
+      db = {
+        ...db,
+        talkDecks: [...db.talkDecks.filter((item) => item.id !== deck.id), deck],
+        talkDraws: [...db.talkDraws, row],
+      };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const submitTalkAnswer = useCallback(
+    async (input: {
+      categoryId: string;
+      body: string;
+      reaction: TalkReaction | null;
+    }) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then save.");
+      }
+      const text = input.body.trim();
+      if (!input.reaction && !text) {
+        throw new Error("Tap a thumb or leave a note.");
+      }
+      const today = localDateKey();
+      const existing = todaysDraw(db.talkDraws, {
+        userId: user.id,
+        categoryId: input.categoryId,
+        date: today,
+      });
+      if (!existing) {
+        throw new Error("Draw a card first.");
+      }
+      const firstAnswer = !existing.answeredAt;
+      let talkDecks = db.talkDecks;
+      if (firstAnswer) {
+        const previous = talkDecks.find(
+          (row) =>
+            row.coupleId === couple.id &&
+            row.userId === user.id &&
+            row.categoryId === input.categoryId
+        );
+        const rotated = rotatePlayed(
+          ensureDeck(previous, {
+            id: previous?.id ?? createId(),
+            coupleId: couple.id,
+            userId: user.id,
+            categoryId: input.categoryId,
+          }),
+          existing.questionId
+        );
+        talkDecks = [...talkDecks.filter((row) => row.id !== rotated.id), rotated];
+      }
+      const next: TalkDraw = {
+        ...existing,
+        body: text,
+        reaction: input.reaction,
+        answeredAt: existing.answeredAt ?? nowIso(),
+      };
+      db = {
+        ...db,
+        talkDecks,
+        talkDraws: db.talkDraws.map((row) => (row.id === existing.id ? next : row)),
+      };
+      await persist();
+      if (firstAnswer) {
+        const category = categoryById(input.categoryId);
+        pingPartner(couple, user, partner, {
+          title: "Let's Talk",
+          body: `${user.displayName} pulled ${category.name}.`,
+          url: "/hub/talk",
+        });
+      }
+    },
+    [couple, partner, user]
+  );
+
   const addMilestone = useCallback(
     async (input: { title: string; kind: MilestoneKind; date: string }) => {
       if (!user || !couple) return;
@@ -1942,6 +2086,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkInRequests,
     incomingCheckInRequest,
     curiosityAnswers,
+    talkDecks,
+    talkDraws,
     milestones,
     desireToggles,
     coupons,
@@ -1974,6 +2120,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitCheckIn,
     requestCheckIn,
     submitCuriosity,
+    drawTalkQuestion,
+    submitTalkAnswer,
     addMilestone,
     removeMilestone,
     toggleDesire,

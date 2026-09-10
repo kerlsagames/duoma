@@ -19,6 +19,8 @@ const hubEmpty = () => ({
   bucketItems: [],
   ritualChecks: [],
   pushSubscriptions: [],
+  talkDecks: [],
+  talkDraws: [],
 });
 
 export function emptyDb(): AppDB {
@@ -80,6 +82,8 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     bucketItems: raw.bucketItems ?? [],
     ritualChecks: raw.ritualChecks ?? [],
     pushSubscriptions: raw.pushSubscriptions ?? [],
+    talkDecks: raw.talkDecks ?? [],
+    talkDraws: raw.talkDraws ?? [],
   };
 }
 
