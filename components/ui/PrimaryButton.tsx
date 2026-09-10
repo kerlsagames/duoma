@@ -8,7 +8,7 @@ import {
 
 type Props = PressableProps & {
   label: string;
-  tone?: "neon" | "crimson" | "ghost" | "danger" | "gold";
+  tone?: "neon" | "crimson" | "ghost" | "danger" | "gold" | "teal";
   loading?: boolean;
 };
 
@@ -47,7 +47,10 @@ export function PrimaryButton({
     );
   }
 
-  if (tone === "gold") {
+  if (tone === "gold" || tone === "teal") {
+    const colors: readonly [string, string] =
+      tone === "teal" ? ["#3DE0C5", "#7CFFB2"] : ["#E4C37A", "#C9A24A"];
+    const labelColor = tone === "teal" ? "#061018" : "#12100C";
     return (
       <Pressable
         disabled={disabled || loading}
@@ -55,7 +58,7 @@ export function PrimaryButton({
         {...rest}
       >
         <LinearGradient
-          colors={["#E4C37A", "#C9A24A"]}
+          colors={colors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -67,14 +70,14 @@ export function PrimaryButton({
           }}
         >
           {loading ? (
-            <ActivityIndicator color="#12100C" />
+            <ActivityIndicator color={labelColor} />
           ) : (
             <Text
               style={{
                 fontSize: 16,
                 fontWeight: "700",
                 letterSpacing: 0.4,
-                color: "#12100C",
+                color: labelColor,
               }}
             >
               {label}

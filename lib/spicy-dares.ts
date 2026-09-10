@@ -13,6 +13,64 @@ export const SPICY_DARE_CATEGORIES = [
 
 export type SpicyDareCategory = (typeof SPICY_DARE_CATEGORIES)[number];
 
+export type SpicyDareCategoryMeta = {
+  id: SpicyDareCategory;
+  label: string;
+  detail: string;
+  icon:
+    | "camera-outline"
+    | "diamond-outline"
+    | "sparkles-outline"
+    | "hand-left-outline"
+    | "navigate-outline"
+    | "flash-outline";
+};
+
+export const SPICY_DARE_CATEGORY_META: SpicyDareCategoryMeta[] = [
+  {
+    id: "Film & Photo",
+    label: "Film",
+    detail: "Photos, clips, voice notes",
+    icon: "camera-outline",
+  },
+  {
+    id: "Toys & Accessories",
+    label: "Toys",
+    detail: "Toys, ice, soft restraints",
+    icon: "diamond-outline",
+  },
+  {
+    id: "Roleplay & Teasing",
+    label: "Roleplay",
+    detail: "Scenes, teasing, text play",
+    icon: "sparkles-outline",
+  },
+  {
+    id: "Sensory & Touch",
+    label: "Sensory",
+    detail: "Touch, tempo, sensation",
+    icon: "hand-left-outline",
+  },
+  {
+    id: "Location & Adventure",
+    label: "Places",
+    detail: "Rooms, outings, risk",
+    icon: "navigate-outline",
+  },
+  {
+    id: "Quick & Playful",
+    label: "Quick",
+    detail: "Short, playful, right now",
+    icon: "flash-outline",
+  },
+];
+
+export function spicyCategoryMeta(
+  id: SpicyDareCategory | string | null | undefined
+): SpicyDareCategoryMeta | null {
+  return SPICY_DARE_CATEGORY_META.find((row) => row.id === id) ?? null;
+}
+
 export type SpicyDare = {
   id: string;
   text: string;

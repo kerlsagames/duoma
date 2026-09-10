@@ -1,9 +1,11 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { HUB_TONES, SERIF } from "@/lib/app-themes";
+import { SERIF, WILDCARD_TONE } from "@/lib/app-themes";
 import {
   SPICY_DARE_CATEGORIES,
+  SPICY_DARE_CATEGORY_META,
   directionLabel,
   isSpicyDareDeck,
+  spicyCategoryMeta,
   timeframeLabel,
   withPlayStatus,
   type SpicyDare,
@@ -12,68 +14,39 @@ import {
 import { useApp } from "@/lib/store";
 import type { DareDirection, DareTimeframe, SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, Text, TextInput, View } from "react-native";
 
-const THEME = HUB_TONES.default;
-const ROSE = "#FF007F";
+const T = WILDCARD_TONE;
 
-type Filter = "all" | SpicyDareCategory;
+type ViewMode = "home" | "category" | "compose";
+
 type Compose = {
   dareId: string | null;
   text: string;
   categories: string[];
 };
 
-const TIMEFRAMES: { id: DareTimeframe; label: string; hint: string }[] = [
-  { id: "tonight", label: "Tonight", hint: "Before bed" },
-  { id: "24h", label: "24 hours", hint: "A day from now" },
-  { id: "custom", label: "Custom", hint: "You name it" },
+const TIMEFRAMES: { id: DareTimeframe; label: string }[] = [
+  { id: "tonight", label: "Tonight" },
+  { id: "24h", label: "24 hours" },
+  { id: "custom", label: "Custom" },
 ];
-
-function Chip({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: active ? ROSE : "rgba(244,237,224,0.16)",
-        backgroundColor: active ? "rgba(201,123,138,0.22)" : "transparent",
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 0.4,
-          color: active ? THEME.ink : "rgba(244,237,224,0.62)",
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 function dareWhen(play: SpicyDarePlay): string {
   return timeframeLabel(play.timeframe, play.customWhen);
+}
+
+function pickRandom<T>(items: T[], avoid?: T | null): T | null {
+  if (!items.length) return null;
+  if (items.length === 1) return items[0];
+  let next = items[Math.floor(Math.random() * items.length)];
+  let guard = 0;
+  while (avoid != null && next === avoid && guard < 8) {
+    next = items[Math.floor(Math.random() * items.length)];
+    guard += 1;
+  }
+  return next;
 }
 
 export function SpicyDarePanel({
@@ -93,13 +66,18 @@ export function SpicyDarePanel({
     completeSpicyDare,
   } = useApp();
 
-  const [filter, setFilter] = useState<Filter>("all");
+  const [view, setView] = useState<ViewMode>("home");
+  const [category, setCategory] = useState<SpicyDareCategory | null>(null);
+  const [picked, setPicked] = useState<SpicyDare | null>(null);
+  const [flashText, setFlashText] = useState<string | null>(null);
+  const [spinning, setSpinning] = useState(false);
   const [compose, setCompose] = useState<Compose | null>(null);
   const [direction, setDirection] = useState<DareDirection | null>(null);
   const [timeframe, setTimeframe] = useState<DareTimeframe>("tonight");
   const [customWhen, setCustomWhen] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const spinTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const playedIds = useMemo(() => {
     const deck = talkDecks.find(
@@ -109,31 +87,47 @@ export function SpicyDarePanel({
   }, [talkDecks, user?.id]);
 
   const catalog = useMemo(() => {
-    const tagged = withPlayStatus(playedIds);
-    const subset =
-      filter === "all" ? tagged : tagged.filter((row) => row.categories.includes(filter));
-    return [...subset].sort((a, b) => {
+    if (!category) return [] as SpicyDare[];
+    const tagged = withPlayStatus(playedIds).filter((row) =>
+      row.categories.includes(category)
+    );
+    return [...tagged].sort((a, b) => {
       if (a.status === b.status) return 0;
       return a.status === "unplayed" ? -1 : 1;
     });
-  }, [filter, playedIds]);
+  }, [category, playedIds]);
 
   const live = useMemo(
     () => spicyDares.filter((row) => row.status === "offered" || row.status === "accepted"),
     [spicyDares]
   );
-  const recentDone = useMemo(
-    () =>
-      spicyDares
-        .filter((row) => row.status === "done" || row.status === "declined")
-        .sort((a, b) => (b.completedAt ?? b.answeredAt ?? b.createdAt).localeCompare(
-          a.completedAt ?? a.answeredAt ?? a.createdAt
-        ))
-        .slice(0, 4),
-    [spicyDares]
-  );
 
-  const openCompose = (dare: SpicyDare | null) => {
+  useEffect(() => {
+    return () => {
+      spinTimers.current.forEach(clearTimeout);
+      spinTimers.current = [];
+    };
+  }, []);
+
+  const clearSpin = () => {
+    spinTimers.current.forEach(clearTimeout);
+    spinTimers.current = [];
+  };
+
+  const openCategory = (id: SpicyDareCategory) => {
+    clearSpin();
+    setCategory(id);
+    setPicked(null);
+    setFlashText(null);
+    setSpinning(false);
+    setView("category");
+    setError(null);
+  };
+
+  const openCompose = (dare: SpicyDare | null, presetCategory?: SpicyDareCategory | null) => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
     setError(null);
     setDirection(null);
     setTimeframe("tonight");
@@ -141,8 +135,40 @@ export function SpicyDarePanel({
     setCompose(
       dare
         ? { dareId: dare.id, text: dare.text, categories: [...dare.categories] }
-        : { dareId: null, text: "", categories: [] }
+        : {
+            dareId: null,
+            text: "",
+            categories: presetCategory ? [presetCategory] : [],
+          }
     );
+    setView("compose");
+  };
+
+  const runRandom = () => {
+    if (!catalog.length || spinning) return;
+    clearSpin();
+    setSpinning(true);
+    setError(null);
+
+    const pool = catalog;
+    const ticks = 10 + Math.floor(Math.random() * 4);
+    let last: SpicyDare | null = picked;
+
+    for (let i = 0; i < ticks; i += 1) {
+      const delay = 55 + i * i * 9;
+      const timer = setTimeout(() => {
+        const next = pickRandom(pool, last);
+        if (!next) return;
+        last = next;
+        setFlashText(next.text);
+        if (i === ticks - 1) {
+          setPicked(next);
+          setFlashText(null);
+          setSpinning(false);
+        }
+      }, delay);
+      spinTimers.current.push(timer);
+    }
   };
 
   const send = async () => {
@@ -164,6 +190,9 @@ export function SpicyDarePanel({
       });
       setCompose(null);
       setDirection(null);
+      setPicked(null);
+      setCategory(null);
+      setView("home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send the dare.");
     } finally {
@@ -182,84 +211,67 @@ export function SpicyDarePanel({
     });
   };
 
-  const Shell: typeof View | typeof ScrollView = mode === "page" ? View : ScrollView;
-  const shellProps =
-    mode === "page" ? {} : ({ keyboardShouldPersistTaps: "handled" } as const);
+  const goHome = () => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
+    setCompose(null);
+    setCategory(null);
+    setPicked(null);
+    setView("home");
+    setError(null);
+  };
 
-  if (compose) {
+  const catMeta = category ? spicyCategoryMeta(category) : null;
+  const heroText = flashText ?? picked?.text ?? null;
+
+  if (view === "compose" && compose) {
     return (
-      <Shell key="compose" {...shellProps}>
-        <View className="mb-4 flex-row items-center justify-between">
-          <Pressable
-            onPress={() => {
-              setCompose(null);
-              setError(null);
+      <View>
+        <Pressable onPress={() => {
+          if (category) {
+            setCompose(null);
+            setView("category");
+          } else {
+            goHome();
+          }
+          setError(null);
+        }} className="mb-4 flex-row items-center">
+          <Ionicons name="chevron-back" size={18} color={T.accent} />
+          <Text
+            style={{
+              marginLeft: 4,
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: T.accent,
             }}
-            hitSlop={12}
-            className="flex-row items-center"
           >
-            <Ionicons name="chevron-back" size={20} color={ROSE} />
-            <Text
-              style={{
-                marginLeft: 4,
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.6,
-                textTransform: "uppercase",
-                color: ROSE,
-              }}
-            >
-              Back to dares
-            </Text>
-          </Pressable>
-          {mode === "sheet" && onClose ? (
-            <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
-            </Pressable>
-          ) : (
-            <View style={{ width: 22 }} />
-          )}
-        </View>
+            Back
+          </Text>
+        </Pressable>
 
-        <Text
-          style={{
-            fontFamily: SERIF,
-            fontSize: 26,
-            lineHeight: 34,
-            color: THEME.ink,
-          }}
-        >
-          {compose.dareId ? "Tweak it, then send." : "Write your own."}
-        </Text>
-        <Text
-          style={{
-            marginTop: 8,
-            fontFamily: SERIF,
-            fontSize: 15,
-            lineHeight: 22,
-            fontStyle: "italic",
-            color: THEME.muted,
-          }}
-        >
-          Edit the dare, pick who does it, and name a window. They still have to be up for it.
+        <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
+          {compose.dareId ? "Send it" : "Write your own"}
         </Text>
 
         <TextInput
           value={compose.text}
           onChangeText={(text) => setCompose({ ...compose, text })}
           placeholder="The dare, in your words"
-          placeholderTextColor="rgba(244,237,224,0.35)"
+          placeholderTextColor="rgba(232,244,241,0.32)"
           multiline
           style={{
-            marginTop: 18,
-            minHeight: 110,
-            borderRadius: 22,
+            marginTop: 16,
+            minHeight: 108,
+            borderRadius: 20,
             borderWidth: 1,
-            borderColor: "rgba(201,123,138,0.35)",
-            backgroundColor: "#12100C",
+            borderColor: T.border,
+            backgroundColor: T.surfaceRaised,
             paddingHorizontal: 16,
             paddingVertical: 14,
-            color: THEME.ink,
+            color: T.ink,
             fontFamily: SERIF,
             fontSize: 17,
             lineHeight: 24,
@@ -267,41 +279,36 @@ export function SpicyDarePanel({
         />
 
         {compose.dareId === null ? (
-          <View className="mt-4" style={{ gap: 8 }}>
-            <Text
-              style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.4,
-                textTransform: "uppercase",
-                color: ROSE,
-              }}
-            >
-              Tag it
-            </Text>
-            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-              {SPICY_DARE_CATEGORIES.map((tag) => (
-                <Chip
+          <View className="mt-4 flex-row flex-wrap" style={{ gap: 8 }}>
+            {SPICY_DARE_CATEGORIES.map((tag) => {
+              const on = compose.categories.includes(tag);
+              const meta = spicyCategoryMeta(tag);
+              return (
+                <Pressable
                   key={tag}
-                  label={tag}
-                  active={compose.categories.includes(tag)}
                   onPress={() => toggleCustomTag(tag)}
-                />
-              ))}
-            </View>
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: on ? T.accent : "rgba(232,244,241,0.12)",
+                    backgroundColor: on ? T.accentSoft : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                      color: on ? T.accent : T.muted,
+                    }}
+                  >
+                    {meta?.label ?? tag}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
-        ) : compose.categories.length ? (
-          <Text
-            style={{
-              marginTop: 10,
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 0.4,
-              color: "rgba(244,237,224,0.5)",
-            }}
-          >
-            {compose.categories.join(" · ")}
-          </Text>
         ) : null}
 
         <Text
@@ -311,12 +318,12 @@ export function SpicyDarePanel({
             fontSize: 11,
             letterSpacing: 1.4,
             textTransform: "uppercase",
-            color: ROSE,
+            color: T.accent,
           }}
         >
-          Who starts it
+          Who
         </Text>
-        <View className="mt-3" style={{ gap: 10 }}>
+        <View className="mt-3" style={{ gap: 8 }}>
           {(["i-do-you", "you-do-me"] as DareDirection[]).map((id) => {
             const active = direction === id;
             return (
@@ -324,34 +331,16 @@ export function SpicyDarePanel({
                 key={id}
                 onPress={() => setDirection(id)}
                 style={{
-                  borderRadius: 20,
-                  padding: 16,
+                  borderRadius: 18,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
                   borderWidth: 1,
-                  borderColor: active ? ROSE : "rgba(244,237,224,0.14)",
-                  backgroundColor: active ? "rgba(201,123,138,0.18)" : "transparent",
+                  borderColor: active ? T.accent : "rgba(232,244,241,0.12)",
+                  backgroundColor: active ? T.accentSoft : T.surface,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 18,
-                    color: THEME.ink,
-                  }}
-                >
+                <Text style={{ fontFamily: SERIF, fontSize: 17, color: T.ink }}>
                   {directionLabel(id)}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 6,
-                    fontFamily: SERIF,
-                    fontSize: 14,
-                    lineHeight: 20,
-                    color: THEME.muted,
-                  }}
-                >
-                  {id === "i-do-you"
-                    ? "You do it to them, in the window you set. They still have to say yes."
-                    : "They do it to you — if they're up for it — in the window you set."}
                 </Text>
               </Pressable>
             );
@@ -360,12 +349,12 @@ export function SpicyDarePanel({
 
         <Text
           style={{
-            marginTop: 22,
+            marginTop: 20,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 1.4,
             textTransform: "uppercase",
-            color: ROSE,
+            color: T.accent,
           }}
         >
           When
@@ -379,34 +368,22 @@ export function SpicyDarePanel({
                 onPress={() => setTimeframe(item.id)}
                 style={{
                   flex: 1,
-                  borderRadius: 18,
+                  borderRadius: 16,
                   paddingVertical: 12,
-                  paddingHorizontal: 8,
                   borderWidth: 1,
-                  borderColor: active ? ROSE : "rgba(244,237,224,0.14)",
-                  backgroundColor: active ? "rgba(201,123,138,0.18)" : "transparent",
+                  borderColor: active ? T.accent : "rgba(232,244,241,0.12)",
+                  backgroundColor: active ? T.accentSoft : T.surface,
                 }}
               >
                 <Text
                   style={{
                     textAlign: "center",
                     fontFamily: SERIF,
-                    fontSize: 15,
-                    color: THEME.ink,
+                    fontSize: 14,
+                    color: T.ink,
                   }}
                 >
                   {item.label}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 4,
-                    textAlign: "center",
-                    fontFamily: "SpaceMono",
-                    fontSize: 10,
-                    color: "rgba(244,237,224,0.5)",
-                  }}
-                >
-                  {item.hint}
                 </Text>
               </Pressable>
             );
@@ -416,17 +393,17 @@ export function SpicyDarePanel({
           <TextInput
             value={customWhen}
             onChangeText={setCustomWhen}
-            placeholder="Saturday after dinner, or 'this weekend'"
-            placeholderTextColor="rgba(244,237,224,0.35)"
+            placeholder="Saturday after dinner"
+            placeholderTextColor="rgba(232,244,241,0.32)"
             style={{
               marginTop: 12,
-              borderRadius: 18,
+              borderRadius: 16,
               borderWidth: 1,
-              borderColor: "rgba(201,123,138,0.35)",
-              backgroundColor: "#0B0B0E",
-              paddingHorizontal: 16,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              paddingHorizontal: 14,
               paddingVertical: 12,
-              color: THEME.ink,
+              color: T.ink,
               fontFamily: SERIF,
               fontSize: 16,
             }}
@@ -434,21 +411,234 @@ export function SpicyDarePanel({
         ) : null}
 
         {error ? (
-          <Text style={{ marginTop: 14, color: "#E8A090", fontFamily: SERIF }}>{error}</Text>
+          <Text style={{ marginTop: 14, color: T.hot, fontFamily: SERIF }}>{error}</Text>
         ) : null}
         <View className="mt-5">
           <PrimaryButton
             label="Send this dare"
+            tone="teal"
             loading={loading}
             onPress={() => void send()}
           />
         </View>
-      </Shell>
+      </View>
+    );
+  }
+
+  if (view === "category" && category) {
+    return (
+      <View>
+        <Pressable onPress={goHome} className="mb-4 flex-row items-center">
+          <Ionicons name="chevron-back" size={18} color={T.accent} />
+          <Text
+            style={{
+              marginLeft: 4,
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: T.accent,
+            }}
+          >
+            All categories
+          </Text>
+        </Pressable>
+
+        <View className="flex-row items-center">
+          {catMeta ? (
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: T.accentSoft,
+                borderWidth: 1,
+                borderColor: T.border,
+                marginRight: 12,
+              }}
+            >
+              <Ionicons name={catMeta.icon} size={22} color={T.accent} />
+            </View>
+          ) : null}
+          <View className="flex-1">
+            <Text style={{ fontFamily: SERIF, fontSize: 28, color: T.ink }}>
+              {catMeta?.label ?? category}
+            </Text>
+            <Text style={{ marginTop: 2, fontSize: 13, color: T.muted }}>
+              {catalog.length} dares
+            </Text>
+          </View>
+        </View>
+
+        <Pressable
+          onPress={runRandom}
+          disabled={spinning || catalog.length === 0}
+          style={{
+            marginTop: 18,
+            borderRadius: 22,
+            borderWidth: 1,
+            borderColor: spinning ? T.flash : T.accent,
+            backgroundColor: spinning ? "rgba(124,255,178,0.12)" : T.accentSoft,
+            paddingVertical: 16,
+            paddingHorizontal: 18,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: catalog.length === 0 ? 0.45 : 1,
+          }}
+        >
+          <Ionicons
+            name={spinning ? "sync" : "shuffle"}
+            size={20}
+            color={spinning ? T.flash : T.accent}
+          />
+          <Text
+            style={{
+              marginLeft: 10,
+              fontFamily: SERIF,
+              fontSize: 20,
+              color: spinning ? T.flash : T.ink,
+            }}
+          >
+            {spinning ? "Spinning…" : picked ? "Random again" : "Random"}
+          </Text>
+        </Pressable>
+
+        <View
+          style={{
+            marginTop: 14,
+            minHeight: 150,
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: spinning ? T.flash : T.border,
+            backgroundColor: T.surfaceRaised,
+            padding: 18,
+            justifyContent: "center",
+          }}
+        >
+          {heroText ? (
+            <>
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 1.6,
+                  textTransform: "uppercase",
+                  color: spinning ? T.flash : T.accent,
+                }}
+              >
+                {spinning ? "Shuffling" : "This one"}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 10,
+                  fontFamily: SERIF,
+                  fontSize: spinning ? 18 : 20,
+                  lineHeight: spinning ? 26 : 28,
+                  color: spinning ? T.flash : T.ink,
+                  opacity: spinning ? 0.92 : 1,
+                }}
+              >
+                {heroText}
+              </Text>
+              {!spinning && picked ? (
+                <View className="mt-4">
+                  <PrimaryButton
+                    label="Use this"
+                    tone="teal"
+                    onPress={() => openCompose(picked)}
+                  />
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <Text style={{ fontFamily: SERIF, fontSize: 17, lineHeight: 24, color: T.muted }}>
+              Hit Random for a pick — or scroll the list below.
+            </Text>
+          )}
+        </View>
+
+        <Text
+          style={{
+            marginTop: 22,
+            marginBottom: 10,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: T.accent,
+          }}
+        >
+          Or browse
+        </Text>
+        <View style={{ gap: 8 }}>
+          {catalog.map((dare) => {
+            const played = dare.status === "played";
+            const selected = picked?.id === dare.id && !spinning;
+            return (
+              <Pressable
+                key={dare.id}
+                onPress={() => {
+                  setPicked(dare);
+                  setFlashText(null);
+                }}
+                onLongPress={() => openCompose(dare)}
+                style={{
+                  borderRadius: 18,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: selected
+                    ? T.accent
+                    : played
+                      ? "rgba(232,244,241,0.08)"
+                      : "rgba(232,244,241,0.1)",
+                  backgroundColor: selected ? T.accentSoft : T.surface,
+                  opacity: played && !selected ? 0.65 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 15,
+                    lineHeight: 22,
+                    color: T.ink,
+                  }}
+                >
+                  {dare.text}
+                </Text>
+                {played ? (
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontFamily: "SpaceMono",
+                      fontSize: 10,
+                      color: T.muted,
+                    }}
+                  >
+                    Sent before
+                  </Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+        {picked && !spinning ? (
+          <View className="mt-4 mb-2">
+            <PrimaryButton
+              label="Use this dare"
+              tone="teal"
+              onPress={() => openCompose(picked)}
+            />
+          </View>
+        ) : null}
+      </View>
     );
   }
 
   return (
-    <Shell key="browse" {...shellProps}>
+    <View>
       {mode === "sheet" ? (
         <View className="mb-4 flex-row items-center justify-between">
           <Text
@@ -457,53 +647,31 @@ export function SpicyDarePanel({
               fontSize: 11,
               letterSpacing: 2.4,
               textTransform: "uppercase",
-              color: ROSE,
+              color: T.accent,
             }}
           >
-            Wildcard · Challenges & Dares
+            Wildcard
           </Text>
           {onClose ? (
             <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
+              <Ionicons name="close" size={22} color={T.muted} />
             </Pressable>
           ) : null}
         </View>
       ) : null}
-      <Text
-        style={{
-          fontFamily: SERIF,
-          fontSize: mode === "page" ? 22 : 26,
-          lineHeight: mode === "page" ? 30 : 34,
-          color: THEME.ink,
-        }}
-      >
-        Pick a challenge, or write your own.
-      </Text>
-      <Text
-        style={{
-          marginTop: 8,
-          fontFamily: SERIF,
-          fontSize: 15,
-          lineHeight: 22,
-          fontStyle: "italic",
-          color: THEME.muted,
-        }}
-      >
-        Filter Challenges & Dares, tweak the wording, then choose who does it and when.
-      </Text>
 
       {live.length ? (
-        <View className="mt-5" style={{ gap: 10 }}>
+        <View className="mb-5" style={{ gap: 10 }}>
           <Text
             style={{
               fontFamily: "SpaceMono",
               fontSize: 11,
               letterSpacing: 1.4,
               textTransform: "uppercase",
-              color: ROSE,
+              color: T.hot,
             }}
           >
-            Live dares
+            Live
           </Text>
           {live.map((play) => (
             <LiveDareCard
@@ -519,141 +687,99 @@ export function SpicyDarePanel({
         </View>
       ) : null}
 
+      <View className="flex-row flex-wrap justify-between">
+        {SPICY_DARE_CATEGORY_META.map((cat) => (
+          <Pressable
+            key={cat.id}
+            onPress={() => openCategory(cat.id)}
+            style={{
+              width: "48%",
+              marginBottom: 12,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surfaceRaised,
+              paddingVertical: 18,
+              paddingHorizontal: 14,
+            }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: T.accentSoft,
+                borderWidth: 1,
+                borderColor: T.border,
+              }}
+            >
+              <Ionicons name={cat.icon} size={22} color={T.accent} />
+            </View>
+            <Text
+              style={{
+                marginTop: 12,
+                fontFamily: SERIF,
+                fontSize: 18,
+                color: T.ink,
+              }}
+            >
+              {cat.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                lineHeight: 17,
+                color: T.muted,
+              }}
+            >
+              {cat.detail}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       <Pressable
         onPress={() => openCompose(null)}
         style={{
-          marginTop: 18,
-          borderRadius: 20,
-          padding: 16,
+          marginTop: 4,
+          borderRadius: 22,
           borderWidth: 1,
           borderStyle: "dashed",
-          borderColor: "rgba(201,123,138,0.45)",
+          borderColor: "rgba(61,224,197,0.45)",
+          backgroundColor: T.surface,
+          paddingVertical: 18,
+          paddingHorizontal: 16,
+          flexDirection: "row",
+          alignItems: "center",
         }}
       >
-        <Text style={{ fontFamily: SERIF, fontSize: 18, color: THEME.ink }}>
-          Write your own challenge
-        </Text>
-        <Text
+        <View
           style={{
-            marginTop: 4,
-            fontFamily: SERIF,
-            fontSize: 14,
-            color: THEME.muted,
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: T.accentSoft,
+            borderWidth: 1,
+            borderColor: T.border,
           }}
         >
-          A custom dare, tagged however you want.
-        </Text>
-      </Pressable>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginTop: 16, marginHorizontal: -6 }}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 6 }}
-      >
-        <Chip label="All" active={filter === "all"} onPress={() => setFilter("all")} />
-        {SPICY_DARE_CATEGORIES.map((tag) => (
-          <Chip
-            key={tag}
-            label={tag}
-            active={filter === tag}
-            onPress={() => setFilter(tag)}
-          />
-        ))}
-      </ScrollView>
-
-      <Text
-        style={{
-          marginTop: 16,
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 0.6,
-          color: "rgba(244,237,224,0.45)",
-        }}
-      >
-        {filter === "all"
-          ? `${catalog.length} dares`
-          : `${catalog.length} in ${filter}`}
-        {playedIds.length ? ` · ${playedIds.length} already sent` : ""}
-      </Text>
-
-      <View className="mt-3" style={{ gap: 10 }}>
-        {catalog.map((dare) => {
-          const played = dare.status === "played";
-          return (
-            <Pressable
-              key={dare.id}
-              onPress={() => openCompose(dare)}
-              style={{
-                borderRadius: 20,
-                padding: 16,
-                borderWidth: 1,
-                borderColor: played ? "rgba(244,237,224,0.08)" : "rgba(201,123,138,0.28)",
-                backgroundColor: played ? "rgba(255,255,255,0.03)" : "rgba(201,123,138,0.08)",
-                opacity: played ? 0.72 : 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: SERIF,
-                  fontSize: 17,
-                  lineHeight: 24,
-                  color: THEME.ink,
-                }}
-              >
-                {dare.text}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 8,
-                  fontFamily: "SpaceMono",
-                  fontSize: 11,
-                  letterSpacing: 0.3,
-                  color: "rgba(244,237,224,0.5)",
-                }}
-              >
-                {dare.categories.join(" · ")}
-                {played ? " · sent" : ""}
-              </Text>
-            </Pressable>
-          );
-        })}
-        {catalog.length === 0 ? (
-          <Text style={{ fontFamily: SERIF, fontSize: 15, color: THEME.muted }}>
-            Nothing in this filter yet. Write your own, or pick All.
-          </Text>
-        ) : null}
-      </View>
-
-      {recentDone.length ? (
-        <View className="mt-6" style={{ gap: 8 }}>
-          <Text
-            style={{
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: "rgba(244,237,224,0.45)",
-            }}
-          >
-            Recently closed
-          </Text>
-          {recentDone.map((play) => (
-            <Text
-              key={play.id}
-              style={{
-                fontFamily: SERIF,
-                fontSize: 14,
-                lineHeight: 20,
-                color: "rgba(244,237,224,0.45)",
-              }}
-            >
-              {play.status === "done" ? "Done" : "Passed"} · {play.text}
-            </Text>
-          ))}
+          <Ionicons name="create-outline" size={22} color={T.accent} />
         </View>
-      ) : null}
-    </Shell>
+        <View className="ml-3 flex-1">
+          <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
+            Write your own
+          </Text>
+          <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
+            Skip the deck. Make one up.
+          </Text>
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -683,8 +809,8 @@ function LiveDareCard({
         borderRadius: 20,
         padding: 16,
         borderWidth: 1,
-        borderColor: "rgba(201,123,138,0.4)",
-        backgroundColor: "rgba(201,123,138,0.12)",
+        borderColor: "rgba(255,90,122,0.4)",
+        backgroundColor: "rgba(255,90,122,0.1)",
       }}
     >
       <Text
@@ -693,7 +819,7 @@ function LiveDareCard({
           fontSize: 11,
           letterSpacing: 0.8,
           textTransform: "uppercase",
-          color: ROSE,
+          color: T.hot,
         }}
       >
         {heading} · {dareWhen(play)}
@@ -702,9 +828,9 @@ function LiveDareCard({
         style={{
           marginTop: 8,
           fontFamily: SERIF,
-          fontSize: 17,
-          lineHeight: 24,
-          color: THEME.ink,
+          fontSize: 16,
+          lineHeight: 23,
+          color: T.ink,
         }}
       >
         {play.text}
@@ -712,10 +838,18 @@ function LiveDareCard({
       {mineIncoming ? (
         <View className="mt-3 flex-row" style={{ gap: 8 }}>
           <View className="flex-1">
-            <PrimaryButton label="I'm up for it" onPress={() => onRespond("accepted")} />
+            <PrimaryButton
+              label="I'm up for it"
+              tone="teal"
+              onPress={() => onRespond("accepted")}
+            />
           </View>
           <View className="flex-1">
-            <PrimaryButton tone="ghost" label="Not this one" onPress={() => onRespond("declined")} />
+            <PrimaryButton
+              tone="ghost"
+              label="Not this one"
+              onPress={() => onRespond("declined")}
+            />
           </View>
         </View>
       ) : null}
@@ -726,16 +860,17 @@ function LiveDareCard({
               marginTop: 10,
               fontFamily: SERIF,
               fontStyle: "italic",
-              color: THEME.muted,
+              color: T.muted,
             }}
           >
-            Waiting on {partnerName} to accept.
+            Waiting on {partnerName}.
           </Text>
           {demoPartner ? (
             <View className="mt-3 flex-row" style={{ gap: 8 }}>
               <View className="flex-1">
                 <PrimaryButton
                   label={`${partnerName} says yes`}
+                  tone="teal"
                   onPress={() => onRespond("accepted")}
                 />
               </View>
@@ -752,7 +887,7 @@ function LiveDareCard({
       ) : null}
       {accepted ? (
         <View className="mt-3">
-          <PrimaryButton label="Mark it done" onPress={onDone} />
+          <PrimaryButton label="Mark it done" tone="teal" onPress={onDone} />
         </View>
       ) : null}
     </View>

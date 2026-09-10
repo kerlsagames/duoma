@@ -21,6 +21,40 @@ export const COUPONS_TONE = {
   used: "rgba(247,241,227,0.35)",
 } as const;
 
+/** Arcade / slot-machine energy for Wildcard challenges. */
+export const WILDCARD_TONE = {
+  background: "#070B10",
+  accent: "#3DE0C5",
+  accentSoft: "rgba(61,224,197,0.16)",
+  hot: "#FF5A7A",
+  ink: "#E8F4F1",
+  muted: "rgba(232,244,241,0.58)",
+  surface: "#101820",
+  surfaceRaised: "#16202A",
+  border: "rgba(61,224,197,0.28)",
+  flash: "#7CFFB2",
+} as const;
+
+/** Warm glass mason jar for Appreciation notes. */
+export const JAR_TONE = {
+  background: "#100E0C",
+  accent: "#D4A35A",
+  accentSoft: "rgba(212,163,90,0.18)",
+  glass: "rgba(168, 196, 188, 0.14)",
+  glassBorder: "rgba(210, 230, 220, 0.35)",
+  cork: "#8B5A2B",
+  corkLight: "#B8793C",
+  paper: "#F2E4C4",
+  paperAlt: "#E8D5A8",
+  paperDeep: "#D9C392",
+  ink: "#F6EFE2",
+  muted: "rgba(246,239,226,0.58)",
+  surface: "#1A1612",
+  surfaceRaised: "#221C16",
+  border: "rgba(212,163,90,0.3)",
+  seal: "#C45C4A",
+} as const;
+
 export const HUB_TONES: Record<
   HubTone,
   {
