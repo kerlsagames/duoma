@@ -8,6 +8,7 @@ import {
   DESIRE_GAUGE,
   loveTankLabel,
   MOODS,
+  partnerHint,
   TONIGHT_SEX,
   RITUALS,
   SOCIAL_BATTERY,
