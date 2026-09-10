@@ -3,7 +3,7 @@ import { EnvelopeReveal } from "@/components/hub/EnvelopeReveal";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { JAR_TONE, SERIF } from "@/lib/app-themes";
-import { isSunday, localDateKey } from "@/lib/dates";
+import { localDateKey } from "@/lib/dates";
 import {
   JAR_OPEN_OPTIONS,
   formatJarOpenAt,
@@ -20,6 +20,7 @@ import {
   Animated,
   Easing,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -43,6 +44,7 @@ export default function JarScreen() {
   const [error, setError] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
   const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const dropY = useRef(new Animated.Value(-20)).current;
   const dropX = useRef(new Animated.Value(0)).current;
@@ -84,7 +86,8 @@ export default function JarScreen() {
 
   const runDropAnimation = () =>
     new Promise<void>((resolve) => {
-      dropY.setValue(-36);
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+      dropY.setValue(-28);
       dropX.setValue(0);
       dropRotate.setValue(0);
       dropScale.setValue(1.05);
@@ -93,50 +96,50 @@ export default function JarScreen() {
 
       Animated.parallel([
         Animated.timing(dropY, {
-          toValue: 250,
-          duration: 920,
+          toValue: 168,
+          duration: 860,
           easing: Easing.bezier(0.22, 0.61, 0.36, 1),
           useNativeDriver: true,
         }),
         Animated.sequence([
           Animated.timing(dropX, {
-            toValue: 18,
-            duration: 280,
+            toValue: 14,
+            duration: 260,
             useNativeDriver: true,
           }),
           Animated.timing(dropX, {
-            toValue: -12,
-            duration: 320,
+            toValue: -10,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(dropX, {
-            toValue: 6,
-            duration: 320,
+            toValue: 5,
+            duration: 300,
             useNativeDriver: true,
           }),
         ]),
         Animated.timing(dropRotate, {
           toValue: 1,
-          duration: 920,
+          duration: 860,
           useNativeDriver: true,
         }),
         Animated.sequence([
           Animated.timing(dropScale, {
             toValue: 0.82,
-            duration: 500,
+            duration: 460,
             useNativeDriver: true,
           }),
           Animated.timing(dropScale, {
             toValue: 0.55,
-            duration: 420,
+            duration: 400,
             useNativeDriver: true,
           }),
         ]),
         Animated.sequence([
-          Animated.delay(700),
+          Animated.delay(640),
           Animated.timing(dropOpacity, {
             toValue: 0,
-            duration: 220,
+            duration: 200,
             useNativeDriver: true,
           }),
         ]),
@@ -180,17 +183,15 @@ export default function JarScreen() {
   const youName = user?.displayName ?? "You";
   const partnerName = partner?.displayName ?? "Partner";
   const nextFromLabel =
-    nextNote?.fromUserId === user?.id
-      ? youName
-      : partnerName;
+    nextNote?.fromUserId === user?.id ? youName : partnerName;
 
   return (
-    <Screen scroll background={T.background}>
-      <View className="pt-4 pb-8">
+    <Screen scroll background={T.background} scrollRef={scrollRef}>
+      <View className="pt-2 pb-8">
         <Text
           style={{
             fontFamily: "SpaceMono",
-            fontSize: 12,
+            fontSize: 11,
             letterSpacing: 3,
             textTransform: "uppercase",
             color: T.accent,
@@ -198,32 +199,8 @@ export default function JarScreen() {
         >
           Appreciation jar
         </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: SERIF,
-            fontSize: 34,
-            lineHeight: 40,
-            color: T.ink,
-          }}
-        >
-          Fold it. Drop it in.
-        </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: SERIF,
-            fontSize: 16,
-            lineHeight: 24,
-            color: T.muted,
-          }}
-        >
-          {isSunday()
-            ? "Sunday — open together when you're both ready."
-            : "Write something specific. Pick when it can open. Watch it fall in."}
-        </Text>
 
-        <View style={{ marginTop: 18, position: "relative", alignItems: "center" }}>
+        <View style={{ marginTop: 8, position: "relative", alignItems: "center" }}>
           <AppreciationJar sealedCount={sealed.length} />
 
           {dropping ? (
@@ -231,10 +208,10 @@ export default function JarScreen() {
               pointerEvents="none"
               style={{
                 position: "absolute",
-                top: 48,
-                width: 56,
-                height: 36,
-                borderRadius: 6,
+                top: 28,
+                width: 48,
+                height: 30,
+                borderRadius: 5,
                 backgroundColor: T.paper,
                 borderWidth: 1,
                 borderColor: "rgba(120,90,40,0.25)",
@@ -257,18 +234,18 @@ export default function JarScreen() {
                   position: "absolute",
                   top: 0,
                   right: 0,
-                  width: 18,
-                  height: 36,
+                  width: 15,
+                  height: 30,
                   backgroundColor: "rgba(90,60,20,0.14)",
-                  borderTopRightRadius: 6,
-                  borderBottomRightRadius: 6,
+                  borderTopRightRadius: 5,
+                  borderBottomRightRadius: 5,
                 }}
               />
               <View
                 style={{
-                  marginTop: 10,
-                  marginLeft: 8,
-                  width: 22,
+                  marginTop: 8,
+                  marginLeft: 7,
+                  width: 18,
                   height: 2,
                   backgroundColor: "rgba(120,90,40,0.25)",
                 }}
@@ -279,10 +256,10 @@ export default function JarScreen() {
 
         <Text
           style={{
-            marginTop: 22,
+            marginTop: 12,
             fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
+            fontSize: 10,
+            letterSpacing: 1.3,
             textTransform: "uppercase",
             color: T.accent,
           }}
@@ -297,34 +274,34 @@ export default function JarScreen() {
           multiline
           editable={!dropping && !loading}
           style={{
-            marginTop: 10,
-            minHeight: 96,
-            borderRadius: 20,
+            marginTop: 6,
+            minHeight: 64,
+            borderRadius: 14,
             borderWidth: 1,
             borderColor: T.border,
             backgroundColor: T.surfaceRaised,
-            paddingHorizontal: 16,
-            paddingVertical: 14,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
             color: T.ink,
             fontFamily: SERIF,
-            fontSize: 17,
-            lineHeight: 24,
+            fontSize: 15,
+            lineHeight: 21,
           }}
         />
 
         <Text
           style={{
-            marginTop: 20,
+            marginTop: 12,
             fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
+            fontSize: 10,
+            letterSpacing: 1.3,
             textTransform: "uppercase",
             color: T.accent,
           }}
         >
           When to open
         </Text>
-        <View className="mt-3 flex-row flex-wrap" style={{ gap: 8 }}>
+        <View className="mt-2 flex-row flex-wrap" style={{ gap: 6 }}>
           {JAR_OPEN_OPTIONS.map((opt) => {
             const on = openOption === opt.id;
             return (
@@ -334,18 +311,18 @@ export default function JarScreen() {
                 onPress={() => setOpenOption(opt.id)}
                 style={{
                   width: "48%",
-                  borderRadius: 16,
+                  borderRadius: 12,
                   borderWidth: 1,
                   borderColor: on ? T.accent : "rgba(246,239,226,0.1)",
                   backgroundColor: on ? T.accentSoft : T.surface,
-                  paddingHorizontal: 12,
-                  paddingVertical: 12,
+                  paddingHorizontal: 10,
+                  paddingVertical: 8,
                 }}
               >
-                <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.ink }}>
+                <Text style={{ fontFamily: SERIF, fontSize: 13, color: T.ink }}>
                   {opt.label}
                 </Text>
-                <Text style={{ marginTop: 3, fontSize: 12, color: T.muted }}>
+                <Text style={{ marginTop: 1, fontSize: 11, color: T.muted }}>
                   {opt.hint}
                 </Text>
               </Pressable>
@@ -354,10 +331,19 @@ export default function JarScreen() {
         </View>
 
         {error ? (
-          <Text style={{ marginTop: 12, color: T.seal, fontFamily: SERIF }}>{error}</Text>
+          <Text
+            style={{
+              marginTop: 8,
+              color: T.seal,
+              fontFamily: SERIF,
+              fontSize: 14,
+            }}
+          >
+            {error}
+          </Text>
         ) : null}
 
-        <View className="mt-5">
+        <View className="mt-3">
           <PrimaryButton
             label={dropping ? "Dropping…" : "Drop it in the jar"}
             tone="gold"
@@ -369,7 +355,7 @@ export default function JarScreen() {
 
         <View
           style={{
-            marginTop: 28,
+            marginTop: 22,
             borderRadius: 22,
             borderWidth: 1,
             borderColor: T.border,
@@ -486,7 +472,6 @@ export default function JarScreen() {
           </View>
         ) : null}
 
-        {/* Partner note archives */}
         <View
           style={{
             marginTop: 32,

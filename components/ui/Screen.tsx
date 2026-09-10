@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, RefObject } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,9 +6,15 @@ type Props = {
   children: ReactNode;
   scroll?: boolean;
   background?: string;
+  scrollRef?: RefObject<ScrollView | null>;
 };
 
-export function Screen({ children, scroll, background = "#0B0B0E" }: Props) {
+export function Screen({
+  children,
+  scroll,
+  background = "#0B0B0E",
+  scrollRef,
+}: Props) {
   if (scroll) {
     return (
       <SafeAreaView
@@ -17,9 +23,11 @@ export function Screen({ children, scroll, background = "#0B0B0E" }: Props) {
         edges={["top", "left", "right"]}
       >
         <ScrollView
+          ref={scrollRef}
           className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           style={{ backgroundColor: background }}
         >
           {children}
