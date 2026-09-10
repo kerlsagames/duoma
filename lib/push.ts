@@ -68,8 +68,30 @@ export function urlBase64ToUint8Array(base64String: string) {
 }
 
 export async function registerFuseWorker() {
+  if (!isWebPushRuntime()) return null;
+  ensurePwaHead();
   if (!pushSupported()) return null;
   return navigator.serviceWorker.register("/sw.js", { scope: "/" });
+}
+
+function ensurePwaHead() {
+  const head = document.head;
+  const add = (tag: string, attrs: Record<string, string>) => {
+    const selector = Object.entries(attrs)
+      .map(([key, value]) => `[${key}="${value}"]`)
+      .join("");
+    if (head.querySelector(`${tag}${selector}`)) return;
+    const el = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+    head.appendChild(el);
+  };
+  add("link", { rel: "manifest", href: "/manifest.webmanifest" });
+  add("meta", { name: "theme-color", content: "#FF007F" });
+  add("meta", { name: "apple-mobile-web-app-capable", content: "yes" });
+  add("meta", { name: "mobile-web-app-capable", content: "yes" });
+  add("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" });
+  add("meta", { name: "apple-mobile-web-app-title", content: "Fuse" });
+  add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png" });
 }
 
 export async function subscribeToPush() {
