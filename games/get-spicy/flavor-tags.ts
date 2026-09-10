@@ -1,5 +1,4 @@
 import type { Card, CardStage } from "@/lib/types";
-import { STAGE_ORDER } from "@/games/get-spicy/engine";
 
 export type SpicyFlavorTag = {
   id: string;
@@ -427,5 +426,3 @@ export function summarizeFlavorSelection(enabledTagIds: string[]): string {
   if (n === 0) return "No flavors selected";
   return `${n} of ${total} flavors`;
 }
-
-export { STAGE_ORDER };
