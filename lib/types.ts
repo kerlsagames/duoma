@@ -203,7 +203,7 @@ export type DesireToggle = {
   createdAt: string;
 };
 
-export type CouponStatus = "offered" | "accepted" | "redeemed";
+export type CouponStatus = "offered" | "accepted" | "redeemed" | "expired";
 
 export type Coupon = {
   id: string;
@@ -212,6 +212,11 @@ export type Coupon = {
   toUserId: string;
   title: string;
   body: string;
+  reason: string | null;
+  categoryId: string | null;
+  ideaId: string | null;
+  useOption: string | null;
+  expiresAt: string | null;
   status: CouponStatus;
   createdAt: string;
   acceptedAt: string | null;

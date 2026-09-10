@@ -37,6 +37,19 @@ export function emptyDb(): AppDB {
   };
 }
 
+function hydrateCoupon(row: AppDB["coupons"][number]): AppDB["coupons"][number] {
+  return {
+    ...row,
+    reason: row.reason ?? null,
+    categoryId: row.categoryId ?? null,
+    ideaId: row.ideaId ?? null,
+    useOption: row.useOption ?? null,
+    expiresAt: row.expiresAt ?? null,
+    acceptedAt: row.acceptedAt ?? null,
+    redeemedAt: row.redeemedAt ?? null,
+  };
+}
+
 function hydrateCuriosity(
   row: AppDB["curiosityAnswers"][number]
 ): AppDB["curiosityAnswers"][number] {
@@ -88,7 +101,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     curiosityAnswers: (raw.curiosityAnswers ?? []).map(hydrateCuriosity),
     milestones: raw.milestones ?? [],
     desireToggles: raw.desireToggles ?? [],
-    coupons: raw.coupons ?? [],
+    coupons: (raw.coupons ?? []).map(hydrateCoupon),
     scratches: raw.scratches ?? [],
     jarNotes: raw.jarNotes ?? [],
     jarOpenVotes: raw.jarOpenVotes ?? [],

@@ -243,19 +243,6 @@ export const ALL_DESIRE_OPTIONS = DESIRE_CATEGORIES.flatMap((category) =>
   category.options.map((option) => ({ ...option, category: category.id }))
 );
 
-export const COUPON_TEMPLATES = [
-  { title: "15-minute back rub", body: "No phones. You pick the pressure." },
-  { title: "Full control of the remote", body: "One night, your show, no commentary." },
-  { title: "Uninterrupted nap", body: "I handle the house. You sleep." },
-  { title: "Breakfast in bed", body: "Whatever you want. Brought to you." },
-  { title: "You pick dinner", body: "No negotiating. I make it happen." },
-  { title: "Phone-free hour", body: "I put mine away first." },
-  { title: "Kitchen slow dance", body: "One song, held close, no talking required." },
-  { title: "Foot rub on the couch", body: "Twenty minutes. Your playlist." },
-  { title: "I do your chore", body: "Name it. I do it this week." },
-  { title: "Morning coffee run", body: "Your exact order, in your hands." },
-];
-
 export const SCRATCH_POOLS: Record<
   ScratchKind,
   { title: string; body: string }[]

@@ -418,7 +418,15 @@ type AppContextValue = {
   }) => Promise<void>;
   removeMilestone: (id: string) => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
-  createCoupon: (input: { title: string; body: string }) => Promise<void>;
+  createCoupon: (input: {
+    title: string;
+    body?: string;
+    reason?: string | null;
+    categoryId?: string | null;
+    ideaId?: string | null;
+    useOption?: string | null;
+    expiresAt?: string | null;
+  }) => Promise<void>;
   acceptCoupon: (id: string) => Promise<void>;
   redeemCoupon: (id: string) => Promise<void>;
   scratchCard: (kind: ScratchKind) => Promise<ScratchReveal | null>;
@@ -1976,12 +1984,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const createCoupon = useCallback(
-    async (input: { title: string; body: string }) => {
+    async (input: {
+      title: string;
+      body?: string;
+      reason?: string | null;
+      categoryId?: string | null;
+      ideaId?: string | null;
+      useOption?: string | null;
+      expiresAt?: string | null;
+    }) => {
       if (!user || !couple?.partnerB) {
         throw new Error("Pair up before sending a coupon.");
       }
       const title = input.title.trim();
-      if (!title) throw new Error("Name the favor.");
+      if (!title) throw new Error("Pick a coupon first.");
       const toUserId =
         couple.partnerB === user.id ? couple.partnerA : couple.partnerB;
       if (!toUserId) throw new Error("Pair up before sending a coupon.");
@@ -1992,7 +2008,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fromUserId: user.id,
         toUserId,
         title,
-        body: input.body.trim(),
+        body: (input.body ?? "").trim(),
+        reason: input.reason?.trim() || null,
+        categoryId: input.categoryId ?? null,
+        ideaId: input.ideaId ?? null,
+        useOption: input.useOption ?? null,
+        expiresAt: input.expiresAt ?? null,
         status: demoTarget ? "accepted" : "offered",
         createdAt: nowIso(),
         acceptedAt: demoTarget ? nowIso() : null,
@@ -2002,7 +2023,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
       pingPartner(couple, user, partner, {
         title: "Favor coupon",
-        body: `${user.displayName} sent you “${title}”. Accept it before you redeem.`,
+        body: `${user.displayName} sent you “${title}”.`,
         url: "/hub/coupons",
       });
     },
@@ -2033,9 +2054,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         coupons: db.coupons.map((row) => {
           const mine = row.toUserId === user.id;
           const demoHold = Boolean(partner?.isDemo && row.toUserId === partner.id);
+          const expired =
+            Boolean(row.expiresAt) && Date.parse(row.expiresAt as string) < Date.now();
           if (
             row.id === id &&
             row.status === "accepted" &&
+            !expired &&
             (mine || demoHold)
           ) {
             return { ...row, status: "redeemed", redeemedAt: nowIso() };

@@ -8,6 +8,19 @@ export const SERIF: TextStyle["fontFamily"] = Platform.select({
   default: 'Georgia, "Iowan Old Style", Palatino, serif',
 });
 
+export const COUPONS_TONE = {
+  background: "#10131A",
+  accent: "#F0C75E",
+  accentSoft: "rgba(240,199,94,0.18)",
+  ink: "#F7F1E3",
+  muted: "rgba(247,241,227,0.62)",
+  surface: "#171C27",
+  surfaceRaised: "#1E2533",
+  border: "rgba(240,199,94,0.28)",
+  stamp: "#FF5C7A",
+  used: "rgba(247,241,227,0.35)",
+} as const;
+
 export const HUB_TONES: Record<
   HubTone,
   {

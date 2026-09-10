@@ -172,6 +172,7 @@ export function buildHomeNotifications(input: {
 
   input.coupons
     .filter((row) => row.toUserId === myId && row.status !== "redeemed")
+    .filter((row) => !row.expiresAt || Date.parse(row.expiresAt) >= Date.now())
     .forEach((coupon) => {
       items.push({
         id: `coupon-${coupon.id}`,

@@ -85,7 +85,7 @@ export function PrimaryButton({
     );
   }
 
-  const colors =
+  const colors: readonly [string, string] =
     tone === "crimson" ? ["#E60039", "#FF007F"] : ["#FF007F", "#E60039"];
 
   return (
