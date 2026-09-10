@@ -19,18 +19,18 @@ type PaperSpec = {
 function paperLayout(count: number): PaperSpec[] {
   const colors = [T.paper, T.paperAlt, T.paperDeep, "#EFE0B8", "#E2CFA0"];
   const slots: Omit<PaperSpec, "id" | "color">[] = [
-    { left: "18%", bottom: 10, width: 54, height: 28, rotate: "-18deg", fold: true },
-    { left: "48%", bottom: 8, width: 48, height: 26, rotate: "12deg", fold: false },
-    { left: "28%", bottom: 28, width: 52, height: 24, rotate: "8deg", fold: true },
-    { left: "55%", bottom: 30, width: 46, height: 22, rotate: "-22deg", fold: false },
-    { left: "14%", bottom: 46, width: 50, height: 24, rotate: "16deg", fold: true },
-    { left: "42%", bottom: 50, width: 56, height: 26, rotate: "-8deg", fold: false },
-    { left: "60%", bottom: 58, width: 44, height: 22, rotate: "20deg", fold: true },
-    { left: "22%", bottom: 68, width: 48, height: 24, rotate: "-14deg", fold: false },
-    { left: "50%", bottom: 74, width: 50, height: 24, rotate: "6deg", fold: true },
-    { left: "34%", bottom: 90, width: 46, height: 22, rotate: "-20deg", fold: false },
-    { left: "16%", bottom: 102, width: 52, height: 24, rotate: "10deg", fold: true },
-    { left: "52%", bottom: 108, width: 48, height: 22, rotate: "-6deg", fold: false },
+    { left: "16%", bottom: 14, width: 68, height: 34, rotate: "-18deg", fold: true },
+    { left: "48%", bottom: 12, width: 60, height: 32, rotate: "12deg", fold: false },
+    { left: "26%", bottom: 38, width: 64, height: 30, rotate: "8deg", fold: true },
+    { left: "54%", bottom: 42, width: 58, height: 28, rotate: "-22deg", fold: false },
+    { left: "12%", bottom: 62, width: 62, height: 30, rotate: "16deg", fold: true },
+    { left: "40%", bottom: 68, width: 70, height: 32, rotate: "-8deg", fold: false },
+    { left: "58%", bottom: 84, width: 54, height: 28, rotate: "20deg", fold: true },
+    { left: "20%", bottom: 98, width: 60, height: 30, rotate: "-14deg", fold: false },
+    { left: "48%", bottom: 110, width: 62, height: 30, rotate: "6deg", fold: true },
+    { left: "32%", bottom: 132, width: 58, height: 28, rotate: "-20deg", fold: false },
+    { left: "14%", bottom: 150, width: 64, height: 30, rotate: "10deg", fold: true },
+    { left: "50%", bottom: 160, width: 60, height: 28, rotate: "-6deg", fold: false },
   ];
   const visible = Math.min(count, slots.length);
   return slots.slice(0, visible).map((slot, index) => ({
@@ -43,15 +43,15 @@ function paperLayout(count: number): PaperSpec[] {
 export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
   const fill = jarFillRatio(sealedCount);
   const papers = useMemo(() => paperLayout(sealedCount), [sealedCount]);
-  const fillHeight = 36 + fill * 150;
+  const fillHeight = 44 + fill * 200;
 
   return (
     <View style={{ alignItems: "center", paddingVertical: 8 }}>
       <View
         style={{
-          width: 92,
-          height: 22,
-          borderRadius: 8,
+          width: 110,
+          height: 26,
+          borderRadius: 9,
           backgroundColor: T.cork,
           borderWidth: 1,
           borderColor: T.corkLight,
@@ -60,11 +60,11 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
       />
       <View
         style={{
-          width: 78,
-          height: 14,
+          width: 92,
+          height: 16,
           marginTop: -2,
-          borderBottomLeftRadius: 6,
-          borderBottomRightRadius: 6,
+          borderBottomLeftRadius: 7,
+          borderBottomRightRadius: 7,
           backgroundColor: T.corkLight,
           zIndex: 3,
         }}
@@ -72,11 +72,11 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
 
       <View
         style={{
-          width: 70,
-          height: 36,
+          width: 82,
+          height: 42,
           marginTop: -2,
-          borderLeftWidth: 2,
-          borderRightWidth: 2,
+          borderLeftWidth: 2.5,
+          borderRightWidth: 2.5,
           borderColor: T.glassBorder,
           backgroundColor: T.glass,
           zIndex: 2,
@@ -85,12 +85,12 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
 
       <View
         style={{
-          width: 220,
-          height: 260,
+          width: 268,
+          height: 320,
           marginTop: -4,
-          borderRadius: 36,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
+          borderRadius: 44,
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
           borderWidth: 2.5,
           borderColor: T.glassBorder,
           backgroundColor: "rgba(140, 170, 160, 0.1)",
@@ -200,10 +200,10 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
 
       <View
         style={{
-          width: 200,
-          height: 14,
+          width: 240,
+          height: 16,
           marginTop: -6,
-          borderRadius: 10,
+          borderRadius: 12,
           backgroundColor: "rgba(168,196,188,0.18)",
           borderWidth: 1,
           borderColor: T.glassBorder,

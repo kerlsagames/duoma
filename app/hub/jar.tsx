@@ -61,7 +61,7 @@ export default function JarScreen() {
 
       Animated.parallel([
         Animated.timing(dropY, {
-          toValue: 210,
+          toValue: 250,
           duration: 920,
           easing: Easing.bezier(0.22, 0.61, 0.36, 1),
           useNativeDriver: true,
