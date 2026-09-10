@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { ComponentProps } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -9,38 +9,78 @@ function IconWell({
   icon,
   size,
   radius,
-  colors,
+  glow,
   glyph,
 }: {
   icon: IconName;
   size: number;
   radius: number;
-  colors: readonly [string, string, ...string[]];
+  glow: string;
   glyph: number;
 }) {
+  const pad = 10;
   return (
     <View
       style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        overflow: "hidden",
-        backgroundColor: "#FF007F",
+        width: size + pad,
+        height: size + pad,
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <LinearGradient
-        colors={[...colors]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          width: size + 6,
+          height: size + 6,
+          borderRadius: radius + 6,
+          backgroundColor: glow,
+          opacity: 0.7,
+          ...(Platform.OS === "web"
+            ? {
+                filter: "blur(7px)",
+                boxShadow: `0 0 18px 8px ${glow}`,
+              }
+            : {
+                shadowColor: "#FF007F",
+                shadowOpacity: 0.9,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 0 },
+              }),
+        }}
+      />
+      <View
         style={{
           width: size,
           height: size,
-          alignItems: "center",
-          justifyContent: "center",
+          borderRadius: radius,
+          overflow: "hidden",
+          backgroundColor: "#FF007F",
         }}
       >
-        <Ionicons name={icon} size={glyph} color="#F4F4F6" />
-      </LinearGradient>
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: -size * 0.25,
+            left: -size * 0.15,
+            width: size * 0.9,
+            height: size * 0.7,
+            borderRadius: size,
+            backgroundColor: "rgba(255,255,255,0.28)",
+          }}
+        />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name={icon} size={glyph} color="#F4F4F6" />
+        </View>
+      </View>
     </View>
   );
 }
@@ -54,33 +94,20 @@ type Props = {
 };
 
 export function AppIcon({ label, icon, onPress, live, hot }: Props) {
-  const colors = hot
-    ? (["#FF4DA6", "#FF007F", "#E60039"] as const)
-    : (["#5A1438", "#FF007F"] as const);
-
   return (
-    <Pressable onPress={onPress} className="mb-5 w-[31%] items-center">
-      <View
-        style={{
-          shadowColor: "#FF007F",
-          shadowOpacity: hot ? 0.75 : 0.4,
-          shadowRadius: hot ? 16 : 12,
-          shadowOffset: { width: 0, height: 0 },
-        }}
-      >
-        <IconWell
-          icon={icon}
-          size={64}
-          radius={20}
-          colors={colors}
-          glyph={28}
-        />
-        {live ? (
-          <View className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-neon" />
-        ) : null}
-      </View>
+    <Pressable onPress={onPress} className="mb-4 w-[31%] items-center">
+      <IconWell
+        icon={icon}
+        size={64}
+        radius={20}
+        glow={hot ? "rgba(255,77,166,0.95)" : "rgba(255,0,127,0.7)"}
+        glyph={28}
+      />
+      {live ? (
+        <View className="absolute right-4 top-1 h-3.5 w-3.5 rounded-full bg-neon" />
+      ) : null}
       <Text
-        className="mt-2 text-center text-[11px] font-semibold leading-4 text-mist"
+        className="mt-1 text-center text-[11px] font-semibold leading-4 text-mist"
         numberOfLines={2}
       >
         {label}
@@ -115,18 +142,23 @@ export function FeatureApp({
           backgroundColor: "#2A0818",
           borderWidth: 1,
           borderColor: "rgba(255,0,127,0.45)",
-          shadowColor: "#FF007F",
-          shadowOpacity: 0.35,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 0 },
+          ...(Platform.OS === "web"
+            ? { boxShadow: "0 0 22px 2px rgba(255,0,127,0.28)" }
+            : {
+                shadowColor: "#FF007F",
+                shadowOpacity: 0.35,
+                shadowRadius: 20,
+                shadowOffset: { width: 0, height: 0 },
+              }),
         }}
       >
         <LinearGradient
-          colors={["#3A1024", "#1A0810", "#14060C"]}
+          colors={["#4A1530", "#220814"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            padding: 14,
+            paddingVertical: 12,
+            paddingHorizontal: 12,
             flexDirection: "row",
             alignItems: "center",
           }}
@@ -135,10 +167,10 @@ export function FeatureApp({
             icon={icon}
             size={56}
             radius={18}
-            colors={["#FF4DA6", "#FF007F", "#E60039"]}
+            glow="rgba(255,77,166,0.9)"
             glyph={26}
           />
-          <View className="ml-3 flex-1">
+          <View className="ml-2 flex-1">
             <View className="flex-row items-center">
               <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
                 {kicker}
