@@ -37,6 +37,15 @@ export function emptyDb(): AppDB {
   };
 }
 
+function hydrateJarNote(row: AppDB["jarNotes"][number]): AppDB["jarNotes"][number] {
+  return {
+    ...row,
+    openAt: row.openAt ?? null,
+    openOption: row.openOption ?? null,
+    openedAt: row.openedAt ?? null,
+  };
+}
+
 function hydrateCoupon(row: AppDB["coupons"][number]): AppDB["coupons"][number] {
   return {
     ...row,
@@ -103,7 +112,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     desireToggles: raw.desireToggles ?? [],
     coupons: (raw.coupons ?? []).map(hydrateCoupon),
     scratches: raw.scratches ?? [],
-    jarNotes: raw.jarNotes ?? [],
+    jarNotes: (raw.jarNotes ?? []).map(hydrateJarNote),
     jarOpenVotes: raw.jarOpenVotes ?? [],
     bucketItems: raw.bucketItems ?? [],
     ritualChecks: raw.ritualChecks ?? [],

@@ -430,7 +430,11 @@ type AppContextValue = {
   acceptCoupon: (id: string) => Promise<void>;
   redeemCoupon: (id: string) => Promise<void>;
   scratchCard: (kind: ScratchKind) => Promise<ScratchReveal | null>;
-  addJarNote: (body: string) => Promise<void>;
+  addJarNote: (input: {
+    body: string;
+    openOption?: string | null;
+    openAt?: string | null;
+  }) => Promise<void>;
   voteOpenJar: () => Promise<void>;
   addBucketItem: (input: {
     title: string;
@@ -855,6 +859,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           body: "Thank you for making coffee before I asked.",
           createdAt: nowIso(),
           openedAt: null,
+          openAt: null,
+          openOption: "together",
         },
       ],
       bucketItems: [
@@ -2096,9 +2102,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const addJarNote = useCallback(
-    async (body: string) => {
+    async (input: {
+      body: string;
+      openOption?: string | null;
+      openAt?: string | null;
+    }) => {
       if (!user || !couple) return;
-      const text = body.trim();
+      const text = input.body.trim();
       if (!text) throw new Error("Write a note first.");
       const row: JarNote = {
         id: createId(),
@@ -2107,6 +2117,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         body: text,
         createdAt: nowIso(),
         openedAt: null,
+        openAt: input.openAt ?? null,
+        openOption: input.openOption ?? null,
       };
       db = { ...db, jarNotes: [...db.jarNotes, row] };
       await persist();

@@ -242,6 +242,8 @@ export type JarNote = {
   body: string;
   createdAt: string;
   openedAt: string | null;
+  openAt: string | null;
+  openOption: string | null;
 };
 
 export type JarOpenVote = {
