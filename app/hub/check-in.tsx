@@ -100,7 +100,7 @@ function MetricCard({
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center pr-3">
-          <Ionicons name={icon} size={18} color="#FF007F" />
+          <Ionicons name={icon} size={20} color="#FF007F" />
           <Text className="ml-2 text-[15px] font-semibold text-mist">{title}</Text>
         </View>
         <Switch
@@ -238,6 +238,7 @@ export default function CheckInScreen() {
         <Pressable
           onPress={() => setMode("checkin")}
           className={`flex-1 items-center rounded-xl py-2.5 ${mode === "checkin" ? "bg-neon" : ""}`}
+          style={{ cursor: "pointer" }}
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -250,6 +251,7 @@ export default function CheckInScreen() {
         <Pressable
           onPress={() => setMode("request")}
           className={`flex-1 items-center rounded-xl py-2.5 ${mode === "request" ? "bg-neon" : ""}`}
+          style={{ cursor: "pointer" }}
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -279,7 +281,7 @@ export default function CheckInScreen() {
           </Text>
 
           <MetricCard
-            icon="battery-charging"
+            icon="battery-charging-outline"
             title={`Battery / energy${batteryOn ? ` (${energy}/10)` : ""}`}
             enabled={batteryOn}
             onToggle={() => setBatteryOn((v) => !v)}
@@ -291,7 +293,7 @@ export default function CheckInScreen() {
           </MetricCard>
 
           <MetricCard
-            icon="partly-sunny"
+            icon="partly-sunny-outline"
             title="Mood forecast"
             enabled={moodOn}
             onToggle={() => setMoodOn((v) => !v)}
@@ -308,7 +310,7 @@ export default function CheckInScreen() {
           </MetricCard>
 
           <MetricCard
-            icon="heart"
+            icon="heart-outline"
             title={`Love tank${loveOn ? ` (${loveTank}/10)` : ""}`}
             enabled={loveOn}
             onToggle={() => setLoveOn((v) => !v)}
@@ -320,7 +322,7 @@ export default function CheckInScreen() {
           </MetricCard>
 
           <MetricCard
-            icon="people"
+            icon="people-outline"
             title="Social battery"
             enabled={socialOn}
             onToggle={() => setSocialOn((v) => !v)}
@@ -338,7 +340,7 @@ export default function CheckInScreen() {
           </MetricCard>
 
           <MetricCard
-            icon="compass"
+            icon="compass-outline"
             title="What I need most today"
             enabled={needOn}
             onToggle={() => setNeedOn((v) => !v)}
@@ -355,7 +357,7 @@ export default function CheckInScreen() {
           </MetricCard>
 
           <MetricCard
-            icon="flame"
+            icon="flame-outline"
             title="Spicy gauge"
             enabled={spicyOn}
             onToggle={() => setSpicyOn((v) => !v)}
@@ -398,7 +400,7 @@ export default function CheckInScreen() {
                 }`}
               >
                 <View className="flex-1 flex-row items-center pr-3">
-                  <Ionicons name={item.icon} size={18} color="#FF007F" />
+                  <Ionicons name={item.icon} size={20} color="#FF007F" />
                   <Text className="ml-3 text-[15px] font-semibold text-mist">{item.label}</Text>
                 </View>
                 <Text

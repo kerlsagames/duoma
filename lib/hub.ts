@@ -83,14 +83,14 @@ export const DESIRE_GAUGE: {
 export const CHECK_IN_METRIC_META: {
   key: CheckInMetricKey;
   label: string;
-  icon: "battery-charging" | "partly-sunny" | "heart" | "people" | "compass" | "flame";
+  icon: "battery-charging-outline" | "partly-sunny-outline" | "heart-outline" | "people-outline" | "compass-outline" | "flame-outline";
 }[] = [
-  { key: "battery", label: "Battery / energy", icon: "battery-charging" },
-  { key: "mood", label: "Mood forecast", icon: "partly-sunny" },
-  { key: "loveTank", label: "Love tank", icon: "heart" },
-  { key: "socialBattery", label: "Social battery", icon: "people" },
-  { key: "todayNeed", label: "What I need today", icon: "compass" },
-  { key: "desireGauge", label: "Spicy gauge", icon: "flame" },
+  { key: "battery", label: "Battery / energy", icon: "battery-charging-outline" },
+  { key: "mood", label: "Mood forecast", icon: "partly-sunny-outline" },
+  { key: "loveTank", label: "Love tank", icon: "heart-outline" },
+  { key: "socialBattery", label: "Social battery", icon: "people-outline" },
+  { key: "todayNeed", label: "What I need today", icon: "compass-outline" },
+  { key: "desireGauge", label: "Spicy gauge", icon: "flame-outline" },
 ];
 
 export function socialBatteryMeta(id: SocialBattery | null | undefined) {
