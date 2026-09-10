@@ -1670,7 +1670,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Pair first, then pull a card.");
       }
       if (isSpicyDareDeck(categoryId)) {
-        throw new Error("Wildcard stays open. Browse Challenges & Dares instead of drawing.");
+        throw new Error("Browse Wildcard Challenges & Dares instead of drawing.");
       }
       categoryById(categoryId);
       const today = localDateKey();
@@ -1859,7 +1859,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           input.direction === "i-do-you"
             ? `${user.displayName} wants to do this to you.`
             : `${user.displayName} dared you — if you're up for it.`,
-        url: "/hub/talk",
+        url: "/hub/wildcard",
       });
     },
     [couple, partner, user]
@@ -1892,7 +1892,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             status === "accepted"
               ? `${user.displayName} is up for the dare.`
               : `${user.displayName} passed on this one.`,
-          url: "/hub/talk",
+          url: "/hub/wildcard",
         });
       }
     },

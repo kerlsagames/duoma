@@ -4,7 +4,7 @@ import {
   type CategoryId,
   type Question,
 } from "@/lib/promptsData";
-import { isSpicyDareDeck } from "@/lib/spicy-dares";
+import { SPICY_DARES, isSpicyDareDeck } from "@/lib/spicy-dares";
 import type { TalkDeckState, TalkDraw } from "@/lib/types";
 import { localDateKey } from "@/lib/dates";
 
@@ -12,11 +12,20 @@ export { LETS_TALK_DECK, categoryById };
 export type { CategoryId, Question };
 
 export function freshQueue(categoryId: string): string[] {
+  if (isSpicyDareDeck(categoryId)) {
+    return SPICY_DARES.map((dare) => dare.id);
+  }
   const category = categoryById(categoryId);
   return category.questions.map((question) => question.id);
 }
 
 export function questionById(categoryId: string, questionId: string): Question | null {
+  if (isSpicyDareDeck(categoryId)) {
+    const dare = SPICY_DARES.find((row) => row.id === questionId);
+    return dare
+      ? { id: dare.id, text: dare.text, status: dare.status ?? "unplayed", tags: [...dare.categories] }
+      : null;
+  }
   return categoryById(categoryId).questions.find((row) => row.id === questionId) ?? null;
 }
 
@@ -94,7 +103,5 @@ export function remainingToday(
       .filter((row) => row.userId === userId && row.date === date)
       .map((row) => row.categoryId)
   );
-  return LETS_TALK_DECK.filter(
-    (category) => !isSpicyDareDeck(category.id) && !used.has(category.id)
-  ).length;
+  return LETS_TALK_DECK.filter((category) => !used.has(category.id)).length;
 }

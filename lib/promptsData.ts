@@ -1,9 +1,3 @@
-import {
-  SPICY_DARE_DECK_ID,
-  SPICY_DARES,
-  isSpicyDareDeck,
-} from "@/lib/spicy-dares";
-
 export type QuestionStatus = "unplayed" | "played";
 
 export type CategoryId =
@@ -15,8 +9,7 @@ export type CategoryId =
   | "daily-checkin"
   | "growth-values"
   | "lighthearted"
-  | "appreciation"
-  | "wildcard";
+  | "appreciation";
 
 export type Question = {
   id: string;
@@ -610,22 +603,10 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a way I have loved you that you want more of, not less?",
     "If you had to thank me for one thing from this month, what is it?"
   ]),
-  {
-    id: SPICY_DARE_DECK_ID,
-    name: "Wildcard",
-    iconName: "flash",
-    questions: SPICY_DARES.map((dare) => ({
-      id: dare.id,
-      text: dare.text,
-      status: dare.status ?? "unplayed",
-      tags: [...dare.categories],
-    })),
-  },
 ];
 
 export function categoryById(id: string): Category {
-  const resolved = isSpicyDareDeck(id) ? SPICY_DARE_DECK_ID : id;
-  const category = LETS_TALK_DECK.find((row) => row.id === resolved);
+  const category = LETS_TALK_DECK.find((row) => row.id === id);
   if (!category) {
     throw new Error(`Unknown Let's Talk category: ${id}`);
   }

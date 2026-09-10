@@ -21,8 +21,8 @@ import {
   View,
 } from "react-native";
 
-const THEME = HUB_TONES.talk;
-const ROSE = "#C97B8A";
+const THEME = HUB_TONES.default;
+const ROSE = "#FF007F";
 
 type Filter = "all" | SpicyDareCategory;
 type Compose = {
@@ -76,7 +76,13 @@ function dareWhen(play: SpicyDarePlay): string {
   return timeframeLabel(play.timeframe, play.customWhen);
 }
 
-export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
+export function SpicyDarePanel({
+  onClose,
+  mode = "sheet",
+}: {
+  onClose?: () => void;
+  mode?: "sheet" | "page";
+}) {
   const {
     user,
     partner,
@@ -176,9 +182,13 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
     });
   };
 
+  const Shell: typeof View | typeof ScrollView = mode === "page" ? View : ScrollView;
+  const shellProps =
+    mode === "page" ? {} : ({ keyboardShouldPersistTaps: "handled" } as const);
+
   if (compose) {
     return (
-      <ScrollView key="compose" keyboardShouldPersistTaps="handled">
+      <Shell key="compose" {...shellProps}>
         <View className="mb-4 flex-row items-center justify-between">
           <Pressable
             onPress={() => {
@@ -202,9 +212,13 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
               Back to dares
             </Text>
           </Pressable>
-          <Pressable onPress={onClose} hitSlop={12}>
-            <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
-          </Pressable>
+          {mode === "sheet" && onClose ? (
+            <Pressable onPress={onClose} hitSlop={12}>
+              <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
+            </Pressable>
+          ) : (
+            <View style={{ width: 22 }} />
+          )}
         </View>
 
         <Text
@@ -409,7 +423,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
               borderRadius: 18,
               borderWidth: 1,
               borderColor: "rgba(201,123,138,0.35)",
-              backgroundColor: "#12100C",
+              backgroundColor: "#0B0B0E",
               paddingHorizontal: 16,
               paddingVertical: 12,
               color: THEME.ink,
@@ -424,39 +438,42 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
         ) : null}
         <View className="mt-5">
           <PrimaryButton
-            tone="gold"
             label="Send this dare"
             loading={loading}
             onPress={() => void send()}
           />
         </View>
-      </ScrollView>
+      </Shell>
     );
   }
 
   return (
-    <ScrollView key="browse" keyboardShouldPersistTaps="handled">
-      <View className="mb-4 flex-row items-center justify-between">
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2.4,
-            textTransform: "uppercase",
-            color: ROSE,
-          }}
-        >
-          Wildcard · Challenges & Dares
-        </Text>
-        <Pressable onPress={onClose} hitSlop={12}>
-          <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
-        </Pressable>
-      </View>
+    <Shell key="browse" {...shellProps}>
+      {mode === "sheet" ? (
+        <View className="mb-4 flex-row items-center justify-between">
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 2.4,
+              textTransform: "uppercase",
+              color: ROSE,
+            }}
+          >
+            Wildcard · Challenges & Dares
+          </Text>
+          {onClose ? (
+            <Pressable onPress={onClose} hitSlop={12}>
+              <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <Text
         style={{
           fontFamily: SERIF,
-          fontSize: 26,
-          lineHeight: 34,
+          fontSize: mode === "page" ? 22 : 26,
+          lineHeight: mode === "page" ? 30 : 34,
           color: THEME.ink,
         }}
       >
@@ -636,7 +653,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
           ))}
         </View>
       ) : null}
-    </ScrollView>
+    </Shell>
   );
 }
 
@@ -695,7 +712,7 @@ function LiveDareCard({
       {mineIncoming ? (
         <View className="mt-3 flex-row" style={{ gap: 8 }}>
           <View className="flex-1">
-            <PrimaryButton tone="gold" label="I'm up for it" onPress={() => onRespond("accepted")} />
+            <PrimaryButton label="I'm up for it" onPress={() => onRespond("accepted")} />
           </View>
           <View className="flex-1">
             <PrimaryButton tone="ghost" label="Not this one" onPress={() => onRespond("declined")} />
@@ -718,7 +735,6 @@ function LiveDareCard({
             <View className="mt-3 flex-row" style={{ gap: 8 }}>
               <View className="flex-1">
                 <PrimaryButton
-                  tone="gold"
                   label={`${partnerName} says yes`}
                   onPress={() => onRespond("accepted")}
                 />
@@ -736,7 +752,7 @@ function LiveDareCard({
       ) : null}
       {accepted ? (
         <View className="mt-3">
-          <PrimaryButton tone="gold" label="Mark it done" onPress={onDone} />
+          <PrimaryButton label="Mark it done" onPress={onDone} />
         </View>
       ) : null}
     </View>

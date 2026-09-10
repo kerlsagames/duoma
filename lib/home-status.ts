@@ -281,7 +281,7 @@ export function buildHomeNotifications(input: {
         id: `dare-${play.id}`,
         line,
         when: recentWhen(play.answeredAt ?? play.createdAt),
-        href: "/hub/talk",
+        href: "/hub/wildcard",
         sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
       });
     });
