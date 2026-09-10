@@ -67,3 +67,11 @@ export const JAR_FILL_CAPACITY = 12;
 export function jarFillRatio(sealedCount: number) {
   return Math.min(1, Math.max(0, sealedCount / JAR_FILL_CAPACITY));
 }
+
+/** Notes that may be opened once both partners are ready. */
+export function jarNoteIsDue(note: { openAt: string | null }, now = Date.now()) {
+  if (!note.openAt) return true;
+  const at = new Date(note.openAt).getTime();
+  if (Number.isNaN(at)) return true;
+  return at <= now;
+}

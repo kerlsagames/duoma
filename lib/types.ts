@@ -26,9 +26,12 @@ export type DeckCardStatus = "queued" | "active" | "played" | "blocked";
 
 export type StageCounts = Record<CardStage, number>;
 
+export type Gender = "male" | "female";
+
 export type Profile = {
   id: string;
   displayName: string;
+  gender: Gender | null;
   isDemo?: boolean;
   createdAt: string;
 };

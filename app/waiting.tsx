@@ -1,6 +1,8 @@
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { useApp } from "@/lib/store";
+import type { Gender } from "@/lib/types";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -10,6 +12,7 @@ export default function WaitingScreen() {
   const router = useRouter();
   const { couple, partner, addDemoPartner, signOut } = useApp();
   const [copied, setCopied] = useState(false);
+  const [demoGender, setDemoGender] = useState<Gender>("female");
 
   useEffect(() => {
     if (couple?.partnerB && partner) {
@@ -35,7 +38,7 @@ export default function WaitingScreen() {
   };
 
   return (
-    <Screen>
+    <Screen scroll>
       <View className="flex-1 justify-between py-6">
         <View>
           <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
@@ -50,7 +53,7 @@ export default function WaitingScreen() {
           </Text>
         </View>
 
-        <View className="items-center">
+        <View className="items-center py-8">
           <Text className="text-[11px] uppercase tracking-[4px] text-mist/40">
             Invite code
           </Text>
@@ -69,11 +72,26 @@ export default function WaitingScreen() {
             tone="ghost"
             onPress={() => void copy()}
           />
-          <PrimaryButton
-            label="Continue with a demo partner"
-            tone="crimson"
-            onPress={() => void addDemoPartner()}
-          />
+          <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <Text className="text-[14px] leading-5 text-mist/65">
+              Trying it solo? Demo partner Riley needs a gender so cards can
+              reflect Male / Female anatomy.
+            </Text>
+            <View className="mt-3">
+              <GenderPicker
+                value={demoGender}
+                onChange={setDemoGender}
+                label="Riley is"
+              />
+            </View>
+            <View className="mt-3">
+              <PrimaryButton
+                label="Continue with a demo partner"
+                tone="crimson"
+                onPress={() => void addDemoPartner("Riley", demoGender)}
+              />
+            </View>
+          </View>
           <PrimaryButton
             label="Sign out"
             tone="ghost"

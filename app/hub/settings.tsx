@@ -2,7 +2,7 @@ import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { PushSetupCard } from "@/components/PushSetupCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { personalizeCard, resolveCardNames } from "@/lib/personalize";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,6 +52,10 @@ export default function SettingsScreen() {
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
+  });
+  const genders = resolveCardGenders({
+    userGender: user?.gender,
+    partnerGender: partner?.gender,
   });
 
   return (
@@ -135,7 +139,7 @@ export default function SettingsScreen() {
               </Text>
             ) : (
               bestCards.map((row) => {
-                const copy = personalizeCard(row.card, names);
+                const copy = personalizeCard(row.card, names, genders);
                 return (
                   <View key={row.card.id} className="mt-3">
                     <Text className="text-[12px] text-neon">

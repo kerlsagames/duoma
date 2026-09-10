@@ -25,36 +25,114 @@ function tag(
   };
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Phrase needles use includes(); single tokens require a word-ish boundary so
+ * "bra" does not match "embrace" and "ear" does not match "heart" / "wear".
+ */
+export function matchesKeywords(text: string, keywords: string[]): boolean {
+  return keywords.some((needle) => {
+    const n = needle.toLowerCase().trim();
+    if (!n) return false;
+    if (n.includes(" ")) return text.includes(n);
+    const re = new RegExp(`(^|[^a-z0-9])${escapeRegExp(n)}([^a-z0-9]|$)`, "i");
+    return re.test(text);
+  });
+}
+
 /** Flavors shown as checkboxes when creating a Get Spicy game. */
 export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
   // Stage 1 — Pre-Foreplay
   tag("pre_foreplay", "together", "At home together", [
-    "together",
     "same room",
     "face to face",
+    "face-to-face",
     "in person",
     "home",
     "arrive",
     "door",
+    "ear",
+    "earlobe",
+    "kiss",
+    "hug",
+    "embrace",
+    "behind them",
+    "standing close",
+    "stand close",
+    "stand next",
+    "stand face",
+    "close behind",
+    "from behind",
+    "neck",
+    "cheek",
+    "thigh",
+    "lap",
+    "lips",
+    "collarbone",
+    "into their ear",
+    "next to their ear",
+    "against their ear",
+    "hold hands",
+    "hand on",
+    "fingers through",
+    "sway",
+    "pulse",
+    "heartbeat",
+    "walk up",
+    "sit on",
+    "sit next",
+    "standing together",
+    "whisper",
+    "nibble",
+    "bite",
+    "graze",
+    "pocket",
+    "forearm",
+    "waist",
+    "hip",
+    "shoulder",
+    "knee",
+    "couch",
+    "foot rub",
+    "eyes",
+    "eye contact",
+    "wink",
+    "palm",
+    "wrist",
+    "massage",
+    "on your knees",
+    "hips touch",
+    "without touching",
+    "close their eyes",
+    "side of their face",
+    "look {partner}",
+    "catch {partner}'s eye",
+    "the look",
   ]),
   tag("pre_foreplay", "apart", "Away from each other", [
     "text",
-    "voice",
-    "message",
-    "send",
-    "away",
-    "work",
-    "day",
+    "voice note",
+    "voice message",
+    "send a",
+    "at work",
     "commute",
+    "while you are apart",
+    "away from each other",
   ]),
   tag("pre_foreplay", "digital", "Digital & texting", [
     "text",
     "voice note",
     "voice message",
-    "message",
     "emoji",
     "keyword",
     "send a",
+    "photo",
+    "video",
+    "picture",
+    "selfie",
   ]),
   tag("pre_foreplay", "film", "Film & photo", [
     "photo",
@@ -67,6 +145,7 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
   ]),
   tag("pre_foreplay", "dress", "Dress & attire", [
     "wear",
+    "wearing",
     "outfit",
     "lingerie",
     "underwear",
@@ -76,16 +155,22 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "dress",
     "strip",
     "bra",
+    "unbutton",
+    "unzip",
   ]),
   tag("pre_foreplay", "atmosphere", "Atmosphere & ambience", [
     "candle",
+    "candlelight",
     "music",
     "song",
     "soundtrack",
     "light",
+    "lighting",
     "dim",
     "playlist",
     "ambience",
+    "lamp",
+    "lamps",
   ]),
   tag("pre_foreplay", "timer", "Timers & countdowns", [
     "timer",
@@ -94,6 +179,7 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "minutes",
     "tonight at",
     "schedule",
+    "for the next",
   ]),
   tag("pre_foreplay", "open", "Open / mixed tease", [], true),
 
@@ -371,10 +457,6 @@ export function defaultEnabledFlavorTags(): string[] {
 
 function cardText(card: Pick<Card, "title" | "body">): string {
   return `${card.title} ${card.body}`.toLowerCase();
-}
-
-function matchesKeywords(text: string, keywords: string[]): boolean {
-  return keywords.some((needle) => text.includes(needle));
 }
 
 /** Specific (non catch-all) tag ids this card matches. */

@@ -99,11 +99,19 @@ function hydrateGame(game: GameSession): GameSession {
   };
 }
 
+function hydrateProfile(row: AppDB["profiles"][number]): AppDB["profiles"][number] {
+  return {
+    ...row,
+    displayName: row.displayName?.trim() || "You",
+    gender: row.gender === "male" || row.gender === "female" ? row.gender : null,
+  };
+}
+
 export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
   const base = emptyDb();
   if (!raw) return base;
   return {
-    profiles: raw.profiles ?? [],
+    profiles: (raw.profiles ?? []).map(hydrateProfile),
     couples: raw.couples ?? [],
     cards: raw.cards ?? [],
     games: (raw.games ?? []).map(hydrateGame),

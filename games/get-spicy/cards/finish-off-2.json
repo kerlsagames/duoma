@@ -110,7 +110,7 @@
   {
     "category": "finish_off",
     "title": "Finish off with oral — stay there",
-    "description": "{player}, finish {partner} off with oral. Switch to your mouth and do not switch back.",
+    "description": "{player}, finish {partner} off with your mouth on {partner_cock}. Switch to your mouth and do not switch back.",
     "order": 53
   },
   {
@@ -164,43 +164,67 @@
   {
     "category": "finish_off",
     "title": "Hands to finish",
-    "description": "{player}, finish {partner} off with your hands.",
+    "description": "{player}, finish {partner} off with your hands on {partner_cock}.",
     "order": 62
   },
   {
     "category": "finish_off",
     "title": "Oral for you",
-    "description": "{player}, let {partner} finish you off with oral.",
+    "description": "{player}, let {partner} finish you off with their mouth on {player_cock}.",
     "order": 63
   },
   {
     "category": "finish_off",
     "title": "Finish from behind",
-    "description": "{player}, finish {partner} off from behind.",
+    "description": "{player}, finish {partner} off from behind — hands on their hips, {player_cock} deep.",
     "order": 64
   },
   {
     "category": "finish_off",
     "title": "On top to finish",
-    "description": "{player}, get on top of {partner} and finish them off.",
+    "description": "{player}, get on top of {partner} and ride {partner_cock} until they finish.",
     "order": 65
   },
   {
     "category": "finish_off",
     "title": "Mouth then hands",
-    "description": "{player}, start finishing {partner} off with oral, then use your hands to take them over.",
+    "description": "{player}, start finishing {partner} off with your mouth on {partner_cock}, then use your hands to take them over.",
     "order": 66
   },
   {
     "category": "finish_off",
     "title": "Eye contact oral",
-    "description": "{player}, finish {partner} off with oral and do not look away from their eyes.",
+    "description": "{player}, finish {partner} off with your mouth on {partner_cock} and do not look away from their eyes.",
     "order": 67
   },
   {
     "category": "finish_off",
     "title": "Slow oral finish",
-    "description": "{player}, finish {partner} off with oral, as slow as you can stand.",
+    "description": "{player}, finish {partner} off with your mouth on {partner_cock}, as slow as you can stand.",
     "order": 68
+  },
+  {
+    "category": "finish_off",
+    "title": "Cum on tits",
+    "description": "{player} pulls {player_cock} out and cums on {partner}'s {partner_tits}.",
+    "order": 69
+  },
+  {
+    "category": "finish_off",
+    "title": "Stroke and finish on chest",
+    "description": "{player}, wrap a hand around {player_cock} and finish on {partner}'s {partner_chest}.",
+    "order": 70
+  },
+  {
+    "category": "finish_off",
+    "title": "Mouth then cum on body",
+    "description": "{player}, get {partner} close with your mouth on {partner_cock}, then pull back and finish on their body.",
+    "order": 71
+  },
+  {
+    "category": "finish_off",
+    "title": "Guide their hand",
+    "description": "{player}, put {partner}'s hand on {player_cock} and make them finish you off.",
+    "order": 72
   }
 ]

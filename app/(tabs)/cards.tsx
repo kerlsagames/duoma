@@ -1,7 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
-import { personalizeCard, resolveCardNames } from "@/lib/personalize";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
 import { useRouter } from "expo-router";
@@ -27,6 +27,10 @@ export default function CardBankScreen() {
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
+  });
+  const genders = resolveCardGenders({
+    userGender: user?.gender,
+    partnerGender: partner?.gender,
   });
 
   const visible = useMemo(
@@ -63,7 +67,8 @@ export default function CardBankScreen() {
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
           Every card names you and {partner?.displayName ?? "your partner"}. The
           person who plays it is named first. Toggle what stays in rotation, or
-          write your own with {"{player}"} and {"{partner}"}.
+          write your own with {"{player}"}, {"{partner}"}, and anatomy tokens
+          like {"{player_cock}"} / {"{partner_tits}"}.
         </Text>
 
         <View className="mt-5 flex-row flex-wrap gap-2">
@@ -109,7 +114,7 @@ export default function CardBankScreen() {
             </View>
           ) : (
             visible.map((card) => {
-              const copy = personalizeCard(card, names);
+              const copy = personalizeCard(card, names, genders);
               const avg = avgFor(card.id);
               return (
                 <View
@@ -166,7 +171,8 @@ export default function CardBankScreen() {
             </Text>
             <Text className="mt-2 text-[14px] leading-5 text-mist/60">
               Use {"{player}"} for whoever plays it and {"{partner}"} for the
-              other name. Example: {"{player}, finish {partner} off with oral."}
+              other name. Anatomy flips with Male/Female — e.g.{" "}
+              {"{player} pulls {player_cock} out and cums on {partner}'s {partner_tits}."}
             </Text>
             <TextInput
               value={title}
@@ -178,7 +184,7 @@ export default function CardBankScreen() {
             <TextInput
               value={body}
               onChangeText={setBody}
-              placeholder="{player}, finish {partner} off with oral."
+              placeholder="{player} pulls {player_cock} out and cums on {partner}'s {partner_tits}."
               placeholderTextColor="rgba(244,244,246,0.35)"
               multiline
               className="mt-3 min-h-[120px] rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[16px] text-mist"

@@ -1,5 +1,10 @@
 import { STAGE_META } from "@/games/get-spicy/engine";
-import { personalizeCard, resolveCardNames, type NamePair } from "@/lib/personalize";
+import {
+  personalizeCard,
+  resolveCardNames,
+  type GenderPair,
+  type NamePair,
+} from "@/lib/personalize";
 import type { Card, CardStage, DeckCard } from "@/lib/types";
 import { Text, View } from "react-native";
 
@@ -8,6 +13,7 @@ type Props = {
   active: DeckCard | null;
   card: Card | undefined;
   names: NamePair;
+  genders?: GenderPair | null;
   progressLabel: string;
   emptyTitle: string;
   emptyBody: string;
@@ -19,13 +25,14 @@ export function RealtimeCardStage({
   active,
   card,
   names,
+  genders,
   progressLabel,
   emptyTitle,
   emptyBody,
   actorLabel,
 }: Props) {
   const meta = stage ? STAGE_META[stage] : null;
-  const copy = card ? personalizeCard(card, names) : null;
+  const copy = card ? personalizeCard(card, names, genders) : null;
 
   return (
     <View className="flex-1">

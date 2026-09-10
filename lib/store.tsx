@@ -61,6 +61,7 @@ import type {
   Milestone,
   MilestoneKind,
   MoodWeather,
+  Gender,
   Profile,
   PushSubscriptionRow,
   ScratchKind,
@@ -308,8 +309,8 @@ function pingPartner(
   void notifyUser(target, db.pushSubscriptions, payload);
 }
 
-type CreateAccountInput = { displayName: string };
-type JoinInput = { displayName: string; code: string };
+type CreateAccountInput = { displayName: string; gender: Gender };
+type JoinInput = { displayName: string; gender: Gender; code: string };
 
 export type BestCard = {
   card: Card;
@@ -361,7 +362,8 @@ type AppContextValue = {
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
-  addDemoPartner: (name?: string) => Promise<void>;
+  addDemoPartner: (name?: string, gender?: Gender) => Promise<void>;
+  setProfileGender: (who: "you" | "partner", gender: Gender) => Promise<void>;
   signOut: () => Promise<void>;
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
@@ -442,6 +444,7 @@ type AppContextValue = {
     openAt?: string | null;
   }) => Promise<void>;
   voteOpenJar: () => Promise<void>;
+  openJarNote: (noteId: string) => Promise<void>;
   addBucketItem: (input: {
     title: string;
     kind: BucketKind;
@@ -738,10 +741,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await writeLastUserId(userId);
   };
 
-  const createAccount = useCallback(async ({ displayName }: CreateAccountInput) => {
+  const createAccount = useCallback(async ({ displayName, gender }: CreateAccountInput) => {
     const profile: Profile = {
       id: createId(),
       displayName: displayName.trim() || "You",
+      gender,
       createdAt: nowIso(),
     };
     const coupleRow: Couple = {
@@ -762,7 +766,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
-  const joinWithCode = useCallback(async ({ displayName, code }: JoinInput) => {
+  const joinWithCode = useCallback(async ({ displayName, gender, code }: JoinInput) => {
     const normalized = code.trim().toUpperCase();
     const match = db.couples.find((row) => row.inviteCode === normalized);
     if (!match) {
@@ -774,6 +778,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const profile: Profile = {
       id: createId(),
       displayName: displayName.trim() || "You",
+      gender,
       createdAt: nowIso(),
     };
     db = {
@@ -796,11 +801,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     emit();
   }, []);
 
-  const addDemoPartner = useCallback(async (name = "Riley") => {
+  const addDemoPartner = useCallback(async (name = "Riley", gender: Gender = "female") => {
     if (!couple || couple.partnerB) return;
     const demo: Profile = {
       id: createId(),
       displayName: name,
+      gender,
       isDemo: true,
       createdAt: nowIso(),
     };
@@ -897,6 +903,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     await persist();
   }, [couple]);
+
+  const setProfileGender = useCallback(
+    async (who: "you" | "partner", gender: Gender) => {
+      const targetId = who === "you" ? user?.id : partner?.id;
+      if (!targetId) return;
+      db = {
+        ...db,
+        profiles: db.profiles.map((profile) =>
+          profile.id === targetId ? { ...profile, gender } : profile
+        ),
+      };
+      await persist();
+    },
+    [user?.id, partner?.id]
+  );
 
   const signOut = useCallback(async () => {
     sessionUserId = null;
@@ -2197,13 +2218,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     db = {
       ...db,
       jarOpenVotes: votes,
-      jarNotes: openNow
-        ? db.jarNotes.map((note) =>
-            note.coupleId === couple.id && !note.openedAt
-              ? { ...note, openedAt: nowIso() }
-              : note
-          )
-        : db.jarNotes,
+      // Unlock only — notes open one-by-one via the envelope ceremony.
       ritualChecks: openNow
         ? upsertRitual(couple.id, user.id, "jar-sunday", today)
         : db.ritualChecks,
@@ -2217,6 +2232,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     }
   }, [couple, partner, user]);
+
+  const openJarNote = useCallback(
+    async (noteId: string) => {
+      if (!user || !couple) return;
+      const note = db.jarNotes.find(
+        (row) => row.id === noteId && row.coupleId === couple.id
+      );
+      if (!note || note.openedAt) return;
+      db = {
+        ...db,
+        jarNotes: db.jarNotes.map((row) =>
+          row.id === noteId ? { ...row, openedAt: nowIso() } : row
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
 
   const addBucketItem = useCallback(
     async (input: {
@@ -2374,6 +2407,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     joinWithCode,
     continueAsSaved,
     addDemoPartner,
+    setProfileGender,
     signOut,
     sendSpicyInvite,
     acceptInvite,
@@ -2407,6 +2441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     scratchCard,
     addJarNote,
     voteOpenJar,
+    openJarNote,
     addBucketItem,
     spinDateNight,
     markBucketDone,

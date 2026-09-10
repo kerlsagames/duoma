@@ -2,7 +2,7 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 import { cardAllowedByFlavorTags } from "@/games/get-spicy/flavor-tags";
-import { personalizeCard, resolveCardNames } from "@/lib/personalize";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage } from "@/lib/types";
 import { useRouter } from "expo-router";
@@ -42,6 +42,10 @@ export default function SelectScreen() {
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
+  });
+  const genders = resolveCardGenders({
+    userGender: user?.gender,
+    partnerGender: partner?.gender,
   });
 
   return (
@@ -88,7 +92,7 @@ export default function SelectScreen() {
         <View className="mt-3 gap-3">
           {stageCards.map((card) => {
             const on = selectedIds.has(card.id);
-            const copy = personalizeCard(card, names);
+            const copy = personalizeCard(card, names, genders);
             return (
               <Pressable
                 key={card.id}

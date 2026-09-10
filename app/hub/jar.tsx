@@ -1,17 +1,21 @@
 import { AppreciationJar } from "@/components/hub/AppreciationJar";
+import { EnvelopeReveal } from "@/components/hub/EnvelopeReveal";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { JAR_TONE, SERIF } from "@/lib/app-themes";
-import { isSunday } from "@/lib/dates";
+import { isSunday, localDateKey } from "@/lib/dates";
 import {
   JAR_OPEN_OPTIONS,
   formatJarOpenAt,
+  jarNoteIsDue,
   jarOpenOptionLabel,
   openAtForJarOption,
   type JarOpenOptionId,
 } from "@/lib/jarNotes";
 import { useApp } from "@/lib/store";
-import { useEffect, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, type Href } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -24,8 +28,16 @@ import {
 const T = JAR_TONE;
 
 export default function JarScreen() {
-  const { jarNotes, jarOpenVotes, user, partner, addJarNote, voteOpenJar } =
-    useApp();
+  const router = useRouter();
+  const {
+    jarNotes,
+    jarOpenVotes,
+    user,
+    partner,
+    addJarNote,
+    voteOpenJar,
+    openJarNote,
+  } = useApp();
   const [body, setBody] = useState("");
   const [openOption, setOpenOption] = useState<JarOpenOptionId>("together");
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +50,32 @@ export default function JarScreen() {
   const dropScale = useRef(new Animated.Value(1)).current;
   const dropOpacity = useRef(new Animated.Value(0)).current;
 
+  const today = localDateKey();
+  const iVoted = jarOpenVotes.some(
+    (row) => row.userId === user?.id && row.date === today
+  );
+  const theyVoted =
+    jarOpenVotes.some(
+      (row) => row.userId === partner?.id && row.date === today
+    ) || Boolean(partner?.isDemo && iVoted);
+  const unlocked = iVoted && (theyVoted || !partner);
+
   const sealed = jarNotes.filter((note) => !note.openedAt);
-  const opened = jarNotes
-    .filter((note) => note.openedAt)
-    .sort((a, b) => (b.openedAt ?? "").localeCompare(a.openedAt ?? ""));
-  const iVoted = jarOpenVotes.some((row) => row.userId === user?.id);
-  const theyVoted = jarOpenVotes.some((row) => row.userId === partner?.id);
+  const readyToOpen = useMemo(
+    () =>
+      sealed
+        .filter((note) => jarNoteIsDue(note))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [sealed]
+  );
+  const nextNote = unlocked ? readyToOpen[0] ?? null : null;
+
+  const openedFromYou = jarNotes.filter(
+    (note) => note.openedAt && note.fromUserId === user?.id
+  ).length;
+  const openedFromPartner = jarNotes.filter(
+    (note) => note.openedAt && note.fromUserId === partner?.id
+  ).length;
 
   useEffect(() => {
     dropY.setValue(-20);
@@ -144,6 +176,13 @@ export default function JarScreen() {
     inputRange: [0, 1],
     outputRange: ["-8deg", "118deg"],
   });
+
+  const youName = user?.displayName ?? "You";
+  const partnerName = partner?.displayName ?? "Partner";
+  const nextFromLabel =
+    nextNote?.fromUserId === user?.id
+      ? youName
+      : partnerName;
 
   return (
     <Screen scroll background={T.background}>
@@ -358,22 +397,38 @@ export default function JarScreen() {
               color: T.muted,
             }}
           >
-            {iVoted
-              ? theyVoted || partner?.isDemo
-                ? "Jar is opening."
-                : `Waiting on ${partner?.displayName ?? "them"} to say they're ready.`
-              : "Both of you tap ready before anything is read out loud."}
+            {unlocked
+              ? readyToOpen.length
+                ? "You're both ready — open the next envelope."
+                : sealed.length
+                  ? "You're ready, but some notes are still waiting on their date."
+                  : "Nothing sealed right now. Drop a note for next time."
+              : iVoted
+                ? `Waiting on ${partnerName} to say they're ready.`
+                : "Both of you tap ready before anything is read out loud."}
           </Text>
-          <View className="mt-4">
-            <PrimaryButton
-              label={iVoted ? "You're ready" : "I'm ready to open"}
-              tone="ghost"
-              onPress={() => void voteOpenJar()}
-            />
-          </View>
+          {!unlocked ? (
+            <View className="mt-4">
+              <PrimaryButton
+                label={iVoted ? "You're ready" : "I'm ready to open"}
+                tone="ghost"
+                onPress={() => void voteOpenJar()}
+              />
+            </View>
+          ) : null}
         </View>
 
-        {sealed.length ? (
+        {nextNote ? (
+          <EnvelopeReveal
+            key={nextNote.id}
+            fromLabel={nextFromLabel}
+            body={nextNote.body}
+            remaining={readyToOpen.length}
+            onKeep={() => openJarNote(nextNote.id)}
+          />
+        ) : null}
+
+        {sealed.length && !nextNote ? (
           <View className="mt-8 gap-2">
             <Text
               style={{
@@ -417,7 +472,7 @@ export default function JarScreen() {
                     Folded note
                     {note.fromUserId === user?.id
                       ? " · from you"
-                      : ` · from ${partner?.displayName ?? "them"}`}
+                      : ` · from ${partnerName}`}
                   </Text>
                   <Text style={{ marginTop: 2, fontSize: 12, color: T.muted }}>
                     Opens {formatJarOpenAt(note.openAt)}
@@ -431,58 +486,130 @@ export default function JarScreen() {
           </View>
         ) : null}
 
-        {opened.length ? (
-          <View className="mt-8 gap-3">
-            <Text
+        {/* Partner note archives */}
+        <View
+          style={{
+            marginTop: 32,
+            flexDirection: "row",
+            gap: 12,
+          }}
+        >
+          <Pressable
+            onPress={() =>
+              router.push(
+                `/hub/jar-notes?from=${encodeURIComponent(user?.id ?? "")}&name=${encodeURIComponent(youName)}` as Href
+              )
+            }
+            style={{
+              flex: 1,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              paddingVertical: 18,
+              paddingHorizontal: 12,
+              alignItems: "center",
+            }}
+          >
+            <View
               style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.4,
-                textTransform: "uppercase",
-                color: T.accent,
+                width: 54,
+                height: 54,
+                borderRadius: 18,
+                backgroundColor: T.accentSoft,
+                borderWidth: 1,
+                borderColor: T.accent,
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Opened together
+              <Ionicons name="mail-open-outline" size={26} color={T.accent} />
+            </View>
+            <Text
+              style={{
+                marginTop: 12,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: T.ink,
+                textAlign: "center",
+              }}
+              numberOfLines={1}
+            >
+              {youName}
             </Text>
-            {opened.map((note) => (
-              <View
-                key={note.id}
-                style={{
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  borderColor: T.border,
-                  backgroundColor: T.surfaceRaised,
-                  padding: 16,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "SpaceMono",
-                    fontSize: 11,
-                    letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    color: T.seal,
-                  }}
-                >
-                  {note.fromUserId === user?.id
-                    ? "You"
-                    : partner?.displayName ?? "Partner"}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 8,
-                    fontFamily: SERIF,
-                    fontSize: 17,
-                    lineHeight: 24,
-                    color: T.ink,
-                  }}
-                >
-                  {note.body}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: T.muted,
+              }}
+            >
+              {openedFromYou} note{openedFromYou === 1 ? "" : "s"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() =>
+              router.push(
+                `/hub/jar-notes?from=${encodeURIComponent(partner?.id ?? "")}&name=${encodeURIComponent(partnerName)}` as Href
+              )
+            }
+            style={{
+              flex: 1,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              paddingVertical: 18,
+              paddingHorizontal: 12,
+              alignItems: "center",
+              opacity: partner ? 1 : 0.45,
+            }}
+            disabled={!partner}
+          >
+            <View
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: 18,
+                backgroundColor: T.accentSoft,
+                borderWidth: 1,
+                borderColor: T.accent,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="mail-outline" size={26} color={T.accent} />
+            </View>
+            <Text
+              style={{
+                marginTop: 12,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: T.ink,
+                textAlign: "center",
+              }}
+              numberOfLines={1}
+            >
+              {partnerName}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: T.muted,
+              }}
+            >
+              {openedFromPartner} note{openedFromPartner === 1 ? "" : "s"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </Screen>
   );

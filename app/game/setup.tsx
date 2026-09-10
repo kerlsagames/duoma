@@ -1,3 +1,4 @@
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import {
@@ -20,7 +21,14 @@ import { Pressable, Text, View } from "react-native";
 
 export default function SetupScreen() {
   const router = useRouter();
-  const { game, partner, configureGame, endGame } = useApp();
+  const {
+    game,
+    user,
+    partner,
+    configureGame,
+    endGame,
+    setProfileGender,
+  } = useApp();
   const [mode, setMode] = useState<GameMode>("random");
   const [blockLimit, setBlockLimit] = useState(1);
   const [counts, setCounts] = useState<StageCounts>({ ...DEFAULT_STAGE_COUNTS });
@@ -45,6 +53,7 @@ export default function SetupScreen() {
 
   const enabledSet = useMemo(() => new Set(flavorTags), [flavorTags]);
   const allOn = flavorTags.length === ALL_FLAVOR_TAG_IDS.length;
+  const gendersReady = Boolean(user?.gender && partner?.gender);
 
   const toggleTag = (id: string) => {
     setFlavorTags((current) =>
@@ -61,7 +70,7 @@ export default function SetupScreen() {
   };
 
   const start = async () => {
-    if (flavorTags.length === 0) return;
+    if (flavorTags.length === 0 || !gendersReady) return;
     setLoading(true);
     try {
       await configureGame({
@@ -84,9 +93,52 @@ export default function SetupScreen() {
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Setup</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          {partner?.displayName ?? "Your partner"} is on this session with you.
-          Tick the flavors you want in the deck — unchecked ones stay out.
+          Confirm names and Male / Female so cards can say the right anatomy —
+          then tick the flavors you want in the deck. Unchecked flavors drop
+          matching cards (e.g. turn off At home together to skip in-person
+          teases like ear play).
         </Text>
+
+        <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
+          Who's playing
+        </Text>
+        <View className="mt-3 gap-3">
+          <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <Text className="text-[11px] font-semibold uppercase tracking-widest text-neon">
+              You
+            </Text>
+            <Text className="mt-1 text-[20px] font-bold text-mist">
+              {user?.displayName ?? "You"}
+            </Text>
+            <View className="mt-3">
+              <GenderPicker
+                value={user?.gender ?? null}
+                onChange={(gender) => void setProfileGender("you", gender)}
+                label="I am"
+              />
+            </View>
+          </View>
+          <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <Text className="text-[11px] font-semibold uppercase tracking-widest text-neon">
+              Partner{partner?.isDemo ? " · demo" : ""}
+            </Text>
+            <Text className="mt-1 text-[20px] font-bold text-mist">
+              {partner?.displayName ?? "Partner"}
+            </Text>
+            <View className="mt-3">
+              <GenderPicker
+                value={partner?.gender ?? null}
+                onChange={(gender) => void setProfileGender("partner", gender)}
+                label="They are"
+              />
+            </View>
+          </View>
+        </View>
+        {!gendersReady ? (
+          <Text className="mt-3 text-[14px] text-crimson">
+            Set Male or Female for both of you before starting.
+          </Text>
+        ) : null}
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
           Mode
@@ -254,7 +306,7 @@ export default function SetupScreen() {
           <PrimaryButton
             label="Start session"
             loading={loading}
-            disabled={flavorTags.length === 0}
+            disabled={flavorTags.length === 0 || !gendersReady}
             onPress={() => void start()}
           />
           <PrimaryButton

@@ -1,6 +1,8 @@
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { useApp } from "@/lib/store";
+import type { Gender } from "@/lib/types";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
@@ -9,15 +11,17 @@ export default function JoinScreen() {
   const router = useRouter();
   const { joinWithCode } = useApp();
   const [name, setName] = useState("");
+  const [gender, setGender] = useState<Gender | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
+    if (!gender) return;
     setError(null);
     setLoading(true);
     try {
-      await joinWithCode({ displayName: name, code });
+      await joinWithCode({ displayName: name, gender, code });
       router.replace("/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join");
@@ -34,8 +38,8 @@ export default function JoinScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Six characters. No zeros, no ones. The second you submit, both
-          phones lock to the same couple.
+          Six characters. No zeros, no ones. Your name and Male/Female land on
+          the pair so cards can speak to both of you.
         </Text>
 
         <TextInput
@@ -45,6 +49,11 @@ export default function JoinScreen() {
           placeholderTextColor="rgba(244,244,246,0.35)"
           className="mt-8 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
+
+        <View className="mt-4">
+          <GenderPicker value={gender} onChange={setGender} label="I am" />
+        </View>
+
         <TextInput
           value={code}
           onChangeText={(value) => setCode(value.toUpperCase())}
@@ -60,7 +69,7 @@ export default function JoinScreen() {
           <PrimaryButton
             label="Link us"
             loading={loading}
-            disabled={!name.trim() || code.trim().length !== 6}
+            disabled={!name.trim() || !gender || code.trim().length !== 6}
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />

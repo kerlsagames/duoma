@@ -2,7 +2,7 @@ import { RealtimeCardStage } from "@/components/RealtimeCardStage";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_ORDER } from "@/games/get-spicy/engine";
-import { personalizeCard, resolveCardNames } from "@/lib/personalize";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -79,6 +79,13 @@ export default function PlayScreen() {
     partnerId: partner?.id,
     playedById: active?.playedBy ?? game?.activePlayedBy ?? user?.id,
   });
+  const genders = resolveCardGenders({
+    userGender: user?.gender,
+    partnerGender: partner?.gender,
+    userId: user?.id,
+    partnerId: partner?.id,
+    playedById: active?.playedBy ?? game?.activePlayedBy ?? user?.id,
+  });
 
   const actor =
     (active?.playedBy ?? game?.activePlayedBy) === partner?.id
@@ -148,6 +155,10 @@ export default function PlayScreen() {
       userName: user?.displayName,
       partnerName: partner?.displayName,
     });
+    const previewGenders = resolveCardGenders({
+      userGender: user?.gender,
+      partnerGender: partner?.gender,
+    });
     const mine = ratings.filter(
       (row) => row.gameId === game.id && row.userId === user?.id
     );
@@ -174,7 +185,7 @@ export default function PlayScreen() {
               played.map((item) => {
                 const playedCard = cards.find((row) => row.id === item.cardId);
                 if (!playedCard) return null;
-                const copy = personalizeCard(playedCard, previewNames);
+                const copy = personalizeCard(playedCard, previewNames, previewGenders);
                 const current =
                   mine.find((row) => row.cardId === playedCard.id)?.stars ?? 0;
                 return (
@@ -273,6 +284,7 @@ export default function PlayScreen() {
           active={active}
           card={card}
           names={names}
+          genders={genders}
           actorLabel={actor ? `${actor} played` : "Live card"}
           progressLabel={progressLabel}
           emptyTitle={

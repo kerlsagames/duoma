@@ -1,5 +1,4 @@
 import { JAR_TONE, SERIF } from "@/lib/app-themes";
-import { jarFillRatio } from "@/lib/jarNotes";
 import { useMemo } from "react";
 import { Text, View } from "react-native";
 
@@ -40,10 +39,9 @@ function paperLayout(count: number): PaperSpec[] {
   }));
 }
 
+/** Mason jar — glass stays the same as notes pile in; only the papers change. */
 export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
-  const fill = jarFillRatio(sealedCount);
   const papers = useMemo(() => paperLayout(sealedCount), [sealedCount]);
-  const fillHeight = 44 + fill * 200;
 
   return (
     <View style={{ alignItems: "center", paddingVertical: 8 }}>
@@ -93,7 +91,7 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
           borderTopRightRadius: 32,
           borderWidth: 2.5,
           borderColor: T.glassBorder,
-          backgroundColor: "rgba(140, 170, 160, 0.1)",
+          backgroundColor: T.glass,
           overflow: "hidden",
           zIndex: 1,
         }}
@@ -106,22 +104,7 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
             width: 18,
             height: 150,
             borderRadius: 12,
-            backgroundColor: "rgba(255,255,255,0.08)",
-          }}
-        />
-
-        <View
-          style={{
-            position: "absolute",
-            left: 8,
-            right: 8,
-            bottom: 8,
-            height: fillHeight,
-            borderRadius: 28,
-            backgroundColor:
-              fill > 0
-                ? `rgba(12, 14, 13, ${0.18 + fill * 0.28})`
-                : "transparent",
+            backgroundColor: "rgba(255,245,230,0.06)",
           }}
         />
 
@@ -202,7 +185,7 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
           height: 16,
           marginTop: -6,
           borderRadius: 12,
-          backgroundColor: "rgba(168,196,188,0.18)",
+          backgroundColor: "rgba(255,245,230,0.06)",
           borderWidth: 1,
           borderColor: T.glassBorder,
         }}
