@@ -1,12 +1,17 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { DateTimeField } from "@/components/ui/DateTimeField";
 import { SERIF, WILDCARD_TONE } from "@/lib/app-themes";
 import {
   SPICY_DARE_CATEGORIES,
   SPICY_DARE_CATEGORY_META,
+  defaultDareDateTime,
   directionLabel,
+  formatDareDueAt,
   isSpicyDareDeck,
+  parseLocalDateTime,
   spicyCategoryMeta,
   timeframeLabel,
+  toLocalDateTimeValue,
   withPlayStatus,
   type SpicyDare,
   type SpicyDareCategory,
@@ -30,11 +35,11 @@ type Compose = {
 const TIMEFRAMES: { id: DareTimeframe; label: string }[] = [
   { id: "tonight", label: "Tonight" },
   { id: "24h", label: "24 hours" },
-  { id: "custom", label: "Custom" },
+  { id: "custom", label: "Calendar" },
 ];
 
 function dareWhen(play: SpicyDarePlay): string {
-  return timeframeLabel(play.timeframe, play.customWhen);
+  return timeframeLabel(play.timeframe, play.customWhen, play.dueAt);
 }
 
 function pickRandom<T>(items: T[], avoid?: T | null): T | null {
@@ -74,10 +79,11 @@ export function SpicyDarePanel({
   const [compose, setCompose] = useState<Compose | null>(null);
   const [direction, setDirection] = useState<DareDirection | null>(null);
   const [timeframe, setTimeframe] = useState<DareTimeframe>("tonight");
-  const [customWhen, setCustomWhen] = useState("");
+  const [customWhen, setCustomWhen] = useState(defaultDareDateTime);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const spinTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const minDateTime = useMemo(() => toLocalDateTimeValue(new Date()), []);
 
   const playedIds = useMemo(() => {
     const deck = talkDecks.find(
@@ -131,7 +137,7 @@ export function SpicyDarePanel({
     setError(null);
     setDirection(null);
     setTimeframe("tonight");
-    setCustomWhen("");
+    setCustomWhen(defaultDareDateTime());
     setCompose(
       dare
         ? { dareId: dare.id, text: dare.text, categories: [...dare.categories] }
@@ -177,6 +183,17 @@ export function SpicyDarePanel({
       setError("Pick who does this.");
       return;
     }
+    if (timeframe === "custom") {
+      const picked = parseLocalDateTime(customWhen);
+      if (!picked) {
+        setError("Pick a date and time on the calendar.");
+        return;
+      }
+      if (picked.getTime() <= Date.now()) {
+        setError("Pick a time in the future.");
+        return;
+      }
+    }
     setError(null);
     setLoading(true);
     try {
@@ -186,7 +203,7 @@ export function SpicyDarePanel({
         categories: compose.categories,
         direction,
         timeframe,
-        customWhen,
+        customWhen: timeframe === "custom" ? customWhen : null,
       });
       setCompose(null);
       setDirection(null);
@@ -357,7 +374,7 @@ export function SpicyDarePanel({
             color: T.accent,
           }}
         >
-          When
+          Expires
         </Text>
         <View className="mt-3 flex-row" style={{ gap: 8 }}>
           {TIMEFRAMES.map((item) => {
@@ -390,25 +407,33 @@ export function SpicyDarePanel({
           })}
         </View>
         {timeframe === "custom" ? (
-          <TextInput
-            value={customWhen}
-            onChangeText={setCustomWhen}
-            placeholder="Saturday after dinner"
-            placeholderTextColor="rgba(232,244,241,0.32)"
-            style={{
-              marginTop: 12,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: T.border,
-              backgroundColor: T.surface,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              color: T.ink,
-              fontFamily: SERIF,
-              fontSize: 16,
-            }}
-          />
-        ) : null}
+          <View className="mt-1">
+            <DateTimeField
+              value={customWhen}
+              min={minDateTime}
+              onChange={setCustomWhen}
+              accent={T.accent}
+              background={T.surface}
+              ink={T.ink}
+              border={T.border}
+            />
+            <Text style={{ marginTop: 8, fontSize: 13, color: T.muted }}>
+              Expires exactly{" "}
+              {formatDareDueAt(parseLocalDateTime(customWhen)?.toISOString() ?? null) ??
+                "—"}
+            </Text>
+          </View>
+        ) : (
+          <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
+            {timeframe === "tonight"
+              ? `Expires tonight at ${formatDareDueAt(
+                  new Date(new Date().setHours(23, 59, 59, 999)).toISOString()
+                )}`
+              : `Expires ${formatDareDueAt(
+                  new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                )}`}
+          </Text>
+        )}
 
         {error ? (
           <Text style={{ marginTop: 14, color: T.hot, fontFamily: SERIF }}>{error}</Text>
@@ -679,7 +704,6 @@ export function SpicyDarePanel({
               play={play}
               userId={user?.id}
               partnerName={partner?.displayName ?? "them"}
-              demoPartner={Boolean(partner?.isDemo && play.toUserId === partner.id)}
               onRespond={(status) => void respondSpicyDare(play.id, status)}
               onDone={() => void completeSpicyDare(play.id)}
             />
@@ -787,14 +811,12 @@ function LiveDareCard({
   play,
   userId,
   partnerName,
-  demoPartner,
   onRespond,
   onDone,
 }: {
   play: SpicyDarePlay;
   userId?: string;
   partnerName: string;
-  demoPartner: boolean;
   onRespond: (status: "accepted" | "declined") => void;
   onDone: () => void;
 }) {
@@ -854,36 +876,16 @@ function LiveDareCard({
         </View>
       ) : null}
       {waitingOnThem ? (
-        <>
-          <Text
-            style={{
-              marginTop: 10,
-              fontFamily: SERIF,
-              fontStyle: "italic",
-              color: T.muted,
-            }}
-          >
-            Waiting on {partnerName}.
-          </Text>
-          {demoPartner ? (
-            <View className="mt-3 flex-row" style={{ gap: 8 }}>
-              <View className="flex-1">
-                <PrimaryButton
-                  label={`${partnerName} says yes`}
-                  tone="teal"
-                  onPress={() => onRespond("accepted")}
-                />
-              </View>
-              <View className="flex-1">
-                <PrimaryButton
-                  tone="ghost"
-                  label="They pass"
-                  onPress={() => onRespond("declined")}
-                />
-              </View>
-            </View>
-          ) : null}
-        </>
+        <Text
+          style={{
+            marginTop: 10,
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            color: T.muted,
+          }}
+        >
+          Waiting on {partnerName}.
+        </Text>
       ) : null}
       {accepted ? (
         <View className="mt-3">

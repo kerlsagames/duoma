@@ -1816,7 +1816,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const text = input.text.trim();
       if (!text) throw new Error("Write the dare, or tweak the one you picked.");
       if (input.timeframe === "custom" && !input.customWhen?.trim()) {
-        throw new Error("Say when this should happen.");
+        throw new Error("Pick a date and time on the calendar.");
+      }
+      const dueAt = dueAtForTimeframe(input.timeframe, input.customWhen);
+      if (!dueAt) {
+        throw new Error("Pick a valid expiry time.");
+      }
+      if (Date.parse(dueAt) <= Date.now()) {
+        throw new Error("Pick a time in the future.");
       }
       const catalog = input.dareId ? dareById(input.dareId) : null;
       const categories =
@@ -1836,7 +1843,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         direction: input.direction,
         timeframe: input.timeframe,
         customWhen: input.timeframe === "custom" ? input.customWhen!.trim() : null,
-        dueAt: dueAtForTimeframe(input.timeframe),
+        dueAt,
         status: "offered",
         createdAt: nowIso(),
         answeredAt: null,
@@ -1884,12 +1891,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user) return;
       const existing = db.spicyDares.find((row) => row.id === id);
       if (!existing || existing.status !== "offered") return;
-      const demoHold = Boolean(
-        partner?.isDemo &&
-          existing.toUserId === partner.id &&
-          existing.fromUserId === user.id
-      );
-      if (existing.toUserId !== user.id && !demoHold) return;
+      // Only the recipient can accept or pass — never act for a demo partner.
+      if (existing.toUserId !== user.id) return;
       db = {
         ...db,
         spicyDares: db.spicyDares.map((row) =>
@@ -1899,16 +1902,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ),
       };
       await persist();
-      if (!demoHold) {
-        pingPartner(couple, user, partner, {
-          title: "Wildcard dare",
-          body:
-            status === "accepted"
-              ? `${user.displayName} is up for the dare.`
-              : `${user.displayName} passed on this one.`,
-          url: "/hub/wildcard",
-        });
-      }
+      pingPartner(couple, user, partner, {
+        title: "Wildcard dare",
+        body:
+          status === "accepted"
+            ? `${user.displayName} is up for the dare.`
+            : `${user.displayName} passed on this one.`,
+        url: "/hub/wildcard",
+      });
     },
     [couple, partner, user]
   );

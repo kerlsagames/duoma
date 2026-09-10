@@ -415,6 +415,7 @@ export function withPlayStatus(playedIds: string[]): SpicyDare[] {
 
 export function dueAtForTimeframe(
   timeframe: DareTimeframe,
+  customWhen?: string | null,
   now = new Date()
 ): string | null {
   if (timeframe === "tonight") {
@@ -425,17 +426,69 @@ export function dueAtForTimeframe(
   if (timeframe === "24h") {
     return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
   }
-  return null;
+  const parsed = parseLocalDateTime(customWhen);
+  return parsed ? parsed.toISOString() : null;
+}
+
+export function toLocalDateTimeValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function parseLocalDateTime(value: string | null | undefined): Date | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  // datetime-local: YYYY-MM-DDTHH:mm (local)
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(raw);
+  if (match) {
+    const [, y, m, d, hh, mm] = match;
+    const date = new Date(
+      Number(y),
+      Number(m) - 1,
+      Number(d),
+      Number(hh),
+      Number(mm),
+      0,
+      0
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const fallback = new Date(raw);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+}
+
+export function defaultDareDateTime(now = new Date()): string {
+  const next = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  next.setMinutes(0, 0, 0);
+  return toLocalDateTimeValue(next);
+}
+
+export function formatDareDueAt(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export function timeframeLabel(
   timeframe: DareTimeframe,
-  customWhen?: string | null
+  customWhen?: string | null,
+  dueAt?: string | null
 ): string {
-  if (timeframe === "tonight") return "Tonight";
-  if (timeframe === "24h") return "Within 24 hours";
-  const custom = customWhen?.trim();
-  return custom || "Custom";
+  if (timeframe === "tonight") {
+    return dueAt ? `Tonight · ${formatDareDueAt(dueAt)}` : "Tonight";
+  }
+  if (timeframe === "24h") {
+    return dueAt ? `By ${formatDareDueAt(dueAt)}` : "Within 24 hours";
+  }
+  const exact = formatDareDueAt(dueAt) ?? formatDareDueAt(parseLocalDateTime(customWhen)?.toISOString() ?? null);
+  return exact ? `By ${exact}` : "Pick a time";
 }
 
 export function directionLabel(direction: DareDirection): string {
