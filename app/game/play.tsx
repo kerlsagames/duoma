@@ -56,8 +56,9 @@ export default function PlayScreen() {
   } = useApp();
 
   const [error, setError] = useState<string | null>(null);
-  const [dealing, setDealing] = useState(false);
-  const [dealKey, setDealKey] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  const [animationMode, setAnimationMode] = useState<"deal" | "shuffle">("deal");
 
   useEffect(() => {
     if (!game) router.replace("/(tabs)");
@@ -120,24 +121,26 @@ export default function PlayScreen() {
     : 0;
   const progressLabel = `${stagePlayed} / ${stageNeed} this stage`;
 
+  // Fetch a hand, then play the deal animation.
   useEffect(() => {
     if (!game || game.status !== "playing") return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
     if (!myTurn) return;
     if (handCards.length > 0) return;
-    if (dealing) return;
+    if (animating) return;
 
     let cancelled = false;
     void (async () => {
       try {
         setError(null);
-        setDealing(true);
-        setDealKey((key) => key + 1);
+        setAnimationMode("deal");
+        setAnimating(true);
         await dealHand();
+        if (!cancelled) setAnimationKey((key) => key + 1);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Could not deal");
-          setDealing(false);
+          setAnimating(false);
         }
       }
     })();
@@ -145,7 +148,13 @@ export default function PlayScreen() {
     return () => {
       cancelled = true;
     };
-  }, [dealHand, dealing, game, handCards.length, myTurn]);
+  }, [
+    animating,
+    dealHand,
+    game,
+    handCards.length,
+    myTurn,
+  ]);
 
   const onPick = async (cardId: string) => {
     setError(null);
@@ -156,7 +165,7 @@ export default function PlayScreen() {
     }
     try {
       await chooseHandCard(cardId);
-      setDealing(false);
+      setAnimating(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not play");
     }
@@ -165,12 +174,13 @@ export default function PlayScreen() {
   const onShuffle = async () => {
     setError(null);
     try {
-      setDealing(true);
-      setDealKey((key) => key + 1);
+      setAnimationMode("shuffle");
+      setAnimating(true);
       await shuffleHand();
+      setAnimationKey((key) => key + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not shuffle");
-      setDealing(false);
+      setAnimating(false);
     }
   };
 
@@ -378,12 +388,13 @@ export default function PlayScreen() {
         {showHand ? (
           <View className="flex-1">
             <DealHand
-              key={dealKey}
+              key={animationKey}
               cards={handCards}
               names={names}
               genders={genders}
-              dealing={dealing}
-              onDealt={() => setDealing(false)}
+              animationKey={animationKey}
+              mode={animationMode}
+              onReady={() => setAnimating(false)}
               onPick={(cardId) => void onPick(cardId)}
               disabled={!myTurn}
             />
@@ -399,12 +410,12 @@ export default function PlayScreen() {
             progressLabel={progressLabel}
             emptyTitle={
               myTurn
-                ? "Dealing your hand…"
+                ? "Shuffling your deck…"
                 : `Waiting on ${partner?.displayName ?? "them"}`
             }
             emptyBody={
               myTurn
-                ? "Three cards are on the way. Pick one to play."
+                ? "Cards will deal to you in a moment. Pick one when they land."
                 : `${partner?.displayName ?? "Your partner"} is choosing. You can pass if you do not want in.`
             }
           />
@@ -427,7 +438,7 @@ export default function PlayScreen() {
             <PrimaryButton
               label={shuffleLabel}
               tone="ghost"
-              disabled={!myTurn || dealing || myShufflesRemaining === 0}
+              disabled={!myTurn || animating || myShufflesRemaining === 0}
               onPress={() => void onShuffle()}
             />
           ) : null}

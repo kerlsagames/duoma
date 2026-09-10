@@ -21,7 +21,7 @@ export function CurrentStatus({
     milestones,
     bucketItems,
     talkDraws,
-    scratches,
+    listEntries,
     spicyDares,
   } = useApp();
 
@@ -37,7 +37,7 @@ export function CurrentStatus({
     milestones,
     bucketItems,
     talkDraws,
-    scratches,
+    listEntries,
     spicyDares,
   });
 

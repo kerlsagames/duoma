@@ -27,7 +27,7 @@ const APPS: {
   { label: "Countdowns", icon: "timer", href: "/hub/milestones" },
   { label: "Wildcard", icon: "flash", href: "/hub/wildcard", hot: true },
   { label: "Coupons", icon: "ticket", href: "/hub/coupons" },
-  { label: "Scratch", icon: "gift", href: "/hub/scratch" },
+  { label: "Lists", icon: "map", href: "/hub/lists" },
   { label: "The jar", icon: "file-tray", href: "/hub/jar" },
   { label: "Date night", icon: "wine", href: "/hub/planner", hot: true },
   { label: "Settings", icon: "settings-sharp", href: "/hub/settings" },

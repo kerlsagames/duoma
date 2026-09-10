@@ -62,6 +62,38 @@ export const HANDWRITING: TextStyle["fontFamily"] = Platform.select({
   default: '"Segoe Script", "Bradley Hand", "Apple Chancery", "Palatino Linotype", cursive',
 });
 
+/** Fun travel-sticker / bucket-list energy for shared Lists. */
+export const LISTS_TONE = {
+  background: "#07191D",
+  sky: "#0E2A31",
+  accent: "#FF6B4A",
+  accentSoft: "rgba(255,107,74,0.18)",
+  teal: "#2EC4B6",
+  tealSoft: "rgba(46,196,182,0.16)",
+  sticky: "#FFD166",
+  stickyInk: "#3A2A10",
+  ink: "#F3FFFB",
+  muted: "rgba(243,255,251,0.58)",
+  surface: "#123038",
+  surfaceRaised: "#183940",
+  border: "rgba(46,196,182,0.32)",
+  vault: "#FFD166",
+  stamp: "#FF6B4A",
+} as const;
+
+/** Chunky poster display for Lists titles. */
+export const LISTS_DISPLAY: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next Condensed",
+  android: "sans-serif-condensed",
+  default: '"Avenir Next Condensed", "Trebuchet MS", "Segoe UI", Futura, sans-serif',
+});
+
+export const LISTS_ROUNDED: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next",
+  android: "sans-serif-medium",
+  default: '"Avenir Next", "Nunito", "Trebuchet MS", sans-serif',
+});
+
 export const HUB_TONES: Record<
   HubTone,
   {

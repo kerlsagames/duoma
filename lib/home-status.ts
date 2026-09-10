@@ -12,6 +12,7 @@ import type {
   CuriosityAnswer,
   GameSession,
   JarNote,
+  ListEntry,
   Milestone,
   Profile,
   ScratchReveal,
@@ -126,6 +127,7 @@ export function buildHomeNotifications(input: {
   bucketItems?: BucketItem[];
   talkDraws?: TalkDraw[];
   scratches?: ScratchReveal[];
+  listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
 }): StatusItem[] {
   const today = localDateKey();
@@ -292,17 +294,31 @@ export function buildHomeNotifications(input: {
       });
     });
 
-  (input.scratches ?? [])
-    .filter((row) => row.userId === input.partner?.id)
+  (input.listEntries ?? [])
+    .filter((row) => row.createdBy === input.partner?.id && !row.completedAt)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 3)
-    .forEach((scratch) => {
+    .forEach((entry) => {
       items.push({
-        id: `scratch-${scratch.id}`,
-        line: `They scratched ${scratch.title}`,
-        when: recentWhen(scratch.createdAt),
-        href: "/hub/scratch",
-        sortAt: Date.parse(scratch.createdAt) || now,
+        id: `list-add-${entry.id}`,
+        line: `They added “${entry.title}” to Lists`,
+        when: recentWhen(entry.createdAt),
+        href: `/hub/list/${entry.listId}`,
+        sortAt: Date.parse(entry.createdAt) || now,
+      });
+    });
+
+  (input.listEntries ?? [])
+    .filter((row) => row.completedAt && row.completedBy === input.partner?.id)
+    .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""))
+    .slice(0, 2)
+    .forEach((entry) => {
+      items.push({
+        id: `list-done-${entry.id}`,
+        line: `Vaulted “${entry.title}” — rate it`,
+        when: recentWhen(entry.completedAt ?? entry.createdAt),
+        href: "/hub/lists",
+        sortAt: Date.parse(entry.completedAt ?? entry.createdAt) || now,
       });
     });
 

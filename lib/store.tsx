@@ -26,6 +26,10 @@ import {
   SCRATCH_POOLS,
 } from "@/lib/hub";
 import {
+  CUSTOM_LIST_ACCENTS,
+  STARTER_LISTS,
+} from "@/lib/lists";
+import {
   curiositySynergy,
   dailyCuriosityQuestion,
   isCuriosityComplete,
@@ -57,7 +61,10 @@ import type {
   CheckInRequest,
   Coupon,
   Couple,
+  CoupleList,
   CuriosityAnswer,
+  ListEntry,
+  ListEntryRating,
   DeckCard,
   DesireToggle,
   DesireGauge,
@@ -360,6 +367,9 @@ type AppContextValue = {
   desireToggles: DesireToggle[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
+  coupleLists: CoupleList[];
+  listEntries: ListEntry[];
+  listEntryRatings: ListEntryRating[];
   jarNotes: JarNote[];
   bucketItems: BucketItem[];
   ritualChecks: AppDB["ritualChecks"];
@@ -451,6 +461,19 @@ type AppContextValue = {
   acceptCoupon: (id: string) => Promise<void>;
   redeemCoupon: (id: string) => Promise<void>;
   scratchCard: (kind: ScratchKind) => Promise<ScratchReveal | null>;
+  ensureStarterLists: () => Promise<void>;
+  createCoupleList: (input: {
+    title: string;
+    emoji?: string;
+  }) => Promise<CoupleList | null>;
+  addListEntry: (input: {
+    listId: string;
+    title: string;
+    notes?: string;
+  }) => Promise<void>;
+  completeListEntry: (entryId: string) => Promise<void>;
+  rateListEntry: (entryId: string, stars: number) => Promise<void>;
+  reopenListEntry: (entryId: string) => Promise<void>;
   addJarNote: (input: {
     body: string;
     openOption?: string | null;
@@ -752,6 +775,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
+  const coupleLists = useMemo(
+    () =>
+      db.coupleLists
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const listEntries = useMemo(
+    () => db.listEntries.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const listEntryRatings = useMemo(
+    () => db.listEntryRatings.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
   const jarNotes = useMemo(
     () => db.jarNotes.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -842,6 +883,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const today = localDateKey();
     const anniversary = new Date();
     anniversary.setMonth(anniversary.getMonth() + 2);
+    const stamp = nowIso();
+    const seededLists: CoupleList[] = STARTER_LISTS.map((def, index) => ({
+      id: createId(),
+      coupleId: couple.id,
+      title: def.title,
+      emoji: def.emoji,
+      accent: def.accent,
+      starterKey: def.key,
+      createdBy: demo.id,
+      createdAt: new Date(Date.parse(stamp) + index).toISOString(),
+    }));
+    const moviesListId =
+      seededLists.find((row) => row.starterKey === "movies")?.id ??
+      seededLists[0]?.id ??
+      createId();
     db = {
       ...db,
       profiles: [...db.profiles, demo],
@@ -927,6 +983,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           doneAt: null,
           createdBy: demo.id,
           createdAt: nowIso(),
+        },
+      ],
+      coupleLists: [
+        ...db.coupleLists.filter((row) => row.coupleId !== couple.id),
+        ...seededLists,
+      ],
+      listEntries: [
+        ...db.listEntries,
+        {
+          id: createId(),
+          listId: moviesListId,
+          coupleId: couple.id,
+          title: "Past Lives",
+          notes: "Bring tissues.",
+          createdBy: demo.id,
+          createdAt: nowIso(),
+          completedAt: null,
+          completedBy: null,
         },
       ],
     };
@@ -2532,6 +2606,164 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const seedStarterLists = (coupleId: string, createdBy: string): CoupleList[] => {
+    const stamp = nowIso();
+    return STARTER_LISTS.map((def, index) => ({
+      id: createId(),
+      coupleId,
+      title: def.title,
+      emoji: def.emoji,
+      accent: def.accent,
+      starterKey: def.key,
+      createdBy,
+      createdAt: new Date(Date.parse(stamp) + index).toISOString(),
+    }));
+  };
+
+  const ensureStarterLists = useCallback(async () => {
+    if (!user || !couple) return;
+    const existing = db.coupleLists.filter((row) => row.coupleId === couple.id);
+    if (existing.length > 0) return;
+    db = {
+      ...db,
+      coupleLists: [...db.coupleLists, ...seedStarterLists(couple.id, user.id)],
+    };
+    await persist();
+  }, [couple, user]);
+
+  const createCoupleList = useCallback(
+    async (input: { title: string; emoji?: string }) => {
+      if (!user || !couple) return null;
+      await ensureStarterLists();
+      const title = input.title.trim();
+      if (!title) throw new Error("Give the list a name.");
+      const count = db.coupleLists.filter((row) => row.coupleId === couple.id).length;
+      const row: CoupleList = {
+        id: createId(),
+        coupleId: couple.id,
+        title,
+        emoji: (input.emoji?.trim() || "✨").slice(0, 4),
+        accent: CUSTOM_LIST_ACCENTS[count % CUSTOM_LIST_ACCENTS.length],
+        starterKey: null,
+        createdBy: user.id,
+        createdAt: nowIso(),
+      };
+      db = { ...db, coupleLists: [...db.coupleLists, row] };
+      await persist();
+      return row;
+    },
+    [couple, ensureStarterLists, user]
+  );
+
+  const addListEntry = useCallback(
+    async (input: { listId: string; title: string; notes?: string }) => {
+      if (!user || !couple) return;
+      const list = db.coupleLists.find(
+        (row) => row.id === input.listId && row.coupleId === couple.id
+      );
+      if (!list) throw new Error("List not found.");
+      const title = input.title.trim();
+      if (!title) throw new Error("Add a title first.");
+      const row: ListEntry = {
+        id: createId(),
+        listId: list.id,
+        coupleId: couple.id,
+        title,
+        notes: (input.notes ?? "").trim(),
+        createdBy: user.id,
+        createdAt: nowIso(),
+        completedAt: null,
+        completedBy: null,
+      };
+      db = { ...db, listEntries: [...db.listEntries, row] };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const completeListEntry = useCallback(
+    async (entryId: string) => {
+      if (!user || !couple) return;
+      const entry = db.listEntries.find(
+        (row) => row.id === entryId && row.coupleId === couple.id
+      );
+      if (!entry) throw new Error("Item not found.");
+      if (entry.completedAt) return;
+      db = {
+        ...db,
+        listEntries: db.listEntries.map((row) =>
+          row.id === entryId
+            ? { ...row, completedAt: nowIso(), completedBy: user.id }
+            : row
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const rateListEntry = useCallback(
+    async (entryId: string, stars: number) => {
+      if (!user || !couple) return;
+      const entry = db.listEntries.find(
+        (row) => row.id === entryId && row.coupleId === couple.id
+      );
+      if (!entry) throw new Error("Item not found.");
+      if (!entry.completedAt) {
+        throw new Error("Mark it done before rating.");
+      }
+      const score = Math.max(1, Math.min(5, Math.round(stars)));
+      const existing = db.listEntryRatings.find(
+        (row) => row.entryId === entryId && row.userId === user.id
+      );
+      if (existing) {
+        db = {
+          ...db,
+          listEntryRatings: db.listEntryRatings.map((row) =>
+            row.id === existing.id
+              ? { ...row, stars: score, createdAt: nowIso() }
+              : row
+          ),
+        };
+      } else {
+        const row: ListEntryRating = {
+          id: createId(),
+          entryId,
+          coupleId: couple.id,
+          userId: user.id,
+          stars: score,
+          createdAt: nowIso(),
+        };
+        db = { ...db, listEntryRatings: [...db.listEntryRatings, row] };
+      }
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const reopenListEntry = useCallback(
+    async (entryId: string) => {
+      if (!user || !couple) return;
+      const entry = db.listEntries.find(
+        (row) => row.id === entryId && row.coupleId === couple.id
+      );
+      if (!entry) throw new Error("Item not found.");
+      db = {
+        ...db,
+        listEntries: db.listEntries.map((row) =>
+          row.id === entryId
+            ? { ...row, completedAt: null, completedBy: null }
+            : row
+        ),
+        listEntryRatings: db.listEntryRatings.filter(
+          (row) => row.entryId !== entryId
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
   const addJarNote = useCallback(
     async (input: {
       body: string;
@@ -2786,6 +3018,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     desireToggles,
     coupons,
     scratches,
+    coupleLists,
+    listEntries,
+    listEntryRatings,
     jarNotes,
     bucketItems,
     ritualChecks,
@@ -2831,6 +3066,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     acceptCoupon,
     redeemCoupon,
     scratchCard,
+    ensureStarterLists,
+    createCoupleList,
+    addListEntry,
+    completeListEntry,
+    rateListEntry,
+    reopenListEntry,
     addJarNote,
     voteOpenJar,
     openJarNote,

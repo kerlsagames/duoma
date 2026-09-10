@@ -15,6 +15,9 @@ const hubEmpty = () => ({
   desireToggles: [],
   coupons: [],
   scratches: [],
+  coupleLists: [],
+  listEntries: [],
+  listEntryRatings: [],
   jarNotes: [],
   jarOpenVotes: [],
   bucketItems: [],
@@ -140,6 +143,9 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     desireToggles: raw.desireToggles ?? [],
     coupons: (raw.coupons ?? []).map(hydrateCoupon),
     scratches: raw.scratches ?? [],
+    coupleLists: raw.coupleLists ?? [],
+    listEntries: (raw.listEntries ?? []).map(hydrateListEntry),
+    listEntryRatings: raw.listEntryRatings ?? [],
     jarNotes: (raw.jarNotes ?? []).map(hydrateJarNote),
     jarOpenVotes: raw.jarOpenVotes ?? [],
     bucketItems: raw.bucketItems ?? [],
@@ -160,6 +166,15 @@ function hydrateSpicyDare(row: AppDB["spicyDares"][number]): AppDB["spicyDares"]
     dueAt: row.dueAt ?? null,
     answeredAt: row.answeredAt ?? null,
     completedAt: row.completedAt ?? null,
+  };
+}
+
+function hydrateListEntry(row: AppDB["listEntries"][number]): AppDB["listEntries"][number] {
+  return {
+    ...row,
+    notes: row.notes ?? "",
+    completedAt: row.completedAt ?? null,
+    completedBy: row.completedBy ?? null,
   };
 }
 

@@ -261,6 +261,39 @@ export type ScratchReveal = {
   createdAt: string;
 };
 
+/** Shared couple bucket lists (Movies, Places, custom, …). */
+export type CoupleList = {
+  id: string;
+  coupleId: string;
+  title: string;
+  emoji: string;
+  accent: string;
+  starterKey: string | null;
+  createdBy: string;
+  createdAt: string;
+};
+
+export type ListEntry = {
+  id: string;
+  listId: string;
+  coupleId: string;
+  title: string;
+  notes: string;
+  createdBy: string;
+  createdAt: string;
+  completedAt: string | null;
+  completedBy: string | null;
+};
+
+export type ListEntryRating = {
+  id: string;
+  entryId: string;
+  coupleId: string;
+  userId: string;
+  stars: number;
+  createdAt: string;
+};
+
 export type JarNote = {
   id: string;
   coupleId: string;
@@ -382,6 +415,9 @@ export type AppDB = {
   desireToggles: DesireToggle[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
+  coupleLists: CoupleList[];
+  listEntries: ListEntry[];
+  listEntryRatings: ListEntryRating[];
   jarNotes: JarNote[];
   jarOpenVotes: JarOpenVote[];
   bucketItems: BucketItem[];
