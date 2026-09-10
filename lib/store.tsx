@@ -1819,11 +1819,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Pick a date and time on the calendar.");
       }
       const dueAt = dueAtForTimeframe(input.timeframe, input.customWhen);
-      if (!dueAt) {
-        throw new Error("Pick a valid expiry time.");
-      }
-      if (Date.parse(dueAt) <= Date.now()) {
-        throw new Error("Pick a time in the future.");
+      if (input.timeframe !== "none") {
+        if (!dueAt) {
+          throw new Error("Pick a valid expiry time.");
+        }
+        if (Date.parse(dueAt) <= Date.now()) {
+          throw new Error("Pick a time in the future.");
+        }
       }
       const catalog = input.dareId ? dareById(input.dareId) : null;
       const categories =

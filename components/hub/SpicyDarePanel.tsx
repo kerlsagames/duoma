@@ -16,6 +16,7 @@ import {
   type SpicyDare,
   type SpicyDareCategory,
 } from "@/lib/spicy-dares";
+import { USE_TIMING_OPTIONS, expiresAtForTiming, type UseTimingId } from "@/lib/useTiming";
 import { useApp } from "@/lib/store";
 import type { DareDirection, DareTimeframe, SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,12 +32,6 @@ type Compose = {
   text: string;
   categories: string[];
 };
-
-const TIMEFRAMES: { id: DareTimeframe; label: string }[] = [
-  { id: "tonight", label: "Tonight" },
-  { id: "24h", label: "24 hours" },
-  { id: "custom", label: "Calendar" },
-];
 
 function dareWhen(play: SpicyDarePlay): string {
   return timeframeLabel(play.timeframe, play.customWhen, play.dueAt);
@@ -78,7 +73,7 @@ export function SpicyDarePanel({
   const [spinning, setSpinning] = useState(false);
   const [compose, setCompose] = useState<Compose | null>(null);
   const [direction, setDirection] = useState<DareDirection | null>(null);
-  const [timeframe, setTimeframe] = useState<DareTimeframe>("tonight");
+  const [timeframe, setTimeframe] = useState<UseTimingId>("tonight");
   const [customWhen, setCustomWhen] = useState(defaultDareDateTime);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -202,7 +197,7 @@ export function SpicyDarePanel({
         text: compose.text,
         categories: compose.categories,
         direction,
-        timeframe,
+        timeframe: timeframe as DareTimeframe,
         customWhen: timeframe === "custom" ? customWhen : null,
       });
       setCompose(null);
@@ -374,33 +369,30 @@ export function SpicyDarePanel({
             color: T.accent,
           }}
         >
-          Expires
+          Time to use
         </Text>
-        <View className="mt-3 flex-row" style={{ gap: 8 }}>
-          {TIMEFRAMES.map((item) => {
-            const active = timeframe === item.id;
+        <View className="mt-3 flex-row flex-wrap" style={{ gap: 8 }}>
+          {USE_TIMING_OPTIONS.map((opt) => {
+            const active = timeframe === opt.id;
             return (
               <Pressable
-                key={item.id}
-                onPress={() => setTimeframe(item.id)}
+                key={opt.id}
+                onPress={() => setTimeframe(opt.id)}
                 style={{
-                  flex: 1,
+                  width: "48%",
                   borderRadius: 16,
-                  paddingVertical: 12,
                   borderWidth: 1,
                   borderColor: active ? T.accent : "rgba(232,244,241,0.12)",
                   backgroundColor: active ? T.accentSoft : T.surface,
+                  paddingHorizontal: 12,
+                  paddingVertical: 12,
                 }}
               >
-                <Text
-                  style={{
-                    textAlign: "center",
-                    fontFamily: SERIF,
-                    fontSize: 14,
-                    color: T.ink,
-                  }}
-                >
-                  {item.label}
+                <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+                  {opt.label}
+                </Text>
+                <Text style={{ marginTop: 3, fontSize: 12, color: T.muted }}>
+                  {opt.hint}
                 </Text>
               </Pressable>
             );
@@ -423,15 +415,14 @@ export function SpicyDarePanel({
                 "—"}
             </Text>
           </View>
+        ) : timeframe === "none" ? (
+          <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
+            No expiry — stays open until you mark it done.
+          </Text>
         ) : (
           <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
-            {timeframe === "tonight"
-              ? `Expires tonight at ${formatDareDueAt(
-                  new Date(new Date().setHours(23, 59, 59, 999)).toISOString()
-                )}`
-              : `Expires ${formatDareDueAt(
-                  new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-                )}`}
+            Expires{" "}
+            {formatDareDueAt(expiresAtForTiming(timeframe, customWhen)) ?? "—"}
           </Text>
         )}
 

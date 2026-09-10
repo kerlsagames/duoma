@@ -312,7 +312,14 @@ export type TalkDraw = {
 
 export type DareDirection = "i-do-you" | "you-do-me";
 
-export type DareTimeframe = "tonight" | "24h" | "custom";
+export type DareTimeframe =
+  | "tonight"
+  | "weekend"
+  | "7d"
+  | "30d"
+  | "none"
+  | "custom"
+  | "24h"; // legacy
 
 export type DarePlayStatus = "offered" | "accepted" | "declined" | "done";
 

@@ -1,12 +1,17 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
 import { COUPONS_TONE, SERIF } from "@/lib/app-themes";
 import {
   COUPON_CATEGORIES,
   COUPON_USE_OPTIONS,
   categoryMeta,
+  defaultCustomDateTime,
   expiresAtForUseOption,
+  formatExactWhen,
   ideasInCategory,
+  parseLocalDateTime,
+  toLocalDateTimeValue,
   useOptionLabel,
   type CouponCategoryId,
   type CouponIdea,
@@ -179,9 +184,11 @@ export default function CouponsScreen() {
   const [idea, setIdea] = useState<CouponIdea | null>(null);
   const [reason, setReason] = useState("");
   const [useOption, setUseOption] = useState<CouponUseOptionId>("7d");
+  const [customWhen, setCustomWhen] = useState(defaultCustomDateTime);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
+  const minDateTime = useMemo(() => toLocalDateTimeValue(new Date()), []);
 
   const received = useMemo(
     () =>
@@ -224,6 +231,17 @@ export default function CouponsScreen() {
       setError("Pick a coupon first.");
       return;
     }
+    if (useOption === "custom") {
+      const picked = parseLocalDateTime(customWhen);
+      if (!picked) {
+        setError("Pick a date and time on the calendar.");
+        return;
+      }
+      if (picked.getTime() <= Date.now()) {
+        setError("Pick a time in the future.");
+        return;
+      }
+    }
     setError(null);
     setLoading(true);
     try {
@@ -233,11 +251,12 @@ export default function CouponsScreen() {
         categoryId: idea.category,
         ideaId: idea.id,
         useOption,
-        expiresAt: expiresAtForUseOption(useOption),
+        expiresAt: expiresAtForUseOption(useOption, customWhen),
       });
       setIdea(null);
       setReason("");
       setUseOption("7d");
+      setCustomWhen(defaultCustomDateTime());
       setCategoryId(null);
       setSentFlash(true);
       setTimeout(() => setSentFlash(false), 2400);
@@ -619,6 +638,26 @@ export default function CouponsScreen() {
                     );
                   })}
                 </View>
+
+                {useOption === "custom" ? (
+                  <View className="mt-1">
+                    <DateTimeField
+                      value={customWhen}
+                      min={minDateTime}
+                      onChange={setCustomWhen}
+                      accent={T.accent}
+                      background={T.surface}
+                      ink={T.ink}
+                      border={T.border}
+                    />
+                    <Text style={{ marginTop: 8, fontSize: 13, color: T.muted }}>
+                      Use by{" "}
+                      {formatExactWhen(
+                        parseLocalDateTime(customWhen)?.toISOString() ?? null
+                      ) ?? "—"}
+                    </Text>
+                  </View>
+                ) : null}
 
                 {error ? (
                   <Text style={{ marginTop: 14, color: T.stamp, fontFamily: SERIF }}>

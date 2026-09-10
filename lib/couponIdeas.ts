@@ -240,9 +240,19 @@ export const COUPON_USE_OPTIONS = [
   { id: "7d", label: "7 days", hint: "A week from now" },
   { id: "30d", label: "30 days", hint: "A month of runway" },
   { id: "none", label: "No expiry", hint: "Stays until redeemed" },
+  { id: "custom", label: "Custom", hint: "Pick exact date & time" },
 ] as const;
 
 export type CouponUseOptionId = (typeof COUPON_USE_OPTIONS)[number]["id"];
+
+export {
+  defaultCustomDateTime,
+  expiresAtForTiming as expiresAtForUseOption,
+  formatExactWhen,
+  parseLocalDateTime,
+  toLocalDateTimeValue,
+  useTimingLabel as useOptionLabel,
+} from "@/lib/useTiming";
 
 export function couponIdeaById(id: string): CouponIdea | null {
   return COUPON_IDEAS.find((row) => row.id === id) ?? null;
@@ -254,35 +264,4 @@ export function ideasInCategory(category: CouponCategoryId): CouponIdea[] {
 
 export function categoryMeta(id: string | null | undefined): CouponCategory | null {
   return COUPON_CATEGORIES.find((row) => row.id === id) ?? null;
-}
-
-export function expiresAtForUseOption(
-  option: CouponUseOptionId,
-  now = new Date()
-): string | null {
-  if (option === "none") return null;
-  const end = new Date(now);
-  if (option === "tonight") {
-    end.setHours(23, 59, 59, 999);
-    return end.toISOString();
-  }
-  if (option === "weekend") {
-    const day = end.getDay(); // 0 Sun … 6 Sat
-    const daysUntilSunday = day === 0 ? 0 : 7 - day;
-    end.setDate(end.getDate() + daysUntilSunday);
-    end.setHours(23, 59, 59, 999);
-    return end.toISOString();
-  }
-  if (option === "7d") {
-    end.setDate(end.getDate() + 7);
-    end.setHours(23, 59, 59, 999);
-    return end.toISOString();
-  }
-  end.setDate(end.getDate() + 30);
-  end.setHours(23, 59, 59, 999);
-  return end.toISOString();
-}
-
-export function useOptionLabel(option: CouponUseOptionId | string | null | undefined) {
-  return COUPON_USE_OPTIONS.find((row) => row.id === option)?.label ?? "Custom";
 }
