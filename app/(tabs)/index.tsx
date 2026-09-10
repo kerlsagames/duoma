@@ -4,7 +4,6 @@ import { Screen } from "@/components/ui/Screen";
 import { gameResumeHref } from "@/lib/home-status";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
 import type { ComponentProps } from "react";
 import { useState } from "react";
@@ -64,45 +63,24 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll>
-      <View className="pt-2 pb-10">
-        <View className="items-center pt-2">
-          <LinearGradient
-            colors={["rgba(255,0,127,0.35)", "transparent"]}
-            style={{
-              position: "absolute",
-              top: -40,
-              width: 220,
-              height: 140,
-              borderRadius: 999,
-            }}
-          />
-          <Text
-            className="text-[11px] font-bold uppercase tracking-[6px] text-neon"
-            style={{ textShadowColor: "#FF007F", textShadowRadius: 12 }}
-          >
-            Home
-          </Text>
-          <Text
-            className="mt-1 text-[40px] font-black tracking-tight text-mist"
-            style={{
-              textShadowColor: "rgba(255,0,127,0.8)",
-              textShadowRadius: 22,
-              textShadowOffset: { width: 0, height: 0 },
-            }}
-          >
-            DUOMA
-          </Text>
-        </View>
+      <View className="pt-1 pb-2">
+        <Text
+          className="mb-2 text-center text-[22px] font-black tracking-tight text-mist"
+          style={{
+            textShadowColor: "rgba(255,0,127,0.7)",
+            textShadowRadius: 12,
+          }}
+        >
+          DUOMA
+        </Text>
 
-        <View className="mt-4">
-          <CurrentStatus onStartSpicy={() => void startSpicy()} />
-        </View>
+        <CurrentStatus onStartSpicy={() => void startSpicy()} />
 
         {loading ? (
-          <Text className="mb-3 text-center text-[13px] text-neon">Lighting it up…</Text>
+          <Text className="mb-2 text-center text-[12px] text-neon">Lighting it up…</Text>
         ) : null}
         {error ? (
-          <Text className="mb-3 text-center text-[13px] text-crimson">{error}</Text>
+          <Text className="mb-2 text-center text-[12px] text-crimson">{error}</Text>
         ) : null}
 
         <View className="flex-row flex-wrap justify-between">

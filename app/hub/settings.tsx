@@ -174,11 +174,6 @@ export default function SettingsScreen() {
               router.replace("/welcome");
             }}
           />
-          <PrimaryButton
-            label="Home"
-            tone="ghost"
-            onPress={() => router.replace("/(tabs)")}
-          />
         </View>
       </View>
     </Screen>

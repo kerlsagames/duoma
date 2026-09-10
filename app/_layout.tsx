@@ -1,6 +1,7 @@
 import "react-native-gesture-handler";
 import "@/lib/nativewind-boot";
 import { GameInvitationModal } from "@/components/GameInvitationModal";
+import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { AppProvider } from "@/lib/store";
 import { colorScheme } from "nativewind";
@@ -47,23 +48,26 @@ export default function RootLayout() {
         <AppProvider>
           <PhoneShell>
             <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: "#0B0B0E" },
-                  animation: "fade",
-                }}
-              >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="welcome" />
-                <Stack.Screen name="create" />
-                <Stack.Screen name="join" />
-                <Stack.Screen name="waiting" />
-                <Stack.Screen name="how-to" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="hub" />
-                <Stack.Screen name="game" />
-              </Stack>
+              <View style={{ flex: 1 }}>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: "#0B0B0E" },
+                    animation: "fade",
+                  }}
+                >
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="welcome" />
+                  <Stack.Screen name="create" />
+                  <Stack.Screen name="join" />
+                  <Stack.Screen name="waiting" />
+                  <Stack.Screen name="how-to" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="hub" />
+                  <Stack.Screen name="game" />
+                </Stack>
+              </View>
+              <HomeBar />
               <GameInvitationModal />
             </View>
           </PhoneShell>

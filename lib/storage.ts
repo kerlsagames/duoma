@@ -8,6 +8,7 @@ export const LAST_USER_KEY = "duoma:lastUser";
 
 const hubEmpty = () => ({
   checkIns: [],
+  checkInRequests: [],
   curiosityAnswers: [],
   milestones: [],
   desireToggles: [],
@@ -33,6 +34,18 @@ export function emptyDb(): AppDB {
   };
 }
 
+function hydrateCheckIn(row: AppDB["checkIns"][number]): AppDB["checkIns"][number] {
+  return {
+    ...row,
+    energy: row.energy ?? null,
+    mood: row.mood ?? null,
+    loveTank: row.loveTank ?? null,
+    socialBattery: row.socialBattery ?? null,
+    todayNeed: row.todayNeed ?? null,
+    desireGauge: row.desireGauge ?? null,
+  };
+}
+
 function hydrateGame(game: GameSession): GameSession {
   return {
     ...game,
@@ -55,7 +68,8 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     gamePlayers: raw.gamePlayers ?? [],
     deck: raw.deck ?? [],
     ratings: raw.ratings ?? [],
-    checkIns: raw.checkIns ?? [],
+    checkIns: (raw.checkIns ?? []).map(hydrateCheckIn),
+    checkInRequests: raw.checkInRequests ?? [],
     curiosityAnswers: raw.curiosityAnswers ?? [],
     milestones: raw.milestones ?? [],
     desireToggles: raw.desireToggles ?? [],

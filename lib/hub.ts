@@ -1,34 +1,157 @@
-import type { CheckIn, MoodWeather, ScratchKind } from "@/lib/types";
+import type {
+  CheckIn,
+  CheckInMetricKey,
+  DesireGauge,
+  MoodWeather,
+  ScratchKind,
+  SocialBattery,
+  TodayNeed,
+} from "@/lib/types";
 
 export const MOODS: { id: MoodWeather; label: string; sky: string }[] = [
-  { id: "sunny", label: "Sunny", sky: "Clear and easy" },
-  { id: "bright", label: "Bright", sky: "Up, with a little bounce" },
-  { id: "cloudy", label: "Cloudy", sky: "Fine, a bit muted" },
-  { id: "rain", label: "Rain", sky: "Heavy, needs softness" },
-  { id: "storm", label: "Storm", sky: "Protect the night" },
+  { id: "sunny", label: "Sunny", sky: "Feeling cheerful, bright, and easygoing" },
+  { id: "cloudy", label: "Part-cloudy", sky: "Mostly good, a bit distracted or tired" },
+  { id: "rain", label: "Rain", sky: "Down, sensitive, or emotional" },
+  { id: "storm", label: "Storm", sky: "Stressed, overwhelmed, or irritable" },
 ];
 
-export function moodMeta(id: MoodWeather) {
-  return MOODS.find((mood) => mood.id === id) ?? MOODS[2];
+export function moodMeta(id: MoodWeather | null | undefined) {
+  if (!id) return MOODS[1];
+  if (id === "bright") return MOODS[0];
+  return MOODS.find((mood) => mood.id === id) ?? MOODS[1];
 }
 
-export function partnerHint(checkIn: CheckIn, partnerName: string): string {
-  if (checkIn.energy <= 3) {
-    return `${partnerName} reported a low battery today — consider taking dinner off their plate.`;
+export function batteryLabel(val: number) {
+  if (val <= 3) return "Running on empty. Zero pressure, quiet rest.";
+  if (val <= 6) return "Moderate energy. Basic tasks, taking it easy.";
+  if (val <= 8) return "Good energy. Balanced and active.";
+  return "High energy. Ready for outings, workouts, or a plan.";
+}
+
+export function loveTankLabel(val: number) {
+  if (val <= 3) return "Running low. Feeling disconnected or unappreciated.";
+  if (val <= 6) return "Doing okay. Loved, but a spark would land.";
+  return "Full tank. Deeply loved, valued, and connected.";
+}
+
+export const SOCIAL_BATTERY: {
+  id: SocialBattery;
+  title: string;
+  detail: string;
+}[] = [
+  {
+    id: "drain",
+    title: "Drain / Low",
+    detail: "Need quiet solo time. Don't want to see people.",
+  },
+  {
+    id: "balanced",
+    title: "Balanced",
+    detail: "Happy to chill with you. Prefer no big crowds.",
+  },
+  {
+    id: "social",
+    title: "High / Social",
+    detail: "Feeling social. Hang out, or catch up with friends.",
+  },
+];
+
+export const TODAY_NEEDS: {
+  id: TodayNeed;
+  title: string;
+  detail: string;
+}[] = [
+  { id: "alone", title: "Alone space", detail: "Time to unwind on my own" },
+  { id: "listen", title: "A listening ear", detail: "Vent without needing solutions" },
+  { id: "comfort", title: "Comfort and hugs", detail: "Physical touch and reassurance" },
+  { id: "tasks", title: "Help with tasks", detail: "Lifting some household weight" },
+  { id: "fun", title: "Fun / distraction", detail: "A laugh, a game, or a date night" },
+  { id: "talk", title: "Deep talk", detail: "Real conversation and connection" },
+];
+
+export const DESIRE_GAUGE: {
+  id: DesireGauge;
+  title: string;
+  detail: string;
+}[] = [
+  { id: "off", title: "Off / Low", detail: "Rest or quiet cuddling only" },
+  { id: "medium", title: "Medium", detail: "Open to romance if we start slow" },
+  { id: "high", title: "High", detail: "Affectionate and physically playful" },
+  { id: "hot", title: "Hot", detail: "Definitely in the mood tonight" },
+];
+
+export const CHECK_IN_METRIC_META: {
+  key: CheckInMetricKey;
+  label: string;
+  icon: "battery-charging" | "partly-sunny" | "heart" | "people" | "compass" | "flame";
+}[] = [
+  { key: "battery", label: "Battery / energy", icon: "battery-charging" },
+  { key: "mood", label: "Mood forecast", icon: "partly-sunny" },
+  { key: "loveTank", label: "Love tank", icon: "heart" },
+  { key: "socialBattery", label: "Social battery", icon: "people" },
+  { key: "todayNeed", label: "What I need today", icon: "compass" },
+  { key: "desireGauge", label: "Spicy gauge", icon: "flame" },
+];
+
+export function socialBatteryMeta(id: SocialBattery | null | undefined) {
+  return SOCIAL_BATTERY.find((item) => item.id === id) ?? null;
+}
+
+export function todayNeedMeta(id: TodayNeed | null | undefined) {
+  return TODAY_NEEDS.find((item) => item.id === id) ?? null;
+}
+
+export function desireGaugeMeta(id: DesireGauge | null | undefined) {
+  return DESIRE_GAUGE.find((item) => item.id === id) ?? null;
+}
+
+export function partnerHint(checkIn: CheckIn): string {
+  if (checkIn.energy != null && checkIn.energy <= 3) {
+    return "Low battery today — consider taking dinner off their plate.";
   }
-  if (checkIn.loveTank <= 3) {
-    return `${partnerName}'s love tank is low. A specific compliment or a long hug would land.`;
+  if (checkIn.loveTank != null && checkIn.loveTank <= 3) {
+    return "Love tank is low. A specific compliment or a long hug would land.";
   }
   if (checkIn.mood === "storm" || checkIn.mood === "rain") {
-    return `${partnerName}'s forecast is rough. Keep plans light and stay close.`;
+    return "Forecast is rough. Keep plans light and stay close.";
   }
-  if (checkIn.energy >= 8 && checkIn.loveTank >= 8) {
-    return `${partnerName} is charged. Suggest something you both actually want tonight.`;
+  if (checkIn.todayNeed === "alone") {
+    return "They asked for alone space. Give it without taking it personally.";
+  }
+  if (checkIn.socialBattery === "drain") {
+    return "Social battery is drained. Quiet, just the two of you — or solo.";
+  }
+  if (
+    checkIn.energy != null &&
+    checkIn.energy >= 8 &&
+    (checkIn.loveTank == null || checkIn.loveTank >= 8)
+  ) {
+    return "They're charged. Suggest something you both actually want tonight.";
   }
   if (checkIn.mood === "cloudy") {
-    return `${partnerName} is a little muted. A small plan with no pressure helps.`;
+    return "A little muted. A small plan with no pressure helps.";
   }
-  return `${partnerName} checked in steady. Guard a little 1-on-1 time anyway.`;
+  return "They checked in. Guard a little 1-on-1 time anyway.";
+}
+
+export function checkInLines(checkIn: CheckIn): string[] {
+  const lines: string[] = [];
+  if (checkIn.energy != null) {
+    lines.push(`Battery ${checkIn.energy}/10`);
+  }
+  if (checkIn.mood) {
+    lines.push(`Mood · ${moodMeta(checkIn.mood).label}`);
+  }
+  if (checkIn.loveTank != null) {
+    lines.push(`Love tank ${checkIn.loveTank}/10`);
+  }
+  const social = socialBatteryMeta(checkIn.socialBattery);
+  if (social) lines.push(`Social · ${social.title}`);
+  const need = todayNeedMeta(checkIn.todayNeed);
+  if (need) lines.push(`Need · ${need.title}`);
+  const spicy = desireGaugeMeta(checkIn.desireGauge);
+  if (spicy) lines.push(`Spicy · ${spicy.title}`);
+  return lines;
 }
 
 export const CURIOSITY_QUESTIONS = [
@@ -173,7 +296,7 @@ export const RITUALS = [
     id: "check-in",
     title: "Daily check-in",
     cadence: "daily" as const,
-    detail: "Ten seconds. Energy, weather, love tank.",
+    detail: "Share only the metrics you want. Request the rest.",
   },
   {
     id: "curiosity",

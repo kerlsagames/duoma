@@ -37,11 +37,14 @@ import type {
   CardRating,
   CardStage,
   CheckIn,
+  CheckInMetricKey,
+  CheckInRequest,
   Coupon,
   Couple,
   CuriosityAnswer,
   DeckCard,
   DesireToggle,
+  DesireGauge,
   GameMode,
   GameSession,
   JarNote,
@@ -52,7 +55,9 @@ import type {
   PushSubscriptionRow,
   ScratchKind,
   ScratchReveal,
+  SocialBattery,
   StageCounts,
+  TodayNeed,
 } from "@/lib/types";
 import {
   createContext,
@@ -304,6 +309,8 @@ type AppContextValue = {
   nights: GameSession[];
   bestCards: BestCard[];
   checkIns: CheckIn[];
+  checkInRequests: CheckInRequest[];
+  incomingCheckInRequest: CheckInRequest | null;
   curiosityAnswers: CuriosityAnswer[];
   milestones: Milestone[];
   desireToggles: DesireToggle[];
@@ -343,10 +350,14 @@ type AppContextValue = {
     body: string;
   }) => Promise<void>;
   submitCheckIn: (input: {
-    energy: number;
-    mood: MoodWeather;
-    loveTank: number;
+    energy: number | null;
+    mood: MoodWeather | null;
+    loveTank: number | null;
+    socialBattery: SocialBattery | null;
+    todayNeed: TodayNeed | null;
+    desireGauge: DesireGauge | null;
   }) => Promise<void>;
+  requestCheckIn: (metrics: CheckInMetricKey[]) => Promise<void>;
   submitCuriosity: (body: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
@@ -570,6 +581,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
+  const checkInRequests = useMemo(
+    () => db.checkInRequests.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const incomingCheckInRequest = useMemo(() => {
+    if (!user || !couple) return null;
+    const today = localDateKey();
+    return (
+      db.checkInRequests.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.toUserId === user.id &&
+          row.date === today &&
+          !row.answeredAt
+      ) ?? null
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version]);
   const curiosityAnswers = useMemo(
     () => db.curiosityAnswers.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -703,6 +733,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           energy: 3,
           mood: "rain",
           loveTank: 4,
+          socialBattery: "drain",
+          todayNeed: "comfort",
+          desireGauge: null,
           createdAt: nowIso(),
         },
       ],
@@ -1347,17 +1380,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const submitCheckIn = useCallback(
-    async (input: { energy: number; mood: MoodWeather; loveTank: number }) => {
+    async (input: {
+      energy: number | null;
+      mood: MoodWeather | null;
+      loveTank: number | null;
+      socialBattery: SocialBattery | null;
+      todayNeed: TodayNeed | null;
+      desireGauge: DesireGauge | null;
+    }) => {
       if (!user || !couple) return;
+      const shared = [
+        input.energy,
+        input.mood,
+        input.loveTank,
+        input.socialBattery,
+        input.todayNeed,
+        input.desireGauge,
+      ].some((value) => value != null);
+      if (!shared) throw new Error("Turn on at least one thing to share.");
       const today = localDateKey();
       const row: CheckIn = {
         id: createId(),
         coupleId: couple.id,
         userId: user.id,
         date: today,
-        energy: Math.min(10, Math.max(1, input.energy)),
+        energy:
+          input.energy == null ? null : Math.min(10, Math.max(1, input.energy)),
         mood: input.mood,
-        loveTank: Math.min(10, Math.max(1, input.loveTank)),
+        loveTank:
+          input.loveTank == null
+            ? null
+            : Math.min(10, Math.max(1, input.loveTank)),
+        socialBattery: input.socialBattery,
+        todayNeed: input.todayNeed,
+        desireGauge: input.desireGauge,
         createdAt: nowIso(),
       };
       db = {
@@ -1373,11 +1429,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ),
           row,
         ],
+        checkInRequests: db.checkInRequests.map((item) =>
+          item.coupleId === couple.id &&
+          item.toUserId === user.id &&
+          item.date === today &&
+          !item.answeredAt
+            ? { ...item, answeredAt: nowIso() }
+            : item
+        ),
         ritualChecks: upsertRitual(couple.id, user.id, "check-in", today),
       };
       await persist();
+      pingPartner(couple, user, partner, {
+        title: "Check-in landed",
+        body: "They shared how they are. Open Check-in.",
+        url: "/hub/check-in",
+      });
     },
-    [couple, user]
+    [couple, partner, user]
+  );
+
+  const requestCheckIn = useCallback(
+    async (metrics: CheckInMetricKey[]) => {
+      if (!user || !couple) return;
+      if (!partner) throw new Error("Pair up first.");
+      const unique = [...new Set(metrics)];
+      if (!unique.length) throw new Error("Pick at least one area.");
+      const today = localDateKey();
+      const row: CheckInRequest = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId: partner.id,
+        metrics: unique,
+        date: today,
+        createdAt: nowIso(),
+        answeredAt: null,
+      };
+      db = {
+        ...db,
+        checkInRequests: [
+          ...db.checkInRequests.filter(
+            (item) =>
+              !(
+                item.coupleId === couple.id &&
+                item.fromUserId === user.id &&
+                item.date === today
+              )
+          ),
+          row,
+        ],
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Check-in request",
+        body: "They want a few updates from you.",
+        url: "/hub/check-in",
+      });
+    },
+    [couple, partner, user]
   );
 
   const submitCuriosity = useCallback(
@@ -1829,6 +1939,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     nights,
     bestCards,
     checkIns,
+    checkInRequests,
+    incomingCheckInRequest,
     curiosityAnswers,
     milestones,
     desireToggles,
@@ -1860,6 +1972,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleCardActive,
     addCustomCard,
     submitCheckIn,
+    requestCheckIn,
     submitCuriosity,
     addMilestone,
     removeMilestone,

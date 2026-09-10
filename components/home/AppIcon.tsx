@@ -94,13 +94,13 @@ type Props = {
 
 export function AppIcon({ label, icon, onPress, live, hot }: Props) {
   return (
-    <Pressable onPress={onPress} className="mb-4 w-[31%] items-center">
+    <Pressable onPress={onPress} className="mb-2 w-[31%] items-center">
       <IconWell
         icon={icon}
-        size={64}
-        radius={20}
+        size={56}
+        radius={18}
         glow={hot ? "rgba(255,77,166,0.55)" : "rgba(255,0,127,0.4)"}
-        glyph={28}
+        glyph={26}
       />
       {live ? (
         <View className="absolute right-4 top-1 h-3.5 w-3.5 rounded-full bg-neon" />

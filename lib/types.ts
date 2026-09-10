@@ -110,15 +110,49 @@ export type CardRating = {
 
 export type MoodWeather = "sunny" | "bright" | "cloudy" | "rain" | "storm";
 
+export type SocialBattery = "drain" | "balanced" | "social";
+
+export type TodayNeed =
+  | "alone"
+  | "listen"
+  | "comfort"
+  | "tasks"
+  | "fun"
+  | "talk";
+
+export type DesireGauge = "off" | "medium" | "high" | "hot";
+
+export type CheckInMetricKey =
+  | "battery"
+  | "mood"
+  | "loveTank"
+  | "socialBattery"
+  | "todayNeed"
+  | "desireGauge";
+
 export type CheckIn = {
   id: string;
   coupleId: string;
   userId: string;
   date: string;
-  energy: number;
-  mood: MoodWeather;
-  loveTank: number;
+  energy: number | null;
+  mood: MoodWeather | null;
+  loveTank: number | null;
+  socialBattery: SocialBattery | null;
+  todayNeed: TodayNeed | null;
+  desireGauge: DesireGauge | null;
   createdAt: string;
+};
+
+export type CheckInRequest = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  metrics: CheckInMetricKey[];
+  date: string;
+  createdAt: string;
+  answeredAt: string | null;
 };
 
 export type CuriosityAnswer = {
@@ -236,6 +270,7 @@ export type AppDB = {
   deck: DeckCard[];
   ratings: CardRating[];
   checkIns: CheckIn[];
+  checkInRequests: CheckInRequest[];
   curiosityAnswers: CuriosityAnswer[];
   milestones: Milestone[];
   desireToggles: DesireToggle[];
