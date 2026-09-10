@@ -109,6 +109,7 @@ export default function JarScreen() {
           }),
         ]),
       ]).start(() => {
+        dropOpacity.setValue(0);
         setDropping(false);
         resolve();
       });
@@ -186,53 +187,55 @@ export default function JarScreen() {
         <View style={{ marginTop: 18, position: "relative", alignItems: "center" }}>
           <AppreciationJar sealedCount={sealed.length} />
 
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              position: "absolute",
-              top: 48,
-              width: 56,
-              height: 36,
-              borderRadius: 6,
-              backgroundColor: T.paper,
-              borderWidth: 1,
-              borderColor: "rgba(120,90,40,0.25)",
-              opacity: dropOpacity,
-              transform: [
-                { translateY: dropY },
-                { translateX: dropX },
-                { rotate },
-                { scale: dropScale },
-              ],
-              zIndex: 20,
-              shadowColor: "#000",
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              shadowOffset: { width: 0, height: 2 },
-            }}
-          >
-            <View
+          {dropping ? (
+            <Animated.View
+              pointerEvents="none"
               style={{
                 position: "absolute",
-                top: 0,
-                right: 0,
-                width: 18,
+                top: 48,
+                width: 56,
                 height: 36,
-                backgroundColor: "rgba(90,60,20,0.14)",
-                borderTopRightRadius: 6,
-                borderBottomRightRadius: 6,
+                borderRadius: 6,
+                backgroundColor: T.paper,
+                borderWidth: 1,
+                borderColor: "rgba(120,90,40,0.25)",
+                opacity: dropOpacity,
+                transform: [
+                  { translateY: dropY },
+                  { translateX: dropX },
+                  { rotate },
+                  { scale: dropScale },
+                ],
+                zIndex: 20,
+                shadowColor: "#000",
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 2 },
               }}
-            />
-            <View
-              style={{
-                marginTop: 10,
-                marginLeft: 8,
-                width: 22,
-                height: 2,
-                backgroundColor: "rgba(120,90,40,0.25)",
-              }}
-            />
-          </Animated.View>
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 18,
+                  height: 36,
+                  backgroundColor: "rgba(90,60,20,0.14)",
+                  borderTopRightRadius: 6,
+                  borderBottomRightRadius: 6,
+                }}
+              />
+              <View
+                style={{
+                  marginTop: 10,
+                  marginLeft: 8,
+                  width: 22,
+                  height: 2,
+                  backgroundColor: "rgba(120,90,40,0.25)",
+                }}
+              />
+            </Animated.View>
+          ) : null}
         </View>
 
         <Text

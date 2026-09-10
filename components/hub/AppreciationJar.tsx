@@ -119,11 +119,9 @@ export function AppreciationJar({ sealedCount }: { sealedCount: number }) {
             height: fillHeight,
             borderRadius: 28,
             backgroundColor:
-              fill > 0.55
-                ? "rgba(212,163,90,0.22)"
-                : fill > 0.2
-                  ? "rgba(212,163,90,0.12)"
-                  : "transparent",
+              fill > 0
+                ? `rgba(12, 14, 13, ${0.18 + fill * 0.28})`
+                : "transparent",
           }}
         />
 
