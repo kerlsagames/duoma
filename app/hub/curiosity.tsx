@@ -37,7 +37,7 @@ export default function CuriosityScreen() {
     <HubScreen
       kicker="Daily curiosity"
       title="One question. Both phones."
-      body="Same prompt, sent to both of you. In this preview it lives here instead of a push notification. Answers stay hidden until you both submit."
+      body="Same prompt on both phones. When one of you answers, the other gets a lock-screen ping if notifications are on. Answers stay hidden until you both submit."
     >
       <View className="rounded-[28px] border border-neon/30 bg-neon/10 p-5">
         <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-neon">

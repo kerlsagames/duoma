@@ -1,34 +1,32 @@
 # Fuse
 
-A dark, high-energy couples app: pair two phones once, play **Get Spicy**, and keep a shared **Us** account that records the relationship. Built with Expo (React Native), NativeWind, and Supabase.
+A dark, high-energy couples app: pair two phones once, play **Get Spicy**, keep a shared **Us** account, and ping each other with **free web push**. Built with Expo (React Native web), NativeWind, and optional Supabase.
 
 Palette: rich black `#0B0B0E`, neon pink `#FF007F`, crimson `#E60039`, mist `#F4F4F6`.
+
+This is a Progressive Web App. You do **not** need an Apple Developer account ($99/yr) or paid hosting. Cursor writes the app; Vercel or Netlify hosts the site and the push function on their free tiers; `web-push` talks to Apple’s and Google’s push services with free VAPID keys.
 
 ## What works in this slice
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
-- **Us hub**
-  - Daily check-in (energy, mood weather, love tank) with tailored hints from your partner's score
-  - Daily curiosity question — same prompt, hidden until both submit
-  - Shared countdown widgets (anniversaries, getaways, date nights)
-  - Desire matrix — matches only, non-matches stay invisible
-  - Favor coupons with Accept and Redeem
-  - Scratch-offs for date night, low-prep evenings, and dares
-  - Appreciation jar — drop notes all week, open together
-  - Date-night planner + bucket list with **Spin for Date Night**
-  - Shared calendar of play nights, dates, check-ins, and rituals
+- **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
+- **Us hub** — Daily check-in, curiosity, countdowns, desire matrix, coupons, scratch-offs, appreciation jar, date planner, shared calendar.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
-Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`).
+Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.
 
 ## Run it
 
 ```bash
 npm install
+npx web-push generate-vapid-keys
+# paste public + private keys into .env (see .env.example)
 npm run web
 ```
 
-Open port `43127`. On a phone: `npx expo start`.
+`npm run web` starts Expo on port **43127** and a local push sender on **43128**. Open the site over that port.
+
+On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow **You → Enable notifications**.
 
 ### Pairing on web
 
@@ -36,11 +34,41 @@ Open port `43127`. On a phone: `npx expo start`.
 2. Tab B: **I have a code** → join with a *different* name.
 3. Or **Continue with a demo partner** (Riley) to try Us + games solo.
 
+## iPhone (iOS 16.4+)
+
+Web push does **not** run inside a regular Safari tab. Both of you:
+
+1. Open the HTTPS site in Safari.
+2. Share → **Add to Home Screen**.
+3. Launch Fuse from that icon.
+4. On **You**, tap **Enable notifications** and allow the prompt.
+
+Android Chrome can subscribe from the browser tab; Home Screen install still feels like an app.
+
+## Deploy for free (HTTPS is required)
+
+Push will not work on `http://` except `localhost`.
+
+1. Push this repo to GitHub.
+2. Import the project on [Vercel](https://vercel.com) or [Netlify](https://www.netlify.com) (Hobby / free tier).
+3. Add environment variables from `.env.example`:
+   - `EXPO_PUBLIC_VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY`
+   - `VAPID_SUBJECT` (a `mailto:` you own)
+   - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
+4. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse the sample key in `.env` on a public site.
+5. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `005_push.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+
+Vercel serverless functions live in `api/push/`. Netlify functions live in `netlify/functions/`.
+
 ## Layout
 
 ```
-app/(tabs)/us.tsx        Couple hub home
-app/hub/                 Calendar, curiosity, desire, coupons, scratch, jar, planner
-games/get-spicy/         Named-card decks
-lib/hub.ts               Check-in hints, questions, scratch pools
+app/(tabs)/you.tsx       Enable notifications + iOS Home Screen copy
+public/sw.js             Push event + notification click
+public/manifest.webmanifest
+api/push/send.js         Vercel: web-push + VAPID
+api/push/daily.js        Vercel cron: daily curiosity
+lib/push.ts              Subscribe + POST to the send API
+supabase/migrations/005_push.sql
 ```

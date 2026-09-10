@@ -14,6 +14,12 @@ import {
   hashPick,
   SCRATCH_POOLS,
 } from "@/lib/hub";
+import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
+import {
+  registerFuseWorker,
+  sendPushToSubscriptions,
+  subscribeToPush,
+} from "@/lib/push";
 import {
   emptyDb,
   readDb,
@@ -43,6 +49,7 @@ import type {
   MilestoneKind,
   MoodWeather,
   Profile,
+  PushSubscriptionRow,
   ScratchKind,
   ScratchReveal,
   StageCounts,
@@ -256,6 +263,17 @@ function profileName(userId: string | null | undefined): string {
   return db.profiles.find((profile) => profile.id === userId)?.displayName ?? "Partner";
 }
 
+function pingPartner(
+  couple: Couple | null | undefined,
+  user: Profile | null | undefined,
+  partner: Profile | null | undefined,
+  payload: { title: string; body: string; url: string }
+) {
+  if (!couple || !user || partner?.isDemo) return;
+  const target = otherUserId(couple, user.id);
+  void notifyUser(target, db.pushSubscriptions, payload);
+}
+
 type CreateAccountInput = { displayName: string };
 type JoinInput = { displayName: string; code: string };
 
@@ -295,6 +313,7 @@ type AppContextValue = {
   bucketItems: BucketItem[];
   ritualChecks: AppDB["ritualChecks"];
   jarOpenVotes: AppDB["jarOpenVotes"];
+  pushSubscriptions: PushSubscriptionRow[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -351,6 +370,8 @@ type AppContextValue = {
   spinDateNight: () => Promise<BucketItem | null>;
   markBucketDone: (id: string) => Promise<void>;
   toggleRitual: (ritualId: string) => Promise<void>;
+  enablePush: () => Promise<void>;
+  sendTestPush: () => Promise<void>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -407,6 +428,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     if (typeof window !== "undefined") {
       window.addEventListener("storage", onStorage);
+      void registerFuseWorker();
     }
 
     return () => {
@@ -535,6 +557,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const jarOpenVotes = useMemo(
     () => db.jarOpenVotes.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const pushSubscriptions = useMemo(
+    () => db.pushSubscriptions.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -778,6 +805,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     db = { ...db, games: [...db.games, gameRow] };
     await persist();
+    pingPartner(couple, user, partner, {
+      title: "Get Spicy",
+      body: `${user.displayName} wants to play tonight.`,
+      url: "/",
+    });
   }, [couple, partner, user]);
 
   const acceptInvite = useCallback(async () => {
@@ -1355,6 +1387,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!text) throw new Error("Write an answer first.");
       const today = localDateKey();
       const question = curiosityFor(couple.id, today);
+      const firstSubmit = !db.curiosityAnswers.some(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.date === today
+      );
+      const theyAlreadyAnswered = db.curiosityAnswers.some(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === partner?.id &&
+          row.date === today
+      );
       const mine: CuriosityAnswer = {
         id: createId(),
         coupleId: couple.id,
@@ -1401,6 +1445,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ritualChecks: upsertRitual(couple.id, user.id, "curiosity", today),
       };
       await persist();
+      if (firstSubmit && !theyAlreadyAnswered) {
+        pingPartner(couple, user, partner, {
+          title: "Daily curiosity",
+          body: `${user.displayName} answered. Yours is still hidden until you submit.`,
+          url: "/hub/curiosity",
+        });
+      }
     },
     [couple, partner, user]
   );
@@ -1484,6 +1535,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       db = { ...db, coupons: [...db.coupons, row] };
       await persist();
+      pingPartner(couple, user, partner, {
+        title: "Favor coupon",
+        body: `${user.displayName} sent you “${title}”. Accept it before you redeem.`,
+        url: "/hub/coupons",
+      });
     },
     [couple, partner, user]
   );
@@ -1628,6 +1684,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         : db.ritualChecks,
     };
     await persist();
+    if (!openNow) {
+      pingPartner(couple, user, partner, {
+        title: "Appreciation jar",
+        body: `${user.displayName} is ready to open the jar.`,
+        url: "/hub/jar",
+      });
+    }
   }, [couple, partner, user]);
 
   const addBucketItem = useCallback(
@@ -1711,6 +1774,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const enablePush = useCallback(async () => {
+    if (!user || !couple) {
+      throw new Error("Pair first, then enable notifications.");
+    }
+    const keys = await subscribeToPush();
+    const row: PushSubscriptionRow = {
+      id: createId(),
+      userId: user.id,
+      coupleId: couple.id,
+      endpoint: keys.endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      updatedAt: nowIso(),
+    };
+    db = {
+      ...db,
+      pushSubscriptions: [
+        ...db.pushSubscriptions.filter((item) => item.endpoint !== row.endpoint),
+        row,
+      ],
+    };
+    await persist();
+    await upsertCloudSubscription(row);
+  }, [couple, user]);
+
+  const sendTestPush = useCallback(async () => {
+    if (!user) throw new Error("Sign in first.");
+    const mine = db.pushSubscriptions.filter((row) => row.userId === user.id);
+    if (!mine.length) {
+      throw new Error("Enable notifications on this device first.");
+    }
+    await sendPushToSubscriptions(mine, {
+      title: "Fuse",
+      body: "Notifications are on. Your partner will get the real pings.",
+      url: "/",
+    });
+  }, [user]);
+
   const value: AppContextValue = {
     ready,
     usingCloud: false,
@@ -1737,6 +1838,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     bucketItems,
     ritualChecks,
     jarOpenVotes,
+    pushSubscriptions,
     createAccount,
     joinWithCode,
     continueAsSaved,
@@ -1772,6 +1874,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     spinDateNight,
     markBucketDone,
     toggleRitual,
+    enablePush,
+    sendTestPush,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

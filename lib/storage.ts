@@ -17,6 +17,7 @@ const hubEmpty = () => ({
   jarOpenVotes: [],
   bucketItems: [],
   ritualChecks: [],
+  pushSubscriptions: [],
 });
 
 export function emptyDb(): AppDB {
@@ -64,6 +65,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     jarOpenVotes: raw.jarOpenVotes ?? [],
     bucketItems: raw.bucketItems ?? [],
     ritualChecks: raw.ritualChecks ?? [],
+    pushSubscriptions: raw.pushSubscriptions ?? [],
   };
 }
 

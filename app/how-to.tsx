@@ -30,6 +30,11 @@ const STEPS = [
     body: "Us is the shared record: daily check-in, curiosity question, calendar, countdowns, desire matches, coupons, scratch-offs, the appreciation jar, and the date-night list. Sign out does not delete the pair.",
   },
   {
+    kicker: "iPhone",
+    title: "Add Fuse to the Home Screen",
+    body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications on You. Push does not work inside a regular Safari tab.",
+  },
+  {
     kicker: "The close",
     title: "Finish Off, then Afterglow",
     body: "Finish Off is climax. Afterglow is post-sex care — water, towels, cuddles. Rate the cards you both used. Your best ones live in the Card Bank.",

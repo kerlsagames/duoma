@@ -24,7 +24,15 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Fuse",
+      "shortName": "Fuse",
+      "description": "Couples games and a shared life record.",
+      "lang": "en",
+      "themeColor": "#FF007F",
+      "backgroundColor": "#0B0B0E",
+      "display": "standalone",
+      "startUrl": "/"
     },
     "plugins": [
       "expo-router",

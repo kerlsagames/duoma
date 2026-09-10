@@ -217,6 +217,16 @@ export type RitualCheck = {
   createdAt: string;
 };
 
+export type PushSubscriptionRow = {
+  id: string;
+  userId: string;
+  coupleId: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  updatedAt: string;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -235,6 +245,7 @@ export type AppDB = {
   jarOpenVotes: JarOpenVote[];
   bucketItems: BucketItem[];
   ritualChecks: RitualCheck[];
+  pushSubscriptions: PushSubscriptionRow[];
 };
 
 export type GameModule = {

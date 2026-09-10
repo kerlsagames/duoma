@@ -1,4 +1,5 @@
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
+import { PushSetupCard } from "@/components/PushSetupCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { personalizeCard, resolveCardNames } from "@/lib/personalize";
@@ -27,6 +28,7 @@ export default function YouScreen() {
         <PartnerConnectionBanner />
 
         <View className="gap-3">
+          <PushSetupCard />
           <View className="rounded-3xl border border-white/10 bg-white/5 p-5">
             <Text className="text-[12px] uppercase tracking-widest text-mist/40">
               Pair code — keep this
