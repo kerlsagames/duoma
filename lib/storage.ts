@@ -45,6 +45,7 @@ function hydrateCheckIn(row: AppDB["checkIns"][number]): AppDB["checkIns"][numbe
     socialBattery: row.socialBattery ?? null,
     todayNeed: row.todayNeed ?? null,
     desireGauge: row.desireGauge ?? null,
+    tonight: row.tonight ?? null,
   };
 }
 

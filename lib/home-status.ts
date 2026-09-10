@@ -144,6 +144,13 @@ export function buildHomeNotifications(input: {
   );
   if (partnerCheckIn) {
     const bits: string[] = [];
+    const tonight =
+      partnerCheckIn.tonight === "yes"
+        ? "Hell yeh"
+        : partnerCheckIn.tonight === "no"
+          ? "Nah not today"
+          : null;
+    if (tonight) bits.push(tonight);
     if (partnerCheckIn.mood) bits.push(moodMeta(partnerCheckIn.mood).label);
     if (partnerCheckIn.energy != null) bits.push(`energy ${partnerCheckIn.energy}`);
     if (!bits.length && partnerCheckIn.desireGauge) bits.push("spicy gauge in");

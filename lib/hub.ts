@@ -6,6 +6,7 @@ import type {
   ScratchKind,
   SocialBattery,
   TodayNeed,
+  TonightSex,
 } from "@/lib/types";
 
 export const MOODS: { id: MoodWeather; label: string; sky: string }[] = [
@@ -69,6 +70,20 @@ export const TODAY_NEEDS: {
   { id: "talk", title: "Deep talk", detail: "Real conversation and connection" },
 ];
 
+export const TONIGHT_SEX: {
+  id: TonightSex;
+  title: string;
+  detail: string;
+}[] = [
+  { id: "yes", title: "Hell yeh", detail: "That's the plan. We're on." },
+  { id: "no", title: "Nah not today", detail: "Not tonight. Still us." },
+];
+
+export function tonightLabel(id: TonightSex | null | undefined): string | null {
+  if (!id) return null;
+  return TONIGHT_SEX.find((item) => item.id === id)?.title ?? null;
+}
+
 export const DESIRE_GAUGE: {
   id: DesireGauge;
   title: string;
@@ -83,8 +98,15 @@ export const DESIRE_GAUGE: {
 export const CHECK_IN_METRIC_META: {
   key: CheckInMetricKey;
   label: string;
-  icon: "battery-charging-outline" | "partly-sunny-outline" | "heart-outline" | "people-outline" | "compass-outline" | "flame-outline";
+  icon:
+    | "flame-outline"
+    | "battery-charging-outline"
+    | "partly-sunny-outline"
+    | "heart-outline"
+    | "people-outline"
+    | "compass-outline";
 }[] = [
+  { key: "tonight", label: "Are we fucking today?", icon: "flame-outline" },
   { key: "battery", label: "Battery / energy", icon: "battery-charging-outline" },
   { key: "mood", label: "Mood forecast", icon: "partly-sunny-outline" },
   { key: "loveTank", label: "Love tank", icon: "heart-outline" },
@@ -106,6 +128,12 @@ export function desireGaugeMeta(id: DesireGauge | null | undefined) {
 }
 
 export function partnerHint(checkIn: CheckIn): string {
+  if (checkIn.tonight === "yes") {
+    return "Hell yeh. Make the night easy to say yes to — lock the door, skip the extra plans.";
+  }
+  if (checkIn.tonight === "no") {
+    return "Nah not today. Keep it close without making it a thing.";
+  }
   if (checkIn.energy != null && checkIn.energy <= 3) {
     return "Low battery today — consider taking dinner off their plate.";
   }
@@ -136,6 +164,8 @@ export function partnerHint(checkIn: CheckIn): string {
 
 export function checkInLines(checkIn: CheckIn): string[] {
   const lines: string[] = [];
+  const tonight = tonightLabel(checkIn.tonight);
+  if (tonight) lines.push(`Are we fucking today? ${tonight}`);
   if (checkIn.energy != null) {
     lines.push(`Battery ${checkIn.energy}/10`);
   }

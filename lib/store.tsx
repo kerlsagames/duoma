@@ -45,6 +45,7 @@ import type {
   DeckCard,
   DesireToggle,
   DesireGauge,
+  TonightSex,
   GameMode,
   GameSession,
   JarNote,
@@ -368,6 +369,7 @@ type AppContextValue = {
     socialBattery: SocialBattery | null;
     todayNeed: TodayNeed | null;
     desireGauge: DesireGauge | null;
+    tonight: TonightSex | null;
   }) => Promise<void>;
   requestCheckIn: (metrics: CheckInMetricKey[]) => Promise<void>;
   submitCuriosity: (body: string) => Promise<void>;
@@ -764,6 +766,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           socialBattery: "drain",
           todayNeed: "comfort",
           desireGauge: null,
+          tonight: "no",
           createdAt: nowIso(),
         },
       ],
@@ -1415,6 +1418,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       socialBattery: SocialBattery | null;
       todayNeed: TodayNeed | null;
       desireGauge: DesireGauge | null;
+      tonight: TonightSex | null;
     }) => {
       if (!user || !couple) return;
       const shared = [
@@ -1424,8 +1428,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         input.socialBattery,
         input.todayNeed,
         input.desireGauge,
+        input.tonight,
       ].some((value) => value != null);
-      if (!shared) throw new Error("Turn on at least one thing to share.");
+      if (!shared) throw new Error("Pick Hell yeh or Nah not today — or add more detail.");
       const today = localDateKey();
       const row: CheckIn = {
         id: createId(),
@@ -1442,6 +1447,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         socialBattery: input.socialBattery,
         todayNeed: input.todayNeed,
         desireGauge: input.desireGauge,
+        tonight: input.tonight,
         createdAt: nowIso(),
       };
       db = {

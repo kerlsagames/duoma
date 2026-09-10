@@ -122,7 +122,10 @@ export type TodayNeed =
 
 export type DesireGauge = "off" | "medium" | "high" | "hot";
 
+export type TonightSex = "yes" | "no";
+
 export type CheckInMetricKey =
+  | "tonight"
   | "battery"
   | "mood"
   | "loveTank"
@@ -141,6 +144,7 @@ export type CheckIn = {
   socialBattery: SocialBattery | null;
   todayNeed: TodayNeed | null;
   desireGauge: DesireGauge | null;
+  tonight: TonightSex | null;
   createdAt: string;
 };
 

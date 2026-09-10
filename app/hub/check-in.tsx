@@ -8,7 +8,7 @@ import {
   DESIRE_GAUGE,
   loveTankLabel,
   MOODS,
-  partnerHint,
+  TONIGHT_SEX,
   RITUALS,
   SOCIAL_BATTERY,
   TODAY_NEEDS,
@@ -20,6 +20,7 @@ import type {
   MoodWeather,
   SocialBattery,
   TodayNeed,
+  TonightSex,
 } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
@@ -135,8 +136,10 @@ export default function CheckInScreen() {
   );
 
   const [mode, setMode] = useState<"checkin" | "request">("checkin");
-  const [batteryOn, setBatteryOn] = useState(true);
-  const [moodOn, setMoodOn] = useState(true);
+  const [simple, setSimple] = useState(true);
+  const [tonight, setTonight] = useState<TonightSex | null>(null);
+  const [batteryOn, setBatteryOn] = useState(false);
+  const [moodOn, setMoodOn] = useState(false);
   const [loveOn, setLoveOn] = useState(false);
   const [socialOn, setSocialOn] = useState(false);
   const [needOn, setNeedOn] = useState(false);
@@ -161,6 +164,15 @@ export default function CheckInScreen() {
     setSocialOn(myCheckIn.socialBattery != null);
     setNeedOn(myCheckIn.todayNeed != null);
     setSpicyOn(myCheckIn.desireGauge != null);
+    setTonight(myCheckIn.tonight);
+    const extras =
+      myCheckIn.energy != null ||
+      myCheckIn.mood != null ||
+      myCheckIn.loveTank != null ||
+      myCheckIn.socialBattery != null ||
+      myCheckIn.todayNeed != null ||
+      myCheckIn.desireGauge != null;
+    setSimple(!extras);
     if (myCheckIn.energy != null) setEnergy(myCheckIn.energy);
     if (myCheckIn.mood) setMood(myCheckIn.mood === "bright" ? "sunny" : myCheckIn.mood);
     if (myCheckIn.loveTank != null) setLoveTank(myCheckIn.loveTank);
@@ -178,6 +190,8 @@ export default function CheckInScreen() {
     if (keys.has("socialBattery")) setSocialOn(true);
     if (keys.has("todayNeed")) setNeedOn(true);
     if (keys.has("desireGauge")) setSpicyOn(true);
+    const wantsDetail = incomingCheckInRequest.metrics.some((key) => key !== "tonight");
+    if (wantsDetail) setSimple(false);
   }, [incomingCheckInRequest, myCheckIn]);
 
   const requestedLabels = useMemo(() => {
@@ -187,19 +201,18 @@ export default function CheckInScreen() {
     );
   }, [incomingCheckInRequest]);
 
-  const anyOn = batteryOn || moodOn || loveOn || socialOn || needOn || spicyOn;
-
   const save = async () => {
     setError(null);
     setSaving(true);
     try {
       await submitCheckIn({
-        energy: batteryOn ? energy : null,
-        mood: moodOn ? mood : null,
-        loveTank: loveOn ? loveTank : null,
-        socialBattery: socialOn ? socialBattery : null,
-        todayNeed: needOn ? todayNeed : null,
-        desireGauge: spicyOn ? desireGauge : null,
+        energy: !simple && batteryOn ? energy : null,
+        mood: !simple && moodOn ? mood : null,
+        loveTank: !simple && loveOn ? loveTank : null,
+        socialBattery: !simple && socialOn ? socialBattery : null,
+        todayNeed: !simple && needOn ? todayNeed : null,
+        desireGauge: !simple && spicyOn ? desireGauge : null,
+        tonight,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not share");
@@ -231,8 +244,8 @@ export default function CheckInScreen() {
   return (
     <HubScreen
       kicker="Check-in"
-      title="How are you right now?"
-      body="Share only what you want. Ask for the rest if you feel out of the loop."
+      title="Are we fucking today?"
+      body="Hell yeh or nah. Keep it simple, or add how you're actually doing."
     >
       <View className="mb-5 flex-row rounded-2xl bg-white/5 p-1">
         <Pressable
@@ -276,6 +289,69 @@ export default function CheckInScreen() {
             </View>
           ) : null}
 
+          <View className="mb-4 flex-row rounded-2xl border border-white/10 bg-white/5 p-1">
+            <Pressable
+              onPress={() => setSimple(true)}
+              className={`flex-1 items-center rounded-xl py-2.5 ${simple ? "bg-neon" : ""}`}
+            >
+              <Text
+                className={`text-[13px] font-semibold ${
+                  simple ? "text-night" : "text-mist/55"
+                }`}
+              >
+                Keep it simple
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setSimple(false)}
+              className={`flex-1 items-center rounded-xl py-2.5 ${!simple ? "bg-neon" : ""}`}
+            >
+              <Text
+                className={`text-[13px] font-semibold ${
+                  !simple ? "text-night" : "text-mist/55"
+                }`}
+              >
+                More detail
+              </Text>
+            </Pressable>
+          </View>
+
+          <View className="mb-4 flex-row gap-2">
+            {TONIGHT_SEX.map((option) => {
+              const on = tonight === option.id;
+              return (
+                <Pressable
+                  key={option.id}
+                  onPress={() => setTonight(option.id)}
+                  className={`flex-1 rounded-3xl border px-3 py-5 ${
+                    on
+                      ? option.id === "yes"
+                        ? "border-neon bg-neon"
+                        : "border-white/30 bg-white/15"
+                      : "border-white/10 bg-white/5"
+                  }`}
+                >
+                  <Text
+                    className={`text-center text-[18px] font-bold ${
+                      on && option.id === "yes" ? "text-night" : "text-mist"
+                    }`}
+                  >
+                    {option.title}
+                  </Text>
+                  <Text
+                    className={`mt-1 text-center text-[12px] leading-4 ${
+                      on && option.id === "yes" ? "text-night/70" : "text-mist/55"
+                    }`}
+                  >
+                    {option.detail}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {!simple ? (
+            <>
           <Text className="mb-3 text-center text-[12px] text-mist/50">
             Toggle on only the areas you want to share right now.
           </Text>
@@ -372,6 +448,8 @@ export default function CheckInScreen() {
               onChange={setDesireGauge}
             />
           </MetricCard>
+            </>
+          ) : null}
 
           {error && mode === "checkin" ? (
             <Text className="mb-3 text-center text-[13px] text-crimson">{error}</Text>
@@ -380,7 +458,7 @@ export default function CheckInScreen() {
           <PrimaryButton
             label={myCheckIn ? "Update my check-in" : "Share my check-in"}
             loading={saving}
-            disabled={!anyOn}
+            disabled={tonight == null}
             onPress={() => void save()}
           />
         </View>
