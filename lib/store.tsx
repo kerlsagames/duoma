@@ -16,7 +16,7 @@ import {
 } from "@/lib/hub";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import {
-  registerFuseWorker,
+  registerDuomaWorker,
   sendPushToSubscriptions,
   subscribeToPush,
 } from "@/lib/push";
@@ -64,7 +64,7 @@ import {
   type ReactNode,
 } from "react";
 
-const CHANNEL_NAME = "fuse-realtime";
+const CHANNEL_NAME = "duoma-realtime";
 
 let db: AppDB = emptyDb();
 let sessionUserId: string | null = null;
@@ -422,13 +422,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const onStorage = async (event: StorageEvent) => {
-      if (event.key !== "fuse:db") return;
+      if (event.key !== "duoma:db") return;
       db = await readDb();
       bump();
     };
     if (typeof window !== "undefined") {
       window.addEventListener("storage", onStorage);
-      void registerFuseWorker();
+      void registerDuomaWorker();
     }
 
     return () => {
@@ -1806,7 +1806,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw new Error("Enable notifications on this device first.");
     }
     await sendPushToSubscriptions(mine, {
-      title: "Fuse",
+      title: "Duoma",
       body: "Notifications are on. Your partner will get the real pings.",
       url: "/",
     });

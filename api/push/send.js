@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
   }
   const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
   const subscriptions = body.subscriptions || [];
-  const payload = body.payload || { title: "Fuse", body: "Open Fuse.", url: "/" };
+  const payload = body.payload || { title: "Duoma", body: "Open Duoma.", url: "/" };
   if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
     res.status(400).json({ error: "No subscriptions to notify." });
     return;

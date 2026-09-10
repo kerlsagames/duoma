@@ -19,7 +19,7 @@ export default function WaitingScreen() {
 
   const share = async () => {
     if (!couple) return;
-    const message = `Fuse with me tonight. My invite code is ${couple.inviteCode}`;
+    const message = `Meet me on Duoma tonight. My invite code is ${couple.inviteCode}`;
     try {
       await Share.share({ message });
     } catch {
@@ -45,7 +45,7 @@ export default function WaitingScreen() {
             Send the code
           </Text>
           <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-            Open Fuse on a second phone — or another browser tab — and join with
+            Open Duoma on a second phone — or another browser tab — and join with
             this code. You only do this once. After they join, you stay paired.
           </Text>
         </View>

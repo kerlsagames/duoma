@@ -55,7 +55,7 @@ export default function HomeScreen() {
     <Screen scroll>
       <View className="pt-4 pb-8">
         <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
-          Fuse
+          Duoma
         </Text>
         <Text className="mt-2 text-[32px] font-bold text-mist">Tonight</Text>
         <PartnerConnectionBanner />

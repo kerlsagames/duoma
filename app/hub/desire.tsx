@@ -19,7 +19,7 @@ export default function DesireScreen() {
     <HubScreen
       kicker="Desire matrix"
       title="Matches only"
-      body="Toggle what you actually want. Fuse highlights exact matches. Anything they did not also choose stays invisible — no guesswork, no pressure."
+      body="Toggle what you actually want. Duoma highlights exact matches. Anything they did not also choose stays invisible — no guesswork, no pressure."
     >
       {DESIRE_CATEGORIES.map((category) => {
         const matches = category.options.filter(

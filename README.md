@@ -1,4 +1,4 @@
-# Fuse
+# Duoma
 
 A dark, high-energy couples app: pair two phones once, play **Get Spicy**, keep a shared **Us** account, and ping each other with **free web push**. Built with Expo (React Native web), NativeWind, and optional Supabase.
 
@@ -40,7 +40,7 @@ Web push does **not** run inside a regular Safari tab. Both of you:
 
 1. Open the HTTPS site in Safari.
 2. Share → **Add to Home Screen**.
-3. Launch Fuse from that icon.
+3. Launch Duoma from that icon.
 4. On **You**, tap **Enable notifications** and allow the prompt.
 
 Android Chrome can subscribe from the browser tab; Home Screen install still feels like an app.
@@ -49,15 +49,16 @@ Android Chrome can subscribe from the browser tab; Home Screen install still fee
 
 Push will not work on `http://` except `localhost`.
 
-1. Push this repo to GitHub.
-2. Import the project on [Vercel](https://vercel.com) or [Netlify](https://www.netlify.com) (Hobby / free tier).
-3. Add environment variables from `.env.example`:
+Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
+
+1. Import the project on [Vercel](https://vercel.com) or [Netlify](https://www.netlify.com) (Hobby / free tier).
+2. Add environment variables from `.env.example`:
    - `EXPO_PUBLIC_VAPID_PUBLIC_KEY`
    - `VAPID_PRIVATE_KEY`
    - `VAPID_SUBJECT` (a `mailto:` you own)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
-4. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse the sample key in `.env` on a public site.
-5. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `005_push.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
+4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `005_push.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 
 Vercel serverless functions live in `api/push/`. Netlify functions live in `netlify/functions/`.
 

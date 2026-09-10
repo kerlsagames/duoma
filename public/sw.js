@@ -7,7 +7,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "Fuse", body: "Something new from your pair.", url: "/" };
+  let data = { title: "Duoma", body: "Something new from your pair.", url: "/" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {

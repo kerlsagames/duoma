@@ -28,7 +28,7 @@ exports.handler = async (event) => {
   }
   const body = JSON.parse(event.body || "{}");
   const subscriptions = body.subscriptions || [];
-  const payload = body.payload || { title: "Fuse", body: "Open Fuse.", url: "/" };
+  const payload = body.payload || { title: "Duoma", body: "Open Duoma.", url: "/" };
   if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
     return {
       statusCode: 400,

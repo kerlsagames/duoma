@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import type { AppDB, GameSession } from "@/lib/types";
 
-export const DB_KEY = "fuse:db";
-export const SESSION_KEY = "fuse:session";
-export const LAST_USER_KEY = "fuse:lastUser";
+export const DB_KEY = "duoma:db";
+export const SESSION_KEY = "duoma:session";
+export const LAST_USER_KEY = "duoma:lastUser";
 
 const hubEmpty = () => ({
   checkIns: [],

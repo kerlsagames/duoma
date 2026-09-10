@@ -1,4 +1,4 @@
--- Fuse couples schema
+-- Duoma couples schema
 -- Apply in the Supabase SQL editor or with the CLI:
 --   supabase db reset   (runs migrations + seed)
 

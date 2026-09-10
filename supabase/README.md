@@ -1,6 +1,6 @@
 # Supabase
 
-Fuse is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, the Expo app uses a local realtime store (shared `localStorage` + `BroadcastChannel`) so pairing and live cards work without credentials.
+Duoma is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, the Expo app uses a local realtime store (shared `localStorage` + `BroadcastChannel`) so pairing and live cards work without credentials.
 
 ## Provision
 

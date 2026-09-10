@@ -17,7 +17,7 @@ export default function WelcomeScreen() {
             Couples
           </Text>
           <Text className="mt-4 text-[52px] font-bold tracking-tight text-mist">
-            FUSE
+            DUOMA
           </Text>
           <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/70">
             Pair once. Stay paired. Cards that use your names.

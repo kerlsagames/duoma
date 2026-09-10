@@ -22,7 +22,7 @@ const STEPS = [
   {
     kicker: "Stage 1",
     title: "Pre-foreplay is daytime",
-    body: "Texts, looks, light touch throughout the day. When those cards are done, Fuse pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
+    body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
   },
   {
     kicker: "Us",
@@ -31,7 +31,7 @@ const STEPS = [
   },
   {
     kicker: "iPhone",
-    title: "Add Fuse to the Home Screen",
+    title: "Add Duoma to the Home Screen",
     body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications on You. Push does not work inside a regular Safari tab.",
   },
   {

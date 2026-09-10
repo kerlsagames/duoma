@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
     return;
   }
   const results = await sendToMany(rows.map(asSubscription), {
-    title: "Fuse",
+    title: "Duoma",
     body: "Today's curiosity question is waiting for both of you.",
     url: "/hub/curiosity",
   });

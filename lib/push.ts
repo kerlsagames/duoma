@@ -67,7 +67,7 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-export async function registerFuseWorker() {
+export async function registerDuomaWorker() {
   if (!isWebPushRuntime()) return null;
   ensurePwaHead();
   if (!pushSupported()) return null;
@@ -90,7 +90,7 @@ function ensurePwaHead() {
   add("meta", { name: "apple-mobile-web-app-capable", content: "yes" });
   add("meta", { name: "mobile-web-app-capable", content: "yes" });
   add("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" });
-  add("meta", { name: "apple-mobile-web-app-title", content: "Fuse" });
+  add("meta", { name: "apple-mobile-web-app-title", content: "Duoma" });
   add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png" });
 }
 
@@ -100,10 +100,10 @@ export async function subscribeToPush() {
   }
   if (isIosDevice() && !isStandalonePwa()) {
     throw new Error(
-      "On iPhone, add Fuse to your Home Screen first, then open it from the icon."
+      "On iPhone, add Duoma to your Home Screen first, then open it from the icon."
     );
   }
-  const registration = await registerFuseWorker();
+  const registration = await registerDuomaWorker();
   if (!registration) throw new Error("Service worker failed to register.");
   await navigator.serviceWorker.ready;
   const permission = await Notification.requestPermission();

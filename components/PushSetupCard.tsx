@@ -33,7 +33,7 @@ export function PushSetupCard() {
           Use the Home Screen web app
         </Text>
         <Text className="mt-2 text-[14px] leading-5 text-mist/60">
-          Fuse sends lock-screen pings with free web push. On a phone, open the
+          Duoma sends lock-screen pings with free web push. On a phone, open the
           hosted site in Safari or Chrome, add it to the Home Screen, then
           enable notifications from that icon. No Apple Developer fee.
         </Text>
@@ -87,13 +87,13 @@ export function PushSetupCard() {
             iPhone · iOS 16.4+
           </Text>
           <Text className="mt-2 text-[14px] leading-6 text-mist/75">
-            Safari tab cannot receive push. Share → Add to Home Screen, open Fuse
+            Safari tab cannot receive push. Share → Add to Home Screen, open Duoma
             from that icon, then grant notifications. Native apps and paid
             hosting are not required.
           </Text>
           {!standalone ? (
             <Text className="mt-2 text-[13px] leading-5 text-crimson">
-              You are still in Safari. Add Fuse to the Home Screen first.
+              You are still in Safari. Add Duoma to the Home Screen first.
             </Text>
           ) : (
             <Text className="mt-2 text-[13px] leading-5 text-mist/70">

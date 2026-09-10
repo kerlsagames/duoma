@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Fuse",
-    "slug": "fuse",
+    "name": "Duoma",
+    "slug": "duoma",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fuse",
+    "scheme": "duoma",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.fuse.couples"
+      "bundleIdentifier": "app.duoma.couples"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,14 +19,14 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.fuse.couples"
+      "package": "app.duoma.couples"
     },
     "web": {
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/images/favicon.png",
-      "name": "Fuse",
-      "shortName": "Fuse",
+      "name": "Duoma",
+      "shortName": "Duoma",
       "description": "Couples games and a shared life record.",
       "lang": "en",
       "themeColor": "#FF007F",
