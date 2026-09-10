@@ -95,8 +95,8 @@ export default function TalkScreen() {
     <HubScreen
       tone="talk"
       kicker="Talk to me"
-      title="Ten talks. One dare deck."
-      body="Each conversation deck draws one question a day. Spicy Challenges stays open — filter, tweak the wording, and send a dare with a timeframe."
+      title="Nine talks. One Wildcard."
+      body="Each conversation deck draws one question a day. Wildcard stays open — Challenges & Dares you can filter, tweak, and send with a timeframe."
     >
       <Text
         style={{
@@ -135,7 +135,7 @@ export default function TalkScreen() {
           const tint = TALK_DECK_TINT[category.id] ?? THEME.accent;
           const subtitle = spicy
             ? openDares
-              ? `${openDares} live · browse anytime`
+              ? `${openDares} live · Challenges & Dares`
               : `${played} of ${category.questions.length} sent · always open`
             : done
               ? "Today's card is in"

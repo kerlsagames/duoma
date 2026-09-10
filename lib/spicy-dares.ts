@@ -20,11 +20,17 @@ export type SpicyDare = {
   status?: "unplayed" | "played";
 };
 
-export const SPICY_DARE_DECK_ID = "spicy-dares" as const;
+export const SPICY_DARE_DECK_ID = "wildcard" as const;
+export const SPICY_DARE_LEGACY_IDS = ["secret-desires", "spicy-dares"] as const;
+/** @deprecated use SPICY_DARE_LEGACY_IDS */
 export const SPICY_DARE_LEGACY_ID = "secret-desires" as const;
 
 export function isSpicyDareDeck(id: string | null | undefined): boolean {
-  return id === SPICY_DARE_DECK_ID || id === SPICY_DARE_LEGACY_ID;
+  if (!id) return false;
+  return (
+    id === SPICY_DARE_DECK_ID ||
+    (SPICY_DARE_LEGACY_IDS as readonly string[]).includes(id)
+  );
 }
 
 export const SPICY_DARES: SpicyDare[] = [

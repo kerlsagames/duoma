@@ -446,7 +446,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
             color: ROSE,
           }}
         >
-          Spicy Challenges & Dares
+          Wildcard · Challenges & Dares
         </Text>
         <Pressable onPress={onClose} hitSlop={12}>
           <Ionicons name="close" size={22} color="rgba(244,237,224,0.7)" />
@@ -460,7 +460,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
           color: THEME.ink,
         }}
       >
-        Pick a dare, or write your own.
+        Pick a challenge, or write your own.
       </Text>
       <Text
         style={{
@@ -472,7 +472,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
           color: THEME.muted,
         }}
       >
-        Filter the deck, tweak the wording, then choose who does it and when.
+        Filter Challenges & Dares, tweak the wording, then choose who does it and when.
       </Text>
 
       {live.length ? (
@@ -514,7 +514,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
         }}
       >
         <Text style={{ fontFamily: SERIF, fontSize: 18, color: THEME.ink }}>
-          Write your own dare
+          Write your own challenge
         </Text>
         <Text
           style={{
@@ -524,7 +524,7 @@ export function SpicyDarePanel({ onClose }: { onClose: () => void }) {
             color: THEME.muted,
           }}
         >
-          A custom line, tagged however you want.
+          A custom dare, tagged however you want.
         </Text>
       </Pressable>
 

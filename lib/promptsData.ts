@@ -1,4 +1,8 @@
-import { SPICY_DARE_DECK_ID, SPICY_DARE_LEGACY_ID, SPICY_DARES } from "@/lib/spicy-dares";
+import {
+  SPICY_DARE_DECK_ID,
+  SPICY_DARES,
+  isSpicyDareDeck,
+} from "@/lib/spicy-dares";
 
 export type QuestionStatus = "unplayed" | "played";
 
@@ -6,7 +10,6 @@ export type CategoryId =
   | "icebreakers"
   | "deep-reflections"
   | "bedroom-throwbacks"
-  | "spicy-dares"
   | "future-dreams"
   | "intimacy-romance"
   | "daily-checkin"
@@ -235,17 +238,6 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a night that started vanilla and did not stay there?",
     "When did we feel like beginners again, in a good way?"
   ]),
-  {
-    id: SPICY_DARE_DECK_ID,
-    name: "Spicy Challenges & Dares",
-    iconName: "flame",
-    questions: SPICY_DARES.map((dare) => ({
-      id: dare.id,
-      text: dare.text,
-      status: dare.status ?? "unplayed",
-      tags: [...dare.categories],
-    })),
-  },
   deck("future-dreams", "Future & Dreams", "compass-outline", "fut", [
     "Where should we be standing a year from now, in a photo nobody posts?",
     "What is a trip we should stop only talking about?",
@@ -618,72 +610,21 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a way I have loved you that you want more of, not less?",
     "If you had to thank me for one thing from this month, what is it?"
   ]),
-  deck("wildcard", "Wildcard & Spontaneous", "flash-outline", "wc", [
-    "If we left the house in ten minutes with no plan, where do we point the car?",
-    "What is a yes you would give me right now if I asked for something small and weird?",
-    "Pick a room. What is the most alive thing we could do in it tonight?",
-    "What is a text you want me to send you in an hour that would change the temperature?",
-    "If we swapped phones for two minutes, what would you hope I notice?",
-    "What is a dare you would accept if it stayed between us?",
-    "Name a street, a park, or a parking lot that should get a story tonight.",
-    "What is a song we should put on and not talk until it ends?",
-    "If we had to make a mess of the kitchen or the bed, which wins?",
-    "What is a costume, a hat, or a shirt of mine that should come out as a joke with intent?",
-    "Give me a two-word instruction for the rest of the evening.",
-    "What is a coin-flip decision we should actually let a coin make?",
-    "If we wrote a note and left it for later, what does it say?",
-    "What is a place we have walked past a hundred times and never gone in?",
-    "Start a sentence with 'Meet me' and finish it.",
-    "What is a 20-minute adventure that requires shoes?",
-    "What is a 20-minute adventure that requires no shoes?",
-    "If we turned off one light in the house, which one changes the mood most?",
-    "What is a flavor, a drink, or a snack we should hunt down tonight?",
-    "Pick a number between 1 and 10. That is how extra we go. What happens at that number?",
-    "What is a photo we should take that we would never post?",
-    "If we had to compliment a stranger as a team, where would we be brave?",
-    "What is a rule of the house we should break once, kindly?",
-    "Give me a scavenger hunt item in this room that leads to you.",
-    "What is a voice memo you want to record and not play until tomorrow?",
-    "If we danced for one song, where do we stand?",
-    "What is a window, a rooftop, or a stoop that needs us on it?",
-    "Pick a time tomorrow. What do we do at that time that is not useful?",
-    "What is a 'pull over' fantasy that is actually a five-minute reality?",
-    "If we packed a bag with three things and left, what are the three things?",
-    "What is a rumor we should start about our night that is only half true?",
-    "Give me a word. I have to use it before we sleep. What is it?",
-    "What is a mirror moment we should actually do, not joke about?",
-    "If we ordered something we never order, what is it?",
-    "What is a stretch, a shower, or a walk that should include both of us?",
-    "Pick a piece of furniture. It is now the main character. Why?",
-    "What is a childhood yes we can do a grown version of tonight?",
-    "If we had a plot twist at 9 p.m., what would you want it to be?",
-    "What is a question you want me to ask you in a different room?",
-    "Give me a countdown from five. What happens at one?",
-    "What is a 'we would never' that we might, if the night got loose?",
-    "If we wrote our names somewhere they do not belong, where?",
-    "What is a silent activity that would still feel like a date?",
-    "Pick an hour this weekend that is now a secret appointment. What is it for?",
-    "What is a dare involving the porch, the hallway, or the last light off?",
-    "If we had to make a toast with whatever is in the fridge, what are we toasting?",
-    "What is a way to arrive home like we are arriving at a hotel?",
-    "Give me a color. The next thing we do has to include it.",
-    "What is a map pin within 30 minutes we have no good reason to visit, so we should?",
-    "If we swapped who leads the next hour, what is your first move?",
-    "What is a sentence you want whispered at a random time tonight?",
-    "Pick a household object. It is now a prop. How?",
-    "What is a 'stay up too late' reason that would be worth it?",
-    "If we had a safe word for boredom, and someone said it, what do we do?",
-    "What is a door we should close, or open, on purpose?",
-    "Give me a place to kiss you that is not the usual commute.",
-    "What is a 12-minute plan that would make this night unrepeatable?",
-    "If the night needed a title, and we had to earn it, what title do you want?",
-    "What is a wildcard you have been saving that is finally in season?",
-    "Say the first honest impulse you have for the next hour. We will treat it as a lead."
-  ]),
+  {
+    id: SPICY_DARE_DECK_ID,
+    name: "Wildcard",
+    iconName: "flash",
+    questions: SPICY_DARES.map((dare) => ({
+      id: dare.id,
+      text: dare.text,
+      status: dare.status ?? "unplayed",
+      tags: [...dare.categories],
+    })),
+  },
 ];
 
 export function categoryById(id: string): Category {
-  const resolved = id === SPICY_DARE_LEGACY_ID ? SPICY_DARE_DECK_ID : id;
+  const resolved = isSpicyDareDeck(id) ? SPICY_DARE_DECK_ID : id;
   const category = LETS_TALK_DECK.find((row) => row.id === resolved);
   if (!category) {
     throw new Error(`Unknown Let's Talk category: ${id}`);

@@ -272,11 +272,11 @@ export function buildHomeNotifications(input: {
       const line =
         play.status === "offered" && incoming
           ? play.direction === "you-do-me"
-            ? "Dare for you · if you're up for it"
-            : "They want to do this to you"
+            ? "Wildcard · dare for you"
+            : "Wildcard · they want to do this"
           : play.status === "offered"
-            ? `Dare sent · ${when}`
-            : `Dare on · ${when}`;
+            ? `Wildcard sent · ${when}`
+            : `Wildcard on · ${when}`;
       items.push({
         id: `dare-${play.id}`,
         line,

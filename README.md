@@ -11,7 +11,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
 - **Us hub** — Daily check-in, curiosity sync (answer + guess, match points), countdowns, desire matrix, coupons, scratch-offs, appreciation jar, date planner, shared calendar.
-- **Talk to me** — Ten conversation decks (one question per deck per day) plus **Spicy Challenges & Dares**: filterable prompts, custom text, “I'll do this to you” / “You do this to me”, and a timeframe.
+- **Talk to me** — Nine conversation decks (one question per deck per day) plus **Wildcard**: Challenges & Dares with filterable prompts, custom text, “I'll do this to you” / “You do this to me”, and a timeframe.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
 Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.

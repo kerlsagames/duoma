@@ -1670,7 +1670,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Pair first, then pull a card.");
       }
       if (isSpicyDareDeck(categoryId)) {
-        throw new Error("Spicy Challenges stays open. Browse instead of drawing.");
+        throw new Error("Wildcard stays open. Browse Challenges & Dares instead of drawing.");
       }
       categoryById(categoryId);
       const today = localDateKey();
@@ -1854,7 +1854,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       await persist();
       pingPartner(couple, user, partner, {
-        title: "Spicy dare",
+        title: "Wildcard dare",
         body:
           input.direction === "i-do-you"
             ? `${user.displayName} wants to do this to you.`
@@ -1887,7 +1887,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
       if (!demoHold) {
         pingPartner(couple, user, partner, {
-          title: "Spicy dare",
+          title: "Wildcard dare",
           body:
             status === "accepted"
               ? `${user.displayName} is up for the dare.`
