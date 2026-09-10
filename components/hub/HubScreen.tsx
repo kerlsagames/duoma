@@ -1,4 +1,5 @@
 import { Screen } from "@/components/ui/Screen";
+import { HUB_TONES, SERIF, type HubTone } from "@/lib/app-themes";
 import { ReactNode } from "react";
 import { Text, View } from "react-native";
 
@@ -7,18 +8,52 @@ type Props = {
   title: string;
   body?: string;
   children: ReactNode;
+  tone?: HubTone;
 };
 
-export function HubScreen({ kicker, title, body, children }: Props) {
+export function HubScreen({ kicker, title, body, children, tone = "default" }: Props) {
+  const theme = HUB_TONES[tone];
+  const serifTitle = tone !== "default";
+
   return (
-    <Screen scroll>
+    <Screen scroll background={theme.background}>
       <View className="pt-4 pb-6">
-        <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "600",
+            letterSpacing: 3,
+            textTransform: "uppercase",
+            color: theme.kicker,
+            fontFamily: tone === "talk" ? "SpaceMono" : undefined,
+          }}
+        >
           {kicker}
         </Text>
-        <Text className="mt-2 text-[32px] font-bold text-mist">{title}</Text>
+        <Text
+          style={{
+            marginTop: 10,
+            fontSize: serifTitle ? 34 : 32,
+            fontWeight: serifTitle ? "500" : "700",
+            color: theme.ink,
+            fontFamily: serifTitle ? SERIF : undefined,
+            lineHeight: serifTitle ? 40 : 38,
+          }}
+        >
+          {title}
+        </Text>
         {body ? (
-          <Text className="mt-2 text-[15px] leading-6 text-mist/65">{body}</Text>
+          <Text
+            style={{
+              marginTop: 10,
+              fontSize: 16,
+              lineHeight: 24,
+              color: theme.muted,
+              fontFamily: serifTitle ? SERIF : undefined,
+            }}
+          >
+            {body}
+          </Text>
         ) : null}
         <View className="mt-6">{children}</View>
       </View>

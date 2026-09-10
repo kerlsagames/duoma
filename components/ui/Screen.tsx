@@ -5,20 +5,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type Props = {
   children: ReactNode;
   scroll?: boolean;
+  background?: string;
 };
 
-export function Screen({ children, scroll }: Props) {
+export function Screen({ children, scroll, background = "#0B0B0E" }: Props) {
   if (scroll) {
     return (
       <SafeAreaView
-        className="flex-1 bg-night"
-        style={{ flex: 1, backgroundColor: "#0B0B0E" }}
+        className="flex-1"
+        style={{ flex: 1, backgroundColor: background }}
         edges={["top", "left", "right"]}
       >
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
+          style={{ backgroundColor: background }}
         >
           {children}
         </ScrollView>
@@ -28,11 +30,13 @@ export function Screen({ children, scroll }: Props) {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-night"
-      style={{ flex: 1, backgroundColor: "#0B0B0E" }}
+      className="flex-1"
+      style={{ flex: 1, backgroundColor: background }}
       edges={["top", "left", "right"]}
     >
-      <View className="flex-1 px-5">{children}</View>
+      <View className="flex-1 px-5" style={{ backgroundColor: background }}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }

@@ -8,7 +8,7 @@ import {
 
 type Props = PressableProps & {
   label: string;
-  tone?: "neon" | "crimson" | "ghost" | "danger";
+  tone?: "neon" | "crimson" | "ghost" | "danger" | "gold";
   loading?: boolean;
 };
 
@@ -43,6 +43,44 @@ export function PrimaryButton({
         <Text className="text-[15px] font-semibold tracking-wide text-mist">
           {label}
         </Text>
+      </Pressable>
+    );
+  }
+
+  if (tone === "gold") {
+    return (
+      <Pressable
+        disabled={disabled || loading}
+        className="w-full"
+        {...rest}
+      >
+        <LinearGradient
+          colors={["#E4C37A", "#C9A24A"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            height: 52,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: disabled || loading ? 0.55 : 1,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color="#12100C" />
+          ) : (
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                letterSpacing: 0.4,
+                color: "#12100C",
+              }}
+            >
+              {label}
+            </Text>
+          )}
+        </LinearGradient>
       </Pressable>
     );
   }
