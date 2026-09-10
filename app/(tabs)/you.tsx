@@ -4,7 +4,7 @@ import { Screen } from "@/components/ui/Screen";
 import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { Text, View } from "react-native";
 
 export default function YouScreen() {
@@ -111,7 +111,7 @@ export default function YouScreen() {
           <PrimaryButton
             label="How to play"
             tone="ghost"
-            onPress={() => router.push("/how-to")}
+            onPress={() => router.push("/how-to" as Href)}
           />
           <PrimaryButton
             label="Sign out"

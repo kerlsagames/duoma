@@ -4,7 +4,7 @@ import { Screen } from "@/components/ui/Screen";
 import { GAME_REGISTRY } from "@/games/registry";
 import { personalizeCard, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -61,7 +61,7 @@ export default function HomeScreen() {
         <PartnerConnectionBanner />
 
         <Pressable
-          onPress={() => router.push("/how-to")}
+          onPress={() => router.push("/how-to" as Href)}
           className="mb-5 rounded-3xl border border-white/10 bg-white/5 p-5"
         >
           <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">

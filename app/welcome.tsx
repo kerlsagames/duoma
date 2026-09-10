@@ -1,7 +1,7 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { Text, View } from "react-native";
 import { useApp } from "@/lib/store";
 
@@ -71,7 +71,7 @@ export default function WelcomeScreen() {
           <PrimaryButton
             label="How to play"
             tone="ghost"
-            onPress={() => router.push("/how-to")}
+            onPress={() => router.push("/how-to" as Href)}
           />
         </View>
       </View>

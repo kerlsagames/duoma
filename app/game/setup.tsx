@@ -3,7 +3,7 @@ import { Screen } from "@/components/ui/Screen";
 import { DEFAULT_STAGE_COUNTS, STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 import { useApp } from "@/lib/store";
 import type { GameMode, StageCounts } from "@/lib/types";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -133,7 +133,7 @@ export default function SetupScreen() {
           <PrimaryButton
             label="How to play"
             tone="ghost"
-            onPress={() => router.push("/how-to")}
+            onPress={() => router.push("/how-to" as Href)}
           />
           <PrimaryButton
             label="Cancel session"
