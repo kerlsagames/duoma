@@ -1,508 +1,546 @@
-stage,stage_label,order,title,description,source_file,notes_for_new_ideas
-pre_foreplay,Pre-Foreplay,1,Favorite Memory,"{player}, send {partner} a text describing your favorite physical memory of them.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,2,Whispered Desire,"{player}, send a voice message whispering one thing you want to do to them tonight.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,3,Subtle Tease,"{player}, text {partner} a subtle photo of what you are wearing right now.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,4,Turn-On Trio,"{player}, send a text listing three specific things {partner} does that instantly turn you on.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,5,Secret Keyword,"{player}, text {partner} a secret keyword. Whenever either of you says it tonight, the other must touch them.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,6,Countdown Timer,"{player}, send a text setting a countdown timer for when you get to touch each other tonight.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,7,Fantasy Question,"{player}, text {partner} a 'Yes/No' question about a fantasy you’ve never tried together.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,8,Daily Mandate,"{player}, send a text giving {partner} one rule they must follow for the rest of the day.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,9,Style Choice,"{player}, text {partner} asking them to choose your underwear/attire for tonight.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,10,First Touch Preview,"{player}, send a teaser text describing exactly where your hands will go the moment you are alone.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,11,Rear Embrace,"{player}, give {partner} a long, silent hug from behind for at least 30 seconds.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,12,Spine Trace,"{player}, walk up to {partner}, trace your finger down their spine, and walk away without saying a word.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,13,Neck Kisses,"{player}, kiss {partner}'s neck three times, then immediately return to what you were doing.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,14,Static Hold,"{player}, hold hands with {partner} for 2 minutes while doing whatever routine task you are doing.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,15,Ear Whispers,"{player}, whisper a secret desire directly into {partner}'s ear while standing close behind them.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,16,Hair & Cheeks,"{player}, run your fingers through {partner}'s hair while giving them a slow, soft kiss on the cheek.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,17,Thigh Contact,"{player}, touch {partner}'s inner thigh under the table/desk for 10 seconds.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,18,Extended Kiss,"{player}, pull {partner} in for a deep kiss that lasts at least 15 seconds—no hands below the waist yet.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,19,Lip Trace,"{player}, trace {partner}'s lips with your thumb while looking directly into their eyes.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,20,Lower Back Touch,"{player}, rest your hand on {partner}'s lower back while walking or standing together.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,21,Gentle Bite,"{player}, give {partner} a gentle bite on the lower lip during a kiss.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,22,Heartbeat Connection,"{player}, place {partner}'s hand over your heart so they can feel your pulse.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,23,Eye Lock,"{player}, maintain uninterrupted eye contact with {partner} for 60 seconds without speaking.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,24,Lip Bite Tease,"{player}, look at {partner} from across the room and slowly bite your bottom lip until they notice.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,25,Proximity Test,"{player}, stand face-to-face, less than an inch apart, without touching for 30 seconds.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,26,Silent Wink,"{player}, give {partner} 'the look' and wink at them without explaining why.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,27,Teasing Warning,"{player}, whisper 'You have no idea what's coming later' next to their ear.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,28,Slow Glance,"{player}, catch {partner}'s eye and slowly run your tongue over your top teeth.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,29,Full Scan,"{player}, look {partner} up and down slowly, ending with a smile.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,30,Continuous Contact,"{player}, sit next to {partner} and let your shoulders and legs touch continuously for 5 minutes.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,31,No-Touch Protocol,"{player}, establish a temporary rule: No touching allowed for the next 30 minutes, no matter what.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,32,Forbidden Garment,"{player}, tell {partner} one specific piece of clothing they are not allowed to wear later.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,33,One-Handed Service,"{player}, pour {partner} a drink or bring them a snack using only your left hand while keeping your right on their hip.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,34,Atmosphere Shift,"{player}, dim the lights in the main room and put on a smooth background song.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,35,Sensory Trace,"{player}, tell {partner} to close their eyes while you brush a feather, soft cloth, or fingertips across their wrist.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,36,Shoulder Rub,"{player}, give {partner} a 1-minute shoulders and neck rub with zero expectations of going further yet.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,37,Two Truths & A Lie,"{player}, tell {partner} two truth statements and one lie about what you want to do tonight—they have to guess the lie.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,38,Whisper Mode,"{player}, set a timer for 10 minutes. Until it rings, you can only communicate using whispers.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,39,Secret Note,"{player}, write a short, naughty note on a piece of paper and slip it into {partner}'s pocket or hands.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,40,Anticipation Check,"{player}, ask {partner} to rate their current anticipation level from 1 to 10 and tell you how to raise it by two points.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,41,Hand Feeding,"{player}, feed {partner} a bite of food or a piece of fruit by hand.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,42,Body Praises,"{player}, gently whisper three compliments about {partner}'s body while holding their hands.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,43,Partial Access,"{player}, unbutton or unzip one item of {partner}'s clothing, then tell them they have to wait for the rest.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,44,Blind Tracing,"{player}, trace an invisible letter or word on {partner}'s palm or back and make them guess what it is.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,45,Kitchen Slow Dance,"{player}, put {partner}'s hand on your hip and slow dance for one full song in the kitchen or living room.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,46,Lipstick Mark,"{player}, apply lip balm or lipstick and press a kiss onto {partner}'s neck or collarbone.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,47,Wrist Kiss,"{player}, give {partner} a slow, deliberate kiss on the inside of their wrist.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,48,Lap Rest,"{player}, sit on {partner}'s lap for 1 minute while talking about your day.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,49,Warm Breath,"{player}, gently blow on the back of {partner}'s neck while standing behind them.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,50,Direct Intention,"{player}, hold {partner} by the waist, look them in the eyes, and say: 'I've been thinking about you all day.'.",pre-foreplay.json,
-pre_foreplay,Pre-Foreplay,51,Smile Tease,"{player}, text {partner} asking them to send a 5-second video showing only their smile.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,52,First Garment,"{player}, send a text describing the exact piece of clothing you want them to take off first tonight.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,53,Soundtrack Hint,"{player}, text {partner} a song and tell them to listen to the lyrics while thinking of you.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,54,Location Tease,"{player}, send a voice note dropping a hint about what room in the house you want to start in tonight.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,55,Kiss Count,"{player}, text {partner} asking them to pick a random number between 1 and 10—that’s how many kisses they owe you the second you walk through the door.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,56,Color Guess,"{player}, send a sneaky text asking them to guess what color underwear you wore today.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,57,Target Practice,"{player}, text {partner} a photo of a spot on your body where you want a kiss later.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,58,Wildcard Pass,"{player}, send a text giving them permission to interrupt you once tonight with a passionate kiss, no matter what you are doing.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,59,Single Word,"{player}, text {partner} a single naughty word that sums up your mood today.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,60,Waist Boundary,"{player}, send a teaser text telling {partner} they aren't allowed to touch your waist until you say so.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,61,Doorway Welcome,"{player}, meet {partner} at the front door and give them a 5-second lingering kiss on the lips before saying 'welcome home.'.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,62,Jacket Assist,"{player}, gently trace your thumb over their collarbone while helping them take off their jacket or bag.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,63,Kitchen Lean,"{player}, stand next to them while they make coffee or dinner and quietly rest your head on their shoulder for 15 seconds.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,64,Red Light Hold,"{player}, reach across the car console and hold their hand firmly at every red light.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,65,Pocket Pinch,"{player}, walk past {partner} and slip your hand into their back pocket for a gentle squeeze.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,66,Counter Contact,"{player}, stand close enough that your hips touch while washing dishes or preparing food.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,67,Hallway Graze,"{player}, lightly graze your fingers down the back of their arm while walking past them in the hallway.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,68,Belt Loop Pull,"{player}, pull {partner} in by their belt loops or waistband for a quick, firm kiss.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,69,Face Hold,"{player}, touch the side of their face with both hands and tell them they look incredible today.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,70,Silent Sway,"{player}, hold {partner} by the hips and slowly sway together for 30 seconds with no music playing.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,71,Lip Bite Stare,"{player}, bite your bottom lip while looking at them from across the kitchen counter.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,72,Breath on Cheek,"{player}, lean in close, pretend you are going to tell them a secret, and just breathe gently onto their cheek.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,73,Silent Demand,"{player}, catch their eye, point to your lips, and point to them—demanding a kiss without speaking.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,74,Secret Smile,"{player}, look at {partner}, smile slowly, and shake your head like you’re holding back a secret.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,75,Lip Glance,"{player}, pause mid-sentence while talking, look down at their lips, then look back up into their eyes before continuing.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,76,Warm Look,"{player}, give {partner} a warm, lingering look, then slowly tilt your head and smile.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,77,Ear Confession,"{player}, whisper 'I've been distracted by you all afternoon' right against their ear.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,78,Seated Collarbone,"{player}, stand behind them while they are seated and rest both hands lightly on their collarbones.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,79,Outfitter Rule,"{player}, rule: The initiator gets to choose what both of you wear for the next hour.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,80,Screen Blackout,"{player}, rule: Neither of you can use your phone for the next 30 minutes—only focus on each other.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,81,Room Transit,"{player}, rule: You must hold hands every time you move from one room to another for the rest of the evening.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,82,Kneeling Drink,"{player}, pour {partner} a cold glass of water or a warm drink and serve it to them on your knees.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,83,Mood Lighting,"{player}, turn off all main overhead lighting and switch to warm lamps or candlelight only.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,84,Quick Foot Rub,"{player}, give {partner} a slow 2-minute foot rub while they relax on the couch.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,85,Pamper Check,"{player}, ask {partner}: 'What's one small thing I can do tonight to make you feel completely pampered?'.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,86,Room Temp Shift,"{player}, put on a slow, ambient playlist and set the room temperature to cozy.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,87,Initial Trace,"{player}, trace your initial onto their forearm with your fingertip and make them guess what you wrote.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,88,Cold Metal Trace,"{player}, tell {partner} to close their eyes while you lightly run a cold silver spoon down their arm.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,89,Mirror Note,"{player}, write a romantic or playful note on their bathroom mirror using a dry-erase marker or lip balm.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,90,Stress Reduction,"{player}, ask {partner} to rate their stress level from 1 to 10 and give them a massage until it drops by two points.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,91,Sweet Bite,"{player}, feed {partner} a sweet treat (like a piece of chocolate or fruit) while holding their eyes locked with yours.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,92,Trio Kisses,"{player}, give {partner} three gentle kisses—one on the forehead, one on the tip of the nose, and one on the lips.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,93,Two Buttons,"{player}, unbutton just the top two buttons of {partner}'s shirt, then step back.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,94,Day Catchup,"{player}, trace your finger around their earlobe while asking them about the best part of their day.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,95,Lap Rest,"{player}, sit next to {partner} on the couch and rest your legs across their lap.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,96,Balm Application,"{player}, gently apply lip balm to {partner}'s lips using your finger.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,97,Palmed Kiss,"{player}, kiss the palm of their hand, close their fingers into a fist, and say 'keep that for later.'.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,98,Knee Rest,"{player}, rest your hand gently on their knee while watching TV or chatting.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,99,Synced Breath,"{player}, stand face-to-face and take five slow, deep breaths in unison.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,100,Bedroom Summon,"{player}, walk up, whisper 'You're mine tonight,' and walk into the bedroom.",pre-foreplay-2.json,
-pre_foreplay,Pre-Foreplay,101,Mirror Flash,"{player}, send {partner} a text with a quick, suggestive mirror selfie — show just enough skin to leave them guessing.",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,102,Whispered Mandate,"{player}, lean in close in public or around company and whisper exactly what underwear you aren't wearing tonight.",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,103,Desk Interruption,"{player}, walk up while {partner} is sitting down, turn their chair around, and kiss them deeply on the mouth for 10 seconds before walking away.",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,104,Car Key Hijack,"{player}, text {partner}: ""When we get home, you're taking off my clothes before you take off your shoes.""",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,105,Blindfold Tease,"{player}, text a picture of a silk scarf or blindfold resting on the pillow with the caption: ""Guess how we're using this later.""",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,106,Video Tease,"{player}, send a short, private 5-second video of you touching yourself through your clothes — at work or in another room.",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,107,Whispered Demand,"{player}, walk up behind {partner}, tip their head back gently by the hair, and whisper: ""You're going to do whatever I say in the bedroom tonight.""",pre-foreplay-3.json,
-pre_foreplay,Pre-Foreplay,108,No-Pants Rule,"{player}, text {partner} right before coming home: ""Lose the pants or skirt before I get through the door.""",pre-foreplay-3.json,
-foreplay,Foreplay,1,Blindfold Exploration,"{player}, blindfold {partner} and lightly trace an ice cube down their neck and chest.",foreplay.json,
-foreplay,Foreplay,2,Feather Touch,"{player}, use your fingertips or a soft fabric to gently stroke {partner}'s inner arms and thighs for 2 minutes.",foreplay.json,
-foreplay,Foreplay,3,Sensory Kissing,"{player}, kiss {partner} everywhere EXCEPT their lips for 3 full minutes.",foreplay.json,
-foreplay,Foreplay,4,Temperature Play,"{player}, take a sip of warm tea or ice water, then press a slow kiss to {partner}'s collarbone.",foreplay.json,
-foreplay,Foreplay,5,Massage Oil Ritual,"{player}, warm some massage oil in your hands and spend 5 minutes working on {partner}'s shoulders and upper back.",foreplay.json,
-foreplay,Foreplay,6,Earlobe Tease,"{player}, gently nibble and blow warm air on {partner}'s earlobes while whispering what you want to do next.",foreplay.json,
-foreplay,Foreplay,7,Slow Stripping,"{player}, slowly remove one article of {partner}'s clothing using only your teeth.",foreplay.json,
-foreplay,Foreplay,8,Breath Work,"{player}, hover your lips a fraction of an inch above {partner}'s skin, letting them feel your warm breath without touching.",foreplay.json,
-foreplay,Foreplay,9,Trace & Guess,"{player}, trace a shape on {partner}'s torso with your tongue; if they guess it correctly, they give you a command.",foreplay.json,
-foreplay,Foreplay,10,Foot Massage,"{player}, give {partner} a slow, relaxing foot massage focusing on the arches and heels.",foreplay.json,
-foreplay,Foreplay,11,Neck Mapping,"{player}, leave a trail of soft kisses from the base of {partner}'s throat up to their jawline.",foreplay.json,
-foreplay,Foreplay,12,Handcuff / Restraint Light,"{player}, gently hold {partner}'s wrists above their head for 60 seconds while kissing them deeply.",foreplay.json,
-foreplay,Foreplay,13,Whispered Compliments,"{player}, whisper three explicit compliments about {partner}'s body while running your hands over those exact spots.",foreplay.json,
-foreplay,Foreplay,14,Sensory Reset,"{player}, have {partner} close their eyes while you touch three different parts of their body using three different textures.",foreplay.json,
-foreplay,Foreplay,15,Slow Descent,"{player}, kiss {partner}'s lips, then neck, then chest, pausing at each stop for 30 seconds.",foreplay.json,
-foreplay,Foreplay,16,Fingertip Massage,"{player}, gently massage {partner}'s hands, fingers, and palms while maintaining steady eye contact.",foreplay.json,
-foreplay,Foreplay,17,Mirror View,"{player}, position {partner} in front of a mirror and touch them while both watching in the reflection.",foreplay.json,
-foreplay,Foreplay,18,Tension Pull,"{player}, gently pull {partner}'s hair back to expose their neck, then press a deep kiss into the side of their neck.",foreplay.json,
-foreplay,Foreplay,19,Thigh Hover,"{player}, lightly trace your fingers up {partner}'s inner thighs, stopping just short of sensitive areas.",foreplay.json,
-foreplay,Foreplay,20,Rhythmic Breathing,"{player}, lay chest-to-chest and synchronize your breathing with {partner} for 1 full minute.",foreplay.json,
-foreplay,Foreplay,21,Warm Hands,"{player}, rub your hands together rapidly until warm, then place them directly over {partner}'s bare waist.",foreplay.json,
-foreplay,Foreplay,22,Biting Tease,"{player}, lightly bite down on {partner}'s lower lip, shoulder, or hip bone during a kiss.",foreplay.json,
-foreplay,Foreplay,23,Erotic Reading,"{player}, read a short, sensual paragraph or naughty prompt aloud to {partner} in a low voice.",foreplay.json,
-foreplay,Foreplay,24,Ribcage Caress,"{player}, use both hands to slowly trace down {partner}'s ribcage to their hips.",foreplay.json,
-foreplay,Foreplay,25,Lingerie / Underwear Removal,"{player}, take 2 full minutes to unfasten or remove {partner}'s underwear as slowly as possible.",foreplay.json,
-foreplay,Foreplay,26,Palm Kisses,"{player}, kiss the center of both of {partner}'s palms and fold their fingers over the spot.",foreplay.json,
-foreplay,Foreplay,27,Feather Light Tracing,"{player}, use just the very tips of your fingernails to lightly skim across {partner}'s stomach.",foreplay.json,
-foreplay,Foreplay,28,Spine Trail,"{player}, kiss every single vertebra down {partner}'s spine from neck to lower back.",foreplay.json,
-foreplay,Foreplay,29,Controlled Touch,"{player}, guide {partner}'s hand across your own body to show them exactly how and where you want to be touched.",foreplay.json,
-foreplay,Foreplay,30,Ice Cube Drag,"{player}, drag an ice cube from {partner}'s stomach down to their hip bone, then melt the cold spot with warm kisses.",foreplay.json,
-foreplay,Foreplay,31,Hypnotic Stare,"{player}, straddle {partner} or sit close and stare deeply into their eyes while caressing their face for 60 seconds.",foreplay.json,
-foreplay,Foreplay,32,Shoulder Blade Trail,"{player}, trace your tongue along the contour of {partner}'s shoulder blades.",foreplay.json,
-foreplay,Foreplay,33,Knee Kisses,"{player}, kiss the soft skin behind {partner}'s knees.",foreplay.json,
-foreplay,Foreplay,34,Gentle Restraint,"{player}, use a necktie or soft scarf to loosely tie {partner}'s hands together for the next two cards.",foreplay.json,
-foreplay,Foreplay,35,Audio Focus,"{player}, put headphones on {partner} with soft music playing while you kiss and touch them.",foreplay.json,
-foreplay,Foreplay,36,Slow Striptease,"{player}, remove one piece of your own clothing as slowly as possible while making direct eye contact.",foreplay.json,
-foreplay,Foreplay,37,Hip Caress,"{player}, grip {partner} firmly by the hips and pull them tightly against your body.",foreplay.json,
-foreplay,Foreplay,38,Tongue Trace,"{player}, trace the outline of {partner}'s ear with the tip of your tongue.",foreplay.json,
-foreplay,Foreplay,39,Sensory Blindfold,"{player}, blindfold {partner} and let them guess which object or fabric you are using to touch them.",foreplay.json,
-foreplay,Foreplay,40,Collarbone Kiss,"{player}, linger on {partner}'s collarbone with slow, wet kisses for 45 seconds.",foreplay.json,
-foreplay,Foreplay,41,Body Oil Trace,"{player}, trace intricate patterns on {partner}'s stomach using massage oil.",foreplay.json,
-foreplay,Foreplay,42,Grounded Touch,"{player}, place both hands flat against {partner}'s chest and apply gentle pressure while kissing.",foreplay.json,
-foreplay,Foreplay,43,Tempting Pause,"{player}, lean in as if to kiss {partner} passionately, stop half an inch away, hold for 10 seconds, then pull back.",foreplay.json,
-foreplay,Foreplay,44,Jawline Skim,"{player}, gently trace your thumb along {partner}'s jawline before tilting their head up for a deep kiss.",foreplay.json,
-foreplay,Foreplay,45,Inner Wrist Trail,"{player}, lick a slow line from {partner}'s inner wrist up to the crook of their elbow.",foreplay.json,
-foreplay,Foreplay,46,Soft Whispering,"{player}, whisper a detailed plan for the next 10 minutes directly against {partner}'s skin.",foreplay.json,
-foreplay,Foreplay,47,Fingertip Suck,"{player}, gently take one of {partner}'s fingers into your mouth and suck lightly.",foreplay.json,
-foreplay,Foreplay,48,Low Lights Focus,"{player}, turn off all the lights except for a single candle or warm glow light before continuing.",foreplay.json,
-foreplay,Foreplay,49,Rhythmic Stroke,"{player}, stroke {partner}'s hair slowly in sync with the beat of a background song.",foreplay.json,
-foreplay,Foreplay,50,Full Body Skim,"{player}, run both flat palms over {partner}'s entire body from shoulders to ankles without breaking contact.",foreplay.json,
-foreplay,Foreplay,51,Scent Selection,"{player}, blindfold {partner} and let them smell three different scented items to choose the mood.",foreplay-2.json,
-foreplay,Foreplay,52,Scarf Stroke,"{player}, use a silk scarf or soft ribbon to lightly stroke down {partner}'s arms and torso.",foreplay-2.json,
-foreplay,Foreplay,53,Slow Collarbone,"{player}, kiss {partner}'s collarbone five times, moving slower with each kiss.",foreplay-2.json,
-foreplay,Foreplay,54,Calf Massage,"{player}, rub a small amount of warm body oil between your palms and massage {partner}'s calves and ankles.",foreplay-2.json,
-foreplay,Foreplay,55,Knuckle Ribs,"{player}, lightly trace your knuckles down the side of {partner}'s ribcage to their hip.",foreplay-2.json,
-foreplay,Foreplay,56,Warm Air & Cool Touch,"{player}, gently blow warm air on {partner}'s stomach, then immediately follow it with a cool touch.",foreplay-2.json,
-foreplay,Foreplay,57,Fingertip Circles,"{player}, use your fingertips to trace small, slow circles all over {partner}'s upper chest.",foreplay-2.json,
-foreplay,Foreplay,58,Elbow Kiss,"{player}, kiss the inside of {partner}'s elbow for 30 seconds.",foreplay-2.json,
-foreplay,Foreplay,59,Nose Trace,"{player}, trace {partner}'s jawline with the tip of your nose.",foreplay-2.json,
-foreplay,Foreplay,60,Scalp Focus,"{player}, give {partner} a slow, relaxing scalp massage using your fingertips for 2 minutes.",foreplay-2.json,
-foreplay,Foreplay,61,Wrists Elevated,"{player}, hold {partner}'s wrists gently above their head while kissing down their neck.",foreplay-2.json,
-foreplay,Foreplay,62,Back Scratch,"{player}, lightly drag your fingernails down {partner}'s back in slow, parallel lines.",foreplay-2.json,
-foreplay,Foreplay,63,Vacation Fantasy,"{player}, whisper a detailed fantasy about a vacation scenario into {partner}'s ear.",foreplay-2.json,
-foreplay,Foreplay,64,Arm Feather,"{player}, touch {partner}'s inner arm with a soft feather or fabric from wrist to shoulder.",foreplay-2.json,
-foreplay,Foreplay,65,Behind the Earlobe,"{player}, kiss {partner} on the sweet spot right behind their earlobe.",foreplay-2.json,
-foreplay,Foreplay,66,Interlocked Toes,"{player}, place your bare feet against {partner}'s feet under the sheets and interlock your toes.",foreplay-2.json,
-foreplay,Foreplay,67,Timed Unbuttoning,"{player}, slowly unbutton {partner}'s shirt one single button every 30 seconds.",foreplay-2.json,
-foreplay,Foreplay,68,Hovering Lips,"{player}, hover your lips over {partner}'s lips for 20 seconds without letting them touch.",foreplay-2.json,
-foreplay,Foreplay,69,Under-Shirt Palms,"{player}, run your hands under {partner}'s shirt and rest your warm palms flat on their lower back.",foreplay-2.json,
-foreplay,Foreplay,70,Eyebrow Kisses,"{player}, give {partner} a slow, gentle kiss on each eyebrow before kissing their lips.",foreplay-2.json,
-foreplay,Foreplay,71,Hip Pinch,"{player}, lightly pinch {partner}'s hip bone during a deep kiss.",foreplay-2.json,
-foreplay,Foreplay,72,Barefoot Sock Removal,"{player}, take off {partner}'s socks using only your feet.",foreplay-2.json,
-foreplay,Foreplay,73,Tongue Map,"{player}, trace an imaginary map on {partner}'s stomach with your tongue.",foreplay-2.json,
-foreplay,Foreplay,74,Pulse Check,"{player}, guide {partner}'s hand to feel your racing pulse.",foreplay-2.json,
-foreplay,Foreplay,75,Warm Cloth Eyes,"{player}, place a warm cloth over {partner}'s eyes while you touch their hands and arms.",foreplay-2.json,
-foreplay,Foreplay,76,Lip Outline,"{player}, trace your tongue along {partner}'s lip line before giving them a full kiss.",foreplay-2.json,
-foreplay,Foreplay,77,Temple Thumb Massage,"{player}, gently massage {partner}'s temples with your thumbs while looking down at them.",foreplay-2.json,
-foreplay,Foreplay,78,Inner Thigh Kisses,"{player}, kiss the soft skin on the inside of {partner}'s thighs, staying away from the center.",foreplay-2.json,
-foreplay,Foreplay,79,Belly Button Ice,"{player}, use an ice cube to trace a ring around {partner}'s belly button.",foreplay-2.json,
-foreplay,Foreplay,80,Hair Brush Back,"{player}, have {partner} lie back while you slowly brush their hair out of their face.",foreplay-2.json,
-foreplay,Foreplay,81,Chest Flush,"{player}, hold {partner} by the waist and lift them slightly to pull them flush against your chest.",foreplay-2.json,
-foreplay,Foreplay,82,Favorite Feature,"{player}, whispering only: Tell {partner} your absolute favorite physical feature on their body.",foreplay-2.json,
-foreplay,Foreplay,83,Off-the-Shoulder Kiss,"{player}, slowly slide {partner}'s shirt off their shoulders, kissing each shoulder as it is revealed.",foreplay-2.json,
-foreplay,Foreplay,84,Chin-to-Navel Line,"{player}, trace your finger from {partner}'s chin down to their belly button in one unbroken line.",foreplay-2.json,
-foreplay,Foreplay,85,Lotion Hand Massage,"{player}, give {partner} a slow 1-minute hand massage using scented lotion.",foreplay-2.json,
-foreplay,Foreplay,86,Ten-Finger Lock,"{player}, lay face-to-face and interlock all ten fingers while sharing deep, slow kisses.",foreplay-2.json,
-foreplay,Foreplay,87,Rear Shoulder Bite,"{player}, gently bite {partner}'s shoulder blade while hugging them from behind.",foreplay-2.json,
-foreplay,Foreplay,88,Contour Palm,"{player}, trace the contour of {partner}'s hip with the palm of your hand.",foreplay-2.json,
-foreplay,Foreplay,89,Three Warm Touch,"{player}, blindfold {partner} and touch them with three warm objects in a row.",foreplay-2.json,
-foreplay,Foreplay,90,Throat to Chin,"{player}, lick a slow path from the base of {partner}'s throat up to their chin.",foreplay-2.json,
-foreplay,Foreplay,91,Five Lip Kisses,"{player}, hold {partner}'s face in both hands and give them five short, sweet kisses on the lips.",foreplay-2.json,
-foreplay,Foreplay,92,Behind the Knees,"{player}, run your fingers lightly across the back of {partner}'s knees.",foreplay-2.json,
-foreplay,Foreplay,93,Secret Praise,"{player}, whisper a secret compliment that you’ve never told anyone else.",foreplay-2.json,
-foreplay,Foreplay,94,Neck Press,"{player}, press your lips to the side of {partner}'s neck and hold them there while taking a deep breath.",foreplay-2.json,
-foreplay,Foreplay,95,Armpit to Hip,"{player}, lightly skim your palm down {partner}'s side from armpit to hip.",foreplay-2.json,
-foreplay,Foreplay,96,Heartbeat Listen,"{player}, rest your head on {partner}'s chest and listen to their breathing for 1 minute.",foreplay-2.json,
-foreplay,Foreplay,97,Bottom Lip Tug,"{player}, use your lips to gently tug on {partner}'s bottom lip three times.",foreplay-2.json,
-foreplay,Foreplay,98,Blind Body Guess,"{player}, put a blindfold on {partner} and let them guess which part of your body is touching theirs.",foreplay-2.json,
-foreplay,Foreplay,99,Cheekbone Thumb,"{player}, trace your thumbs over {partner}'s cheekbones while kissing them softly.",foreplay-2.json,
-foreplay,Foreplay,100,Relax Command,"{player}, gently stroke {partner}'s sides while whispering 'relax into me.'.",foreplay-2.json,
-foreplay,Foreplay,101,Lap Grind,"{player}, have {partner} sit on your lap facing you, grinding slowly through clothes while making unbroken eye contact.",foreplay-3.json,
-foreplay,Foreplay,102,Ice Trail,"{player}, drag an ice cube down {partner}'s stomach and thighs, then immediately follow the water trail with warm tongue licks.",foreplay-3.json,
-foreplay,Foreplay,103,Shirtless Grip,"{player}, pull {partner}'s shirt off and run both hands firmly over their chest while biting their neck.",foreplay-3.json,
-foreplay,Foreplay,104,Spank Preview,"{player}, deliver three sharp, stinging spanks over {partner}'s underwear, then soothe the area with slow, firm rubs.",foreplay-3.json,
-foreplay,Foreplay,105,Through-Fabric Suck,"{player}, suck gently on {partner}'s nipples through their bra or thin shirt until the fabric is damp.",foreplay-3.json,
-foreplay,Foreplay,106,Porn Pick,"{player}, sit on the couch together and let {partner} choose a porn video for both of you to watch while you touch them through their clothes.",foreplay-3.json,
-foreplay,Foreplay,107,Rim Tease,"{player}, have {partner} lie on their stomach while you gently lick and kiss around their ass and rim — stay just outside.",foreplay-3.json,
-foreplay,Foreplay,108,Oiled Spanks,"{player}, apply warm oil over {partner}'s bare ass cheeks and give five firm, stinging spanks until the skin is warm and flushed.",foreplay-3.json,
-foreplay,Foreplay,109,Anal Finger Tease,"{player}, while kissing {partner} deeply, lube one finger and slowly press it against their outer rim without going all the way in yet.",foreplay-3.json,
-step_it_up,Step It Up,1,Dominant Command,"{player}, give {partner} one clear, explicit instruction for how they must touch you right now.",step-it-up.json,
-step_it_up,Step It Up,2,Bed Restraint,"{player}, secure {partner}'s hands above their head using a belt, scarf, or soft ties for the next 3 minutes.",step-it-up.json,
-step_it_up,Step It Up,3,Intense Oral Tease,"{player}, spend 2 minutes using tongue and lips in intimate areas, stopping right before they reach the edge.",step-it-up.json,
-step_it_up,Step It Up,4,Dirty Talk Direct,"{player}, describe in explicit detail exactly what you want to do to {partner} before touching them.",step-it-up.json,
-step_it_up,Step It Up,5,Speed Control,"{player}, initiate explicit touch, but maintain a strictly slow, agonizing pace for at least 90 seconds.",step-it-up.json,
-step_it_up,Step It Up,6,Blindfolded Touch,"{player}, blindfold {partner} and give them 2 minutes of direct intimate attention with no verbal warning.",step-it-up.json,
-step_it_up,Step It Up,7,Edge Master,"{player}, bring {partner} close to the peak, then completely stop all touch for 30 seconds while looking into their eyes.",step-it-up.json,
-step_it_up,Step It Up,8,Mirror View Intimacy,"{player}, position {partner} so they can watch the intimate action in a full-length mirror or phone screen.",step-it-up.json,
-step_it_up,Step It Up,9,Firm Grip,"{player}, hold {partner} firmly by the hips or waist and pull them as close as physically possible during deep kissing.",step-it-up.json,
-step_it_up,Step It Up,10,Sensory Ice & Heat,"{player}, use an ice cube directly on an intimate zone for 15 seconds, followed immediately by warm breath.",step-it-up.json,
-step_it_up,Step It Up,11,Lap Straddle,"{player}, straddle {partner}'s lap facing them and grind slowly while keeping hands behind your back.",step-it-up.json,
-step_it_up,Step It Up,12,Spanking Light,"{player}, deliver five firm slaps to {partner}'s rear while pulling them close by the waist.",step-it-up.json,
-step_it_up,Step It Up,13,Heavy Breathing,"{player}, focus entirely on oral attention while encouraging {partner} to react as loudly as they want.",step-it-up.json,
-step_it_up,Step It Up,14,Position Switch,"{player}, take full physical control and move {partner} into your preferred starting position on the bed.",step-it-up.json,
-step_it_up,Step It Up,15,No-Hands Challenge,"{player}, use only your mouth and lips to tease {partner}'s most sensitive areas for 2 minutes.",step-it-up.json,
-step_it_up,Step It Up,16,Whispered Secrets,"{player}, tell {partner} your absolute wildest sexual secret while touching them intimately.",step-it-up.json,
-step_it_up,Step It Up,17,Hair Pull & Kiss,"{player}, gently pull {partner}'s hair back to expose their throat and kiss deeply down to their chest.",step-it-up.json,
-step_it_up,Step It Up,18,Clothes Off Final,"{player}, remove every remaining piece of clothing from {partner} as fast or as slow as they command.",step-it-up.json,
-step_it_up,Step It Up,19,Rhythmic Stroke,"{player}, use manual stimulation on {partner} at a steady, increasing tempo for 2 minutes straight.",step-it-up.json,
-step_it_up,Step It Up,20,Roleplay Spark,"{player}, adopt a dominant or submissive persona for the next 5 minutes of play.",step-it-up.json,
-step_it_up,Step It Up,21,Standing Intimacy,"{player}, push {partner} up against a secure wall or bedpost and engage in deep intimate contact.",step-it-up.json,
-step_it_up,Step It Up,22,Controlled Movement,"{player}, guide {partner}'s hips with both hands, dictating the rhythm and depth of movement.",step-it-up.json,
-step_it_up,Step It Up,23,Double Touch,"{player}, stimulate two sensitive areas of {partner}'s body simultaneously for 90 seconds.",step-it-up.json,
-step_it_up,Step It Up,24,Command Exchange,"{player}, allow {partner} to give you one explicit command that you must perform immediately.",step-it-up.json,
-step_it_up,Step It Up,25,Teasing Pause,"{player}, hover right at the entry/sensitive spot for 45 seconds without making full contact.",step-it-up.json,
-step_it_up,Step It Up,26,Thigh Pin,"{player}, pin {partner}'s legs gently over your shoulders or waist to deepen access.",step-it-up.json,
-step_it_up,Step It Up,27,Intense Eye Contact,"{player}, perform intimate touch while maintaining unbroken eye contact until {partner} looks away.",step-it-up.json,
-step_it_up,Step It Up,28,Sensory Toy Play,"{player}, introduce a favorite toy or massager into the play for at least 2 minutes.",step-it-up.json,
-step_it_up,Step It Up,29,Slow Grind,"{player}, maintain full body-to-body contact and grind slowly for 1 full minute before proceeding.",step-it-up.json,
-step_it_up,Step It Up,30,Oral Countdown,"{player}, give {partner} 30 deliberate, slow strokes with your tongue in sensitive areas.",step-it-up.json,
-step_it_up,Step It Up,31,Erotic Audio,"{player}, describe out loud every physical sensation you are feeling as {partner} touches you.",step-it-up.json,
-step_it_up,Step It Up,32,Pillow Lift,"{player}, place a pillow under {partner}'s lower back or hips to elevate them.",step-it-up.json,
-step_it_up,Step It Up,33,Firm Arch,"{player}, arch {partner}'s back with your hands while kissing them passionately.",step-it-up.json,
-step_it_up,Step It Up,34,Bite & Caress,"{player}, gently bite down on {partner}'s hip or shoulder while caressing their inner thigh.",step-it-up.json,
-step_it_up,Step It Up,35,Denial Round,"{player}, {partner} is not allowed to touch you back for the next 2 minutes while you take full control.",step-it-up.json,
-step_it_up,Step It Up,36,Speed Burst,"{player}, increase the tempo of touch drastically for 30 seconds, then drop back to a slow rhythm.",step-it-up.json,
-step_it_up,Step It Up,37,Trace with Hair,"{player}, drag your long hair across {partner}'s bare chest and stomach while kissing down their body.",step-it-up.json,
-step_it_up,Step It Up,38,Chest-to-Chest Pressure,"{player}, press your full body weight against {partner} on the bed and hold for 45 seconds.",step-it-up.json,
-step_it_up,Step It Up,39,Lick & Blow,"{player}, lick a wet path down {partner}'s stomach and blow cold air on it immediately after.",step-it-up.json,
-step_it_up,Step It Up,40,Hand Pin,"{player}, hold both of {partner}'s hands pinned to the mattress with one hand while using the other.",step-it-up.json,
-step_it_up,Step It Up,41,Rhythm Sync,"{player}, move together in a slow, circular rhythm for 2 minutes without breaking physical contact.",step-it-up.json,
-step_it_up,Step It Up,42,Intimate Whisper,"{player}, whisper three explicit instructions for what {partner} should do during Stage 4.",step-it-up.json,
-step_it_up,Step It Up,43,Sensory Feather & Oil,"{player}, combine warm oil with a soft feather or light touch across {partner}'s torso.",step-it-up.json,
-step_it_up,Step It Up,44,Glance in the Dark,"{player}, turn off all lights and rely entirely on touch and sound for the next 3 minutes.",step-it-up.json,
-step_it_up,Step It Up,45,Edge & Repeat,"{player}, bring {partner} to the edge, back off completely, and then bring them right back to it once more.",step-it-up.json,
-step_it_up,Step It Up,46,Body Lift,"{player}, lift {partner} up or reposition them on the bed using firm physical grip.",step-it-up.json,
-step_it_up,Step It Up,47,Deep Pressure Kissing,"{player}, kiss {partner} deeply while applying firm pressure to their hips with both hands.",step-it-up.json,
-step_it_up,Step It Up,48,Explicit Compliment,"{player}, tell {partner} exactly why their body turns you on more than anything else.",step-it-up.json,
-step_it_up,Step It Up,49,Fast & Slow,"{player}, alternate between fast and agonizingly slow touch every 15 seconds.",step-it-up.json,
-step_it_up,Step It Up,50,Full Surrender,"{player}, lay completely back and let {partner} take absolute control for the next 3 minutes.",step-it-up.json,
-step_it_up,Step It Up,51,Positional Command,"{player}, take full control: Tell {partner} exactly which position to get into on the bed.",step-it-up-2.json,
-step_it_up,Step It Up,52,Thigh Boundary Tease,"{player}, blindfold {partner} and use hands and lips on their inner thighs for 2 solid minutes without touching the center.",step-it-up-2.json,
-step_it_up,Step It Up,53,Dual Turn-Ons,"{player}, tell {partner} two specific things they are doing right now that are driving you wild.",step-it-up-2.json,
-step_it_up,Step It Up,54,Single-Hand Pin,"{player}, pin {partner}'s hands above their head with one hand while using your other hand to touch them intimately.",step-it-up-2.json,
-step_it_up,Step It Up,55,Brink Stop,"{player}, bring {partner} right to the edge of climax, then completely pull back and sit still for 45 seconds.",step-it-up-2.json,
-step_it_up,Step It Up,56,Agonizing Oral,"{player}, use your mouth on {partner_cock} at an agonizingly slow tempo for 90 seconds.",step-it-up-2.json,
-step_it_up,Step It Up,57,Eyes Locked Command,"{player}, command {partner} to keep their eyes wide open and locked onto yours while you touch them intimately.",step-it-up-2.json,
-step_it_up,Step It Up,58,Hip Elevation,"{player}, place a pillow beneath {partner}'s hips to elevate them for deeper access.",step-it-up-2.json,
-step_it_up,Step It Up,59,Slap & Soothe,"{player}, deliver three firm slaps to {partner}'s rear, followed immediately by warm, soothing kisses over the spot.",step-it-up-2.json,
-step_it_up,Step It Up,60,Chest Straddle,"{player}, straddle {partner}'s chest or lap and control the pace of deep kissing for 2 minutes.",step-it-up-2.json,
-step_it_up,Step It Up,61,Explicit Preview,"{player}, tell {partner} an explicit step-by-step description of what you plan to do next before doing it.",step-it-up-2.json,
-step_it_up,Step It Up,62,Toy & Hand Hold,"{player}, use a massager or toy on {partner} while holding their free hand tightly.",step-it-up-2.json,
-step_it_up,Step It Up,63,Hair Pull Exposure,"{player}, gently pull {partner}'s hair back to expose their neck while pressing your body firmly against theirs.",step-it-up-2.json,
-step_it_up,Step It Up,64,Tempo Contrast,"{player}, alternate between intense, heavy manual touch and ultra-soft feather touches every 15 seconds.",step-it-up-2.json,
-step_it_up,Step It Up,65,Polite Request,"{player}, require {partner} to ask politely before you give them full intimate touch.",step-it-up-2.json,
-step_it_up,Step It Up,66,Bed-Edge Shift,"{player}, move {partner} to the edge of the bed. Stand between their legs while they lie back.",step-it-up-2.json,
-step_it_up,Step It Up,67,Tongue Tip Focus,"{player}, spend 2 minutes giving {partner} oral on {partner_cock} using only the tip of your tongue in small circles.",step-it-up-2.json,
-step_it_up,Step It Up,68,Hands Behind Back,"{player}, guide {partner}'s hands behind their back and hold them there while you kiss down their torso.",step-it-up-2.json,
-step_it_up,Step It Up,69,Rhythmic Dirty Talk,"{player}, whisper your favorite dirty phrase directly into {partner}'s ear while maintaining a steady rhythm of touch.",step-it-up-2.json,
-step_it_up,Step It Up,70,Stomach Entry,"{player}, have {partner} lie flat on their stomach while you touch them intimately from behind.",step-it-up-2.json,
-step_it_up,Step It Up,71,Thermal Contrast Shock,"{player}, use an ice cube on {partner}'s intimate areas for 10 seconds, followed immediately by hot breath.",step-it-up-2.json,
-step_it_up,Step It Up,72,Breathing Control,"{player}, take control of {partner}'s breathing by instructing them when to inhale and exhale as you touch them.",step-it-up-2.json,
-step_it_up,Step It Up,73,Mirror Spectator,"{player}, position {partner} in front of a mirror so you can both watch every movement.",step-it-up-2.json,
-step_it_up,Step It Up,74,Wide Open Stare,"{player}, hold {partner}'s thighs wide open and stare intently for 15 seconds before leaning in.",step-it-up-2.json,
-step_it_up,Step It Up,75,Sudden Standstill,"{player}, perform fast, firm manual stimulation for 30 seconds, then abruptly drop to a complete standstill.",step-it-up-2.json,
-step_it_up,Step It Up,76,Waist Adjustment,"{player}, give {partner} a firm grip on the waist and lift/adjust their body to your exact liking.",step-it-up-2.json,
-step_it_up,Step It Up,77,Direct Command Pass,"{player}, allow {partner} to give you one explicit command that you must carry out instantly.",step-it-up-2.json,
-step_it_up,Step It Up,78,Affirming Touch,"{player}, touch {partner} intimately while telling them how beautiful/handsome they look right now.",step-it-up-2.json,
-step_it_up,Step It Up,79,Oiled Direct Touch,"{player}, use warm massage oil for direct, smooth intimate touch for 2 full minutes.",step-it-up-2.json,
-step_it_up,Step It Up,80,Over-Shoulder Angle,"{player}, place {partner}'s legs over your shoulders to maximize closeness and depth.",step-it-up-2.json,
-step_it_up,Step It Up,81,Soft Bind,"{player}, restraint challenge: Use a belt or scarf to loosely secure {partner}'s wrists to the bedposts for 3 minutes.",step-it-up-2.json,
-step_it_up,Step It Up,82,Counted Tongue Strokes,"{player}, give 20 slow, deliberate licks in sensitive areas, counting each one out loud.",step-it-up-2.json,
-step_it_up,Step It Up,83,Hands-Behind-Head Rule,"{player}, require {partner} to keep their hands behind their head without touching you while you tease them.",step-it-up-2.json,
-step_it_up,Step It Up,84,Full Weight Press,"{player}, press your full body weight down against {partner} on the mattress and kiss them passionately.",step-it-up-2.json,
-step_it_up,Step It Up,85,Memory Whispers,"{player}, whispering challenge: Describe in detail your favorite sexual memory with {partner}.",step-it-up-2.json,
-step_it_up,Step It Up,86,Proximity Hover,"{player}, hover right over {partner}'s most sensitive spot, letting them feel your warmth without touching for 30 seconds.",step-it-up-2.json,
-step_it_up,Step It Up,87,Guided Pressure,"{player}, take {partner}'s hand and place it on your body to show them the exact pressure you want.",step-it-up-2.json,
-step_it_up,Step It Up,88,Oral / Manual Swap,"{player}, alternate between fast oral and slow hands on {partner_cock} for 2 minutes.",step-it-up-2.json,
-step_it_up,Step It Up,89,Hip Bite & Slide,"{player}, gently bite {partner}'s hip bone while sliding your hands under their rear.",step-it-up-2.json,
-step_it_up,Step It Up,90,Kneeling Seated Edge,"{player}, have {partner} sit on the edge of a chair or couch while you kneel between their knees.",step-it-up-2.json,
-step_it_up,Step It Up,91,Wall Grind,"{player}, hold {partner} close in a standing embrace against a wall while grinding slowly.",step-it-up-2.json,
-step_it_up,Step It Up,92,Hair & Touch Dual,"{player}, perform intimate manual stimulation while using your other hand to stroke their hair.",step-it-up-2.json,
-step_it_up,Step It Up,93,Silence Timer,"{player}, tell {partner} they aren't allowed to make a sound for 60 seconds while you tease them—if they do, reset the timer.",step-it-up-2.json,
-step_it_up,Step It Up,94,Arched Forceful Kiss,"{player}, arch {partner}'s lower back with your arm while giving them a deep, forceful kiss.",step-it-up-2.json,
-step_it_up,Step It Up,95,Navel-to-Thigh Lick,"{player}, lick a path from {partner}'s lower stomach down to their inner thigh without stopping.",step-it-up-2.json,
-step_it_up,Step It Up,96,Role Switch,"{player}, switch roles completely: The submissive partner takes full control for the next 3 minutes.",step-it-up-2.json,
-step_it_up,Step It Up,97,Dual Stimulation Burst,"{player}, use double stimulation (manual + oral or toy) simultaneously for 60 seconds.",step-it-up-2.json,
-step_it_up,Step It Up,98,Chin Grip Kiss,"{player}, hold {partner}'s chin firmly between thumb and forefinger while kissing them intensely.",step-it-up-2.json,
-step_it_up,Step It Up,99,Double Brink,"{player}, bring {partner} close to the edge twice in a row before allowing any transition to the final stage.",step-it-up-2.json,
-step_it_up,Step It Up,100,Waist Lock Command,"{player}, wrap your arms tightly around {partner}'s waist and whisper: 'It's time.'.",step-it-up-2.json,
-step_it_up,Step It Up,101,Oral Proof Shot,"{player}, take a private photo of yourself going down on {partner} — keep it as a shared memory, not for anyone else.",step-it-up-3.json,
-step_it_up,Step It Up,102,Self-Stroke Show,"{player}, stroke yourself slowly in front of {partner} while they watch, stopping just before you get too close.",step-it-up-3.json,
-step_it_up,Step It Up,103,Deep Throat Warmup,"{player}, take {partner} deep into your mouth for 60 seconds — let them guide depth and speed.",step-it-up-3.json,
-step_it_up,Step It Up,104,Mirror Oral,"{player}, position {partner} on their back at the foot of the bed facing a full-length mirror while you eat them out from between their legs.",step-it-up-3.json,
-step_it_up,Step It Up,105,Pinned Brink,"{player}, pin {partner}'s hands above their head with one grip while using fingers and mouth to bring them to the brink.",step-it-up-3.json,
-step_it_up,Step It Up,106,Bound & Eaten,"{player}, tie {partner}'s wrists loosely with a scarf, then give them intense oral attention.",step-it-up-3.json,
-step_it_up,Step It Up,107,Face Sitting,"{player}, have {partner} straddle your face and take complete control over speed and pressure while you lick them.",step-it-up-3.json,
-step_it_up,Step It Up,108,Dirty Talk Dictation,"{player}, hold {partner}'s legs wide open and make them describe in dirty detail exactly how your tongue or cock feels.",step-it-up-3.json,
-step_it_up,Step It Up,109,Riding Anal Finger,"{player}, while {partner} rides you on top, lube a finger and slowly slide it into their ass, keeping a steady rhythm.",step-it-up-3.json,
-step_it_up,Step It Up,110,Anal Tip Only,"{player}, lube {partner}'s ass thoroughly, position them on hands and knees, and slowly slide just the tip inside — hold there until they adjust.",step-it-up-3.json,
-step_it_up,Step It Up,111,POV Oral Clip,"{player}, record a short 10-second video on your phone of going down on {partner} from their perspective, then watch it back together.",step-it-up-3.json,
-step_it_up,Step It Up,112,Double Penetration Tease,"{player}, slide two lubed fingers into {partner}'s pussy while pressing a thumb or another lubed finger into their ass at the same time.",step-it-up-3.json,
-step_it_up,Step It Up,113,Face-Down Anal Fingers,"{player}, position {partner} flat on their stomach with a pillow under their hips, lube their ass, and slowly slide two fingers inside while pressing them into the mattress.",step-it-up-3.json,
-finish_off,Finish Off,1,Classic Reimagined,"{player}, choose Missionary, but elevate hips with a pillow and maintain unbroken eye contact until climax.",finish-off.json,
-finish_off,Finish Off,2,Edge of the Bed,"{player}, put {partner} at the edge of the bed. Stand or kneel between their legs and finish them off.",finish-off.json,
-finish_off,Finish Off,3,Cowgirl / Rider Control,"{player}, take top position and dictate the rhythm, speed, and depth completely.",finish-off.json,
-finish_off,Finish Off,4,Spoons Position,"{player}, lying on your sides facing the same direction for deep, intimate, and effortless connection.",finish-off.json,
-finish_off,Finish Off,5,Doggy Style Focus,"{player}, rear-entry position with firm hands on hips or pulling gently on waist/hair.",finish-off.json,
-finish_off,Finish Off,6,Lotus Hold,"{player}, sit upright wrapped tightly around each other in a close, chest-to-chest embrace.",finish-off.json,
-finish_off,Finish Off,7,Standing Intimacy,"{player}, perform standing against a sturdy wall or lifted onto a high dresser or bed edge.",finish-off.json,
-finish_off,Finish Off,8,Prone Bone,"{player}, lying completely flat on stomach while partner enters from behind, maintaining close full-body weight.",finish-off.json,
-finish_off,Finish Off,9,Climax Together,"{player}, set a goal to match pace and breathe together to push for a simultaneous climax.",finish-off.json,
-finish_off,Finish Off,10,Finish off with oral,"{player}, finish {partner} off with your mouth on {partner_cock}. Stay there until they come.",finish-off.json,
-finish_off,Finish Off,11,Reverse Cowgirl,"{player}, take top position facing away from {partner}, using a mirror if available.",finish-off.json,
-finish_off,Finish Off,12,The Bridge,"{player}, elevate lower back and place feet flat on the mattress to create an intense angle.",finish-off.json,
-finish_off,Finish Off,13,Speed Finish,"{player}, pick your favorite position and push the tempo as fast and intense as possible.",finish-off.json,
-finish_off,Finish Off,14,Agonizingly Slow Finish,"{player}, maintain your current position, but drop the speed to ultra-slow, deep deliberate movements.",finish-off.json,
-finish_off,Finish Off,15,Manual Assistance,"{player}, incorporate hand touch or clitoral/prostate stimulation directly during peak action.",finish-off.json,
-finish_off,Finish Off,16,Toy Finish,"{player}, bring in a vibration/bullet toy during penetration to push over the finish line.",finish-off.json,
-finish_off,Finish Off,17,Mirror View Finish,"{player}, finish in a position directly facing a mirror so both can watch the moment of climax.",finish-off.json,
-finish_off,Finish Off,18,X-Mark Position,"{player}, lie back with legs crossed tightly over {partner}'s shoulders to maximize sensation.",finish-off.json,
-finish_off,Finish Off,19,Dirty Talk Finale,"{player}, whisper uninterrupted explicit praise and dirty talk into {partner}'s ear until they finish.",finish-off.json,
-finish_off,Finish Off,20,Restrained Climax,"{player}, hold {partner}'s hands pinned above their head as they reach peak climax.",finish-off.json,
-finish_off,Finish Off,21,Butter Churner Angle,"{player}, fold {partner}'s legs deep toward their head on the bed for maximum depth and intensity.",finish-off.json,
-finish_off,Finish Off,22,Side-by-Side Angle,"{player}, interlock legs while lying side-by-side facing each other, kissing throughout.",finish-off.json,
-finish_off,Finish Off,23,Lapside Rider,"{player}, sit in a chair or on the edge of the couch wrapped together for a controlled finish.",finish-off.json,
-finish_off,Finish Off,24,Chest Praise,"{player}, look directly into {partner}'s eyes and say 'Finish for me' in a low, firm command.",finish-off.json,
-finish_off,Finish Off,25,Edge On Demand,"{player}, bring {partner} right to the absolute brink, hold for 10 seconds, then allow full release.",finish-off.json,
-finish_off,Finish Off,26,Shower / Water Finish,"{player}, move the final climactic play into a warm shower or tub.",finish-off.json,
-finish_off,Finish Off,27,Deep Hug Finish,"{player}, wrap arms tightly around {partner}'s neck and back, pulling them flat against you for the release.",finish-off.json,
-finish_off,Finish Off,28,Kneeling Angle,"{player}, both partners kneeling upright on the bed, holding shoulders or waist for balance.",finish-off.json,
-finish_off,Finish Off,29,The Arch,"{player}, support {partner}'s lower spine with your hands to arch their back during peak intensity.",finish-off.json,
-finish_off,Finish Off,30,Hands-Free Focus,"{player}, finish relying solely on body movement and rhythm without using hands.",finish-off.json,
-finish_off,Finish Off,31,Sensory Blindfold Finish,"{player}, blindfold {partner} so their entire focus is locked onto physical sensation.",finish-off.json,
-finish_off,Finish Off,32,Rhythm Switch,"{player}, alternate 10 fast strokes with 10 slow strokes until climax.",finish-off.json,
-finish_off,Finish Off,33,Over-the-Legs Doggy,"{player}, partner lies face down across the bed with legs hanging off the side.",finish-off.json,
-finish_off,Finish Off,34,Thigh Squeeze,"{player}, squeeze {partner}'s thighs tightly around your waist as you reach the climax.",finish-off.json,
-finish_off,Finish Off,35,Neck Biting Finish,"{player}, gently bite down on {partner}'s collarbone or neck right as the climax hits.",finish-off-2.json,
-finish_off,Finish Off,36,Mutual Manual,"{player}, switch to mutual masturbation while lying chest-to-chest, watching each other finish.",finish-off-2.json,
-finish_off,Finish Off,37,Full Weight Lock,"{player}, lying completely flat on top of partner, interlocked fingers, breathing in sync.",finish-off-2.json,
-finish_off,Finish Off,38,Double Angle Shift,"{player}, switch positions twice within 2 minutes to build maximum sensation before release.",finish-off-2.json,
-finish_off,Finish Off,39,Deep Breathing Release,"{player}, take three deep synchronized breaths together right before letting go completely.",finish-off-2.json,
-finish_off,Finish Off,40,Explicit Order,"{player}, tell {partner} exactly where and how you want them to finish.",finish-off-2.json,
-finish_off,Finish Off,41,Forehead-to-Forehead,"{player}, press foreheads together, eyes locked, throughout the entire climactic buildup.",finish-off-2.json,
-finish_off,Finish Off,42,Elevated Missionary,"{player}, classic Missionary with a pillow under the hips, keeping eyes locked until release.",finish-off-2.json,
-finish_off,Finish Off,43,Guided Rear Entry,"{player}, finish {partner} off from behind, hands on their hips, guiding the tempo.",finish-off-2.json,
-finish_off,Finish Off,44,Top Control Rider,"{player}, get on top of {partner} and take complete control over speed and angle until they finish.",finish-off-2.json,
-finish_off,Finish Off,45,Close Spooning,"{player}, lie behind {partner} in spoons and finish them off slow and close.",finish-off-2.json,
-finish_off,Finish Off,46,Chest Lotus,"{player}, sit upright wrapped around {partner}, chest-to-chest, and finish them off in a close hug.",finish-off-2.json,
-finish_off,Finish Off,47,Standing Bed Edge,"{player}, standing against a wall or edge of a high bed for a powerful finish.",finish-off-2.json,
-finish_off,Finish Off,48,Full-Contact Prone,"{player}, lay {partner} flat on their stomach and finish them off from behind with full-body contact.",finish-off-2.json,
-finish_off,Finish Off,49,Reverse Top,"{player}, get on top of {partner} facing away, and finish them off from there.",finish-off-2.json,
-finish_off,Finish Off,50,Floor & Bed Edge,"{player}, put {partner} at the edge of the bed. Kneel or stand on the floor and finish them off.",finish-off-2.json,
-finish_off,Finish Off,51,Over-Shoulder X,"{player}, x-Mark—legs resting up over {partner}'s shoulders for deep angle and sensation.",finish-off-2.json,
-finish_off,Finish Off,52,Synced Climax,"{player}, match your breathing and rhythm to aim for a simultaneous climax together.",finish-off-2.json,
-finish_off,Finish Off,53,Finish off with oral — stay there,"{player}, finish {partner} off with your mouth on {partner_cock}. Switch to your mouth and do not switch back.",finish-off-2.json,
-finish_off,Finish Off,54,Max Sprint Tempo,"{player}, finish at an ultra-fast, high-energy pace until complete release.",finish-off-2.json,
-finish_off,Finish Off,55,Ultra Slow Penetration,"{player}, finish at an agonizingly slow, deep pace, taking your time with every movement.",finish-off-2.json,
-finish_off,Finish Off,56,Penetration Plus Touch,"{player}, incorporate manual clitoral/prostate stimulation during the climactic push.",finish-off-2.json,
-finish_off,Finish Off,57,Vibrating Finale,"{player}, introduce a vibration toy during penetration to push over the edge.",finish-off-2.json,
-finish_off,Finish Off,58,Verbal Climax Drive,"{player}, whisper uninterrupted dirty talk and praise into {partner}'s ear until they finish.",finish-off-2.json,
-finish_off,Finish Off,59,Commanded Release,"{player}, look into {partner}'s eyes and give a firm, loving command: 'Finish for me.'.",finish-off-2.json,
-finish_off,Finish Off,60,Pinned Wrists Release,"{player}, hold {partner}'s hands pinned flat to the mattress as they climax.",finish-off-2.json,
-finish_off,Finish Off,61,Pause & Permission,"{player}, bring {partner} to the brink, pause for 10 seconds, then give full permission to let go.",finish-off-2.json,
-finish_off,Finish Off,62,Hands to finish,"{player}, finish {partner} off with your hands on {partner_cock}.",finish-off-2.json,
-finish_off,Finish Off,63,Oral for you,"{player}, let {partner} finish you off with their mouth on {player_cock}.",finish-off-2.json,
-finish_off,Finish Off,64,Finish from behind,"{player}, finish {partner} off from behind — hands on their hips, {player_cock} deep.",finish-off-2.json,
-finish_off,Finish Off,65,On top to finish,"{player}, get on top of {partner} and ride {partner_cock} until they finish.",finish-off-2.json,
-finish_off,Finish Off,66,Mouth then hands,"{player}, start finishing {partner} off with your mouth on {partner_cock}, then use your hands to take them over.",finish-off-2.json,
-finish_off,Finish Off,67,Eye contact oral,"{player}, finish {partner} off with your mouth on {partner_cock} and do not look away from their eyes.",finish-off-2.json,
-finish_off,Finish Off,68,Slow oral finish,"{player}, finish {partner} off with your mouth on {partner_cock}, as slow as you can stand.",finish-off-2.json,
-finish_off,Finish Off,69,Cum on tits,{player} pulls {player_cock} out and cums on {partner}'s {partner_tits}.,finish-off-2.json,
-finish_off,Finish Off,70,Stroke and finish on chest,"{player}, wrap a hand around {player_cock} and finish on {partner}'s {partner_chest}.",finish-off-2.json,
-finish_off,Finish Off,71,Mouth then cum on body,"{player}, get {partner} close with your mouth on {partner_cock}, then pull back and finish on their body.",finish-off-2.json,
-finish_off,Finish Off,72,Guide their hand,"{player}, put {partner}'s hand on {player_cock} and make them finish you off.",finish-off-2.json,
-finish_off,Finish Off,73,Mouth Finish,"{player}, pull out right before release and finish in {partner}'s mouth.",finish-off-3.json,
-finish_off,Finish Off,74,Chest & Throat Paint,"{player}, pull out at the last second and cum across {partner}'s chest and neck.",finish-off-3.json,
-finish_off,Finish Off,75,Face Tribute,"{player}, pull out right at the edge and finish on {partner}'s face.",finish-off-3.json,
-finish_off,Finish Off,76,Lower Back Paint,"{player}, finish from behind, pull out at the brink, and cum over {partner}'s lower back and hips.",finish-off-3.json,
-finish_off,Finish Off,77,Full Swallow,"{player}, have {partner} take you into their mouth to finish, swallowing every drop while keeping eye contact.",finish-off-3.json,
-finish_off,Finish Off,78,Creampie Hold,"{player}, stay completely deep inside {partner} until you finish fully, holding their hips tight against you.",finish-off-3.json,
-finish_off,Finish Off,79,Stomach Splash,"{player}, pull out at climax and cum across {partner}'s bare stomach.",finish-off-3.json,
-finish_off,Finish Off,80,Ass Finish,"{player}, pull out at the last second and finish over {partner}'s butt cheeks.",finish-off-3.json,
-finish_off,Finish Off,81,Anal Creampie,"{player}, finish inside {partner}'s ass, holding their hips tightly against yours and staying inside until you go soft.",finish-off-3.json,
-finish_off,Finish Off,82,Ass-to-Mouth,"{player}, pull out of {partner}'s pussy or ass right at the brink and slide straight into their mouth to finish.",finish-off-3.json,
-finish_off,Finish Off,83,Gag & Swallow,"{player}, hold {partner} by the hair while finishing deep in their throat, telling them to swallow every drop as you cum.",finish-off-3.json,
-finish_off,Finish Off,84,Anal Pull-Out Splash,"{player}, finish by thrusting in {partner}'s ass, then pull out at the last second to cum across their ass cheeks and lower back.",finish-off-3.json,
-finish_off,Finish Off,85,Double Stain,"{player}, finish on {partner}'s face and tits at the same time while tipping their head back.",finish-off-3.json,
-afterglow,Afterglow,1,Three-Minute Lock,"{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",afterglow.json,
-afterglow,Afterglow,2,Chest Heartbeat,"{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",afterglow.json,
-afterglow,Afterglow,3,Water Delivery,"{player}, bring {partner} a fresh, cold glass of water and hold it for them while they drink.",afterglow.json,
-afterglow,Afterglow,4,Warm Towel Care,"{player}, use a warm, damp towel to gently clean and care for {partner}.",afterglow.json,
-afterglow,Afterglow,5,No-Screen Snuggle,"{player}, set a 30-minute timer, pull the covers up, and snuggle with zero phones or screens.",afterglow.json,
-afterglow,Afterglow,6,Ten Facial Kisses,"{player}, hold {partner}'s face in your hands and give them ten soft kisses across their forehead and cheeks.",afterglow.json,
-afterglow,Afterglow,7,Peaceful Hair Stroke,"{player}, gently stroke {partner}'s hair while breathing together in total peace.",afterglow.json,
-afterglow,Afterglow,8,Favorite Moment Query,"{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",afterglow.json,
-afterglow,Afterglow,9,Lazy Back Circles,"{player}, trace light, lazy circles on {partner}'s back or shoulder while they relax against you.",afterglow.json,
-afterglow,Afterglow,10,Three Love Declarations,"{player}, whisper three sincere things you deeply love about your relationship.",afterglow.json,
-afterglow,Afterglow,11,Interlocked Recovery,"{player}, lay side-by-side holding hands with interlocked fingers until your heart rates slow down.",afterglow.json,
-afterglow,Afterglow,12,Body Comfort Scale,"{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",afterglow.json,
-afterglow,Afterglow,13,Stomach Lower Back Rub,"{player}, give {partner} a slow, gentle lower back rub while they rest on their stomach.",afterglow.json,
-afterglow,Afterglow,14,Shoulder Head Rest,"{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",afterglow.json,
-afterglow,Afterglow,15,Nose Kiss Gratitude,"{player}, kiss the tip of {partner}'s nose and say, 'Thank you for tonight.'.",afterglow.json,
-afterglow,Afterglow,16,Stomach Initial Trace,"{player}, lightly trace your initials onto {partner}'s stomach with your fingertip.",afterglow.json,
-afterglow,Afterglow,17,Repeat Wish,"{player}, ask {partner}: 'Is there anything we did tonight that you'd love to repeat next time?'.",afterglow.json,
-afterglow,Afterglow,18,Palms Over Hearts,"{player}, place your palm flat over {partner}'s heart and let them place theirs over yours.",afterglow.json,
-afterglow,Afterglow,19,Five Silent Minutes,"{player}, keep the lights dim, close your eyes, and cuddle in complete silence for 5 minutes.",afterglow.json,
-afterglow,Afterglow,20,Rear Spoon Kisses,"{player}, kiss {partner}'s neck and shoulders while spooning them from behind.",afterglow.json,
-afterglow,Afterglow,21,Foot Tension Release,"{player}, softly massage {partner}'s feet or calves to release any lingering physical tension.",afterglow.json,
-afterglow,Afterglow,22,Playful Memory Share,"{player}, share one sweet or funny thought that popped into your head while playing tonight.",afterglow.json,
-afterglow,Afterglow,23,Warm Blanket Burrito,"{player}, wrap {partner} up like a burrito in a warm blanket and pull them close.",afterglow.json,
-afterglow,Afterglow,24,Temple Kiss & Hair Brush,"{player}, brush stray hair away from {partner}'s forehead and press a long kiss to their temple.",afterglow.json,
-afterglow,Afterglow,25,Surprise Card Inquiry,"{player}, ask {partner}: 'Which card surprised you the most tonight?'.",afterglow.json,
-afterglow,Afterglow,26,Chest Waist Lock,"{player}, lay chest-to-chest with your arms locked around each other's waist for 5 minutes.",afterglow.json,
-afterglow,Afterglow,27,Wrist Kiss to Cheek,"{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",afterglow.json,
-afterglow,Afterglow,28,Desired Praise,"{player}, tell {partner} one specific way they made you feel desired tonight.",afterglow.json,
-afterglow,Afterglow,29,Cozy Clothes Fetch,"{player}, offer to grab {partner} a cozy shirt or hoodie to slip into.",afterglow.json,
-afterglow,Afterglow,30,Tent Kiss,"{player}, pull the blanket over both of your heads and share one deep, slow kiss in your private tent.",afterglow.json,
-afterglow,Afterglow,31,Shoulder Squeezes,"{player}, take turns giving each other three gentle shoulder squeezes.",afterglow.json,
-afterglow,Afterglow,32,Collarbone Skim,"{player}, lightly run your fingertips over {partner}'s collarbones while looking into their eyes.",afterglow.json,
-afterglow,Afterglow,33,Future Plan Question,"{player}, ask {partner}: 'What is one goal or trip you want us to plan together soon?'.",afterglow.json,
-afterglow,Afterglow,34,Pinky Lip Outline,"{player}, trace the outline of {partner}'s lips with your pinky finger.",afterglow.json,
-afterglow,Afterglow,35,Scented Hand Rub,"{player}, give {partner} a slow 2-minute hand massage using scented hand lotion.",afterglow.json,
-afterglow,Afterglow,36,Knee Stroke,"{player}, rest your leg across {partner}'s lap and let them gently stroke your knee.",afterglow.json,
-afterglow,Afterglow,37,Early Relationship Memory,"{player}, whisper a favorite memory from early on in your relationship.",afterglow.json,
-afterglow,Afterglow,38,One Song Breath Sync,"{player}, put on a single, ultra-relaxing song and focus only on feeling each other breathe.",afterglow.json,
-afterglow,Afterglow,39,Final Soft Bite,"{player}, softly bite {partner}'s lower lip one last time, followed by a sweet kiss.",afterglow.json,
-afterglow,Afterglow,40,Relaxation Scale,"{player}, ask {partner} to rate their current relaxation level from 1 to 10.",afterglow.json,
-afterglow,Afterglow,41,Front-to-Back Comb,"{player}, gently comb your fingers through {partner}'s hair from front to back.",afterglow.json,
-afterglow,Afterglow,42,Knuckle Kisses,"{player}, hold {partner}'s hand and kiss every single one of their knuckles.",afterglow.json,
-afterglow,Afterglow,43,Full Weight Rest,"{player}, lay back and let {partner} rest their full weight on top of you for a cozy minute.",afterglow.json,
-afterglow,Afterglow,44,Smile Inquiry,"{player}, ask {partner}: 'What made you smile the most during our game?'.",afterglow.json,
-afterglow,Afterglow,45,Thermal Breath Warmup,"{player}, lightly blow cold air on {partner}'s neck, then warm it back up with a kiss.",afterglow.json,
-afterglow,Afterglow,46,Seated Stretch Assist,"{player}, offer {partner} a quick neck and shoulder stretch while sitting up together.",afterglow.json,
-afterglow,Afterglow,47,Three-Point Kiss Trail,"{player}, give {partner} three slow kisses: one on the chin, one on the lip, and one on the forehead.",afterglow.json,
-afterglow,Afterglow,48,Lucky Ear Whisper,"{player}, hold {partner} close and whisper 'I'm so lucky to have you' into their ear.",afterglow.json,
-afterglow,Afterglow,49,Staring Contest,"{player}, lay side-by-side facing each other and just hold eye contact until one of you blinks.",afterglow.json,
-afterglow,Afterglow,50,Tuck In Sleep,"{player}, tuck the blanket around {partner}'s shoulders and hold them tight until they drift off.",afterglow.json,
-afterglow,Afterglow,51,Linger Pulse,"{player}, after climax, remain completely still and connected for 60 seconds without moving.",afterglow.json,
-afterglow,Afterglow,52,Afterglow Hug,"{player}, immediately wrap both arms and legs around partner in a tight embrace post-climax.",afterglow.json,
-afterglow,Afterglow,53,Whispered Thanks,"{player}, whisper three heartfelt, intimate thank-yous directly against {partner}'s ear after finishing.",afterglow.json,
-afterglow,Afterglow,54,Chest Rest,"{player}, lay your head directly over {partner}'s heart and listen to their heartbeat slow down.",afterglow.json,
-afterglow,Afterglow,55,Hair Stroke Afterglow,"{player}, slowly stroke {partner}'s hair while breathing together in total silence for 2 minutes.",afterglow.json,
-afterglow,Afterglow,56,Soft Kisses Only,"{player}, cover {partner}'s face and eyes with gentle, soft kisses after the intensity drops.",afterglow.json,
-afterglow,Afterglow,57,Hydration Service,"{player}, bring {partner} a cold glass of water and hold it for them as they drink.",afterglow.json,
-afterglow,Afterglow,58,Cuddle Lock,"{player}, pull covers up and hold partner close in full spooning position with no phones for 10 minutes.",afterglow.json,
-afterglow,Afterglow,59,Immediate Stillness,"{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",afterglow.json,
-afterglow,Afterglow,60,Heart Listen Shift,"{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",afterglow.json,
-afterglow,Afterglow,61,Hydration Rescue,"{player}, bring {partner} a fresh, cold glass of water and help them drink it.",afterglow.json,
-afterglow,Afterglow,62,Warm Damp Wipe,"{player}, use a warm, damp towel to gently clean and care for {partner}.",afterglow.json,
-afterglow,Afterglow,63,30-Min Snuggle Timer,"{player}, put on a soft 30-minute timer, pull the covers up, and snuggle without any phones or distractions.",afterglow.json,
-afterglow,Afterglow,64,Silent Hair Stroke,"{player}, gently stroke {partner}'s hair while breathing together in total peace.",afterglow.json,
-afterglow,Afterglow,65,Favorite Moment Ask,"{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",afterglow.json,
-afterglow,Afterglow,66,Three Love Qualities,"{player}, whisper three sincere things you love about your relationship while holding them close.",afterglow.json,
-afterglow,Afterglow,67,Side Hand Lock,"{player}, lay side-by-side holding hands with your fingers interlocked until your breathing normalizes.",afterglow.json,
-afterglow,Afterglow,68,Body Sensation Rating,"{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",afterglow.json,
-afterglow,Afterglow,69,Lower Back Soothe,"{player}, give {partner} a slow, gentle lower back rub while they lie on their stomach.",afterglow.json,
-afterglow,Afterglow,70,Shoulder Pillow Hug,"{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",afterglow.json,
-afterglow,Afterglow,71,Nose Kiss Thanks,"{player}, kiss the tip of {partner}'s nose and say 'thank you for tonight.'.",afterglow.json,
-afterglow,Afterglow,72,Stomach Initial,"{player}, lightly trace your initial onto their stomach while you cool down together.",afterglow.json,
-afterglow,Afterglow,73,Future Repeat Question,"{player}, ask {partner}: 'Is there anything special you'd like to try again next time we play?'.",afterglow.json,
-afterglow,Afterglow,74,Mutual Heart Palms,"{player}, place your hand flat over {partner}'s heart and let them place theirs over yours.",afterglow.json,
-afterglow,Afterglow,75,Dim Silent Cuddle,"{player}, keep the lights dim, close your eyes, and just cuddle in total silence for 5 minutes.",afterglow.json,
-afterglow,Afterglow,76,Spooned Neck Kisses,"{player}, gently kiss {partner}'s shoulders and neck while spooning from behind.",afterglow.json,
-afterglow,Afterglow,77,Calf Release,"{player}, softly massage {partner}'s feet or calves to release any remaining tension.",afterglow.json,
-afterglow,Afterglow,78,Funny Mid-Game Thought,"{player}, share one funny or sweet thought that popped into your head during the game.",afterglow.json,
-afterglow,Afterglow,79,Blanket Burrito,"{player}, wrap {partner} up like a burrito in a warm blanket and give them a huge hug.",afterglow.json,
-afterglow,Afterglow,80,Temple Kiss Wipe,"{player}, gently wipe away any stray hair from {partner}'s sweaty forehead and kiss their temple.",afterglow.json,
-afterglow,Afterglow,81,Surprise Card Ask,"{player}, ask {partner} to name one card from tonight that surprised them the most.",afterglow.json,
-afterglow,Afterglow,82,Chest-to-Chest Lock,"{player}, lay chest-to-chest with your arms around each other's waist for 5 uninterrupted minutes.",afterglow.json,
-afterglow,Afterglow,83,Wrist Kiss Cheek,"{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",afterglow.json,
-afterglow,Afterglow,84,Desire Praise,"{player}, tell {partner} one specific way they made you feel deeply loved or desired tonight.",afterglow.json,
-afterglow,Afterglow,85,Hoodie Fetch,"{player}, offer to get {partner} a cozy shirt or hoodie to slip into.",afterglow.json,
-afterglow,Afterglow,86,Blanket Fort Finale,"{player}, lock arms, pull the blanket over your heads, and share one final deep kiss before falling asleep.",afterglow.json,
-afterglow,Afterglow,87,Clean-Up Kiss,"{player}, kiss {partner} deeply right after you both finish.",afterglow-2.json,
-afterglow,Afterglow,88,Mark Check,"{player}, inspect each other's bodies for skin marks, scratches, or bites left behind.",afterglow-2.json,
-afterglow,Afterglow,89,Towel Service,"{player}, bring a warm, damp towel and gently wipe down {partner}'s chest, thighs, and stomach.",afterglow-2.json,
-afterglow,Afterglow,90,Post-Cum Praise,"{player}, whisper two explicit things you loved most about how {partner} looked while finishing.",afterglow-2.json,
-afterglow,Afterglow,91,Dirty Mirror Review,"{player}, stand together in front of a full-length mirror while still covered in cum and sweat — take in the view before showering.",afterglow-2.json,
-afterglow,Afterglow,92,Ass Care Massage,"{player}, rub warm lotion or oil over {partner}'s sore ass cheeks to soothe them while cuddling under the sheets.",afterglow-2.json,
+stage,stage_label,order,title,description,source_file
+pre_foreplay,Pre-Foreplay,1,Favorite Memory,"{player}, send {partner} a text describing your favorite physical memory of them.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,2,Whispered Desire,"{player}, send a voice message whispering one thing you want to do to them tonight.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,3,Subtle Tease,"{player}, text {partner} a subtle photo of what you are wearing right now.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,4,Turn-On Trio,"{player}, send a text listing three specific things {partner} does that instantly turn you on.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,5,Secret Keyword,"{player}, text {partner} a secret keyword. Whenever either of you says it tonight, the other must touch them.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,6,Countdown Timer,"{player}, send a text setting a countdown timer for when you get to touch each other tonight.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,7,Fantasy Question,"{player}, text {partner} a 'Yes/No' question about a fantasy you’ve never tried together.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,8,Daily Mandate,"{player}, send a text giving {partner} one rule they must follow for the rest of the day.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,9,Style Choice,"{player}, text {partner} asking them to choose your underwear/attire for tonight.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,10,First Touch Preview,"{player}, send a teaser text describing exactly where your hands will go the moment you are alone.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,11,Rear Embrace,"{player}, give {partner} a long, silent hug from behind for at least 30 seconds.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,12,Spine Trace,"{player}, walk up to {partner}, trace your finger down their spine, and walk away without saying a word.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,13,Neck Kisses,"{player}, kiss {partner}'s neck three times, then immediately return to what you were doing.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,14,Static Hold,"{player}, hold hands with {partner} for 2 minutes while doing whatever routine task you are doing.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,15,Ear Whispers,"{player}, whisper a secret desire directly into {partner}'s ear while standing close behind them.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,16,Hair & Cheeks,"{player}, run your fingers through {partner}'s hair while giving them a slow, soft kiss on the cheek.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,17,Thigh Contact,"{player}, touch {partner}'s inner thigh under the table/desk for 10 seconds.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,18,Extended Kiss,"{player}, pull {partner} in for a deep kiss that lasts at least 15 seconds—no hands below the waist yet.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,19,Lip Trace,"{player}, trace {partner}'s lips with your thumb while looking directly into their eyes.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,20,Lower Back Touch,"{player}, rest your hand on {partner}'s lower back while walking or standing together.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,21,Gentle Bite,"{player}, give {partner} a gentle bite on the lower lip during a kiss.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,22,Heartbeat Connection,"{player}, place {partner}'s hand over your heart so they can feel your pulse.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,23,Eye Lock,"{player}, maintain uninterrupted eye contact with {partner} for 60 seconds without speaking.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,24,Lip Bite Tease,"{player}, look at {partner} from across the room and slowly bite your bottom lip until they notice.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,25,Proximity Test,"{player}, stand face-to-face, less than an inch apart, without touching for 30 seconds.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,26,Silent Wink,"{player}, give {partner} 'the look' and wink at them without explaining why.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,27,Teasing Warning,"{player}, whisper 'You have no idea what's coming later' next to their ear.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,28,Slow Glance,"{player}, catch {partner}'s eye and slowly run your tongue over your top teeth.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,29,Full Scan,"{player}, look {partner} up and down slowly, ending with a smile.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,30,Continuous Contact,"{player}, sit next to {partner} and let your shoulders and legs touch continuously for 5 minutes.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,31,No-Touch Protocol,"{player}, establish a temporary rule: No touching allowed for the next 30 minutes, no matter what.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,32,Forbidden Garment,"{player}, tell {partner} one specific piece of clothing they are not allowed to wear later.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,33,One-Handed Service,"{player}, pour {partner} a drink or bring them a snack using only your left hand while keeping your right on their hip.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,34,Atmosphere Shift,"{player}, dim the lights in the main room and put on a smooth background song.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,35,Sensory Trace,"{player}, tell {partner} to close their eyes while you brush a feather, soft cloth, or fingertips across their wrist.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,36,Shoulder Rub,"{player}, give {partner} a 1-minute shoulders and neck rub with zero expectations of going further yet.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,37,Two Truths & A Lie,"{player}, tell {partner} two truth statements and one lie about what you want to do tonight—they have to guess the lie.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,38,Whisper Mode,"{player}, set a timer for 10 minutes. Until it rings, you can only communicate using whispers.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,39,Secret Note,"{player}, write a short, naughty note on a piece of paper and slip it into {partner}'s pocket or hands.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,40,Anticipation Check,"{player}, ask {partner} to rate their current anticipation level from 1 to 10 and tell you how to raise it by two points.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,41,Hand Feeding,"{player}, feed {partner} a bite of food or a piece of fruit by hand.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,42,Body Praises,"{player}, gently whisper three compliments about {partner}'s body while holding their hands.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,43,Partial Access,"{player}, unbutton or unzip one item of {partner}'s clothing, then tell them they have to wait for the rest.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,44,Blind Tracing,"{player}, trace an invisible letter or word on {partner}'s palm or back and make them guess what it is.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,45,Kitchen Slow Dance,"{player}, put {partner}'s hand on your hip and slow dance for one full song in the kitchen or living room.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,46,Lipstick Mark,"{player}, apply lip balm or lipstick and press a kiss onto {partner}'s neck or collarbone.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,47,Wrist Kiss,"{player}, give {partner} a slow, deliberate kiss on the inside of their wrist.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,48,Lap Rest,"{player}, sit on {partner}'s lap for 1 minute while talking about your day.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,49,Warm Breath,"{player}, gently blow on the back of {partner}'s neck while standing behind them.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,50,Direct Intention,"{player}, hold {partner} by the waist, look them in the eyes, and say: 'I've been thinking about you all day.'.",pre-foreplay.json
+pre_foreplay,Pre-Foreplay,51,Smile Tease,"{player}, text {partner} asking them to send a 5-second video showing only their smile.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,52,First Garment,"{player}, send a text describing the exact piece of clothing you want them to take off first tonight.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,53,Soundtrack Hint,"{player}, text {partner} a song and tell them to listen to the lyrics while thinking of you.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,54,Location Tease,"{player}, send a voice note dropping a hint about what room in the house you want to start in tonight.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,55,Kiss Count,"{player}, text {partner} asking them to pick a random number between 1 and 10—that’s how many kisses they owe you the second you walk through the door.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,56,Color Guess,"{player}, send a sneaky text asking them to guess what color underwear you wore today.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,57,Target Practice,"{player}, text {partner} a photo of a spot on your body where you want a kiss later.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,58,Wildcard Pass,"{player}, send a text giving them permission to interrupt you once tonight with a passionate kiss, no matter what you are doing.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,59,Single Word,"{player}, text {partner} a single naughty word that sums up your mood today.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,60,Waist Boundary,"{player}, send a teaser text telling {partner} they aren't allowed to touch your waist until you say so.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,61,Doorway Welcome,"{player}, meet {partner} at the front door and give them a 5-second lingering kiss on the lips before saying 'welcome home.'.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,62,Jacket Assist,"{player}, gently trace your thumb over their collarbone while helping them take off their jacket or bag.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,63,Kitchen Lean,"{player}, stand next to them while they make coffee or dinner and quietly rest your head on their shoulder for 15 seconds.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,64,Red Light Hold,"{player}, reach across the car console and hold their hand firmly at every red light.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,65,Pocket Pinch,"{player}, walk past {partner} and slip your hand into their back pocket for a gentle squeeze.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,66,Counter Contact,"{player}, stand close enough that your hips touch while washing dishes or preparing food.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,67,Hallway Graze,"{player}, lightly graze your fingers down the back of their arm while walking past them in the hallway.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,68,Belt Loop Pull,"{player}, pull {partner} in by their belt loops or waistband for a quick, firm kiss.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,69,Face Hold,"{player}, touch the side of their face with both hands and tell them they look incredible today.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,70,Silent Sway,"{player}, hold {partner} by the hips and slowly sway together for 30 seconds with no music playing.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,71,Lip Bite Stare,"{player}, bite your bottom lip while looking at them from across the kitchen counter.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,72,Breath on Cheek,"{player}, lean in close, pretend you are going to tell them a secret, and just breathe gently onto their cheek.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,73,Silent Demand,"{player}, catch their eye, point to your lips, and point to them—demanding a kiss without speaking.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,74,Secret Smile,"{player}, look at {partner}, smile slowly, and shake your head like you’re holding back a secret.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,75,Lip Glance,"{player}, pause mid-sentence while talking, look down at their lips, then look back up into their eyes before continuing.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,76,Warm Look,"{player}, give {partner} a warm, lingering look, then slowly tilt your head and smile.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,77,Ear Confession,"{player}, whisper 'I've been distracted by you all afternoon' right against their ear.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,78,Seated Collarbone,"{player}, stand behind them while they are seated and rest both hands lightly on their collarbones.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,79,Outfitter Rule,"{player}, rule: The initiator gets to choose what both of you wear for the next hour.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,80,Screen Blackout,"{player}, rule: Neither of you can use your phone for the next 30 minutes—only focus on each other.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,81,Room Transit,"{player}, rule: You must hold hands every time you move from one room to another for the rest of the evening.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,82,Kneeling Drink,"{player}, pour {partner} a cold glass of water or a warm drink and serve it to them on your knees.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,83,Mood Lighting,"{player}, turn off all main overhead lighting and switch to warm lamps or candlelight only.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,84,Quick Foot Rub,"{player}, give {partner} a slow 2-minute foot rub while they relax on the couch.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,85,Pamper Check,"{player}, ask {partner}: 'What's one small thing I can do tonight to make you feel completely pampered?'.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,86,Room Temp Shift,"{player}, put on a slow, ambient playlist and set the room temperature to cozy.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,87,Initial Trace,"{player}, trace your initial onto their forearm with your fingertip and make them guess what you wrote.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,88,Cold Metal Trace,"{player}, tell {partner} to close their eyes while you lightly run a cold silver spoon down their arm.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,89,Mirror Note,"{player}, write a romantic or playful note on their bathroom mirror using a dry-erase marker or lip balm.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,90,Stress Reduction,"{player}, ask {partner} to rate their stress level from 1 to 10 and give them a massage until it drops by two points.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,91,Sweet Bite,"{player}, feed {partner} a sweet treat (like a piece of chocolate or fruit) while holding their eyes locked with yours.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,92,Trio Kisses,"{player}, give {partner} three gentle kisses—one on the forehead, one on the tip of the nose, and one on the lips.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,93,Two Buttons,"{player}, unbutton just the top two buttons of {partner}'s shirt, then step back.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,94,Day Catchup,"{player}, trace your finger around their earlobe while asking them about the best part of their day.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,95,Lap Rest,"{player}, sit next to {partner} on the couch and rest your legs across their lap.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,96,Balm Application,"{player}, gently apply lip balm to {partner}'s lips using your finger.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,97,Palmed Kiss,"{player}, kiss the palm of their hand, close their fingers into a fist, and say 'keep that for later.'.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,98,Knee Rest,"{player}, rest your hand gently on their knee while watching TV or chatting.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,99,Synced Breath,"{player}, stand face-to-face and take five slow, deep breaths in unison.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,100,Bedroom Summon,"{player}, walk up, whisper 'You're mine tonight,' and walk into the bedroom.",pre-foreplay-2.json
+pre_foreplay,Pre-Foreplay,101,Mirror Flash,"{player}, send {partner} a text with a quick, suggestive mirror selfie — show just enough skin to leave them guessing.",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,102,Whispered Mandate,"{player}, lean in close in public or around company and whisper exactly what underwear you aren't wearing tonight.",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,103,Desk Interruption,"{player}, walk up while {partner} is sitting down, turn their chair around, and kiss them deeply on the mouth for 10 seconds before walking away.",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,104,Car Key Hijack,"{player}, text {partner}: ""When we get home, you're taking off my clothes before you take off your shoes.""",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,105,Blindfold Tease,"{player}, text a picture of a silk scarf or blindfold resting on the pillow with the caption: ""Guess how we're using this later.""",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,106,Video Tease,"{player}, send a short, private 5-second video of you touching yourself through your clothes — at work or in another room.",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,107,Whispered Demand,"{player}, walk up behind {partner}, tip their head back gently by the hair, and whisper: ""You're going to do whatever I say in the bedroom tonight.""",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,108,No-Pants Rule,"{player}, text {partner} right before coming home: ""Lose the pants or skirt before I get through the door.""",pre-foreplay-3.json
+pre_foreplay,Pre-Foreplay,109,Quiet Prep,"{player}, text {partner} from another room: ""Tonight you stay as quiet as you can. Louder than a whisper and we stop.""",pre-foreplay-4.json
+pre_foreplay,Pre-Foreplay,110,Audio Confession,"{player}, send {partner} a 10-second voice note describing the exact position you'll put them in the second you get home.",pre-foreplay-4.json
+pre_foreplay,Pre-Foreplay,111,Denial Warning,"{player}, text {partner} early in the day: no matter how much they beg tonight, they don't get to cum until you say so.",pre-foreplay-4.json
+pre_foreplay,Pre-Foreplay,112,Blind Entry,"{player}, put a blindfold on {partner} the moment they walk into the room, lead them to the bed, and make them wait in silence for two minutes before you touch them.",pre-foreplay-4.json
+foreplay,Foreplay,1,Blindfold Exploration,"{player}, blindfold {partner} and lightly trace an ice cube down their neck and chest.",foreplay.json
+foreplay,Foreplay,2,Feather Touch,"{player}, use your fingertips or a soft fabric to gently stroke {partner}'s inner arms and thighs for 2 minutes.",foreplay.json
+foreplay,Foreplay,3,Sensory Kissing,"{player}, kiss {partner} everywhere EXCEPT their lips for 3 full minutes.",foreplay.json
+foreplay,Foreplay,4,Temperature Play,"{player}, take a sip of warm tea or ice water, then press a slow kiss to {partner}'s collarbone.",foreplay.json
+foreplay,Foreplay,5,Massage Oil Ritual,"{player}, warm some massage oil in your hands and spend 5 minutes working on {partner}'s shoulders and upper back.",foreplay.json
+foreplay,Foreplay,6,Earlobe Tease,"{player}, gently nibble and blow warm air on {partner}'s earlobes while whispering what you want to do next.",foreplay.json
+foreplay,Foreplay,7,Slow Stripping,"{player}, slowly remove one article of {partner}'s clothing using only your teeth.",foreplay.json
+foreplay,Foreplay,8,Breath Work,"{player}, hover your lips a fraction of an inch above {partner}'s skin, letting them feel your warm breath without touching.",foreplay.json
+foreplay,Foreplay,9,Trace & Guess,"{player}, trace a shape on {partner}'s torso with your tongue; if they guess it correctly, they give you a command.",foreplay.json
+foreplay,Foreplay,10,Foot Massage,"{player}, give {partner} a slow, relaxing foot massage focusing on the arches and heels.",foreplay.json
+foreplay,Foreplay,11,Neck Mapping,"{player}, leave a trail of soft kisses from the base of {partner}'s throat up to their jawline.",foreplay.json
+foreplay,Foreplay,12,Handcuff / Restraint Light,"{player}, gently hold {partner}'s wrists above their head for 60 seconds while kissing them deeply.",foreplay.json
+foreplay,Foreplay,13,Whispered Compliments,"{player}, whisper three explicit compliments about {partner}'s body while running your hands over those exact spots.",foreplay.json
+foreplay,Foreplay,14,Sensory Reset,"{player}, have {partner} close their eyes while you touch three different parts of their body using three different textures.",foreplay.json
+foreplay,Foreplay,15,Slow Descent,"{player}, kiss {partner}'s lips, then neck, then chest, pausing at each stop for 30 seconds.",foreplay.json
+foreplay,Foreplay,16,Fingertip Massage,"{player}, gently massage {partner}'s hands, fingers, and palms while maintaining steady eye contact.",foreplay.json
+foreplay,Foreplay,17,Mirror View,"{player}, position {partner} in front of a mirror and touch them while both watching in the reflection.",foreplay.json
+foreplay,Foreplay,18,Tension Pull,"{player}, gently pull {partner}'s hair back to expose their neck, then press a deep kiss into the side of their neck.",foreplay.json
+foreplay,Foreplay,19,Thigh Hover,"{player}, lightly trace your fingers up {partner}'s inner thighs, stopping just short of sensitive areas.",foreplay.json
+foreplay,Foreplay,20,Rhythmic Breathing,"{player}, lay chest-to-chest and synchronize your breathing with {partner} for 1 full minute.",foreplay.json
+foreplay,Foreplay,21,Warm Hands,"{player}, rub your hands together rapidly until warm, then place them directly over {partner}'s bare waist.",foreplay.json
+foreplay,Foreplay,22,Biting Tease,"{player}, lightly bite down on {partner}'s lower lip, shoulder, or hip bone during a kiss.",foreplay.json
+foreplay,Foreplay,23,Erotic Reading,"{player}, read a short, sensual paragraph or naughty prompt aloud to {partner} in a low voice.",foreplay.json
+foreplay,Foreplay,24,Ribcage Caress,"{player}, use both hands to slowly trace down {partner}'s ribcage to their hips.",foreplay.json
+foreplay,Foreplay,25,Lingerie / Underwear Removal,"{player}, take 2 full minutes to unfasten or remove {partner}'s underwear as slowly as possible.",foreplay.json
+foreplay,Foreplay,26,Palm Kisses,"{player}, kiss the center of both of {partner}'s palms and fold their fingers over the spot.",foreplay.json
+foreplay,Foreplay,27,Feather Light Tracing,"{player}, use just the very tips of your fingernails to lightly skim across {partner}'s stomach.",foreplay.json
+foreplay,Foreplay,28,Spine Trail,"{player}, kiss every single vertebra down {partner}'s spine from neck to lower back.",foreplay.json
+foreplay,Foreplay,29,Controlled Touch,"{player}, guide {partner}'s hand across your own body to show them exactly how and where you want to be touched.",foreplay.json
+foreplay,Foreplay,30,Ice Cube Drag,"{player}, drag an ice cube from {partner}'s stomach down to their hip bone, then melt the cold spot with warm kisses.",foreplay.json
+foreplay,Foreplay,31,Hypnotic Stare,"{player}, straddle {partner} or sit close and stare deeply into their eyes while caressing their face for 60 seconds.",foreplay.json
+foreplay,Foreplay,32,Shoulder Blade Trail,"{player}, trace your tongue along the contour of {partner}'s shoulder blades.",foreplay.json
+foreplay,Foreplay,33,Knee Kisses,"{player}, kiss the soft skin behind {partner}'s knees.",foreplay.json
+foreplay,Foreplay,34,Gentle Restraint,"{player}, use a necktie or soft scarf to loosely tie {partner}'s hands together for the next two cards.",foreplay.json
+foreplay,Foreplay,35,Audio Focus,"{player}, put headphones on {partner} with soft music playing while you kiss and touch them.",foreplay.json
+foreplay,Foreplay,36,Slow Striptease,"{player}, remove one piece of your own clothing as slowly as possible while making direct eye contact.",foreplay.json
+foreplay,Foreplay,37,Hip Caress,"{player}, grip {partner} firmly by the hips and pull them tightly against your body.",foreplay.json
+foreplay,Foreplay,38,Tongue Trace,"{player}, trace the outline of {partner}'s ear with the tip of your tongue.",foreplay.json
+foreplay,Foreplay,39,Sensory Blindfold,"{player}, blindfold {partner} and let them guess which object or fabric you are using to touch them.",foreplay.json
+foreplay,Foreplay,40,Collarbone Kiss,"{player}, linger on {partner}'s collarbone with slow, wet kisses for 45 seconds.",foreplay.json
+foreplay,Foreplay,41,Body Oil Trace,"{player}, trace intricate patterns on {partner}'s stomach using massage oil.",foreplay.json
+foreplay,Foreplay,42,Grounded Touch,"{player}, place both hands flat against {partner}'s chest and apply gentle pressure while kissing.",foreplay.json
+foreplay,Foreplay,43,Tempting Pause,"{player}, lean in as if to kiss {partner} passionately, stop half an inch away, hold for 10 seconds, then pull back.",foreplay.json
+foreplay,Foreplay,44,Jawline Skim,"{player}, gently trace your thumb along {partner}'s jawline before tilting their head up for a deep kiss.",foreplay.json
+foreplay,Foreplay,45,Inner Wrist Trail,"{player}, lick a slow line from {partner}'s inner wrist up to the crook of their elbow.",foreplay.json
+foreplay,Foreplay,46,Soft Whispering,"{player}, whisper a detailed plan for the next 10 minutes directly against {partner}'s skin.",foreplay.json
+foreplay,Foreplay,47,Fingertip Suck,"{player}, gently take one of {partner}'s fingers into your mouth and suck lightly.",foreplay.json
+foreplay,Foreplay,48,Low Lights Focus,"{player}, turn off all the lights except for a single candle or warm glow light before continuing.",foreplay.json
+foreplay,Foreplay,49,Rhythmic Stroke,"{player}, stroke {partner}'s hair slowly in sync with the beat of a background song.",foreplay.json
+foreplay,Foreplay,50,Full Body Skim,"{player}, run both flat palms over {partner}'s entire body from shoulders to ankles without breaking contact.",foreplay.json
+foreplay,Foreplay,51,Scent Selection,"{player}, blindfold {partner} and let them smell three different scented items to choose the mood.",foreplay-2.json
+foreplay,Foreplay,52,Scarf Stroke,"{player}, use a silk scarf or soft ribbon to lightly stroke down {partner}'s arms and torso.",foreplay-2.json
+foreplay,Foreplay,53,Slow Collarbone,"{player}, kiss {partner}'s collarbone five times, moving slower with each kiss.",foreplay-2.json
+foreplay,Foreplay,54,Calf Massage,"{player}, rub a small amount of warm body oil between your palms and massage {partner}'s calves and ankles.",foreplay-2.json
+foreplay,Foreplay,55,Knuckle Ribs,"{player}, lightly trace your knuckles down the side of {partner}'s ribcage to their hip.",foreplay-2.json
+foreplay,Foreplay,56,Warm Air & Cool Touch,"{player}, gently blow warm air on {partner}'s stomach, then immediately follow it with a cool touch.",foreplay-2.json
+foreplay,Foreplay,57,Fingertip Circles,"{player}, use your fingertips to trace small, slow circles all over {partner}'s upper chest.",foreplay-2.json
+foreplay,Foreplay,58,Elbow Kiss,"{player}, kiss the inside of {partner}'s elbow for 30 seconds.",foreplay-2.json
+foreplay,Foreplay,59,Nose Trace,"{player}, trace {partner}'s jawline with the tip of your nose.",foreplay-2.json
+foreplay,Foreplay,60,Scalp Focus,"{player}, give {partner} a slow, relaxing scalp massage using your fingertips for 2 minutes.",foreplay-2.json
+foreplay,Foreplay,61,Wrists Elevated,"{player}, hold {partner}'s wrists gently above their head while kissing down their neck.",foreplay-2.json
+foreplay,Foreplay,62,Back Scratch,"{player}, lightly drag your fingernails down {partner}'s back in slow, parallel lines.",foreplay-2.json
+foreplay,Foreplay,63,Vacation Fantasy,"{player}, whisper a detailed fantasy about a vacation scenario into {partner}'s ear.",foreplay-2.json
+foreplay,Foreplay,64,Arm Feather,"{player}, touch {partner}'s inner arm with a soft feather or fabric from wrist to shoulder.",foreplay-2.json
+foreplay,Foreplay,65,Behind the Earlobe,"{player}, kiss {partner} on the sweet spot right behind their earlobe.",foreplay-2.json
+foreplay,Foreplay,66,Interlocked Toes,"{player}, place your bare feet against {partner}'s feet under the sheets and interlock your toes.",foreplay-2.json
+foreplay,Foreplay,67,Timed Unbuttoning,"{player}, slowly unbutton {partner}'s shirt one single button every 30 seconds.",foreplay-2.json
+foreplay,Foreplay,68,Hovering Lips,"{player}, hover your lips over {partner}'s lips for 20 seconds without letting them touch.",foreplay-2.json
+foreplay,Foreplay,69,Under-Shirt Palms,"{player}, run your hands under {partner}'s shirt and rest your warm palms flat on their lower back.",foreplay-2.json
+foreplay,Foreplay,70,Eyebrow Kisses,"{player}, give {partner} a slow, gentle kiss on each eyebrow before kissing their lips.",foreplay-2.json
+foreplay,Foreplay,71,Hip Pinch,"{player}, lightly pinch {partner}'s hip bone during a deep kiss.",foreplay-2.json
+foreplay,Foreplay,72,Barefoot Sock Removal,"{player}, take off {partner}'s socks using only your feet.",foreplay-2.json
+foreplay,Foreplay,73,Tongue Map,"{player}, trace an imaginary map on {partner}'s stomach with your tongue.",foreplay-2.json
+foreplay,Foreplay,74,Pulse Check,"{player}, guide {partner}'s hand to feel your racing pulse.",foreplay-2.json
+foreplay,Foreplay,75,Warm Cloth Eyes,"{player}, place a warm cloth over {partner}'s eyes while you touch their hands and arms.",foreplay-2.json
+foreplay,Foreplay,76,Lip Outline,"{player}, trace your tongue along {partner}'s lip line before giving them a full kiss.",foreplay-2.json
+foreplay,Foreplay,77,Temple Thumb Massage,"{player}, gently massage {partner}'s temples with your thumbs while looking down at them.",foreplay-2.json
+foreplay,Foreplay,78,Inner Thigh Kisses,"{player}, kiss the soft skin on the inside of {partner}'s thighs, staying away from the center.",foreplay-2.json
+foreplay,Foreplay,79,Belly Button Ice,"{player}, use an ice cube to trace a ring around {partner}'s belly button.",foreplay-2.json
+foreplay,Foreplay,80,Hair Brush Back,"{player}, have {partner} lie back while you slowly brush their hair out of their face.",foreplay-2.json
+foreplay,Foreplay,81,Chest Flush,"{player}, hold {partner} by the waist and lift them slightly to pull them flush against your chest.",foreplay-2.json
+foreplay,Foreplay,82,Favorite Feature,"{player}, whispering only: Tell {partner} your absolute favorite physical feature on their body.",foreplay-2.json
+foreplay,Foreplay,83,Off-the-Shoulder Kiss,"{player}, slowly slide {partner}'s shirt off their shoulders, kissing each shoulder as it is revealed.",foreplay-2.json
+foreplay,Foreplay,84,Chin-to-Navel Line,"{player}, trace your finger from {partner}'s chin down to their belly button in one unbroken line.",foreplay-2.json
+foreplay,Foreplay,85,Lotion Hand Massage,"{player}, give {partner} a slow 1-minute hand massage using scented lotion.",foreplay-2.json
+foreplay,Foreplay,86,Ten-Finger Lock,"{player}, lay face-to-face and interlock all ten fingers while sharing deep, slow kisses.",foreplay-2.json
+foreplay,Foreplay,87,Rear Shoulder Bite,"{player}, gently bite {partner}'s shoulder blade while hugging them from behind.",foreplay-2.json
+foreplay,Foreplay,88,Contour Palm,"{player}, trace the contour of {partner}'s hip with the palm of your hand.",foreplay-2.json
+foreplay,Foreplay,89,Three Warm Touch,"{player}, blindfold {partner} and touch them with three warm objects in a row.",foreplay-2.json
+foreplay,Foreplay,90,Throat to Chin,"{player}, lick a slow path from the base of {partner}'s throat up to their chin.",foreplay-2.json
+foreplay,Foreplay,91,Five Lip Kisses,"{player}, hold {partner}'s face in both hands and give them five short, sweet kisses on the lips.",foreplay-2.json
+foreplay,Foreplay,92,Behind the Knees,"{player}, run your fingers lightly across the back of {partner}'s knees.",foreplay-2.json
+foreplay,Foreplay,93,Secret Praise,"{player}, whisper a secret compliment that you’ve never told anyone else.",foreplay-2.json
+foreplay,Foreplay,94,Neck Press,"{player}, press your lips to the side of {partner}'s neck and hold them there while taking a deep breath.",foreplay-2.json
+foreplay,Foreplay,95,Armpit to Hip,"{player}, lightly skim your palm down {partner}'s side from armpit to hip.",foreplay-2.json
+foreplay,Foreplay,96,Heartbeat Listen,"{player}, rest your head on {partner}'s chest and listen to their breathing for 1 minute.",foreplay-2.json
+foreplay,Foreplay,97,Bottom Lip Tug,"{player}, use your lips to gently tug on {partner}'s bottom lip three times.",foreplay-2.json
+foreplay,Foreplay,98,Blind Body Guess,"{player}, put a blindfold on {partner} and let them guess which part of your body is touching theirs.",foreplay-2.json
+foreplay,Foreplay,99,Cheekbone Thumb,"{player}, trace your thumbs over {partner}'s cheekbones while kissing them softly.",foreplay-2.json
+foreplay,Foreplay,100,Relax Command,"{player}, gently stroke {partner}'s sides while whispering 'relax into me.'.",foreplay-2.json
+foreplay,Foreplay,101,Lap Grind,"{player}, have {partner} sit on your lap facing you, grinding slowly through clothes while making unbroken eye contact.",foreplay-3.json
+foreplay,Foreplay,102,Ice Trail,"{player}, drag an ice cube down {partner}'s stomach and thighs, then immediately follow the water trail with warm tongue licks.",foreplay-3.json
+foreplay,Foreplay,103,Shirtless Grip,"{player}, pull {partner}'s shirt off and run both hands firmly over their chest while biting their neck.",foreplay-3.json
+foreplay,Foreplay,104,Spank Preview,"{player}, deliver three sharp, stinging spanks over {partner}'s underwear, then soothe the area with slow, firm rubs.",foreplay-3.json
+foreplay,Foreplay,105,Through-Fabric Suck,"{player}, suck gently on {partner}'s nipples through their bra or thin shirt until the fabric is damp.",foreplay-3.json
+foreplay,Foreplay,106,Porn Pick,"{player}, sit on the couch together and let {partner} choose a porn video for both of you to watch while you touch them through their clothes.",foreplay-3.json
+foreplay,Foreplay,107,Rim Tease,"{player}, have {partner} lie on their stomach while you gently lick and kiss around their ass and rim — stay just outside.",foreplay-3.json
+foreplay,Foreplay,108,Oiled Spanks,"{player}, apply warm oil over {partner}'s bare ass cheeks and give five firm, stinging spanks until the skin is warm and flushed.",foreplay-3.json
+foreplay,Foreplay,109,Anal Finger Tease,"{player}, while kissing {partner} deeply, lube one finger and slowly press it against their outer rim without going all the way in yet.",foreplay-3.json
+foreplay,Foreplay,110,Hands Bound Behind,"{player}, tie {partner}'s wrists behind their back with a soft scarf or belt before you start kissing their body — leave them open to your touch.",foreplay-4.json
+foreplay,Foreplay,111,Root Hair Grip,"{player}, grip a handful of {partner}'s hair firmly near the roots, tip their head back, and cover their neck with deep kisses and gentle bites.",foreplay-4.json
+foreplay,Foreplay,112,No-Sound Touch,"{player}, touch {partner} under their clothes while they stay silent. If they gasp or moan, pull your hand back for 30 seconds.",foreplay-4.json
+foreplay,Foreplay,113,Hot Breath & Ice,"{player}, with {partner}'s eyes covered, alternate hot breath on their inner thighs with an ice cube trailed up their ribcage.",foreplay-4.json
+foreplay,Foreplay,114,Bent-Over Inspection,"{player}, have {partner} bend over the edge of the bed while you inspect their body — deliver a sharp spank every time they move or try to look back.",foreplay-4.json
+foreplay,Foreplay,115,Ask First,"{player}, make {partner} ask out loud for permission before they can touch you between the legs or take off any piece of your clothing.",foreplay-4.json
+step_it_up,Step It Up,1,Dominant Command,"{player}, give {partner} one clear, explicit instruction for how they must touch you right now.",step-it-up.json
+step_it_up,Step It Up,2,Bed Restraint,"{player}, secure {partner}'s hands above their head using a belt, scarf, or soft ties for the next 3 minutes.",step-it-up.json
+step_it_up,Step It Up,3,Intense Oral Tease,"{player}, spend 2 minutes using tongue and lips in intimate areas, stopping right before they reach the edge.",step-it-up.json
+step_it_up,Step It Up,4,Dirty Talk Direct,"{player}, describe in explicit detail exactly what you want to do to {partner} before touching them.",step-it-up.json
+step_it_up,Step It Up,5,Speed Control,"{player}, initiate explicit touch, but maintain a strictly slow, agonizing pace for at least 90 seconds.",step-it-up.json
+step_it_up,Step It Up,6,Blindfolded Touch,"{player}, blindfold {partner} and give them 2 minutes of direct intimate attention with no verbal warning.",step-it-up.json
+step_it_up,Step It Up,7,Edge Master,"{player}, bring {partner} close to the peak, then completely stop all touch for 30 seconds while looking into their eyes.",step-it-up.json
+step_it_up,Step It Up,8,Mirror View Intimacy,"{player}, position {partner} so they can watch the intimate action in a full-length mirror or phone screen.",step-it-up.json
+step_it_up,Step It Up,9,Firm Grip,"{player}, hold {partner} firmly by the hips or waist and pull them as close as physically possible during deep kissing.",step-it-up.json
+step_it_up,Step It Up,10,Sensory Ice & Heat,"{player}, use an ice cube directly on an intimate zone for 15 seconds, followed immediately by warm breath.",step-it-up.json
+step_it_up,Step It Up,11,Lap Straddle,"{player}, straddle {partner}'s lap facing them and grind slowly while keeping hands behind your back.",step-it-up.json
+step_it_up,Step It Up,12,Spanking Light,"{player}, deliver five firm slaps to {partner}'s rear while pulling them close by the waist.",step-it-up.json
+step_it_up,Step It Up,13,Heavy Breathing,"{player}, focus entirely on oral attention while encouraging {partner} to react as loudly as they want.",step-it-up.json
+step_it_up,Step It Up,14,Position Switch,"{player}, take full physical control and move {partner} into your preferred starting position on the bed.",step-it-up.json
+step_it_up,Step It Up,15,No-Hands Challenge,"{player}, use only your mouth and lips to tease {partner}'s most sensitive areas for 2 minutes.",step-it-up.json
+step_it_up,Step It Up,16,Whispered Secrets,"{player}, tell {partner} your absolute wildest sexual secret while touching them intimately.",step-it-up.json
+step_it_up,Step It Up,17,Hair Pull & Kiss,"{player}, gently pull {partner}'s hair back to expose their throat and kiss deeply down to their chest.",step-it-up.json
+step_it_up,Step It Up,18,Clothes Off Final,"{player}, remove every remaining piece of clothing from {partner} as fast or as slow as they command.",step-it-up.json
+step_it_up,Step It Up,19,Rhythmic Stroke,"{player}, use manual stimulation on {partner} at a steady, increasing tempo for 2 minutes straight.",step-it-up.json
+step_it_up,Step It Up,20,Roleplay Spark,"{player}, adopt a dominant or submissive persona for the next 5 minutes of play.",step-it-up.json
+step_it_up,Step It Up,21,Standing Intimacy,"{player}, push {partner} up against a secure wall or bedpost and engage in deep intimate contact.",step-it-up.json
+step_it_up,Step It Up,22,Controlled Movement,"{player}, guide {partner}'s hips with both hands, dictating the rhythm and depth of movement.",step-it-up.json
+step_it_up,Step It Up,23,Double Touch,"{player}, stimulate two sensitive areas of {partner}'s body simultaneously for 90 seconds.",step-it-up.json
+step_it_up,Step It Up,24,Command Exchange,"{player}, allow {partner} to give you one explicit command that you must perform immediately.",step-it-up.json
+step_it_up,Step It Up,25,Teasing Pause,"{player}, hover right at the entry/sensitive spot for 45 seconds without making full contact.",step-it-up.json
+step_it_up,Step It Up,26,Thigh Pin,"{player}, pin {partner}'s legs gently over your shoulders or waist to deepen access.",step-it-up.json
+step_it_up,Step It Up,27,Intense Eye Contact,"{player}, perform intimate touch while maintaining unbroken eye contact until {partner} looks away.",step-it-up.json
+step_it_up,Step It Up,28,Sensory Toy Play,"{player}, introduce a favorite toy or massager into the play for at least 2 minutes.",step-it-up.json
+step_it_up,Step It Up,29,Slow Grind,"{player}, maintain full body-to-body contact and grind slowly for 1 full minute before proceeding.",step-it-up.json
+step_it_up,Step It Up,30,Oral Countdown,"{player}, give {partner} 30 deliberate, slow strokes with your tongue in sensitive areas.",step-it-up.json
+step_it_up,Step It Up,31,Erotic Audio,"{player}, describe out loud every physical sensation you are feeling as {partner} touches you.",step-it-up.json
+step_it_up,Step It Up,32,Pillow Lift,"{player}, place a pillow under {partner}'s lower back or hips to elevate them.",step-it-up.json
+step_it_up,Step It Up,33,Firm Arch,"{player}, arch {partner}'s back with your hands while kissing them passionately.",step-it-up.json
+step_it_up,Step It Up,34,Bite & Caress,"{player}, gently bite down on {partner}'s hip or shoulder while caressing their inner thigh.",step-it-up.json
+step_it_up,Step It Up,35,Denial Round,"{player}, {partner} is not allowed to touch you back for the next 2 minutes while you take full control.",step-it-up.json
+step_it_up,Step It Up,36,Speed Burst,"{player}, increase the tempo of touch drastically for 30 seconds, then drop back to a slow rhythm.",step-it-up.json
+step_it_up,Step It Up,37,Trace with Hair,"{player}, drag your long hair across {partner}'s bare chest and stomach while kissing down their body.",step-it-up.json
+step_it_up,Step It Up,38,Chest-to-Chest Pressure,"{player}, press your full body weight against {partner} on the bed and hold for 45 seconds.",step-it-up.json
+step_it_up,Step It Up,39,Lick & Blow,"{player}, lick a wet path down {partner}'s stomach and blow cold air on it immediately after.",step-it-up.json
+step_it_up,Step It Up,40,Hand Pin,"{player}, hold both of {partner}'s hands pinned to the mattress with one hand while using the other.",step-it-up.json
+step_it_up,Step It Up,41,Rhythm Sync,"{player}, move together in a slow, circular rhythm for 2 minutes without breaking physical contact.",step-it-up.json
+step_it_up,Step It Up,42,Intimate Whisper,"{player}, whisper three explicit instructions for what {partner} should do during Stage 4.",step-it-up.json
+step_it_up,Step It Up,43,Sensory Feather & Oil,"{player}, combine warm oil with a soft feather or light touch across {partner}'s torso.",step-it-up.json
+step_it_up,Step It Up,44,Glance in the Dark,"{player}, turn off all lights and rely entirely on touch and sound for the next 3 minutes.",step-it-up.json
+step_it_up,Step It Up,45,Edge & Repeat,"{player}, bring {partner} to the edge, back off completely, and then bring them right back to it once more.",step-it-up.json
+step_it_up,Step It Up,46,Body Lift,"{player}, lift {partner} up or reposition them on the bed using firm physical grip.",step-it-up.json
+step_it_up,Step It Up,47,Deep Pressure Kissing,"{player}, kiss {partner} deeply while applying firm pressure to their hips with both hands.",step-it-up.json
+step_it_up,Step It Up,48,Explicit Compliment,"{player}, tell {partner} exactly why their body turns you on more than anything else.",step-it-up.json
+step_it_up,Step It Up,49,Fast & Slow,"{player}, alternate between fast and agonizingly slow touch every 15 seconds.",step-it-up.json
+step_it_up,Step It Up,50,Full Surrender,"{player}, lay completely back and let {partner} take absolute control for the next 3 minutes.",step-it-up.json
+step_it_up,Step It Up,51,Positional Command,"{player}, take full control: Tell {partner} exactly which position to get into on the bed.",step-it-up-2.json
+step_it_up,Step It Up,52,Thigh Boundary Tease,"{player}, blindfold {partner} and use hands and lips on their inner thighs for 2 solid minutes without touching the center.",step-it-up-2.json
+step_it_up,Step It Up,53,Dual Turn-Ons,"{player}, tell {partner} two specific things they are doing right now that are driving you wild.",step-it-up-2.json
+step_it_up,Step It Up,54,Single-Hand Pin,"{player}, pin {partner}'s hands above their head with one hand while using your other hand to touch them intimately.",step-it-up-2.json
+step_it_up,Step It Up,55,Brink Stop,"{player}, bring {partner} right to the edge of climax, then completely pull back and sit still for 45 seconds.",step-it-up-2.json
+step_it_up,Step It Up,56,Agonizing Oral,"{player}, use your mouth on {partner_cock} at an agonizingly slow tempo for 90 seconds.",step-it-up-2.json
+step_it_up,Step It Up,57,Eyes Locked Command,"{player}, command {partner} to keep their eyes wide open and locked onto yours while you touch them intimately.",step-it-up-2.json
+step_it_up,Step It Up,58,Hip Elevation,"{player}, place a pillow beneath {partner}'s hips to elevate them for deeper access.",step-it-up-2.json
+step_it_up,Step It Up,59,Slap & Soothe,"{player}, deliver three firm slaps to {partner}'s rear, followed immediately by warm, soothing kisses over the spot.",step-it-up-2.json
+step_it_up,Step It Up,60,Chest Straddle,"{player}, straddle {partner}'s chest or lap and control the pace of deep kissing for 2 minutes.",step-it-up-2.json
+step_it_up,Step It Up,61,Explicit Preview,"{player}, tell {partner} an explicit step-by-step description of what you plan to do next before doing it.",step-it-up-2.json
+step_it_up,Step It Up,62,Toy & Hand Hold,"{player}, use a massager or toy on {partner} while holding their free hand tightly.",step-it-up-2.json
+step_it_up,Step It Up,63,Hair Pull Exposure,"{player}, gently pull {partner}'s hair back to expose their neck while pressing your body firmly against theirs.",step-it-up-2.json
+step_it_up,Step It Up,64,Tempo Contrast,"{player}, alternate between intense, heavy manual touch and ultra-soft feather touches every 15 seconds.",step-it-up-2.json
+step_it_up,Step It Up,65,Polite Request,"{player}, require {partner} to ask politely before you give them full intimate touch.",step-it-up-2.json
+step_it_up,Step It Up,66,Bed-Edge Shift,"{player}, move {partner} to the edge of the bed. Stand between their legs while they lie back.",step-it-up-2.json
+step_it_up,Step It Up,67,Tongue Tip Focus,"{player}, spend 2 minutes giving {partner} oral on {partner_cock} using only the tip of your tongue in small circles.",step-it-up-2.json
+step_it_up,Step It Up,68,Hands Behind Back,"{player}, guide {partner}'s hands behind their back and hold them there while you kiss down their torso.",step-it-up-2.json
+step_it_up,Step It Up,69,Rhythmic Dirty Talk,"{player}, whisper your favorite dirty phrase directly into {partner}'s ear while maintaining a steady rhythm of touch.",step-it-up-2.json
+step_it_up,Step It Up,70,Stomach Entry,"{player}, have {partner} lie flat on their stomach while you touch them intimately from behind.",step-it-up-2.json
+step_it_up,Step It Up,71,Thermal Contrast Shock,"{player}, use an ice cube on {partner}'s intimate areas for 10 seconds, followed immediately by hot breath.",step-it-up-2.json
+step_it_up,Step It Up,72,Breathing Control,"{player}, take control of {partner}'s breathing by instructing them when to inhale and exhale as you touch them.",step-it-up-2.json
+step_it_up,Step It Up,73,Mirror Spectator,"{player}, position {partner} in front of a mirror so you can both watch every movement.",step-it-up-2.json
+step_it_up,Step It Up,74,Wide Open Stare,"{player}, hold {partner}'s thighs wide open and stare intently for 15 seconds before leaning in.",step-it-up-2.json
+step_it_up,Step It Up,75,Sudden Standstill,"{player}, perform fast, firm manual stimulation for 30 seconds, then abruptly drop to a complete standstill.",step-it-up-2.json
+step_it_up,Step It Up,76,Waist Adjustment,"{player}, give {partner} a firm grip on the waist and lift/adjust their body to your exact liking.",step-it-up-2.json
+step_it_up,Step It Up,77,Direct Command Pass,"{player}, allow {partner} to give you one explicit command that you must carry out instantly.",step-it-up-2.json
+step_it_up,Step It Up,78,Affirming Touch,"{player}, touch {partner} intimately while telling them how beautiful/handsome they look right now.",step-it-up-2.json
+step_it_up,Step It Up,79,Oiled Direct Touch,"{player}, use warm massage oil for direct, smooth intimate touch for 2 full minutes.",step-it-up-2.json
+step_it_up,Step It Up,80,Over-Shoulder Angle,"{player}, place {partner}'s legs over your shoulders to maximize closeness and depth.",step-it-up-2.json
+step_it_up,Step It Up,81,Soft Bind,"{player}, restraint challenge: Use a belt or scarf to loosely secure {partner}'s wrists to the bedposts for 3 minutes.",step-it-up-2.json
+step_it_up,Step It Up,82,Counted Tongue Strokes,"{player}, give 20 slow, deliberate licks in sensitive areas, counting each one out loud.",step-it-up-2.json
+step_it_up,Step It Up,83,Hands-Behind-Head Rule,"{player}, require {partner} to keep their hands behind their head without touching you while you tease them.",step-it-up-2.json
+step_it_up,Step It Up,84,Full Weight Press,"{player}, press your full body weight down against {partner} on the mattress and kiss them passionately.",step-it-up-2.json
+step_it_up,Step It Up,85,Memory Whispers,"{player}, whispering challenge: Describe in detail your favorite sexual memory with {partner}.",step-it-up-2.json
+step_it_up,Step It Up,86,Proximity Hover,"{player}, hover right over {partner}'s most sensitive spot, letting them feel your warmth without touching for 30 seconds.",step-it-up-2.json
+step_it_up,Step It Up,87,Guided Pressure,"{player}, take {partner}'s hand and place it on your body to show them the exact pressure you want.",step-it-up-2.json
+step_it_up,Step It Up,88,Oral / Manual Swap,"{player}, alternate between fast oral and slow hands on {partner_cock} for 2 minutes.",step-it-up-2.json
+step_it_up,Step It Up,89,Hip Bite & Slide,"{player}, gently bite {partner}'s hip bone while sliding your hands under their rear.",step-it-up-2.json
+step_it_up,Step It Up,90,Kneeling Seated Edge,"{player}, have {partner} sit on the edge of a chair or couch while you kneel between their knees.",step-it-up-2.json
+step_it_up,Step It Up,91,Wall Grind,"{player}, hold {partner} close in a standing embrace against a wall while grinding slowly.",step-it-up-2.json
+step_it_up,Step It Up,92,Hair & Touch Dual,"{player}, perform intimate manual stimulation while using your other hand to stroke their hair.",step-it-up-2.json
+step_it_up,Step It Up,93,Silence Timer,"{player}, tell {partner} they aren't allowed to make a sound for 60 seconds while you tease them—if they do, reset the timer.",step-it-up-2.json
+step_it_up,Step It Up,94,Arched Forceful Kiss,"{player}, arch {partner}'s lower back with your arm while giving them a deep, forceful kiss.",step-it-up-2.json
+step_it_up,Step It Up,95,Navel-to-Thigh Lick,"{player}, lick a path from {partner}'s lower stomach down to their inner thigh without stopping.",step-it-up-2.json
+step_it_up,Step It Up,96,Role Switch,"{player}, switch roles completely: The submissive partner takes full control for the next 3 minutes.",step-it-up-2.json
+step_it_up,Step It Up,97,Dual Stimulation Burst,"{player}, use double stimulation (manual + oral or toy) simultaneously for 60 seconds.",step-it-up-2.json
+step_it_up,Step It Up,98,Chin Grip Kiss,"{player}, hold {partner}'s chin firmly between thumb and forefinger while kissing them intensely.",step-it-up-2.json
+step_it_up,Step It Up,99,Double Brink,"{player}, bring {partner} close to the edge twice in a row before allowing any transition to the final stage.",step-it-up-2.json
+step_it_up,Step It Up,100,Waist Lock Command,"{player}, wrap your arms tightly around {partner}'s waist and whisper: 'It's time.'.",step-it-up-2.json
+step_it_up,Step It Up,101,Oral Proof Shot,"{player}, take a private photo of yourself going down on {partner} — keep it as a shared memory, not for anyone else.",step-it-up-3.json
+step_it_up,Step It Up,102,Self-Stroke Show,"{player}, stroke yourself slowly in front of {partner} while they watch, stopping just before you get too close.",step-it-up-3.json
+step_it_up,Step It Up,103,Deep Throat Warmup,"{player}, take {partner} deep into your mouth for 60 seconds — let them guide depth and speed.",step-it-up-3.json
+step_it_up,Step It Up,104,Mirror Oral,"{player}, position {partner} on their back at the foot of the bed facing a full-length mirror while you eat them out from between their legs.",step-it-up-3.json
+step_it_up,Step It Up,105,Pinned Brink,"{player}, pin {partner}'s hands above their head with one grip while using fingers and mouth to bring them to the brink.",step-it-up-3.json
+step_it_up,Step It Up,106,Bound & Eaten,"{player}, tie {partner}'s wrists loosely with a scarf, then give them intense oral attention.",step-it-up-3.json
+step_it_up,Step It Up,107,Face Sitting,"{player}, have {partner} straddle your face and take complete control over speed and pressure while you lick them.",step-it-up-3.json
+step_it_up,Step It Up,108,Dirty Talk Dictation,"{player}, hold {partner}'s legs wide open and make them describe in dirty detail exactly how your tongue or cock feels.",step-it-up-3.json
+step_it_up,Step It Up,109,Riding Anal Finger,"{player}, while {partner} rides you on top, lube a finger and slowly slide it into their ass, keeping a steady rhythm.",step-it-up-3.json
+step_it_up,Step It Up,110,Anal Tip Only,"{player}, lube {partner}'s ass thoroughly, position them on hands and knees, and slowly slide just the tip inside — hold there until they adjust.",step-it-up-3.json
+step_it_up,Step It Up,111,POV Oral Clip,"{player}, record a short 10-second video on your phone of going down on {partner} from their perspective, then watch it back together.",step-it-up-3.json
+step_it_up,Step It Up,112,Double Penetration Tease,"{player}, slide two lubed fingers into {partner}'s pussy while pressing a thumb or another lubed finger into their ass at the same time.",step-it-up-3.json
+step_it_up,Step It Up,113,Face-Down Anal Fingers,"{player}, position {partner} flat on their stomach with a pillow under their hips, lube their ass, and slowly slide two fingers inside while pressing them into the mattress.",step-it-up-3.json
+step_it_up,Step It Up,114,Throttle & Thrust,"{player}, place a gentle but firm hand around the front of {partner}'s neck with light pressure while you drive into them from above.",step-it-up-4.json
+step_it_up,Step It Up,115,Hair Pull Rhythm,"{player}, reach around, grab a firm fistful of {partner}'s hair, and use it to control their head angle and rhythm while you take them from behind or on top.",step-it-up-4.json
+step_it_up,Step It Up,116,No-Filter Orgasm,"{player}, command {partner} to lose all restraint and get as loud as they want when they cum — no holding back.",step-it-up-4.json
+step_it_up,Step It Up,117,Silent Orgasm Challenge,"{player}, command {partner} to get themselves there — or take them there with fingers or tongue — while staying completely silent. Any audible noise and they stop.",step-it-up-4.json
+step_it_up,Step It Up,118,Point-Blank Filming,"{player}, hold your phone in one hand and film a close-up of your {player_cock} sliding in and out of {partner}'s {partner_pussy} or ass — catch every reaction.",step-it-up-4.json
+step_it_up,Step It Up,119,Over-the-Shoulder Grip Shot,"{player}, take a photo over {partner}'s shoulder showing your hand pinned around their neck or gripping their hair while you're deep inside them.",step-it-up-4.json
+step_it_up,Step It Up,120,Spank-Matched Thrusts,"{player}, while taking {partner} from behind, deliver steady, timed spanks to their ass cheeks that match your thrusts.",step-it-up-4.json
+step_it_up,Step It Up,121,Fogged Mirror Stand,"{player}, move to the bathroom, fog the mirror with hot shower steam, and take {partner} standing against the counter while you both watch the reflection.",step-it-up-4.json
+step_it_up,Step It Up,122,Edge Then Kiss,"{player}, bring {partner} to the absolute brink of orgasm, then stop completely and kiss them. Start again only when you choose.",step-it-up-4.json
+step_it_up,Step It Up,123,Pull-Aside Entry,"{player}, don't take {partner}'s underwear off — pull the fabric sharply aside and slide two fingers or your {player_cock} in while the rest stays on.",step-it-up-4.json
+step_it_up,Step It Up,124,Oral Memory Shot,"{player}, take a private photo of going down on {partner} to keep as a shared memory — nobody else sees it.",step-it-up-4.json
+step_it_up,Step It Up,125,Front-Row Stroke,"{player}, stroke your {player_cock} slowly in front of {partner} while they watch, stopping just before you get too close.",step-it-up-4.json
+finish_off,Finish Off,1,Classic Reimagined,"{player}, choose Missionary, but elevate hips with a pillow and maintain unbroken eye contact until climax.",finish-off.json
+finish_off,Finish Off,2,Edge of the Bed,"{player}, put {partner} at the edge of the bed. Stand or kneel between their legs and finish them off.",finish-off.json
+finish_off,Finish Off,3,Cowgirl / Rider Control,"{player}, take top position and dictate the rhythm, speed, and depth completely.",finish-off.json
+finish_off,Finish Off,4,Spoons Position,"{player}, lying on your sides facing the same direction for deep, intimate, and effortless connection.",finish-off.json
+finish_off,Finish Off,5,Doggy Style Focus,"{player}, rear-entry position with firm hands on hips or pulling gently on waist/hair.",finish-off.json
+finish_off,Finish Off,6,Lotus Hold,"{player}, sit upright wrapped tightly around each other in a close, chest-to-chest embrace.",finish-off.json
+finish_off,Finish Off,7,Standing Intimacy,"{player}, perform standing against a sturdy wall or lifted onto a high dresser or bed edge.",finish-off.json
+finish_off,Finish Off,8,Prone Bone,"{player}, lying completely flat on stomach while partner enters from behind, maintaining close full-body weight.",finish-off.json
+finish_off,Finish Off,9,Climax Together,"{player}, set a goal to match pace and breathe together to push for a simultaneous climax.",finish-off.json
+finish_off,Finish Off,10,Finish off with oral,"{player}, finish {partner} off with your mouth on {partner_cock}. Stay there until they come.",finish-off.json
+finish_off,Finish Off,11,Reverse Cowgirl,"{player}, take top position facing away from {partner}, using a mirror if available.",finish-off.json
+finish_off,Finish Off,12,The Bridge,"{player}, elevate lower back and place feet flat on the mattress to create an intense angle.",finish-off.json
+finish_off,Finish Off,13,Speed Finish,"{player}, pick your favorite position and push the tempo as fast and intense as possible.",finish-off.json
+finish_off,Finish Off,14,Agonizingly Slow Finish,"{player}, maintain your current position, but drop the speed to ultra-slow, deep deliberate movements.",finish-off.json
+finish_off,Finish Off,15,Manual Assistance,"{player}, incorporate hand touch or clitoral/prostate stimulation directly during peak action.",finish-off.json
+finish_off,Finish Off,16,Toy Finish,"{player}, bring in a vibration/bullet toy during penetration to push over the finish line.",finish-off.json
+finish_off,Finish Off,17,Mirror View Finish,"{player}, finish in a position directly facing a mirror so both can watch the moment of climax.",finish-off.json
+finish_off,Finish Off,18,X-Mark Position,"{player}, lie back with legs crossed tightly over {partner}'s shoulders to maximize sensation.",finish-off.json
+finish_off,Finish Off,19,Dirty Talk Finale,"{player}, whisper uninterrupted explicit praise and dirty talk into {partner}'s ear until they finish.",finish-off.json
+finish_off,Finish Off,20,Restrained Climax,"{player}, hold {partner}'s hands pinned above their head as they reach peak climax.",finish-off.json
+finish_off,Finish Off,21,Butter Churner Angle,"{player}, fold {partner}'s legs deep toward their head on the bed for maximum depth and intensity.",finish-off.json
+finish_off,Finish Off,22,Side-by-Side Angle,"{player}, interlock legs while lying side-by-side facing each other, kissing throughout.",finish-off.json
+finish_off,Finish Off,23,Lapside Rider,"{player}, sit in a chair or on the edge of the couch wrapped together for a controlled finish.",finish-off.json
+finish_off,Finish Off,24,Chest Praise,"{player}, look directly into {partner}'s eyes and say 'Finish for me' in a low, firm command.",finish-off.json
+finish_off,Finish Off,25,Edge On Demand,"{player}, bring {partner} right to the absolute brink, hold for 10 seconds, then allow full release.",finish-off.json
+finish_off,Finish Off,26,Shower / Water Finish,"{player}, move the final climactic play into a warm shower or tub.",finish-off.json
+finish_off,Finish Off,27,Deep Hug Finish,"{player}, wrap arms tightly around {partner}'s neck and back, pulling them flat against you for the release.",finish-off.json
+finish_off,Finish Off,28,Kneeling Angle,"{player}, both partners kneeling upright on the bed, holding shoulders or waist for balance.",finish-off.json
+finish_off,Finish Off,29,The Arch,"{player}, support {partner}'s lower spine with your hands to arch their back during peak intensity.",finish-off.json
+finish_off,Finish Off,30,Hands-Free Focus,"{player}, finish relying solely on body movement and rhythm without using hands.",finish-off.json
+finish_off,Finish Off,31,Sensory Blindfold Finish,"{player}, blindfold {partner} so their entire focus is locked onto physical sensation.",finish-off.json
+finish_off,Finish Off,32,Rhythm Switch,"{player}, alternate 10 fast strokes with 10 slow strokes until climax.",finish-off.json
+finish_off,Finish Off,33,Over-the-Legs Doggy,"{player}, partner lies face down across the bed with legs hanging off the side.",finish-off.json
+finish_off,Finish Off,34,Thigh Squeeze,"{player}, squeeze {partner}'s thighs tightly around your waist as you reach the climax.",finish-off.json
+finish_off,Finish Off,35,Neck Biting Finish,"{player}, gently bite down on {partner}'s collarbone or neck right as the climax hits.",finish-off-2.json
+finish_off,Finish Off,36,Mutual Manual,"{player}, switch to mutual masturbation while lying chest-to-chest, watching each other finish.",finish-off-2.json
+finish_off,Finish Off,37,Full Weight Lock,"{player}, lying completely flat on top of partner, interlocked fingers, breathing in sync.",finish-off-2.json
+finish_off,Finish Off,38,Double Angle Shift,"{player}, switch positions twice within 2 minutes to build maximum sensation before release.",finish-off-2.json
+finish_off,Finish Off,39,Deep Breathing Release,"{player}, take three deep synchronized breaths together right before letting go completely.",finish-off-2.json
+finish_off,Finish Off,40,Explicit Order,"{player}, tell {partner} exactly where and how you want them to finish.",finish-off-2.json
+finish_off,Finish Off,41,Forehead-to-Forehead,"{player}, press foreheads together, eyes locked, throughout the entire climactic buildup.",finish-off-2.json
+finish_off,Finish Off,42,Elevated Missionary,"{player}, classic Missionary with a pillow under the hips, keeping eyes locked until release.",finish-off-2.json
+finish_off,Finish Off,43,Guided Rear Entry,"{player}, finish {partner} off from behind, hands on their hips, guiding the tempo.",finish-off-2.json
+finish_off,Finish Off,44,Top Control Rider,"{player}, get on top of {partner} and take complete control over speed and angle until they finish.",finish-off-2.json
+finish_off,Finish Off,45,Close Spooning,"{player}, lie behind {partner} in spoons and finish them off slow and close.",finish-off-2.json
+finish_off,Finish Off,46,Chest Lotus,"{player}, sit upright wrapped around {partner}, chest-to-chest, and finish them off in a close hug.",finish-off-2.json
+finish_off,Finish Off,47,Standing Bed Edge,"{player}, standing against a wall or edge of a high bed for a powerful finish.",finish-off-2.json
+finish_off,Finish Off,48,Full-Contact Prone,"{player}, lay {partner} flat on their stomach and finish them off from behind with full-body contact.",finish-off-2.json
+finish_off,Finish Off,49,Reverse Top,"{player}, get on top of {partner} facing away, and finish them off from there.",finish-off-2.json
+finish_off,Finish Off,50,Floor & Bed Edge,"{player}, put {partner} at the edge of the bed. Kneel or stand on the floor and finish them off.",finish-off-2.json
+finish_off,Finish Off,51,Over-Shoulder X,"{player}, x-Mark—legs resting up over {partner}'s shoulders for deep angle and sensation.",finish-off-2.json
+finish_off,Finish Off,52,Synced Climax,"{player}, match your breathing and rhythm to aim for a simultaneous climax together.",finish-off-2.json
+finish_off,Finish Off,53,Finish off with oral — stay there,"{player}, finish {partner} off with your mouth on {partner_cock}. Switch to your mouth and do not switch back.",finish-off-2.json
+finish_off,Finish Off,54,Max Sprint Tempo,"{player}, finish at an ultra-fast, high-energy pace until complete release.",finish-off-2.json
+finish_off,Finish Off,55,Ultra Slow Penetration,"{player}, finish at an agonizingly slow, deep pace, taking your time with every movement.",finish-off-2.json
+finish_off,Finish Off,56,Penetration Plus Touch,"{player}, incorporate manual clitoral/prostate stimulation during the climactic push.",finish-off-2.json
+finish_off,Finish Off,57,Vibrating Finale,"{player}, introduce a vibration toy during penetration to push over the edge.",finish-off-2.json
+finish_off,Finish Off,58,Verbal Climax Drive,"{player}, whisper uninterrupted dirty talk and praise into {partner}'s ear until they finish.",finish-off-2.json
+finish_off,Finish Off,59,Commanded Release,"{player}, look into {partner}'s eyes and give a firm, loving command: 'Finish for me.'.",finish-off-2.json
+finish_off,Finish Off,60,Pinned Wrists Release,"{player}, hold {partner}'s hands pinned flat to the mattress as they climax.",finish-off-2.json
+finish_off,Finish Off,61,Pause & Permission,"{player}, bring {partner} to the brink, pause for 10 seconds, then give full permission to let go.",finish-off-2.json
+finish_off,Finish Off,62,Hands to finish,"{player}, finish {partner} off with your hands on {partner_cock}.",finish-off-2.json
+finish_off,Finish Off,63,Oral for you,"{player}, let {partner} finish you off with their mouth on {player_cock}.",finish-off-2.json
+finish_off,Finish Off,64,Finish from behind,"{player}, finish {partner} off from behind — hands on their hips, {player_cock} deep.",finish-off-2.json
+finish_off,Finish Off,65,On top to finish,"{player}, get on top of {partner} and ride {partner_cock} until they finish.",finish-off-2.json
+finish_off,Finish Off,66,Mouth then hands,"{player}, start finishing {partner} off with your mouth on {partner_cock}, then use your hands to take them over.",finish-off-2.json
+finish_off,Finish Off,67,Eye contact oral,"{player}, finish {partner} off with your mouth on {partner_cock} and do not look away from their eyes.",finish-off-2.json
+finish_off,Finish Off,68,Slow oral finish,"{player}, finish {partner} off with your mouth on {partner_cock}, as slow as you can stand.",finish-off-2.json
+finish_off,Finish Off,69,Cum on tits,{player} pulls {player_cock} out and cums on {partner}'s {partner_tits}.,finish-off-2.json
+finish_off,Finish Off,70,Stroke and finish on chest,"{player}, wrap a hand around {player_cock} and finish on {partner}'s {partner_chest}.",finish-off-2.json
+finish_off,Finish Off,71,Mouth then cum on body,"{player}, get {partner} close with your mouth on {partner_cock}, then pull back and finish on their body.",finish-off-2.json
+finish_off,Finish Off,72,Guide their hand,"{player}, put {partner}'s hand on {player_cock} and make them finish you off.",finish-off-2.json
+finish_off,Finish Off,73,Mouth Finish,"{player}, pull out right before release and finish in {partner}'s mouth.",finish-off-3.json
+finish_off,Finish Off,74,Chest & Throat Paint,"{player}, pull out at the last second and cum across {partner}'s chest and neck.",finish-off-3.json
+finish_off,Finish Off,75,Face Tribute,"{player}, pull out right at the edge and finish on {partner}'s face.",finish-off-3.json
+finish_off,Finish Off,76,Lower Back Paint,"{player}, finish from behind, pull out at the brink, and cum over {partner}'s lower back and hips.",finish-off-3.json
+finish_off,Finish Off,77,Full Swallow,"{player}, have {partner} take you into their mouth to finish, swallowing every drop while keeping eye contact.",finish-off-3.json
+finish_off,Finish Off,78,Creampie Hold,"{player}, stay completely deep inside {partner} until you finish fully, holding their hips tight against you.",finish-off-3.json
+finish_off,Finish Off,79,Stomach Splash,"{player}, pull out at climax and cum across {partner}'s bare stomach.",finish-off-3.json
+finish_off,Finish Off,80,Ass Finish,"{player}, pull out at the last second and finish over {partner}'s butt cheeks.",finish-off-3.json
+finish_off,Finish Off,81,Anal Creampie,"{player}, finish inside {partner}'s ass, holding their hips tightly against yours and staying inside until you go soft.",finish-off-3.json
+finish_off,Finish Off,82,Ass-to-Mouth,"{player}, pull out of {partner}'s pussy or ass right at the brink and slide straight into their mouth to finish.",finish-off-3.json
+finish_off,Finish Off,83,Gag & Swallow,"{player}, hold {partner} by the hair while finishing deep in their throat, telling them to swallow every drop as you cum.",finish-off-3.json
+finish_off,Finish Off,84,Anal Pull-Out Splash,"{player}, finish by thrusting in {partner}'s ass, then pull out at the last second to cum across their ass cheeks and lower back.",finish-off-3.json
+finish_off,Finish Off,85,Double Stain,"{player}, finish on {partner}'s face and tits at the same time while tipping their head back.",finish-off-3.json
+finish_off,Finish Off,86,Orgasm Sync,"{player}, direct {partner} to ride you or work their {partner_clit} so you both finish at the same moment — film the last few seconds if you want.",finish-off-4.json
+finish_off,Finish Off,87,Throat & Hair Finish,"{player}, hold {partner}'s hair tightly and pull their face up toward you while you finish on their lips and chin.",finish-off-4.json
+finish_off,Finish Off,88,Vibrator Edge & Release,"{player}, hold a wand or vibrator on {partner}'s clit while pounding them — they don't get to cum until you give the order, then drive through their orgasm.",finish-off-4.json
+finish_off,Finish Off,89,Controlled Climax,"{player}, pin {partner}'s wrists, look straight into their eyes, and command: ""Cum for me right now"" as you hit your own edge.",finish-off-4.json
+finish_off,Finish Off,90,Oral Orgasm First,"{player}, stay between {partner}'s legs and refuse to move up or enter them until you've made them cum at least once with only tongue and fingers.",finish-off-4.json
+finish_off,Finish Off,91,Overwhelming Speed,"{player}, ramp to maximum speed and depth, use one hand on {partner}'s clit, and force them over the edge before you finish.",finish-off-4.json
+finish_off,Finish Off,92,The Cold Finish,"{player}, rub ice over {partner}'s nipples or clit right as you hit climax — give them that cold shock during release.",finish-off-4.json
+finish_off,Finish Off,93,Face-Down Creampie,"{player}, pin {partner} flat on their stomach with a heavy arm across their back, stay deep until you finish inside them, and keep your weight on them until you go soft.",finish-off-4.json
+finish_off,Finish Off,94,Thigh Trap,"{player}, wrap {partner}'s legs tightly around your waist and pull their hips flush against yours so there's zero space between you as you cum.",finish-off-4.json
+afterglow,Afterglow,1,Three-Minute Lock,"{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",afterglow.json
+afterglow,Afterglow,2,Chest Heartbeat,"{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",afterglow.json
+afterglow,Afterglow,3,Water Delivery,"{player}, bring {partner} a fresh, cold glass of water and hold it for them while they drink.",afterglow.json
+afterglow,Afterglow,4,Warm Towel Care,"{player}, use a warm, damp towel to gently clean and care for {partner}.",afterglow.json
+afterglow,Afterglow,5,No-Screen Snuggle,"{player}, set a 30-minute timer, pull the covers up, and snuggle with zero phones or screens.",afterglow.json
+afterglow,Afterglow,6,Ten Facial Kisses,"{player}, hold {partner}'s face in your hands and give them ten soft kisses across their forehead and cheeks.",afterglow.json
+afterglow,Afterglow,7,Peaceful Hair Stroke,"{player}, gently stroke {partner}'s hair while breathing together in total peace.",afterglow.json
+afterglow,Afterglow,8,Favorite Moment Query,"{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",afterglow.json
+afterglow,Afterglow,9,Lazy Back Circles,"{player}, trace light, lazy circles on {partner}'s back or shoulder while they relax against you.",afterglow.json
+afterglow,Afterglow,10,Three Love Declarations,"{player}, whisper three sincere things you deeply love about your relationship.",afterglow.json
+afterglow,Afterglow,11,Interlocked Recovery,"{player}, lay side-by-side holding hands with interlocked fingers until your heart rates slow down.",afterglow.json
+afterglow,Afterglow,12,Body Comfort Scale,"{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",afterglow.json
+afterglow,Afterglow,13,Stomach Lower Back Rub,"{player}, give {partner} a slow, gentle lower back rub while they rest on their stomach.",afterglow.json
+afterglow,Afterglow,14,Shoulder Head Rest,"{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",afterglow.json
+afterglow,Afterglow,15,Nose Kiss Gratitude,"{player}, kiss the tip of {partner}'s nose and say, 'Thank you for tonight.'.",afterglow.json
+afterglow,Afterglow,16,Stomach Initial Trace,"{player}, lightly trace your initials onto {partner}'s stomach with your fingertip.",afterglow.json
+afterglow,Afterglow,17,Repeat Wish,"{player}, ask {partner}: 'Is there anything we did tonight that you'd love to repeat next time?'.",afterglow.json
+afterglow,Afterglow,18,Palms Over Hearts,"{player}, place your palm flat over {partner}'s heart and let them place theirs over yours.",afterglow.json
+afterglow,Afterglow,19,Five Silent Minutes,"{player}, keep the lights dim, close your eyes, and cuddle in complete silence for 5 minutes.",afterglow.json
+afterglow,Afterglow,20,Rear Spoon Kisses,"{player}, kiss {partner}'s neck and shoulders while spooning them from behind.",afterglow.json
+afterglow,Afterglow,21,Foot Tension Release,"{player}, softly massage {partner}'s feet or calves to release any lingering physical tension.",afterglow.json
+afterglow,Afterglow,22,Playful Memory Share,"{player}, share one sweet or funny thought that popped into your head while playing tonight.",afterglow.json
+afterglow,Afterglow,23,Warm Blanket Burrito,"{player}, wrap {partner} up like a burrito in a warm blanket and pull them close.",afterglow.json
+afterglow,Afterglow,24,Temple Kiss & Hair Brush,"{player}, brush stray hair away from {partner}'s forehead and press a long kiss to their temple.",afterglow.json
+afterglow,Afterglow,25,Surprise Card Inquiry,"{player}, ask {partner}: 'Which card surprised you the most tonight?'.",afterglow.json
+afterglow,Afterglow,26,Chest Waist Lock,"{player}, lay chest-to-chest with your arms locked around each other's waist for 5 minutes.",afterglow.json
+afterglow,Afterglow,27,Wrist Kiss to Cheek,"{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",afterglow.json
+afterglow,Afterglow,28,Desired Praise,"{player}, tell {partner} one specific way they made you feel desired tonight.",afterglow.json
+afterglow,Afterglow,29,Cozy Clothes Fetch,"{player}, offer to grab {partner} a cozy shirt or hoodie to slip into.",afterglow.json
+afterglow,Afterglow,30,Tent Kiss,"{player}, pull the blanket over both of your heads and share one deep, slow kiss in your private tent.",afterglow.json
+afterglow,Afterglow,31,Shoulder Squeezes,"{player}, take turns giving each other three gentle shoulder squeezes.",afterglow.json
+afterglow,Afterglow,32,Collarbone Skim,"{player}, lightly run your fingertips over {partner}'s collarbones while looking into their eyes.",afterglow.json
+afterglow,Afterglow,33,Future Plan Question,"{player}, ask {partner}: 'What is one goal or trip you want us to plan together soon?'.",afterglow.json
+afterglow,Afterglow,34,Pinky Lip Outline,"{player}, trace the outline of {partner}'s lips with your pinky finger.",afterglow.json
+afterglow,Afterglow,35,Scented Hand Rub,"{player}, give {partner} a slow 2-minute hand massage using scented hand lotion.",afterglow.json
+afterglow,Afterglow,36,Knee Stroke,"{player}, rest your leg across {partner}'s lap and let them gently stroke your knee.",afterglow.json
+afterglow,Afterglow,37,Early Relationship Memory,"{player}, whisper a favorite memory from early on in your relationship.",afterglow.json
+afterglow,Afterglow,38,One Song Breath Sync,"{player}, put on a single, ultra-relaxing song and focus only on feeling each other breathe.",afterglow.json
+afterglow,Afterglow,39,Final Soft Bite,"{player}, softly bite {partner}'s lower lip one last time, followed by a sweet kiss.",afterglow.json
+afterglow,Afterglow,40,Relaxation Scale,"{player}, ask {partner} to rate their current relaxation level from 1 to 10.",afterglow.json
+afterglow,Afterglow,41,Front-to-Back Comb,"{player}, gently comb your fingers through {partner}'s hair from front to back.",afterglow.json
+afterglow,Afterglow,42,Knuckle Kisses,"{player}, hold {partner}'s hand and kiss every single one of their knuckles.",afterglow.json
+afterglow,Afterglow,43,Full Weight Rest,"{player}, lay back and let {partner} rest their full weight on top of you for a cozy minute.",afterglow.json
+afterglow,Afterglow,44,Smile Inquiry,"{player}, ask {partner}: 'What made you smile the most during our game?'.",afterglow.json
+afterglow,Afterglow,45,Thermal Breath Warmup,"{player}, lightly blow cold air on {partner}'s neck, then warm it back up with a kiss.",afterglow.json
+afterglow,Afterglow,46,Seated Stretch Assist,"{player}, offer {partner} a quick neck and shoulder stretch while sitting up together.",afterglow.json
+afterglow,Afterglow,47,Three-Point Kiss Trail,"{player}, give {partner} three slow kisses: one on the chin, one on the lip, and one on the forehead.",afterglow.json
+afterglow,Afterglow,48,Lucky Ear Whisper,"{player}, hold {partner} close and whisper 'I'm so lucky to have you' into their ear.",afterglow.json
+afterglow,Afterglow,49,Staring Contest,"{player}, lay side-by-side facing each other and just hold eye contact until one of you blinks.",afterglow.json
+afterglow,Afterglow,50,Tuck In Sleep,"{player}, tuck the blanket around {partner}'s shoulders and hold them tight until they drift off.",afterglow.json
+afterglow,Afterglow,51,Linger Pulse,"{player}, after climax, remain completely still and connected for 60 seconds without moving.",afterglow.json
+afterglow,Afterglow,52,Afterglow Hug,"{player}, immediately wrap both arms and legs around partner in a tight embrace post-climax.",afterglow.json
+afterglow,Afterglow,53,Whispered Thanks,"{player}, whisper three heartfelt, intimate thank-yous directly against {partner}'s ear after finishing.",afterglow.json
+afterglow,Afterglow,54,Chest Rest,"{player}, lay your head directly over {partner}'s heart and listen to their heartbeat slow down.",afterglow.json
+afterglow,Afterglow,55,Hair Stroke Afterglow,"{player}, slowly stroke {partner}'s hair while breathing together in total silence for 2 minutes.",afterglow.json
+afterglow,Afterglow,56,Soft Kisses Only,"{player}, cover {partner}'s face and eyes with gentle, soft kisses after the intensity drops.",afterglow.json
+afterglow,Afterglow,57,Hydration Service,"{player}, bring {partner} a cold glass of water and hold it for them as they drink.",afterglow.json
+afterglow,Afterglow,58,Cuddle Lock,"{player}, pull covers up and hold partner close in full spooning position with no phones for 10 minutes.",afterglow.json
+afterglow,Afterglow,59,Immediate Stillness,"{player}, immediately wrap into a tight, full-body cuddle lock and stay still for 3 minutes.",afterglow.json
+afterglow,Afterglow,60,Heart Listen Shift,"{player}, rest your head directly over {partner}'s chest and listen to their heartbeat slow down.",afterglow.json
+afterglow,Afterglow,61,Hydration Rescue,"{player}, bring {partner} a fresh, cold glass of water and help them drink it.",afterglow.json
+afterglow,Afterglow,62,Warm Damp Wipe,"{player}, use a warm, damp towel to gently clean and care for {partner}.",afterglow.json
+afterglow,Afterglow,63,30-Min Snuggle Timer,"{player}, put on a soft 30-minute timer, pull the covers up, and snuggle without any phones or distractions.",afterglow.json
+afterglow,Afterglow,64,Silent Hair Stroke,"{player}, gently stroke {partner}'s hair while breathing together in total peace.",afterglow.json
+afterglow,Afterglow,65,Favorite Moment Ask,"{player}, ask {partner}: 'What was your absolute favorite moment or card from tonight?'.",afterglow.json
+afterglow,Afterglow,66,Three Love Qualities,"{player}, whisper three sincere things you love about your relationship while holding them close.",afterglow.json
+afterglow,Afterglow,67,Side Hand Lock,"{player}, lay side-by-side holding hands with your fingers interlocked until your breathing normalizes.",afterglow.json
+afterglow,Afterglow,68,Body Sensation Rating,"{player}, ask {partner}: 'How does your body feel right now on a scale of 1 to 10?'.",afterglow.json
+afterglow,Afterglow,69,Lower Back Soothe,"{player}, give {partner} a slow, gentle lower back rub while they lie on their stomach.",afterglow.json
+afterglow,Afterglow,70,Shoulder Pillow Hug,"{player}, pull {partner}'s head onto your shoulder and wrap both arms tightly around them.",afterglow.json
+afterglow,Afterglow,71,Nose Kiss Thanks,"{player}, kiss the tip of {partner}'s nose and say 'thank you for tonight.'.",afterglow.json
+afterglow,Afterglow,72,Stomach Initial,"{player}, lightly trace your initial onto their stomach while you cool down together.",afterglow.json
+afterglow,Afterglow,73,Future Repeat Question,"{player}, ask {partner}: 'Is there anything special you'd like to try again next time we play?'.",afterglow.json
+afterglow,Afterglow,74,Mutual Heart Palms,"{player}, place your hand flat over {partner}'s heart and let them place theirs over yours.",afterglow.json
+afterglow,Afterglow,75,Dim Silent Cuddle,"{player}, keep the lights dim, close your eyes, and just cuddle in total silence for 5 minutes.",afterglow.json
+afterglow,Afterglow,76,Spooned Neck Kisses,"{player}, gently kiss {partner}'s shoulders and neck while spooning from behind.",afterglow.json
+afterglow,Afterglow,77,Calf Release,"{player}, softly massage {partner}'s feet or calves to release any remaining tension.",afterglow.json
+afterglow,Afterglow,78,Funny Mid-Game Thought,"{player}, share one funny or sweet thought that popped into your head during the game.",afterglow.json
+afterglow,Afterglow,79,Blanket Burrito,"{player}, wrap {partner} up like a burrito in a warm blanket and give them a huge hug.",afterglow.json
+afterglow,Afterglow,80,Temple Kiss Wipe,"{player}, gently wipe away any stray hair from {partner}'s sweaty forehead and kiss their temple.",afterglow.json
+afterglow,Afterglow,81,Surprise Card Ask,"{player}, ask {partner} to name one card from tonight that surprised them the most.",afterglow.json
+afterglow,Afterglow,82,Chest-to-Chest Lock,"{player}, lay chest-to-chest with your arms around each other's waist for 5 uninterrupted minutes.",afterglow.json
+afterglow,Afterglow,83,Wrist Kiss Cheek,"{player}, kiss {partner}'s inner wrist and hold their hand against your cheek.",afterglow.json
+afterglow,Afterglow,84,Desire Praise,"{player}, tell {partner} one specific way they made you feel deeply loved or desired tonight.",afterglow.json
+afterglow,Afterglow,85,Hoodie Fetch,"{player}, offer to get {partner} a cozy shirt or hoodie to slip into.",afterglow.json
+afterglow,Afterglow,86,Blanket Fort Finale,"{player}, lock arms, pull the blanket over your heads, and share one final deep kiss before falling asleep.",afterglow.json
+afterglow,Afterglow,87,Clean-Up Kiss,"{player}, kiss {partner} deeply right after you both finish.",afterglow-2.json
+afterglow,Afterglow,88,Mark Check,"{player}, inspect each other's bodies for skin marks, scratches, or bites left behind.",afterglow-2.json
+afterglow,Afterglow,89,Towel Service,"{player}, bring a warm, damp towel and gently wipe down {partner}'s chest, thighs, and stomach.",afterglow-2.json
+afterglow,Afterglow,90,Post-Cum Praise,"{player}, whisper two explicit things you loved most about how {partner} looked while finishing.",afterglow-2.json
+afterglow,Afterglow,91,Dirty Mirror Review,"{player}, stand together in front of a full-length mirror while still covered in cum and sweat — take in the view before showering.",afterglow-2.json
+afterglow,Afterglow,92,Ass Care Massage,"{player}, rub warm lotion or oil over {partner}'s sore ass cheeks to soothe them while cuddling under the sheets.",afterglow-2.json
+afterglow,Afterglow,93,Post-Cum Taste,"{player}, give {partner} a deep, wet kiss right after they swallow — share the taste before you clean up.",afterglow-3.json
+afterglow,Afterglow,94,Soak It In,"{player}, after you cum inside {partner}, stay soft and still inside them, lying chest-to-chest as long as you can without pulling out.",afterglow-3.json
+afterglow,Afterglow,95,Playback Watch,"{player}, sit back against the pillows with {partner} and watch any videos or photos from the session before you delete or save them.",afterglow-3.json
+afterglow,Afterglow,96,Unbind & Hold,"{player}, unbind {partner}'s hands if they were tied, gently brush their hair from their face, and hold them tight while both heart rates settle.",afterglow-3.json
+afterglow,Afterglow,97,Trace Every Mark,"{player}, trace your fingers over the red marks, bites, or thumbprints left on {partner}'s skin, kissing each spot gently.",afterglow-3.json
+afterglow,Afterglow,98,Still-Inside Whisper,"{player}, lie chest-to-chest with {partner} while still inside them and whisper one thing they did tonight that completely blew your mind.",afterglow-3.json
+afterglow,Afterglow,99,Lap Clean-Up,"{player}, hand {partner} a warm towel — or take it yourself — pull them into your lap, slowly wipe their thighs and stomach, then pull the covers over both of you.",afterglow-3.json

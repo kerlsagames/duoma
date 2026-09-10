@@ -274,6 +274,12 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "spank",
     "stinging",
     "slap",
+    "inspection",
+  ]),
+  tag("foreplay", "hair", "Hair pull & grip", [
+    "hair",
+    "roots",
+    "tip their head",
   ]),
   tag("foreplay", "film", "Film & photo", [
     "photo",
@@ -282,6 +288,12 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "porn",
     "camera",
     "record",
+  ]),
+  tag("foreplay", "temperature", "Ice & temperature", [
+    "ice",
+    "hot breath",
+    "temperature",
+    "ribcage",
   ]),
   tag("foreplay", "open", "Open / mixed foreplay", [], true),
 
@@ -388,6 +400,17 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "edge",
     "pin",
     "dirty",
+    "throttle",
+    "neck",
+  ]),
+  tag("step_it_up", "hair", "Hair pull & grip", [
+    "hair",
+    "fistful",
+    "head angle",
+  ]),
+  tag("step_it_up", "spanking", "Spanking & impact", [
+    "spank",
+    "timed spanks",
   ]),
   tag("step_it_up", "open", "Open / mixed heat", [], true),
 
@@ -405,6 +428,9 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "order",
     "edging",
     "hold back",
+    "vibrator",
+    "wand",
+    "brink",
   ]),
   tag("finish_off", "oral", "Oral finish", [
     "oral",
@@ -412,6 +438,12 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "mouth",
     "swallow",
     "throat",
+    "lips and chin",
+  ]),
+  tag("finish_off", "toys", "Toy-assisted finish", [
+    "toy",
+    "vibrator",
+    "wand",
   ]),
   tag("finish_off", "anal", "Anal finish", [
     "anal",
@@ -441,10 +473,6 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "hand",
     "masturbat",
     "fingers",
-  ]),
-  tag("finish_off", "toys", "Toy-assisted finish", [
-    "toy",
-    "vibrator",
   ]),
   tag("finish_off", "positions", "Position finish", [
     "missionary",
