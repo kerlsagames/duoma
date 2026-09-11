@@ -14,7 +14,8 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Connect** — Lists & wishlist, curiosity sync, Talk to me, The Jar, plus Apology & Reset (coming soon).
 - **Desire** — Get Spicy, Up for it, Roleplays, Positions Guide, plus Fantasy Matcher / Secret Signals / Audio Vault stubs.
 - **Play** — Coupons plus trivia, prediction market, two truths, photo challenges, doodle, and scoreboard stubs.
-- **Home Base** — Shared lists/todos, date planner, settings, plus meal picker / chore / budget / vault stubs.
+- **Connect** — Check-ins, Date Night Generator (300 tagged ideas with location/time/budget/vibe filters), The Jar, and more.
+- **Home Base** — Shared lists/todos, calendar, settings, plus meal picker / chore / budget / vault stubs.
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles and Pick me a Position with flat editorial pink/blue pose art.
 - **Roleplays** — Care-coupon scenarios across five categories (text cards, no images).
