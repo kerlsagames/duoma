@@ -53,19 +53,19 @@ export const POSITIONS_TONE = {
   frame: "#1A1018",
 } as const;
 
-/** Soft teal for Roleplays — cozy care scenarios. */
+/** Desire crimson for Roleplays — spicy scenario library. */
 export const ROLEPLAYS_TONE = {
-  background: "#071210",
-  accent: "#3ECFBF",
-  accentSoft: "rgba(62,207,191,0.16)",
-  warm: "#F0A46A",
-  warmSoft: "rgba(240,164,106,0.16)",
-  ink: "#EAF6F3",
-  muted: "rgba(234,246,243,0.58)",
-  surface: "#0E1A18",
-  surfaceRaised: "#152421",
-  border: "rgba(62,207,191,0.28)",
-  frame: "#101F1C",
+  background: "#14080C",
+  accent: "#FF4D6A",
+  accentSoft: "rgba(255,77,106,0.16)",
+  warm: "#FF8FA3",
+  warmSoft: "rgba(255,143,163,0.16)",
+  ink: "#FFF0F3",
+  muted: "rgba(255,240,243,0.58)",
+  surface: "#1C0E14",
+  surfaceRaised: "#261018",
+  border: "rgba(255,77,106,0.32)",
+  frame: "#1A0C12",
 } as const;
 
 /** Warm glass mason jar for Appreciation notes. */

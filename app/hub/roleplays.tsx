@@ -214,7 +214,7 @@ export default function RoleplaysScreen() {
         <View style={{ marginTop: 20 }}>
           <PrimaryButton
             label="Pick me a Roleplay"
-            tone="teal"
+            tone="crimson"
             onPress={pick}
           />
         </View>
@@ -297,7 +297,7 @@ export default function RoleplaysScreen() {
             <View style={{ marginTop: 16, gap: 10 }}>
               <PrimaryButton
                 label={`Send to ${partnerName}`}
-                tone="teal"
+                tone="crimson"
                 loading={sending}
                 onPress={() => void send()}
               />
@@ -330,8 +330,8 @@ export default function RoleplaysScreen() {
                 lineHeight: 22,
               }}
             >
-              Your next scenario lands here — pick a care coupon from the
-              categories above.
+              Your next scenario lands here — toggle categories above, then
+              spin one.
             </Text>
           </View>
         )}
@@ -441,7 +441,7 @@ function InviteSection({
                 <View style={{ marginTop: 12, gap: 8 }}>
                   <PrimaryButton
                     label="I'm into it"
-                    tone="teal"
+                    tone="crimson"
                     onPress={() => onRespond(row.id, "accepted")}
                   />
                   <PrimaryButton
