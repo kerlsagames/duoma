@@ -101,6 +101,8 @@ export type GameSession = {
   awaitingPrivate: boolean;
   privateUnlocked: boolean;
   playedDate: string | null;
+  /** When ratings finished / night closed. Used for calendar time. */
+  completedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -417,6 +419,20 @@ export type SpicyDarePlay = {
   completedAt: string | null;
 };
 
+/** User-added calendar entries (dates, plans, notes). */
+export type CalendarCustomEvent = {
+  id: string;
+  coupleId: string;
+  title: string;
+  notes: string;
+  date: string;
+  /** ISO timestamp for sorting / clock display on that day. */
+  happenedAt: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AppDB = {
   profiles: Profile[];
   couples: Couple[];
@@ -444,6 +460,7 @@ export type AppDB = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  calendarEvents: CalendarCustomEvent[];
 };
 
 export type GameModule = {

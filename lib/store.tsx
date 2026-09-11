@@ -91,6 +91,7 @@ import type {
   DareDirection,
   DareTimeframe,
   SpicyDarePlay,
+  CalendarCustomEvent,
 } from "@/lib/types";
 import {
   categoryById,
@@ -385,6 +386,9 @@ type AppContextValue = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  calendarEvents: CalendarCustomEvent[];
+  /** Full deck history (all games) for calendar night detail. */
+  allDeck: DeckCard[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -454,6 +458,17 @@ type AppContextValue = {
     date: string;
   }) => Promise<void>;
   removeMilestone: (id: string) => Promise<void>;
+  addCalendarEvent: (input: {
+    title: string;
+    notes?: string;
+    date: string;
+    happenedAt?: string;
+  }) => Promise<CalendarCustomEvent>;
+  updateCalendarEvent: (
+    id: string,
+    input: { title: string; notes?: string; date: string; happenedAt?: string }
+  ) => Promise<void>;
+  removeCalendarEvent: (id: string) => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
   createCoupon: (input: {
     title: string;
@@ -665,9 +680,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .filter(
           (row) =>
             row.coupleId === couple?.id &&
-            ["completed", "rating"].includes(row.status)
+            ["completed", "rating", "playing", "setup", "selecting"].includes(
+              row.status
+            )
         )
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const allDeck = useMemo(
+    () => db.deck,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const calendarEvents = useMemo(
+    () =>
+      db.calendarEvents
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => b.happenedAt.localeCompare(a.happenedAt)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1128,6 +1160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       awaitingPrivate: false,
       privateUnlocked: false,
       playedDate: null,
+      completedAt: null,
       createdAt: nowIso(),
       updatedAt: nowIso(),
     };
@@ -2049,6 +2082,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const finishRatings = useCallback(async () => {
     if (!game) return;
+    const stamp = nowIso();
     db = {
       ...db,
       games: db.games.map((row) =>
@@ -2058,6 +2092,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               activeCardId: null,
               activePlayedBy: null,
               playedDate: row.playedDate ?? localDateKey(),
+              completedAt: row.completedAt ?? stamp,
             })
           : row
       ),
@@ -2701,6 +2736,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
+  const addCalendarEvent = useCallback(
+    async (input: {
+      title: string;
+      notes?: string;
+      date: string;
+      happenedAt?: string;
+    }) => {
+      if (!user || !couple) throw new Error("Pair up first.");
+      const title = input.title.trim();
+      if (!title) throw new Error("Add a title.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
+        throw new Error("Use a date like 2026-09-10.");
+      }
+      const stamp = nowIso();
+      const row: CalendarCustomEvent = {
+        id: createId(),
+        coupleId: couple.id,
+        title,
+        notes: (input.notes ?? "").trim(),
+        date: input.date,
+        happenedAt: input.happenedAt ?? stamp,
+        createdBy: user.id,
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      db = { ...db, calendarEvents: [...db.calendarEvents, row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const updateCalendarEvent = useCallback(
+    async (
+      id: string,
+      input: {
+        title: string;
+        notes?: string;
+        date: string;
+        happenedAt?: string;
+      }
+    ) => {
+      const title = input.title.trim();
+      if (!title) throw new Error("Add a title.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
+        throw new Error("Use a date like 2026-09-10.");
+      }
+      db = {
+        ...db,
+        calendarEvents: db.calendarEvents.map((row) =>
+          row.id === id
+            ? {
+                ...row,
+                title,
+                notes: (input.notes ?? "").trim(),
+                date: input.date,
+                happenedAt: input.happenedAt ?? row.happenedAt,
+                updatedAt: nowIso(),
+              }
+            : row
+        ),
+      };
+      await persist();
+    },
+    []
+  );
+
+  const removeCalendarEvent = useCallback(async (id: string) => {
+    db = {
+      ...db,
+      calendarEvents: db.calendarEvents.filter((row) => row.id !== id),
+    };
+    await persist();
+  }, []);
+
   const toggleDesire = useCallback(
     async (optionId: string) => {
       if (!user || !couple) return;
@@ -3263,6 +3373,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     incomingInvite,
     savedPair,
     nights,
+    allDeck,
+    calendarEvents,
     bestCards,
     checkIns,
     checkInRequests,
@@ -3323,6 +3435,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     completeSpicyDare,
     addMilestone,
     removeMilestone,
+    addCalendarEvent,
+    updateCalendarEvent,
+    removeCalendarEvent,
     toggleDesire,
     createCoupon,
     acceptCoupon,

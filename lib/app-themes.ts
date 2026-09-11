@@ -1,6 +1,6 @@
 import { Platform, type TextStyle } from "react-native";
 
-export type HubTone = "default" | "talk";
+export type HubTone = "default" | "talk" | "calendar";
 
 export const SERIF: TextStyle["fontFamily"] = Platform.select({
   ios: "Georgia",
@@ -120,6 +120,14 @@ export const HUB_TONES: Record<
     muted: "rgba(244,237,224,0.62)",
     surface: "#1B1812",
     kicker: "#E4C37A",
+  },
+  calendar: {
+    background: "#F3F5F8",
+    accent: "#C23B55",
+    ink: "#16181D",
+    muted: "rgba(22,24,29,0.58)",
+    surface: "#FFFFFF",
+    kicker: "#C23B55",
   },
 };
 

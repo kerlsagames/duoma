@@ -27,6 +27,7 @@ const hubEmpty = () => ({
   talkDraws: [],
   talkVault: [],
   spicyDares: [],
+  calendarEvents: [],
 });
 
 export function emptyDb(): AppDB {
@@ -106,6 +107,7 @@ function hydrateGame(game: GameSession): GameSession {
     awaitingPrivate: game.awaitingPrivate ?? false,
     privateUnlocked: game.privateUnlocked ?? false,
     playedDate: game.playedDate ?? null,
+    completedAt: game.completedAt ?? null,
     flavorTags:
       Array.isArray(game.flavorTags) && game.flavorTags.length > 0
         ? game.flavorTags
@@ -161,6 +163,18 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     })),
     talkVault: raw.talkVault ?? [],
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
+    calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
+  };
+}
+
+function hydrateCalendarEvent(
+  row: AppDB["calendarEvents"][number]
+): AppDB["calendarEvents"][number] {
+  return {
+    ...row,
+    notes: row.notes ?? "",
+    happenedAt: row.happenedAt ?? row.createdAt,
+    updatedAt: row.updatedAt ?? row.createdAt,
   };
 }
 

@@ -18,6 +18,38 @@ export function formatLongDate(key: string): string {
   });
 }
 
+export function formatMonthYear(year: number, month: number): string {
+  return new Date(year, month, 1).toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** e.g. 9:43 pm */
+export function formatClockTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date
+    .toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(/\s?(AM|PM)/i, (_, mer) => mer.toLowerCase())
+    .replace(/\u202f/g, " ");
+}
+
+/** Local noon on a date key — useful default for all-day custom events. */
+export function noonOnDateKey(key: string): string {
+  const date = parseDateKey(key);
+  date.setHours(12, 0, 0, 0);
+  return date.toISOString();
+}
+
+export function dateKeyFromIso(iso: string): string {
+  return localDateKey(new Date(iso));
+}
+
 export function daysUntil(key: string, from = new Date()): number {
   const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
   const target = parseDateKey(key);
