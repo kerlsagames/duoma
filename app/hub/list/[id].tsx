@@ -1,7 +1,12 @@
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { LISTS_DISPLAY, LISTS_ROUNDED, LISTS_TONE } from "@/lib/app-themes";
+import {
+  HANDWRITING,
+  LISTS_DISPLAY,
+  LISTS_ROUNDED,
+  LISTS_TONE,
+} from "@/lib/app-themes";
 import {
   averageScore,
   formatDoneDate,
@@ -12,7 +17,7 @@ import {
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Modal,
   Pressable,
@@ -22,6 +27,157 @@ import {
 } from "react-native";
 
 const T = LISTS_TONE;
+
+const PAPER = "#F4E7C8";
+const PAPER_LINE = "rgba(70, 120, 170, 0.28)";
+const PAPER_MARGIN = "rgba(200, 70, 70, 0.55)";
+const PAPER_INK = "#2A1F14";
+const PAPER_MUTED = "rgba(42, 31, 20, 0.55)";
+const ROW_HEIGHT = 46;
+
+function Notepad({
+  children,
+  empty,
+}: {
+  children?: ReactNode;
+  empty?: string | null;
+}) {
+  return (
+    <View
+      style={{
+        marginTop: 10,
+        borderRadius: 4,
+        backgroundColor: PAPER,
+        borderWidth: 1,
+        borderColor: "rgba(255,209,102,0.35)",
+        overflow: "hidden",
+        transform: [{ rotate: "-0.4deg" }],
+      }}
+    >
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: 28,
+          top: 0,
+          bottom: 0,
+          width: 1.5,
+          backgroundColor: PAPER_MARGIN,
+          zIndex: 2,
+        }}
+      />
+      {empty ? (
+        <View
+          style={{
+            minHeight: ROW_HEIGHT * 3,
+            justifyContent: "center",
+            paddingLeft: 40,
+            paddingRight: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: PAPER_LINE,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: HANDWRITING,
+              fontSize: 18,
+              color: PAPER_MUTED,
+            }}
+          >
+            {empty}
+          </Text>
+        </View>
+      ) : (
+        children
+      )}
+    </View>
+  );
+}
+
+function NotepadRow({
+  title,
+  action,
+  onAction,
+  subtitle,
+}: {
+  title: string;
+  action?: string;
+  onAction?: () => void;
+  subtitle?: string | null;
+}) {
+  return (
+    <View
+      style={{
+        minHeight: ROW_HEIGHT,
+        paddingLeft: 40,
+        paddingRight: 12,
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: PAPER_LINE,
+        justifyContent: "center",
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <Text
+          style={{
+            flex: 1,
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            lineHeight: 26,
+            color: PAPER_INK,
+          }}
+          numberOfLines={2}
+        >
+          {title}
+        </Text>
+        {action && onAction ? (
+          <Pressable
+            onPress={onAction}
+            hitSlop={8}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              paddingVertical: 4,
+              paddingHorizontal: 6,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: LISTS_ROUNDED,
+                fontSize: 13,
+                fontWeight: "700",
+                color: T.stamp,
+              }}
+            >
+              {action}
+            </Text>
+            <Ionicons name="checkmark" size={16} color={T.stamp} />
+          </Pressable>
+        ) : null}
+      </View>
+      {subtitle ? (
+        <Text
+          style={{
+            marginTop: 2,
+            fontFamily: LISTS_ROUNDED,
+            fontSize: 11,
+            color: PAPER_MUTED,
+          }}
+          numberOfLines={2}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
 
 export default function ListDetailScreen() {
   const router = useRouter();
@@ -72,7 +228,9 @@ export default function ListDetailScreen() {
     () =>
       listEntries
         .filter((row) => row.listId === id && row.completedAt)
-        .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? "")),
+        .sort((a, b) =>
+          (b.completedAt ?? "").localeCompare(a.completedAt ?? "")
+        ),
     [id, listEntries]
   );
 
@@ -148,7 +306,7 @@ export default function ListDetailScreen() {
     <>
       <Text
         style={{
-          marginTop: focusVault ? 26 : 26,
+          marginTop: 22,
           fontFamily: LISTS_DISPLAY,
           fontSize: 20,
           color: T.ink,
@@ -157,80 +315,29 @@ export default function ListDetailScreen() {
       >
         Open · {openItems.length}
       </Text>
-      <View style={{ marginTop: 10, gap: 10 }}>
-        {openItems.length === 0 ? (
-          <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
-            Empty for now. Drop in the first idea.
-          </Text>
-        ) : (
-          openItems.map((entry) => {
-            const who =
-              entry.createdBy === user?.id
-                ? "You added"
-                : entry.createdBy === partner?.id
-                  ? `${partner?.displayName ?? "Partner"} added`
-                  : "Added";
-            return (
-              <View
-                key={entry.id}
-                style={{
-                  borderRadius: 22,
-                  borderWidth: 1,
-                  borderColor: T.border,
-                  backgroundColor: T.surface,
-                  padding: 14,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: LISTS_ROUNDED,
-                    fontSize: 11,
-                    color: T.teal,
-                    fontWeight: "700",
-                    letterSpacing: 0.6,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {who}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 4,
-                    fontFamily: LISTS_DISPLAY,
-                    fontSize: 20,
-                    color: T.ink,
-                    fontWeight: "700",
-                  }}
-                >
-                  {entry.title}
-                </Text>
-                <Pressable
-                  onPress={() => void markDone(entry.id)}
-                  style={{
-                    marginTop: 12,
-                    alignSelf: "flex-start",
-                    borderRadius: 999,
-                    backgroundColor: T.accent,
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: LISTS_ROUNDED,
-                      fontWeight: "700",
-                      color: "#1A120E",
-                      fontSize: 13,
-                    }}
-                  >
-                    {copy.doneLabel} ✓
-                  </Text>
-                </Pressable>
-              </View>
-            );
-          })
-        )}
-      </View>
+      <Notepad
+        empty={
+          openItems.length === 0 ? "Blank page. Write the first one." : null
+        }
+      >
+        {openItems.map((entry) => {
+          const who =
+            entry.createdBy === user?.id
+              ? "you"
+              : entry.createdBy === partner?.id
+                ? partner?.displayName ?? "them"
+                : null;
+          return (
+            <NotepadRow
+              key={entry.id}
+              title={entry.title}
+              subtitle={who ? `added by ${who}` : null}
+              action={copy.doneLabel}
+              onAction={() => void markDone(entry.id)}
+            />
+          );
+        })}
+      </Notepad>
     </>
   );
 
@@ -248,111 +355,82 @@ export default function ListDetailScreen() {
         >
           {copy.vaultTitle} · {doneItems.length}
         </Text>
-        <View style={{ marginTop: 10, gap: 10 }}>
-          {doneItems.length === 0 ? (
-            <Text style={{ color: T.muted, fontFamily: LISTS_ROUNDED }}>
-              No memories here yet.
-            </Text>
-          ) : (
-            doneItems.map((entry) => {
-              const ratings = listEntryRatings.filter(
-                (row) => row.entryId === entry.id
-              );
-              const mine = ratings.find((row) => row.userId === user?.id);
-              const theirs = ratings.find(
-                (row) => row.userId === partner?.id
-              );
-              const avg = averageScore(ratings);
-              const doneOn = formatDoneDate(entry.completedAt);
-              return (
+        <Notepad
+          empty={
+            doneItems.length === 0 ? "No memories on this page yet." : null
+          }
+        >
+          {doneItems.map((entry) => {
+            const ratings = listEntryRatings.filter(
+              (row) => row.entryId === entry.id
+            );
+            const mine = ratings.find((row) => row.userId === user?.id);
+            const theirs = ratings.find((row) => row.userId === partner?.id);
+            const avg = averageScore(ratings);
+            const doneOn = formatDoneDate(entry.completedAt);
+            const scoreBits = [
+              `Avg ${scoreLabel(avg)}`,
+              `You ${mine ? scoreLabel(mine.stars) : "—"}`,
+              `${partner?.displayName ?? "Them"} ${
+                theirs ? scoreLabel(theirs.stars) : "—"
+              }`,
+            ].join(" · ");
+            return (
+              <View key={entry.id}>
+                <NotepadRow
+                  title={entry.title}
+                  subtitle={
+                    doneOn
+                      ? `${copy.doneLabel} · ${doneOn} · ${scoreBits}`
+                      : scoreBits
+                  }
+                />
                 <View
-                  key={entry.id}
                   style={{
-                    borderRadius: 22,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,209,102,0.35)",
-                    backgroundColor: T.sky,
-                    padding: 14,
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 14,
+                    paddingLeft: 40,
+                    paddingRight: 12,
+                    paddingBottom: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: PAPER_LINE,
+                    backgroundColor: PAPER,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontFamily: LISTS_DISPLAY,
-                      fontSize: 18,
-                      color: T.ink,
-                      fontWeight: "700",
+                  <Pressable
+                    onPress={() => {
+                      setPendingScore(mine?.stars ?? 7.5);
+                      setRateEntryId(entry.id);
                     }}
                   >
-                    {entry.title}
-                  </Text>
-                  {doneOn ? (
                     <Text
                       style={{
-                        marginTop: 4,
                         fontFamily: LISTS_ROUNDED,
                         fontSize: 12,
-                        color: T.teal,
                         fontWeight: "700",
+                        color: T.stamp,
                       }}
                     >
-                      {copy.doneLabel} · {doneOn}
+                      {mine ? "Update score" : "Add score"}
                     </Text>
-                  ) : null}
-                  <Text
-                    style={{
-                      marginTop: 6,
-                      fontFamily: LISTS_ROUNDED,
-                      fontSize: 13,
-                      color: T.muted,
-                    }}
-                  >
-                    Avg {scoreLabel(avg)} · You{" "}
-                    {mine ? scoreLabel(mine.stars) : "rate me"} ·{" "}
-                    {partner?.displayName ?? "Them"}{" "}
-                    {theirs ? scoreLabel(theirs.stars) : "—"}
-                  </Text>
-                  <View
-                    style={{
-                      marginTop: 10,
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      gap: 10,
-                    }}
-                  >
-                    <Pressable
-                      onPress={() => {
-                        setPendingScore(mine?.stars ?? 7.5);
-                        setRateEntryId(entry.id);
+                  </Pressable>
+                  <Pressable onPress={() => void reopenListEntry(entry.id)}>
+                    <Text
+                      style={{
+                        fontFamily: LISTS_ROUNDED,
+                        fontSize: 12,
+                        color: PAPER_MUTED,
                       }}
                     >
-                      <Text
-                        style={{
-                          color: T.sticky,
-                          fontFamily: LISTS_ROUNDED,
-                          fontWeight: "700",
-                          fontSize: 13,
-                        }}
-                      >
-                        {mine ? "Update my score" : "Add my score"}
-                      </Text>
-                    </Pressable>
-                    <Pressable onPress={() => void reopenListEntry(entry.id)}>
-                      <Text
-                        style={{
-                          color: T.muted,
-                          fontFamily: LISTS_ROUNDED,
-                          fontSize: 13,
-                        }}
-                      >
-                        Move back to open
-                      </Text>
-                    </Pressable>
-                  </View>
+                      Move back to open
+                    </Text>
+                  </Pressable>
                 </View>
-              );
-            })
-          )}
-        </View>
+              </View>
+            );
+          })}
+        </Notepad>
       </>
     ) : null;
 
@@ -364,7 +442,13 @@ export default function ListDetailScreen() {
           style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
         >
           <Ionicons name="chevron-back" size={18} color={T.teal} />
-          <Text style={{ color: T.teal, fontFamily: LISTS_ROUNDED, fontWeight: "700" }}>
+          <Text
+            style={{
+              color: T.teal,
+              fontFamily: LISTS_ROUNDED,
+              fontWeight: "700",
+            }}
+          >
             {focusVault ? "Vault" : "All lists"}
           </Text>
         </Pressable>
@@ -541,7 +625,10 @@ export default function ListDetailScreen() {
               />
             </View>
             <View style={{ marginTop: 18, gap: 10 }}>
-              <PrimaryButton label="Save score" onPress={() => void saveRating()} />
+              <PrimaryButton
+                label="Save score"
+                onPress={() => void saveRating()}
+              />
               <PrimaryButton
                 label="Skip for now"
                 tone="ghost"

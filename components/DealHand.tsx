@@ -33,8 +33,10 @@ type Props = {
   disabled?: boolean;
 };
 
-const CARD_GAP = 12;
-const FLY_CARD_HEIGHT = 120;
+const CARD_GAP = 14;
+/** Final pickable card height — deal lands here so nothing remounts. */
+const CARD_HEIGHT = 148;
+const STACK_TOP = 118;
 
 export function DealHand({
   cards,
@@ -50,6 +52,7 @@ export function DealHand({
   const laneWidth = Math.min(width - 40, 420);
   const hand = useMemo(() => cards.slice(0, 3), [cards]);
   const cardWidth = Math.min(laneWidth, 380);
+  const handIds = hand.map((card) => card.id).join("|");
 
   const [phase, setPhase] = useState<Phase>("shuffle");
   const [flipped, setFlipped] = useState([false, false, false]);
@@ -64,7 +67,7 @@ export function DealHand({
       x: new Animated.Value(0),
       y: new Animated.Value(0),
       rotate: new Animated.Value(0),
-      scale: new Animated.Value(0.9),
+      scale: new Animated.Value(0.92),
       opacity: new Animated.Value(0),
       flip: new Animated.Value(0),
     }))
@@ -82,9 +85,9 @@ export function DealHand({
     deckOpacity.setValue(1);
     slots.forEach((slot) => {
       slot.x.setValue(0);
-      slot.y.setValue(-12);
+      slot.y.setValue(-8);
       slot.rotate.setValue(0);
-      slot.scale.setValue(0.9);
+      slot.scale.setValue(0.92);
       slot.opacity.setValue(0);
       slot.flip.setValue(0);
     });
@@ -142,6 +145,11 @@ export function DealHand({
     void buzz();
     shuffleLoop.start();
 
+    const targets = hand.map((_, index) => ({
+      x: 0,
+      y: STACK_TOP + index * (CARD_HEIGHT + CARD_GAP),
+    }));
+
     const shuffleMs = mode === "shuffle" ? 980 : 720;
     timers.push(
       setTimeout(() => {
@@ -152,47 +160,47 @@ export function DealHand({
         setPhase("deal");
         void buzz(Haptics.ImpactFeedbackStyle.Medium);
 
-        const startY = 128;
-        const targets = hand.map((_, index) => ({
-          x: 0,
-          y: startY + index * (FLY_CARD_HEIGHT + CARD_GAP),
-          tilt: index === 0 ? -0.4 : index === 2 ? 0.4 : 0,
-        }));
-
         hand.forEach((_, index) => {
           const slot = slots[index];
+          const target = targets[index];
           timers.push(
             setTimeout(() => {
               if (cancelled) return;
               slot.opacity.setValue(1);
+              // Start near the deck with a tiny tilt, then settle into the lined stack.
+              slot.x.setValue(0);
+              slot.y.setValue(8);
+              slot.rotate.setValue(index === 0 ? -0.15 : index === 2 ? 0.15 : 0);
+
               Animated.parallel([
                 Animated.timing(slot.x, {
-                  toValue: targets[index].x,
-                  duration: 440,
+                  toValue: target.x,
+                  duration: 480,
                   easing: Easing.out(Easing.cubic),
                   useNativeDriver: true,
                 }),
                 Animated.timing(slot.y, {
-                  toValue: targets[index].y,
-                  duration: 440,
+                  toValue: target.y,
+                  duration: 480,
                   easing: Easing.out(Easing.cubic),
                   useNativeDriver: true,
                 }),
                 Animated.timing(slot.rotate, {
-                  toValue: targets[index].tilt,
-                  duration: 440,
+                  toValue: 0,
+                  duration: 480,
+                  easing: Easing.out(Easing.quad),
                   useNativeDriver: true,
                 }),
                 Animated.spring(slot.scale, {
                   toValue: 1,
-                  friction: 6,
-                  tension: 68,
+                  friction: 7,
+                  tension: 64,
                   useNativeDriver: true,
                 }),
               ]).start(() => {
                 Animated.timing(slot.flip, {
                   toValue: 1,
-                  duration: 300,
+                  duration: 280,
                   easing: Easing.out(Easing.quad),
                   useNativeDriver: true,
                 }).start(() => {
@@ -206,7 +214,7 @@ export function DealHand({
                   if (index === hand.length - 1) {
                     Animated.timing(deckOpacity, {
                       toValue: 0,
-                      duration: 180,
+                      duration: 160,
                       useNativeDriver: true,
                     }).start();
                     setPhase("ready");
@@ -214,7 +222,7 @@ export function DealHand({
                   }
                 });
               });
-            }, index * 280)
+            }, index * 260)
           );
         });
       }, shuffleMs)
@@ -226,7 +234,7 @@ export function DealHand({
       timers.forEach(clearTimeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animationKey, mode, hand.map((card) => card.id).join("|"), laneWidth]);
+  }, [animationKey, mode, handIds, laneWidth]);
 
   const openConfirm = (cardId: string) => {
     if (disabled || phase !== "ready") return;
@@ -266,8 +274,8 @@ export function DealHand({
     ? personalizeCard(selectedCard, names, genders)
     : null;
 
-  const flyHeight = 128 + hand.length * (FLY_CARD_HEIGHT + CARD_GAP) + 20;
-  const animating = phase !== "ready";
+  const stageHeight = STACK_TOP + hand.length * (CARD_HEIGHT + CARD_GAP) + 28;
+  const canPick = phase === "ready" && !disabled;
 
   return (
     <View className="flex-1">
@@ -275,156 +283,146 @@ export function DealHand({
         {status}
       </Text>
 
-      {animating ? (
-        <View className="relative items-center" style={{ minHeight: flyHeight }}>
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              opacity: deckOpacity,
-              transform: [
-                { translateX: deckTranslateX },
-                { rotate: deckRotateZ },
-              ],
-              zIndex: 2,
-            }}
-            className="absolute top-2 h-[100px] w-[72px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
-          >
-            <View className="absolute inset-1 rounded-xl border border-crimson/25" />
-            <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
-              Deck
-            </Text>
-            <Text className="mt-1 text-[20px] font-bold text-crimson">♠</Text>
-          </Animated.View>
+      <View className="relative items-center" style={{ minHeight: stageHeight }}>
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            opacity: deckOpacity,
+            transform: [
+              { translateX: deckTranslateX },
+              { rotate: deckRotateZ },
+            ],
+            zIndex: 2,
+          }}
+          className="absolute top-2 h-[100px] w-[72px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
+        >
+          <View className="absolute inset-1 rounded-xl border border-crimson/25" />
+          <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
+            Deck
+          </Text>
+          <Text className="mt-1 text-[20px] font-bold text-crimson">♠</Text>
+        </Animated.View>
 
-          {phase === "shuffle"
-            ? [0, 1, 2].map((i) => (
-                <Animated.View
-                  key={`flutter-${i}`}
-                  pointerEvents="none"
-                  style={{
-                    opacity: 0.5,
-                    zIndex: 1,
-                    transform: [
-                      {
-                        translateX: deckShake.interpolate({
-                          inputRange: [-1, 1],
-                          outputRange: [-16 - i * 5, 16 + i * 5],
-                        }),
-                      },
-                      {
-                        translateY: deckRotate.interpolate({
-                          inputRange: [-1, 1],
-                          outputRange: [-6 + i * 3, 10 - i * 2],
-                        }),
-                      },
-                      {
-                        rotate: deckRotate.interpolate({
-                          inputRange: [-1, 1],
-                          outputRange: [
-                            `${-14 - i * 3}deg`,
-                            `${14 + i * 3}deg`,
-                          ],
-                        }),
-                      },
-                    ],
-                  }}
-                  className="absolute top-3 h-[92px] w-[66px] rounded-2xl border border-white/15 bg-[#12080F]"
-                />
-              ))
-            : null}
-
-          {hand.map((card, index) => {
-            const slot = slots[index];
-            const copy = personalizeCard(card, names, genders);
-            const frontOpacity = slot.flip.interpolate({
-              inputRange: [0, 0.49, 0.5, 1],
-              outputRange: [0, 0, 1, 1],
-            });
-            const backOpacity = slot.flip.interpolate({
-              inputRange: [0, 0.49, 0.5, 1],
-              outputRange: [1, 1, 0, 0],
-            });
-            const scaleX = slot.flip.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [1, 0.04, 1],
-            });
-            const rotate = slot.rotate.interpolate({
-              inputRange: [-1, 0, 1],
-              outputRange: ["-4deg", "0deg", "4deg"],
-            });
-
-            return (
+        {phase === "shuffle"
+          ? [0, 1, 2].map((i) => (
               <Animated.View
-                key={`${animationKey}-fly-${card.id}`}
+                key={`flutter-${i}`}
                 pointerEvents="none"
                 style={{
-                  position: "absolute",
-                  top: 10,
-                  width: cardWidth,
-                  height: FLY_CARD_HEIGHT,
-                  opacity: slot.opacity,
-                  zIndex: 10 + index,
+                  opacity: 0.5,
+                  zIndex: 1,
                   transform: [
-                    { translateX: slot.x },
-                    { translateY: slot.y },
-                    { rotate },
-                    { scale: slot.scale },
-                    { scaleX },
+                    {
+                      translateX: deckShake.interpolate({
+                        inputRange: [-1, 1],
+                        outputRange: [-16 - i * 5, 16 + i * 5],
+                      }),
+                    },
+                    {
+                      translateY: deckRotate.interpolate({
+                        inputRange: [-1, 1],
+                        outputRange: [-6 + i * 3, 10 - i * 2],
+                      }),
+                    },
+                    {
+                      rotate: deckRotate.interpolate({
+                        inputRange: [-1, 1],
+                        outputRange: [`${-14 - i * 3}deg`, `${14 + i * 3}deg`],
+                      }),
+                    },
                   ],
                 }}
+                className="absolute top-3 h-[92px] w-[66px] rounded-2xl border border-white/15 bg-[#12080F]"
+              />
+            ))
+          : null}
+
+        {hand.map((card, index) => {
+          const slot = slots[index];
+          const copy = personalizeCard(card, names, genders);
+          const ready = flipped[index];
+          const frontOpacity = slot.flip.interpolate({
+            inputRange: [0, 0.49, 0.5, 1],
+            outputRange: [0, 0, 1, 1],
+          });
+          const backOpacity = slot.flip.interpolate({
+            inputRange: [0, 0.49, 0.5, 1],
+            outputRange: [1, 1, 0, 0],
+          });
+          const scaleX = slot.flip.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [1, 0.04, 1],
+          });
+          const rotate = slot.rotate.interpolate({
+            inputRange: [-1, 0, 1],
+            outputRange: ["-4deg", "0deg", "4deg"],
+          });
+
+          return (
+            <Animated.View
+              key={`${animationKey}-card-${card.id}`}
+              style={{
+                position: "absolute",
+                top: 10,
+                width: cardWidth,
+                height: CARD_HEIGHT,
+                opacity: slot.opacity,
+                zIndex: 10 + index,
+                transform: [
+                  { translateX: slot.x },
+                  { translateY: slot.y },
+                  { rotate },
+                  { scale: slot.scale },
+                  { scaleX },
+                ],
+              }}
+            >
+              <Pressable
+                disabled={!canPick || !ready}
+                onPress={() => openConfirm(card.id)}
+                style={{ flex: 1 }}
               >
                 <Animated.View
+                  pointerEvents="none"
                   style={{ opacity: backOpacity }}
                   className="absolute inset-0 items-center justify-center rounded-[22px] border border-neon/40 bg-[#1A0B14]"
                 >
                   <Text className="text-[28px] font-bold text-crimson">♠</Text>
                 </Animated.View>
                 <Animated.View
+                  pointerEvents="none"
                   style={{ opacity: frontOpacity }}
                   className="absolute inset-0 rounded-[22px] border border-neon/50 bg-[#140910] px-4 py-3"
                 >
+                  <Text className="text-[11px] font-semibold uppercase tracking-[1.5px] text-neon/70">
+                    Option {index + 1}
+                  </Text>
+                  {copy.title ? (
+                    <Text
+                      className="mt-1 text-[14px] font-semibold leading-5 text-mist/70"
+                      numberOfLines={1}
+                    >
+                      {copy.title}
+                    </Text>
+                  ) : null}
                   <Text
-                    className="text-[14px] font-semibold leading-5 text-mist"
+                    className="mt-1.5 text-[15px] font-semibold leading-5 text-mist"
                     numberOfLines={4}
                   >
                     {copy.body}
                   </Text>
                 </Animated.View>
-              </Animated.View>
-            );
-          })}
-        </View>
-      ) : (
-        <View className="gap-3">
-          {hand.map((card, index) => {
-            const copy = personalizeCard(card, names, genders);
-            const ready = flipped[index];
-            return (
-              <Pressable
-                key={`${animationKey}-ready-${card.id}`}
-                disabled={disabled || !ready}
-                onPress={() => openConfirm(card.id)}
-                className="rounded-[24px] border border-neon/50 bg-[#140910] px-4 py-4 active:border-neon active:bg-neon/15"
-              >
-                <Text className="text-[11px] font-semibold uppercase tracking-[1.5px] text-neon/70">
-                  Option {index + 1}
-                </Text>
-                {copy.title ? (
-                  <Text className="mt-1 text-[15px] font-semibold leading-5 text-mist/70">
-                    {copy.title}
-                  </Text>
-                ) : null}
-                <Text className="mt-2 text-[17px] font-semibold leading-6 text-mist">
-                  {copy.body}
-                </Text>
               </Pressable>
-            );
-          })}
-          <Text className="mt-1 text-center text-[13px] text-mist/55">
-            Tap a card to open it full screen
-          </Text>
-        </View>
-      )}
+            </Animated.View>
+          );
+        })}
+      </View>
+
+      {phase === "ready" ? (
+        <Text className="mt-2 text-center text-[13px] text-mist/55">
+          Tap a card to open it full screen
+        </Text>
+      ) : null}
 
       <Modal
         visible={Boolean(selectedId && selectedCopy)}
