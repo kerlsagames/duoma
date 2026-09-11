@@ -7,6 +7,8 @@ type Props = {
   color?: string;
   fallback?: Href;
   style?: StyleProp<ViewStyle>;
+  /** If set, runs instead of leaving the screen. Return true if handled. */
+  onPress?: () => boolean | void;
 };
 
 export function BackButton({
@@ -14,12 +16,14 @@ export function BackButton({
   color = "#FF007F",
   fallback = "/",
   style,
+  onPress,
 }: Props) {
   const router = useRouter();
 
   return (
     <Pressable
       onPress={() => {
+        if (onPress?.()) return;
         if (router.canGoBack()) router.back();
         else router.replace(fallback);
       }}

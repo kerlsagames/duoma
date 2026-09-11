@@ -10,6 +10,7 @@ const T = UP_FOR_IT_TONE;
 export default function UpForItScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const [focused, setFocused] = useState(false);
+  const innerBack = useRef<(() => boolean) | null>(null);
   const scrollToTop = useCallback(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, []);
@@ -17,7 +18,12 @@ export default function UpForItScreen() {
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-4 pb-8">
-        <BackButton color={T.accent} style={{ marginBottom: focused ? 8 : 12 }} />
+        <BackButton
+          color={T.accent}
+          fallback="/hub/play"
+          style={{ marginBottom: focused ? 8 : 12 }}
+          onPress={() => innerBack.current?.() ?? false}
+        />
         {!focused ? (
           <>
             <Text
@@ -61,6 +67,9 @@ export default function UpForItScreen() {
             mode="page"
             onNavigate={scrollToTop}
             onViewChange={(view) => setFocused(view !== "hub")}
+            onBindBack={(fn) => {
+              innerBack.current = fn;
+            }}
           />
         </View>
       </View>

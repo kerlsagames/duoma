@@ -69,6 +69,7 @@ export function SpicyDarePanel({
   mode = "sheet",
   onNavigate,
   onViewChange,
+  onBindBack,
 }: {
   onClose?: () => void;
   mode?: "sheet" | "page";
@@ -76,6 +77,8 @@ export function SpicyDarePanel({
   onNavigate?: () => void;
   /** Lets the page hide titles while browsing, listing, or composing. */
   onViewChange?: (view: ViewMode) => void;
+  /** Page Back should step inside the panel instead of leaving Challenges. */
+  onBindBack?: (handler: (() => boolean) | null) => void;
 }) {
   const {
     user,
@@ -282,6 +285,30 @@ export function SpicyDarePanel({
     setView("send");
     setError(null);
   };
+
+  useEffect(() => {
+    if (!onBindBack) return;
+    onBindBack(() => {
+      if (view === "hub") return false;
+      if (view === "compose") {
+        if (category) {
+          setCompose(null);
+          setView("category");
+          setError(null);
+        } else {
+          goSend();
+        }
+        return true;
+      }
+      if (view === "category") {
+        goSend();
+        return true;
+      }
+      goHub();
+      return true;
+    });
+    return () => onBindBack(null);
+  }, [onBindBack, view, category]);
 
   const catMeta = category ? spicyCategoryMeta(category) : null;
   const heroText = flashText ?? picked?.text ?? null;
