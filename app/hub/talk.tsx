@@ -120,29 +120,34 @@ export default function TalkScreen() {
     <HubScreen
       tone="talk"
       kicker="Talk to me"
-      title="Nine conversations."
-      body="Each of you picks one topic a day. Read it out loud, then tap Answered. One shuffle if you want a different card."
+      body="One topic each per day. Read it out loud, then tap Answered."
     >
       <Text
         style={{
-          marginBottom: 14,
+          marginBottom: 12,
           fontFamily: "SpaceMono",
-          fontSize: 12,
-          letterSpacing: 1.4,
+          fontSize: 11,
+          letterSpacing: 1.2,
           textTransform: "uppercase",
           color: THEME.accent,
         }}
       >
         {myPick
           ? myPick.answeredAt
-            ? "Today's card is in — decks locked until tomorrow"
-            : "Your topic is locked in — finish or shuffle this card"
+            ? "Today's card is in — locked until tomorrow"
+            : "Topic locked — finish or shuffle this card"
           : picksLeft
             ? "Pick one topic for today"
             : "Come back tomorrow"}
       </Text>
 
-      <View style={{ gap: 8 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
         {LETS_TALK_DECK.map((category) => {
           const draw = user
             ? todaysDraw(talkDraws, {
@@ -166,12 +171,13 @@ export default function TalkScreen() {
               disabled={lockedOut}
               onPress={() => void openCategoryTile(category.id)}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 14,
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                borderRadius: 22,
+                flexBasis: "47%",
+                flexGrow: 0,
+                flexShrink: 0,
+                minHeight: 96,
+                paddingVertical: 10,
+                paddingHorizontal: 8,
+                borderRadius: 14,
                 backgroundColor: done
                   ? "rgba(228,195,122,0.12)"
                   : isMine
@@ -183,13 +189,15 @@ export default function TalkScreen() {
                     ? "rgba(228,195,122,0.4)"
                     : "rgba(244,237,224,0.08)",
                 opacity: lockedOut ? 0.45 : 1,
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: 1.5,
@@ -199,56 +207,46 @@ export default function TalkScreen() {
               >
                 <Ionicons
                   name={(category.iconName as IconName) ?? "chatbubbles-outline"}
-                  size={22}
+                  size={16}
                   color={done ? "#12100C" : tint}
                 />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 18,
-                    color: THEME.ink,
-                    lineHeight: 22,
-                  }}
-                >
-                  {category.name}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 3,
-                    fontFamily: "SpaceMono",
-                    fontSize: 11,
-                    letterSpacing: 0.6,
-                    color: done
-                      ? THEME.accent
-                      : lockedOut
-                        ? "rgba(244,237,224,0.35)"
-                        : "rgba(244,237,224,0.45)",
-                  }}
-                >
-                  {done
-                    ? "Answered"
-                    : isMine
-                      ? "Open — your card for today"
-                      : lockedOut
-                        ? "Locked — you already picked"
-                        : `${told} told · tap to draw`}
-                </Text>
-              </View>
-              <Ionicons
-                name={
-                  done
-                    ? "checkmark"
+              <Text
+                style={{
+                  marginTop: 7,
+                  fontFamily: SERIF,
+                  fontSize: 13,
+                  lineHeight: 16,
+                  color: THEME.ink,
+                  textAlign: "center",
+                }}
+                numberOfLines={2}
+              >
+                {category.name}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontFamily: "SpaceMono",
+                  fontSize: 10,
+                  letterSpacing: 0.4,
+                  textAlign: "center",
+                  color: done
+                    ? THEME.accent
                     : lockedOut
-                      ? "lock-closed-outline"
-                      : isMine
-                        ? "book-outline"
-                        : "chevron-forward"
-                }
-                size={18}
-                color={tint}
-              />
+                      ? "rgba(244,237,224,0.35)"
+                      : "rgba(244,237,224,0.45)",
+                }}
+                numberOfLines={1}
+              >
+                {done
+                  ? "Answered"
+                  : isMine
+                    ? "Open today"
+                    : lockedOut
+                      ? "Locked"
+                      : `${told} told`}
+              </Text>
             </Pressable>
           );
         })}

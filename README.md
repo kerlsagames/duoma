@@ -12,7 +12,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
 - **Us hub** — Daily check-in, curiosity sync (answer + guess, match points), countdowns, coupons, shared Lists (bucket-list movies/places/activities + vault ratings), appreciation jar (visual mason jar that fills as notes drop in), date planner, shared calendar.
 - **Coupons** — 150 favor ideas across Food, Pamper, Favors, Outings, Romance, and Wildcard. Give flow: pick idea → optional reason → use-by window. Wallet tabs for received, used, and expired.
-- **Talk to me** — Nine conversation decks (one question per deck per day).
+- **Talk to me** — Conversation decks (one question per deck per day).
 - **Wildcard** — Challenges & Dares: pick a category (or write your own), hit Random to spin a dare, then choose who does it and when.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
