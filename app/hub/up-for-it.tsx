@@ -29,7 +29,7 @@ export default function UpForItScreen() {
                 color: T.accent,
               }}
             >
-              Up for it
+              Dare Me
             </Text>
             <Text
               style={{
