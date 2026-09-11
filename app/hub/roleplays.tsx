@@ -4,8 +4,10 @@ import { Screen } from "@/components/ui/Screen";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
 import {
   categoryMeta,
+  personalizeRoleplayText,
   pickRandomRoleplay,
   roleplayById,
+  roleplayCastNames,
   roleplaysInCategories,
   ROLEPLAY_CATEGORIES,
   type Roleplay,
@@ -14,10 +16,11 @@ import {
 import { useApp } from "@/lib/store";
 import type { RoleplayInvite } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const T = ROLEPLAYS_TONE;
+const ALL_CATEGORY_IDS = ROLEPLAY_CATEGORIES.map((row) => row.id);
 
 export default function RoleplaysScreen() {
   const {
@@ -29,10 +32,13 @@ export default function RoleplaysScreen() {
     completeRoleplayInvite,
   } = useApp();
   const partnerName = partner?.displayName ?? "them";
-
-  const [enabled, setEnabled] = useState<RoleplayCategoryId[]>(
-    ROLEPLAY_CATEGORIES.map((row) => row.id)
+  const cast = useMemo(
+    () => roleplayCastNames(user, partner),
+    [user, partner]
   );
+
+  const [enabled, setEnabled] =
+    useState<RoleplayCategoryId[]>(ALL_CATEGORY_IDS);
   const [current, setCurrent] = useState<Roleplay | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -42,6 +48,8 @@ export default function RoleplaysScreen() {
     () => roleplaysInCategories(enabled).length,
     [enabled]
   );
+  const allOn = enabled.length === ROLEPLAY_CATEGORIES.length;
+  const allOff = enabled.length === 0;
 
   const incoming = useMemo(
     () =>
@@ -65,35 +73,44 @@ export default function RoleplaysScreen() {
     [roleplayInvites, user]
   );
 
+  const spin = (excludeId?: string | null) => {
+    setError(null);
+    setSentFlash(false);
+    const next = pickRandomRoleplay(enabled, excludeId);
+    if (!next) {
+      setCurrent(null);
+      setError(
+        allOff
+          ? "Turn on at least one category to spin."
+          : "No scenarios in this pool."
+      );
+      return;
+    }
+    setCurrent(next);
+  };
+
+  useEffect(() => {
+    // Land on a random scenario as soon as the screen opens / pool changes.
+    const next = pickRandomRoleplay(enabled, null);
+    setCurrent(next);
+    if (!next && enabled.length === 0) {
+      setError("Turn on at least one category to spin.");
+    } else {
+      setError(null);
+    }
+    setSentFlash(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-roll when the enabled set identity changes
+  }, [enabled.join("|")]);
+
   const toggleCategory = (id: RoleplayCategoryId) => {
     setEnabled((prev) => {
-      if (prev.includes(id)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((item) => item !== id);
-      }
+      if (prev.includes(id)) return prev.filter((item) => item !== id);
       return [...prev, id];
     });
   };
 
-  const pick = () => {
-    setError(null);
-    setSentFlash(false);
-    const next = pickRandomRoleplay(enabled, current?.id ?? null);
-    if (!next) {
-      setError("Turn on at least one category.");
-      return;
-    }
-    setCurrent(next);
-  };
-
-  const skip = () => {
-    setSentFlash(false);
-    const next = pickRandomRoleplay(enabled, current?.id ?? null);
-    if (!next) {
-      setError("Turn on at least one category.");
-      return;
-    }
-    setCurrent(next);
+  const toggleAll = () => {
+    setEnabled(allOn ? [] : ALL_CATEGORY_IDS);
   };
 
   const send = async () => {
@@ -109,6 +126,10 @@ export default function RoleplaysScreen() {
       setSending(false);
     }
   };
+
+  const personalizedBlurb = current
+    ? personalizeRoleplayText(current.blurb, cast)
+    : null;
 
   return (
     <Screen scroll background={T.background}>
@@ -135,7 +156,7 @@ export default function RoleplaysScreen() {
             color: T.ink,
           }}
         >
-          Pick a scenario
+          Tonight&apos;s scene
         </Text>
         <Text
           style={{
@@ -146,22 +167,187 @@ export default function RoleplaysScreen() {
             color: T.muted,
           }}
         >
-          10 spicy packs · 200 scenes. Toggle categories, spin one, skip or
-          send it to {partnerName}.
+          Spin a scenario for {cast.f} & {cast.m}, then tune the category pool
+          below.
         </Text>
 
-        <Text
+        {current && personalizedBlurb ? (
+          <View
+            style={{
+              marginTop: 22,
+              padding: 18,
+              borderRadius: 28,
+              backgroundColor: T.frame,
+              borderWidth: 1,
+              borderColor: T.border,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: T.accent,
+                fontWeight: "700",
+                textAlign: "center",
+              }}
+            >
+              {categoryMeta(current.category)?.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 28,
+                lineHeight: 34,
+                color: T.ink,
+                textAlign: "center",
+              }}
+            >
+              {current.name}
+            </Text>
+            <Text
+              style={{
+                marginTop: 14,
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 24,
+                color: T.muted,
+                textAlign: "center",
+              }}
+            >
+              {personalizedBlurb}
+            </Text>
+
+            {sentFlash ? (
+              <Text
+                style={{
+                  marginTop: 14,
+                  textAlign: "center",
+                  color: T.warm,
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                Sent to {partnerName}.
+              </Text>
+            ) : null}
+
+            <View style={{ marginTop: 16, gap: 10 }}>
+              <PrimaryButton
+                label="Spin again"
+                tone="crimson"
+                onPress={() => spin(current.id)}
+                disabled={poolSize === 0}
+              />
+              <PrimaryButton
+                label={`Send to ${partnerName}`}
+                tone="ghost"
+                loading={sending}
+                onPress={() => void send()}
+              />
+            </View>
+          </View>
+        ) : (
+          <View
+            style={{
+              marginTop: 22,
+              minHeight: 180,
+              borderRadius: 28,
+              borderWidth: 1,
+              borderStyle: "dashed",
+              borderColor: "rgba(255,255,255,0.14)",
+              backgroundColor: T.surface,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 24,
+              paddingVertical: 28,
+            }}
+          >
+            <Ionicons name="sparkles-outline" size={36} color={T.accent} />
+            <Text
+              style={{
+                marginTop: 12,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: T.muted,
+                textAlign: "center",
+                lineHeight: 22,
+              }}
+            >
+              {allOff
+                ? "All categories are off. Turn some on below to spin a scene."
+                : "No scenario in the pool yet."}
+            </Text>
+            {!allOff ? (
+              <View style={{ marginTop: 16, alignSelf: "stretch" }}>
+                <PrimaryButton
+                  label="Spin a roleplay"
+                  tone="crimson"
+                  onPress={() => spin(null)}
+                />
+              </View>
+            ) : null}
+          </View>
+        )}
+
+        {error ? (
+          <Text
+            style={{
+              marginTop: 12,
+              color: "#FF6B7A",
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        ) : null}
+
+        <View
           style={{
-            marginTop: 22,
-            fontSize: 12,
-            fontWeight: "700",
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: T.muted,
+            marginTop: 28,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          Categories in the pool · {poolSize}
-        </Text>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 12,
+              fontWeight: "700",
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: T.muted,
+            }}
+          >
+            Categories · {poolSize}
+          </Text>
+          <Pressable
+            onPress={toggleAll}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: allOn ? T.accent : "rgba(255,255,255,0.18)",
+              backgroundColor: allOn ? T.accentSoft : "rgba(255,255,255,0.04)",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                color: allOn ? T.accent : T.ink,
+              }}
+            >
+              {allOn ? "Turn all off" : "Turn all on"}
+            </Text>
+          </Pressable>
+        </View>
+
         <View
           style={{
             marginTop: 12,
@@ -212,136 +398,12 @@ export default function RoleplaysScreen() {
           })}
         </View>
 
-        <View style={{ marginTop: 20 }}>
-          <PrimaryButton
-            label="Pick me a Roleplay"
-            tone="crimson"
-            onPress={pick}
-          />
-        </View>
-
-        {error ? (
-          <Text
-            style={{
-              marginTop: 12,
-              color: "#FF6B7A",
-              fontSize: 13,
-              textAlign: "center",
-            }}
-          >
-            {error}
-          </Text>
-        ) : null}
-
-        {current ? (
-          <View
-            style={{
-              marginTop: 22,
-              padding: 16,
-              borderRadius: 28,
-              backgroundColor: T.frame,
-              borderWidth: 1,
-              borderColor: T.border,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: SERIF,
-                fontSize: 26,
-                lineHeight: 32,
-                color: T.ink,
-                textAlign: "center",
-              }}
-            >
-              {current.name}
-            </Text>
-            <Text
-              style={{
-                marginTop: 6,
-                fontSize: 12,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                color: T.accent,
-                textAlign: "center",
-                fontWeight: "600",
-              }}
-            >
-              {categoryMeta(current.category)?.label}
-            </Text>
-            <Text
-              style={{
-                marginTop: 12,
-                fontFamily: SERIF,
-                fontSize: 15,
-                lineHeight: 22,
-                color: T.muted,
-                textAlign: "center",
-              }}
-            >
-              {current.blurb}
-            </Text>
-
-            {sentFlash ? (
-              <Text
-                style={{
-                  marginTop: 14,
-                  textAlign: "center",
-                  color: T.warm,
-                  fontSize: 13,
-                  fontWeight: "600",
-                }}
-              >
-                Sent to {partnerName}.
-              </Text>
-            ) : null}
-
-            <View style={{ marginTop: 16, gap: 10 }}>
-              <PrimaryButton
-                label={`Send to ${partnerName}`}
-                tone="crimson"
-                loading={sending}
-                onPress={() => void send()}
-              />
-              <PrimaryButton label="Skip" tone="ghost" onPress={skip} />
-            </View>
-          </View>
-        ) : (
-          <View
-            style={{
-              marginTop: 22,
-              height: 220,
-              borderRadius: 28,
-              borderWidth: 1,
-              borderStyle: "dashed",
-              borderColor: "rgba(255,255,255,0.14)",
-              backgroundColor: T.surface,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 24,
-            }}
-          >
-            <Ionicons name="sparkles-outline" size={36} color={T.accent} />
-            <Text
-              style={{
-                marginTop: 12,
-                fontFamily: SERIF,
-                fontSize: 16,
-                color: T.muted,
-                textAlign: "center",
-                lineHeight: 22,
-              }}
-            >
-              Your next scenario lands here — toggle categories above, then
-              spin one.
-            </Text>
-          </View>
-        )}
-
         {incoming.length ? (
           <InviteSection
             title={`From ${partnerName}`}
             rows={incoming}
             partnerName={partnerName}
+            cast={cast}
             outgoing={false}
             onRespond={(id, status) => void respondRoleplayInvite(id, status)}
             onDone={(id) => void completeRoleplayInvite(id)}
@@ -353,6 +415,7 @@ export default function RoleplaysScreen() {
             title={`Sent to ${partnerName}`}
             rows={outgoing}
             partnerName={partnerName}
+            cast={cast}
             outgoing
             onRespond={() => undefined}
             onDone={(id) => void completeRoleplayInvite(id)}
@@ -367,6 +430,7 @@ function InviteSection({
   title,
   rows,
   partnerName,
+  cast,
   outgoing,
   onRespond,
   onDone,
@@ -374,6 +438,7 @@ function InviteSection({
   title: string;
   rows: RoleplayInvite[];
   partnerName: string;
+  cast: { f: string; m: string };
   outgoing: boolean;
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onDone: (id: string) => void;
@@ -436,7 +501,7 @@ function InviteSection({
                   color: T.muted,
                 }}
               >
-                {roleplay.blurb}
+                {personalizeRoleplayText(roleplay.blurb, cast)}
               </Text>
               {!outgoing && row.status === "offered" ? (
                 <View style={{ marginTop: 12, gap: 8 }}>

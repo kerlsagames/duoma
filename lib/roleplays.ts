@@ -1323,3 +1323,46 @@ export function pickRandomRoleplay(
   if (pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)]!;
 }
+
+type CastPerson = {
+  displayName: string;
+  gender?: "male" | "female" | null;
+};
+
+/** Map scenario F/M labels to the couple's display names by gender. */
+export function roleplayCastNames(
+  you: CastPerson | null | undefined,
+  partner: CastPerson | null | undefined
+): { f: string; m: string } {
+  const people = [you, partner].filter(Boolean) as CastPerson[];
+  const female = people.find((p) => p.gender === "female");
+  const male = people.find((p) => p.gender === "male");
+
+  const f =
+    female?.displayName?.trim() ||
+    people.find((p) => p.gender !== "male")?.displayName?.trim() ||
+    partner?.displayName?.trim() ||
+    you?.displayName?.trim() ||
+    "Her";
+
+  const m =
+    male?.displayName?.trim() ||
+    people.find((p) => p.displayName?.trim() !== f)?.displayName?.trim() ||
+    you?.displayName?.trim() ||
+    partner?.displayName?.trim() ||
+    "Him";
+
+  return { f, m };
+}
+
+/** Replace standalone F / M (and possessives) with cast names. */
+export function personalizeRoleplayText(
+  text: string,
+  cast: { f: string; m: string }
+): string {
+  return text
+    .replace(/\bF's\b/g, `${cast.f}'s`)
+    .replace(/\bM's\b/g, `${cast.m}'s`)
+    .replace(/\bF\b/g, cast.f)
+    .replace(/\bM\b/g, cast.m);
+}
