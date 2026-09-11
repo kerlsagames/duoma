@@ -12,16 +12,19 @@ export function RoleplayArt({
   return (
     <View
       style={{
-        marginTop: 16,
-        borderRadius: 20,
+        marginTop: 12,
+        height: 148,
+        borderRadius: 16,
         overflow: "hidden",
         backgroundColor: "#1A0C12",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <Image
         source={roleplayArtSource(roleplayId, category)}
-        style={{ width: "100%", aspectRatio: 4 / 3 }}
-        resizeMode="cover"
+        style={{ width: "100%", height: "100%" }}
+        resizeMode="contain"
         accessibilityIgnoresInvertColors
       />
     </View>

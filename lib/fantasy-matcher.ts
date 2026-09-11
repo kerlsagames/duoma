@@ -369,10 +369,89 @@ export function fantasyCategoryMeta(id: FantasyCategoryId): FantasyCategory {
   );
 }
 
-/** Cards the current person has not swiped yet — including ones added after they cleared an older deck. */
-export function leftoverFantasies(seenIds: Iterable<string>): FantasyIdea[] {
+function seededRand(seed: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return () => {
+    h += 0x6d2b79f5;
+    let t = h;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleInPlace<T>(items: T[], rand: () => number): T[] {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    const tmp = items[i]!;
+    items[i] = items[j]!;
+    items[j] = tmp;
+  }
+  return items;
+}
+
+/** Leftover cards, mixed across categories so the deck is not oral-then-anal. */
+export function leftoverFantasies(
+  seenIds: Iterable<string>,
+  seed = "deck"
+): FantasyIdea[] {
   const seen = new Set(seenIds);
-  return FANTASY_IDEAS.filter((idea) => !seen.has(idea.id));
+  const leftover = FANTASY_IDEAS.filter((idea) => !seen.has(idea.id));
+  const rand = seededRand(seed);
+  const piles = shuffleInPlace([...FANTASY_CATEGORIES], rand)
+    .map((category) =>
+      shuffleInPlace(
+        leftover.filter((idea) => idea.category === category.id),
+        rand
+      )
+    )
+    .filter((pile) => pile.length > 0);
+
+  const mixed: FantasyIdea[] = [];
+  let added = true;
+  while (added) {
+    added = false;
+    for (const pile of piles) {
+      const next = pile.shift();
+      if (next) {
+        mixed.push(next);
+        added = true;
+      }
+    }
+  }
+  return mixed;
+}
+
+export function personalizeFantasyTitle(
+  title: string,
+  cast: { f: string; m: string }
+): string {
+  return title
+    .replace(/\bF's\b/g, `${cast.f}'s`)
+    .replace(/\bM's\b/g, `${cast.m}'s`)
+    .replace(/\bF\b/g, cast.f)
+    .replace(/\bM\b/g, cast.m)
+    .replace(/\bshe's\b/gi, `${cast.f}'s`)
+    .replace(/\bhe's\b/gi, `${cast.m}'s`)
+    .replace(
+      /\bher\s+(tongue|body|clit|mouth|chest|face|breasts|back)\b/gi,
+      `${cast.f}'s $1`
+    )
+    .replace(
+      /\bhis\s+(tongue|body|chest|face|back)\b/gi,
+      `${cast.m}'s $1`
+    )
+    .replace(/\bShe\b/g, cast.f)
+    .replace(/\bHe\b/g, cast.m)
+    .replace(/\bshe\b/g, cast.f)
+    .replace(/\bhe\b/g, cast.m)
+    .replace(/\bher\b/g, cast.f)
+    .replace(/\bhim\b/g, cast.m)
+    .replace(/\bhis\b/g, `${cast.m}'s`);
 }
 
 export function groupFantasiesByCategory(ideas: FantasyIdea[]): {

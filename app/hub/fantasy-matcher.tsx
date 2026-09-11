@@ -8,9 +8,11 @@ import {
   fantasyCategoryMeta,
   groupFantasiesByCategory,
   leftoverFantasies,
+  personalizeFantasyTitle,
   type FantasyCategoryId,
   type FantasyIdea,
 } from "@/lib/fantasy-matcher";
+import { roleplayCastNames } from "@/lib/roleplays";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useRef, useState } from "react";
@@ -30,7 +32,12 @@ const SCREEN_W = Dimensions.get("window").width;
 type Tab = "deck" | "matches";
 
 export default function FantasyMatcherScreen() {
-  const { user, partner, fantasySwipes, swipeFantasy } = useApp();
+  const { user, partner, couple, fantasySwipes, swipeFantasy } = useApp();
+  const cast = useMemo(
+    () => roleplayCastNames(user, partner),
+    [user, partner]
+  );
+  const nameTitle = (idea: FantasyIdea) => personalizeFantasyTitle(idea.title, cast);
   const [tab, setTab] = useState<Tab>("deck");
   const [matchCategory, setMatchCategory] = useState<FantasyCategoryId | null>(
     null
@@ -51,8 +58,12 @@ export default function FantasyMatcherScreen() {
   );
 
   const remaining = useMemo(
-    () => leftoverFantasies(mySwipes.map((row) => row.fantasyId)),
-    [mySwipes]
+    () =>
+      leftoverFantasies(
+        mySwipes.map((row) => row.fantasyId),
+        `${couple?.id ?? "solo"}:${user?.id ?? "anon"}`
+      ),
+    [couple?.id, mySwipes, user?.id]
   );
   const seenCount = mySwipes.length;
   const catalogCount = FANTASY_IDEAS.length;
@@ -395,7 +406,7 @@ export default function FantasyMatcherScreen() {
                       color: T.ink,
                     }}
                   >
-                    {current.title}
+                    {nameTitle(current)}
                   </Text>
                   <Text
                     style={{
@@ -651,7 +662,7 @@ export default function FantasyMatcherScreen() {
                   </View>
                 </View>
                 {openMatchGroup.items.map((idea) => (
-                  <MatchCard key={idea.id} idea={idea} />
+                  <MatchCard key={idea.id} idea={idea} title={nameTitle(idea)} />
                 ))}
               </View>
             ) : (
@@ -777,7 +788,7 @@ export default function FantasyMatcherScreen() {
               textAlign: "center",
             }}
           >
-            {matchFlash.title}
+            {nameTitle(matchFlash)}
           </Text>
           <Text
             style={{
@@ -813,7 +824,13 @@ export default function FantasyMatcherScreen() {
   );
 }
 
-function MatchCard({ idea }: { idea: FantasyIdea }) {
+function MatchCard({
+  idea,
+  title,
+}: {
+  idea: FantasyIdea;
+  title: string;
+}) {
   const cat = fantasyCategoryMeta(idea.category);
   return (
     <View
@@ -879,7 +896,7 @@ function MatchCard({ idea }: { idea: FantasyIdea }) {
           color: T.ink,
         }}
       >
-        {idea.title}
+        {title}
       </Text>
     </View>
   );

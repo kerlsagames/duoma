@@ -207,6 +207,7 @@ export default function RoleplaysScreen() {
             >
               {current.name}
             </Text>
+            <RoleplayArt roleplayId={current.id} category={current.category} />
             <Text
               style={{
                 marginTop: 14,
@@ -219,7 +220,6 @@ export default function RoleplaysScreen() {
             >
               {personalizedBlurb}
             </Text>
-            <RoleplayArt roleplayId={current.id} category={current.category} />
 
             {sentFlash ? (
               <Text
