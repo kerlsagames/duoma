@@ -1,4 +1,3 @@
-import { RoleplayArt } from "@/components/hub/RoleplayArt";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -15,7 +14,7 @@ import {
 import { useApp } from "@/lib/store";
 import type { RoleplayInvite } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const T = ROLEPLAYS_TONE;
@@ -86,14 +85,6 @@ export default function RoleplaysScreen() {
     }
     setCurrent(next);
   };
-
-  // Show a cartoon immediately so art is visible without hunting for the button.
-  useEffect(() => {
-    if (current) return;
-    const next = pickRandomRoleplay(enabled, null);
-    if (next) setCurrent(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- first paint only
-  }, []);
 
   const skip = () => {
     setSentFlash(false);
@@ -252,10 +243,8 @@ export default function RoleplaysScreen() {
               borderColor: T.border,
             }}
           >
-            <RoleplayArt roleplay={current} size={260} />
             <Text
               style={{
-                marginTop: 16,
                 fontFamily: SERIF,
                 fontSize: 26,
                 lineHeight: 32,
@@ -341,8 +330,8 @@ export default function RoleplaysScreen() {
                 lineHeight: 22,
               }}
             >
-              Your next scenario lands here — a realistic cartoon for every
-              vibe, from quiet resets to deep connection.
+              Your next scenario lands here — pick a care coupon from the
+              categories above.
             </Text>
           </View>
         )}

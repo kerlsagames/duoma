@@ -19,7 +19,7 @@ import {
 import { useApp } from "@/lib/store";
 import type { PositionInvite } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const T = POSITIONS_TONE;
@@ -90,14 +90,6 @@ export default function PositionsScreen() {
     }
     setCurrent(next);
   };
-
-  // Show a cartoon immediately so art is visible without hunting for the button.
-  useEffect(() => {
-    if (current) return;
-    const next = pickRandomPosition(enabled, null);
-    if (next) setCurrent(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- first paint only
-  }, []);
 
   const skip = () => {
     setSentFlash(false);
@@ -357,8 +349,8 @@ export default function PositionsScreen() {
                 lineHeight: 22,
               }}
             >
-              Your next position lands here — realistic cartoon guide, pink hair
-              for her, blue tones for him.
+              Your next position lands here — name and notes guide the pose
+              until we settle on better art.
             </Text>
           </View>
         )}

@@ -3,18 +3,22 @@ import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import { gameResumeHref } from "@/lib/home-status";
-import { HOME_HEADER_WIDGETS, HOME_QUICK_LINKS, HUBS } from "@/lib/hubs";
+import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const { game, partner, sendSpicyInvite } = useApp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Screen horizontal padding (~20) + gap between tiles.
+  const tileWidth = Math.max(140, (width - 40 - 12) / 2);
 
   const startSpicy = async () => {
     setError(null);
@@ -141,147 +145,78 @@ export default function HomeScreen() {
             marginBottom: 12,
           }}
         >
-          Jump back in
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 10,
-            marginBottom: 18,
-          }}
-        >
-          {HOME_QUICK_LINKS.map((link) => (
-            <Pressable
-              key={link.id}
-              onPress={() => router.push(link.href as Href)}
-              style={{
-                flex: 1,
-                paddingVertical: 14,
-                paddingHorizontal: 12,
-                borderRadius: 18,
-                backgroundColor: "#14141A",
-                borderWidth: 1,
-                borderColor: `${link.accent}55`,
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  backgroundColor: `${link.accent}22`,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <Ionicons name={link.icon} size={20} color={link.accent} />
-              </View>
-              <Text
-                style={{
-                  color: "#F4F4F6",
-                  fontSize: 15,
-                  fontWeight: "700",
-                }}
-              >
-                {link.label}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 3,
-                  color: "rgba(244,244,246,0.5)",
-                  fontSize: 12,
-                  lineHeight: 16,
-                }}
-              >
-                {link.detail}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "rgba(244,244,246,0.45)",
-            marginBottom: 12,
-          }}
-        >
           Your hubs
         </Text>
 
-        <View style={{ gap: 12 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
           {HUBS.map((hub) => (
             <Pressable
               key={hub.id}
               onPress={() => router.push(hub.href as Href)}
               style={{
+                width: tileWidth,
+                minHeight: tileWidth,
                 borderRadius: 22,
-                padding: 16,
+                padding: 14,
                 backgroundColor: "#121218",
                 borderWidth: 1,
                 borderColor: hub.accentSoft,
-                overflow: "hidden",
+                justifyContent: "space-between",
               }}
             >
               <View
                 style={{
-                  flexDirection: "row",
+                  width: 48,
+                  height: 48,
+                  borderRadius: 16,
+                  backgroundColor: hub.accentSoft,
                   alignItems: "center",
-                  gap: 14,
+                  justifyContent: "center",
                 }}
               >
-                <View
+                <Ionicons name={hub.icon} size={26} color={hub.accent} />
+              </View>
+              <View>
+                <Text
                   style={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: 18,
-                    backgroundColor: hub.accentSoft,
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontFamily: SERIF,
+                    fontSize: 22,
+                    lineHeight: 26,
+                    color: "#F4F4F6",
                   }}
                 >
-                  <Ionicons name={hub.icon} size={28} color={hub.accent} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontFamily: SERIF,
-                      fontSize: 24,
-                      lineHeight: 28,
-                      color: "#F4F4F6",
-                    }}
-                  >
-                    {hub.label}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      color: "rgba(244,244,246,0.55)",
-                      fontSize: 14,
-                      lineHeight: 20,
-                    }}
-                  >
-                    {hub.tagline}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={hub.accent} />
+                  {hub.label}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 4,
+                    color: "rgba(244,244,246,0.55)",
+                    fontSize: 12,
+                    lineHeight: 17,
+                  }}
+                  numberOfLines={2}
+                >
+                  {hub.tagline}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 10,
+                    fontSize: 11,
+                    color: "rgba(244,244,246,0.4)",
+                  }}
+                >
+                  {hub.features.length} features
+                  {hub.features.some((f) => f.isNew)
+                    ? ` · ${hub.features.filter((f) => f.isNew).length} new`
+                    : ""}
+                </Text>
               </View>
-              <Text
-                style={{
-                  marginTop: 12,
-                  fontSize: 12,
-                  color: "rgba(244,244,246,0.4)",
-                }}
-              >
-                {hub.features.length} features
-                {hub.features.some((f) => f.isNew)
-                  ? ` · ${hub.features.filter((f) => f.isNew).length} new`
-                  : ""}
-              </Text>
             </Pressable>
           ))}
         </View>

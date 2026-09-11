@@ -26,26 +26,6 @@ export type HubDef = {
   features: HubFeature[];
 };
 
-/** Direct shortcuts so Roleplays / Positions stay findable after the hub reorg. */
-export const HOME_QUICK_LINKS = [
-  {
-    id: "roleplays",
-    label: "Roleplays",
-    detail: "Care coupons & scenarios",
-    icon: "sparkles" as IconName,
-    href: "/hub/roleplays",
-    accent: "#3ECFBF",
-  },
-  {
-    id: "positions",
-    label: "Positions",
-    detail: "Cartoon pose guide",
-    icon: "body" as IconName,
-    href: "/hub/positions",
-    accent: "#FF4D6A",
-  },
-] as const;
-
 /** Persistent top widgets on the home dashboard (outside the 4 hubs). */
 export const HOME_HEADER_WIDGETS = [
   {

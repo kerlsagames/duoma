@@ -1,48 +1,15 @@
 import type { SexPosition } from "@/lib/sex-positions";
-import { Image, type ImageSourcePropType, View } from "react-native";
+import { Text, View } from "react-native";
 
-/** Kept for the Positions legend (pink F / blue M cue). */
+/** Male cue color for the Positions legend. */
 export const POSITION_M_COLOR = "#6E9CFF";
+/** Female cue color for the Positions legend. */
 export const POSITION_F_COLOR = "#FF7FA8";
 
 /**
- * Static map so Metro can bundle every pose illustration.
- * Images are realistic cartoons (pink-haired F / blue-haired M).
+ * Illustration placeholder — AI / silhouette art was removed until we have
+ * a direction that isn't creepy or unclear. Text + legend carry the pose.
  */
-const IMAGES: Record<string, ImageSourcePropType> = {
-  missionary: require("../../assets/images/positions/missionary.png"),
-  lotus: require("../../assets/images/positions/lotus.png"),
-  cowgirl: require("../../assets/images/positions/cowgirl.png"),
-  folded: require("../../assets/images/positions/folded.png"),
-  embrace: require("../../assets/images/positions/embrace.png"),
-  legsup: require("../../assets/images/positions/legsup.png"),
-  doggy: require("../../assets/images/positions/doggy.png"),
-  spoon: require("../../assets/images/positions/spoon.png"),
-  prone: require("../../assets/images/positions/prone.png"),
-  kneel: require("../../assets/images/positions/kneel.png"),
-  edgerear: require("../../assets/images/positions/edgerear.png"),
-  standdog: require("../../assets/images/positions/standdog.png"),
-  chair: require("../../assets/images/positions/chair.png"),
-  straddle: require("../../assets/images/positions/straddle.png"),
-  throne: require("../../assets/images/positions/throne.png"),
-  couch: require("../../assets/images/positions/couch.png"),
-  counter: require("../../assets/images/positions/counter.png"),
-  wall: require("../../assets/images/positions/wall.png"),
-  lift: require("../../assets/images/positions/lift.png"),
-  bentstand: require("../../assets/images/positions/bentstand.png"),
-  shower: require("../../assets/images/positions/shower.png"),
-  "oral-kneel": require("../../assets/images/positions/oral-kneel.png"),
-  facesit: require("../../assets/images/positions/facesit.png"),
-  sixtynine: require("../../assets/images/positions/sixtynine.png"),
-  edgeoral: require("../../assets/images/positions/edgeoral.png"),
-  scissors: require("../../assets/images/positions/scissors.png"),
-  cross: require("../../assets/images/positions/cross.png"),
-  bridge: require("../../assets/images/positions/bridge.png"),
-  table: require("../../assets/images/positions/table.png"),
-  butterfly: require("../../assets/images/positions/butterfly.png"),
-  foldedpress: require("../../assets/images/positions/foldedpress.png"),
-};
-
 export function PositionArt({
   position,
   size = 260,
@@ -50,26 +17,52 @@ export function PositionArt({
   position: SexPosition;
   size?: number;
 }) {
-  const source = IMAGES[position.art];
   return (
     <View
       style={{
         width: size,
-        height: size,
+        height: Math.min(size, 160),
         alignSelf: "center",
         borderRadius: 22,
         overflow: "hidden",
         backgroundColor: "#140A12",
+        borderWidth: 1,
+        borderColor: "rgba(255,127,168,0.28)",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+        gap: 10,
       }}
     >
-      {source ? (
-        <Image
-          source={source}
-          style={{ width: size, height: size }}
-          resizeMode="cover"
-          accessibilityLabel={position.name}
+      <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
+        <View
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            backgroundColor: POSITION_M_COLOR,
+          }}
         />
-      ) : null}
+        <View
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            backgroundColor: POSITION_F_COLOR,
+          }}
+        />
+      </View>
+      <Text
+        style={{
+          color: "rgba(244,244,246,0.55)",
+          fontSize: 13,
+          textAlign: "center",
+          lineHeight: 18,
+        }}
+      >
+        Pose guide art coming later — for now, follow the name and notes
+        for {position.name}.
+      </Text>
     </View>
   );
 }
