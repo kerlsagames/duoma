@@ -231,6 +231,16 @@ export type DesireToggle = {
   createdAt: string;
 };
 
+/** Opt-in Fantasy Matcher swipe — likes stay private until both say yes. */
+export type FantasySwipe = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  fantasyId: string;
+  liked: boolean;
+  createdAt: string;
+};
+
 export type CouponStatus = "offered" | "accepted" | "redeemed" | "expired";
 
 export type Coupon = {
@@ -484,6 +494,7 @@ export type AppDB = {
   curiosityAnswers: CuriosityAnswer[];
   milestones: Milestone[];
   desireToggles: DesireToggle[];
+  fantasySwipes: FantasySwipe[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];

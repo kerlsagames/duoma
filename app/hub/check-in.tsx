@@ -321,7 +321,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="heart-outline"
-            title={`Love tank${loveOn && loveTank > 0 ? ` (${loveTank}/10)` : ""}`}
+            title={`Love language / tank${loveOn && loveTank > 0 ? ` (${loveTank}/10)` : ""}`}
             enabled={loveOn}
             onToggle={() => setLoveOn((v) => !v)}
           >
@@ -335,7 +335,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="battery-charging-outline"
-            title={`Battery / energy${
+            title={`Energy & battery${
               batteryOn && energy > 0 ? ` (${energy}/10)` : ""
             }`}
             enabled={batteryOn}
@@ -351,7 +351,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="partly-sunny-outline"
-            title="Mood forecast"
+            title="Mood radar"
             enabled={moodOn}
             onToggle={() => setMoodOn((v) => !v)}
           >
@@ -368,7 +368,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="people-outline"
-            title="Social battery"
+            title="Stress / social meter"
             enabled={socialOn}
             onToggle={() => setSocialOn((v) => !v)}
           >
@@ -386,7 +386,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="compass-outline"
-            title="What I need most today"
+            title="Need from you today"
             enabled={needOn}
             onToggle={() => setNeedOn((v) => !v)}
           >
@@ -403,7 +403,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="flame-outline"
-            title="Spicy gauge"
+            title="Intimacy temperature"
             enabled={spicyOn}
             onToggle={() => setSpicyOn((v) => !v)}
           >
@@ -420,7 +420,7 @@ export default function CheckInScreen() {
 
           <MetricCard
             icon="sparkles-outline"
-            title="Keep it simple"
+            title="Bedtime wind-down"
             enabled={simpleOn}
             onToggle={() => setSimpleOn((v) => !v)}
           >

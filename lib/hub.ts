@@ -107,15 +107,16 @@ export const CHECK_IN_METRIC_META: {
     | "heart-outline"
     | "people-outline"
     | "compass-outline"
-    | "sparkles-outline";
+    | "sparkles-outline"
+    | "moon-outline";
 }[] = [
-  { key: "loveTank", label: "Love tank", icon: "heart-outline" },
-  { key: "battery", label: "Battery / energy", icon: "battery-charging-outline" },
-  { key: "mood", label: "Mood forecast", icon: "partly-sunny-outline" },
-  { key: "socialBattery", label: "Social battery", icon: "people-outline" },
-  { key: "todayNeed", label: "What I need today", icon: "compass-outline" },
-  { key: "desireGauge", label: "Spicy gauge", icon: "flame-outline" },
-  { key: "tonight", label: "Keep it simple", icon: "sparkles-outline" },
+  { key: "loveTank", label: "Love language / tank", icon: "heart-outline" },
+  { key: "battery", label: "Energy & battery", icon: "battery-charging-outline" },
+  { key: "mood", label: "Mood radar", icon: "partly-sunny-outline" },
+  { key: "socialBattery", label: "Stress / social meter", icon: "people-outline" },
+  { key: "todayNeed", label: "Need from you today", icon: "compass-outline" },
+  { key: "desireGauge", label: "Intimacy temperature", icon: "flame-outline" },
+  { key: "tonight", label: "Bedtime wind-down", icon: "moon-outline" },
 ];
 
 export function socialBatteryMeta(id: SocialBattery | null | undefined) {

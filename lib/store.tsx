@@ -68,6 +68,7 @@ import type {
   ListEntryRating,
   DeckCard,
   DesireToggle,
+  FantasySwipe,
   DesireGauge,
   TonightSex,
   GameMode,
@@ -112,6 +113,10 @@ import {
   dueAtForTimeframe,
   isSpicyDareDeck,
 } from "@/lib/spicy-dares";
+import {
+  demoLikedFantasyIds,
+  FANTASY_IDEAS,
+} from "@/lib/fantasy-matcher";
 import {
   createContext,
   useCallback,
@@ -374,6 +379,7 @@ type AppContextValue = {
   };
   milestones: Milestone[];
   desireToggles: DesireToggle[];
+  fantasySwipes: FantasySwipe[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];
@@ -486,6 +492,11 @@ type AppContextValue = {
   ) => Promise<void>;
   removeCalendarEvent: (id: string) => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
+  /** Swipe a Fantasy Matcher card. Returns whether it just became a mutual match. */
+  swipeFantasy: (
+    fantasyId: string,
+    liked: boolean
+  ) => Promise<{ matched: boolean }>;
   createCoupon: (input: {
     title: string;
     body?: string;
@@ -832,6 +843,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const desireToggles = useMemo(
     () => db.desireToggles.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const fantasySwipes = useMemo(
+    () => db.fantasySwipes.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3046,6 +3062,79 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const swipeFantasy = useCallback(
+    async (fantasyId: string, liked: boolean) => {
+      if (!user || !couple) {
+        throw new Error("Pair up before swiping fantasies.");
+      }
+      const stamp = nowIso();
+      const withoutMine = db.fantasySwipes.filter(
+        (row) =>
+          !(
+            row.coupleId === couple.id &&
+            row.userId === user.id &&
+            row.fantasyId === fantasyId
+          )
+      );
+      const mine: FantasySwipe = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        fantasyId,
+        liked,
+        createdAt: stamp,
+      };
+      let next = [...withoutMine, mine];
+
+      // Demo partner: seed a stable like set once so mutual matches can appear.
+      if (partner?.isDemo && partner.id) {
+        const demoHasAny = next.some(
+          (row) => row.coupleId === couple.id && row.userId === partner.id
+        );
+        if (!demoHasAny) {
+          const likedIds = new Set(demoLikedFantasyIds());
+          next = [
+            ...next,
+            ...FANTASY_IDEAS.map((idea) => ({
+              id: createId(),
+              coupleId: couple.id,
+              userId: partner.id,
+              fantasyId: idea.id,
+              liked: likedIds.has(idea.id),
+              createdAt: stamp,
+            })),
+          ];
+        }
+      }
+
+      const partnerId = otherUserId(couple, user.id);
+      const partnerLike = partnerId
+        ? next.find(
+            (row) =>
+              row.coupleId === couple.id &&
+              row.userId === partnerId &&
+              row.fantasyId === fantasyId &&
+              row.liked
+          )
+        : null;
+      const matched = Boolean(liked && partnerLike);
+
+      db = { ...db, fantasySwipes: next };
+      await persist();
+
+      if (matched) {
+        pingPartner(couple, user, partner, {
+          title: "Fantasy match",
+          body: `${user.displayName} matched with you on a fantasy.`,
+          url: "/hub/fantasy-matcher",
+        });
+      }
+
+      return { matched };
+    },
+    [couple, partner, user]
+  );
+
   const createCoupon = useCallback(
     async (input: {
       title: string;
@@ -3595,6 +3684,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     roleplayInvites,
     milestones,
     desireToggles,
+    fantasySwipes,
     coupons,
     scratches,
     coupleLists,
@@ -3653,6 +3743,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateCalendarEvent,
     removeCalendarEvent,
     toggleDesire,
+    swipeFantasy,
     createCoupon,
     acceptCoupon,
     redeemCoupon,

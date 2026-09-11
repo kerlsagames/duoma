@@ -106,15 +106,15 @@ export default function HomeScreen() {
             >
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 16,
+                  width: 72,
+                  height: 72,
+                  borderRadius: 22,
                   backgroundColor: "rgba(255,255,255,0.22)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={hub.icon} size={26} color={hub.tileInk} />
+                <Ionicons name={hub.icon} size={44} color={hub.tileInk} />
               </View>
               <View>
                 <Text
