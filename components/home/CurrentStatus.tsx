@@ -35,7 +35,7 @@ export function CurrentStatus({
     listEntries,
     spicyDares,
   } = useApp();
-  const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs);
+  const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
 
   useFocusEffect(
     useCallback(() => {

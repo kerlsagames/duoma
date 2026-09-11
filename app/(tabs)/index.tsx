@@ -1,4 +1,4 @@
-import { CurrentStatus } from "@/components/home/CurrentStatus";
+import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
@@ -42,8 +42,21 @@ export default function HomeScreen() {
   return (
     <Screen scroll>
       <View className="pt-1 pb-10">
-        <View className="mb-3 items-center pt-1">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 14,
+            paddingTop: 4,
+            position: "relative",
+            minHeight: 52,
+          }}
+        >
           <DuomaLogo size={44} />
+          <View style={{ position: "absolute", right: 0, top: 2 }}>
+            <HomeNotificationsBell onStartSpicy={() => void startSpicy()} />
+          </View>
         </View>
 
         {loading ? (
@@ -57,8 +70,107 @@ export default function HomeScreen() {
           </Text>
         ) : null}
 
-        {/* Persistent top widgets */}
-        <View style={{ gap: 10, marginBottom: 18 }}>
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(244,244,246,0.45)",
+            marginBottom: 12,
+          }}
+        >
+          Your hubs
+        </Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: 22,
+          }}
+        >
+          {HUBS.map((hub) => (
+            <Pressable
+              key={hub.id}
+              onPress={() => router.push(hub.href as Href)}
+              style={{
+                width: tileWidth,
+                minHeight: tileWidth,
+                borderRadius: 22,
+                padding: 14,
+                backgroundColor: hub.tile,
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 16,
+                  backgroundColor: "rgba(255,255,255,0.22)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name={hub.icon} size={26} color={hub.tileInk} />
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 22,
+                    lineHeight: 26,
+                    color: hub.tileInk,
+                  }}
+                >
+                  {hub.label}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 4,
+                    color: hub.tileInk,
+                    opacity: 0.72,
+                    fontSize: 12,
+                    lineHeight: 17,
+                  }}
+                  numberOfLines={2}
+                >
+                  {hub.tagline}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 10,
+                    fontSize: 11,
+                    color: hub.tileInk,
+                    opacity: 0.55,
+                  }}
+                >
+                  {hub.features.length} features
+                  {hub.features.some((f) => f.isNew)
+                    ? ` · ${hub.features.filter((f) => f.isNew).length} new`
+                    : ""}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(244,244,246,0.45)",
+            marginBottom: 12,
+          }}
+        >
+          Daily rhythm
+        </Text>
+
+        <View style={{ gap: 10 }}>
           {HOME_HEADER_WIDGETS.map((widget) => (
             <Pressable
               key={widget.id}
@@ -134,94 +246,6 @@ export default function HomeScreen() {
             </Pressable>
           ))}
         </View>
-
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "rgba(244,244,246,0.45)",
-            marginBottom: 12,
-          }}
-        >
-          Your hubs
-        </Text>
-
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          {HUBS.map((hub) => (
-            <Pressable
-              key={hub.id}
-              onPress={() => router.push(hub.href as Href)}
-              style={{
-                width: tileWidth,
-                minHeight: tileWidth,
-                borderRadius: 22,
-                padding: 14,
-                backgroundColor: "#121218",
-                borderWidth: 1,
-                borderColor: hub.accentSoft,
-                justifyContent: "space-between",
-              }}
-            >
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 16,
-                  backgroundColor: hub.accentSoft,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons name={hub.icon} size={26} color={hub.accent} />
-              </View>
-              <View>
-                <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 22,
-                    lineHeight: 26,
-                    color: "#F4F4F6",
-                  }}
-                >
-                  {hub.label}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 4,
-                    color: "rgba(244,244,246,0.55)",
-                    fontSize: 12,
-                    lineHeight: 17,
-                  }}
-                  numberOfLines={2}
-                >
-                  {hub.tagline}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 10,
-                    fontSize: 11,
-                    color: "rgba(244,244,246,0.4)",
-                  }}
-                >
-                  {hub.features.length} features
-                  {hub.features.some((f) => f.isNew)
-                    ? ` · ${hub.features.filter((f) => f.isNew).length} new`
-                    : ""}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-
-        <CurrentStatus onStartSpicy={() => void startSpicy()} />
       </View>
     </Screen>
   );

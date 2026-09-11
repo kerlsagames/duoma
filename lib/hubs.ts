@@ -22,6 +22,10 @@ export type HubDef = {
   icon: IconName;
   accent: string;
   accentSoft: string;
+  /** Solid tile fill on the home grid — each hub should read as a different colour. */
+  tile: string;
+  /** Text/icon colour on top of `tile`. */
+  tileInk: string;
   href: string;
   features: HubFeature[];
 };
@@ -54,6 +58,8 @@ export const HUBS: HubDef[] = [
     icon: "heart",
     accent: "#FF6B9A",
     accentSoft: "rgba(255,107,154,0.16)",
+    tile: "#FF6B9A",
+    tileInk: "#1A0810",
     href: "/hub/connect",
     features: [
       {
@@ -100,7 +106,9 @@ export const HUBS: HubDef[] = [
     tagline: "Heat, fantasy, after dark",
     icon: "flame",
     accent: "#FF4D6A",
-    accentSoft: "rgba(255,77,106,0.16)",
+    accentSoft: "rgba(255,77,106,0.22)",
+    tile: "#FF4D6A",
+    tileInk: "#1A0508",
     href: "/hub/desire",
     features: [
       {
@@ -159,11 +167,13 @@ export const HUBS: HubDef[] = [
   },
   {
     id: "play",
-    label: "Play",
+    label: "Fun",
     tagline: "Games, bets & playful rewards",
     icon: "game-controller",
     accent: "#F0C75E",
-    accentSoft: "rgba(240,199,94,0.16)",
+    accentSoft: "rgba(240,199,94,0.22)",
+    tile: "#F0C75E",
+    tileInk: "#1A1405",
     href: "/hub/play",
     features: [
       {
@@ -229,7 +239,9 @@ export const HUBS: HubDef[] = [
     tagline: "Life logistics & mental load",
     icon: "home",
     accent: "#3ECFBF",
-    accentSoft: "rgba(62,207,191,0.16)",
+    accentSoft: "rgba(62,207,191,0.22)",
+    tile: "#3ECFBF",
+    tileInk: "#06201C",
     href: "/hub/home-base",
     features: [
       {
