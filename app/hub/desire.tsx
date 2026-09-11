@@ -1,6 +1,5 @@
-import { Redirect } from "expo-router";
+import { HubDirectory } from "@/components/hub/HubDirectory";
 
-/** Desire was replaced by Up for it Challenges & Dares. */
-export default function DesireRedirect() {
-  return <Redirect href="/hub/up-for-it" />;
+export default function DesireHub() {
+  return <HubDirectory hubId="desire" />;
 }

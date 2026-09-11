@@ -1,49 +1,20 @@
-import { AppIcon } from "@/components/home/AppIcon";
 import { CurrentStatus } from "@/components/home/CurrentStatus";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
+import { SERIF } from "@/lib/app-themes";
 import { gameResumeHref } from "@/lib/home-status";
+import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
-import type { ComponentProps } from "react";
 import { useState } from "react";
-import { Text, View } from "react-native";
-
-type IconName = ComponentProps<typeof Ionicons>["name"];
-
-const APPS: {
-  label: string;
-  icon: IconName;
-  href?: string;
-  spicy?: boolean;
-  hot?: boolean;
-}[] = [
-  { label: "Spicy Game", icon: "flame", spicy: true, hot: true },
-  { label: "Talk to me", icon: "chatbubbles", href: "/hub/talk" },
-  { label: "Check-in", icon: "battery-charging", href: "/hub/check-in", hot: true },
-  { label: "Curiosity", icon: "sparkles", href: "/hub/curiosity" },
-  { label: "Calendar", icon: "calendar", href: "/hub/calendar" },
-  { label: "Countdowns", icon: "timer", href: "/hub/milestones" },
-  { label: "Up for it", icon: "flash", href: "/hub/up-for-it", hot: true },
-  { label: "Coupons", icon: "ticket", href: "/hub/coupons" },
-  { label: "Lists", icon: "map", href: "/hub/lists" },
-  { label: "The jar", icon: "file-tray", href: "/hub/jar" },
-  { label: "Date night", icon: "wine", href: "/hub/planner", hot: true },
-  { label: "Settings", icon: "settings-sharp", href: "/hub/settings" },
-  { label: "Positions", icon: "body", href: "/hub/positions", hot: true },
-  { label: "Roleplays", icon: "sparkles", href: "/hub/roleplays", hot: true },
-];
+import { Pressable, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { game, partner, sendSpicyInvite } = useApp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const live = Boolean(
-    game && ["setup", "selecting", "playing", "rating", "inviting"].includes(game.status)
-  );
 
   const startSpicy = async () => {
     setError(null);
@@ -66,34 +37,183 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll>
-      <View className="pt-1 pb-8">
+      <View className="pt-1 pb-10">
         <View className="mb-3 items-center pt-1">
           <DuomaLogo size={44} />
         </View>
 
         {loading ? (
-          <Text className="mb-2 text-center text-[12px] text-neon">Lighting it up…</Text>
+          <Text className="mb-2 text-center text-[12px] text-neon">
+            Lighting it up…
+          </Text>
         ) : null}
         {error ? (
-          <Text className="mb-2 text-center text-[12px] text-crimson">{error}</Text>
+          <Text className="mb-2 text-center text-[12px] text-crimson">
+            {error}
+          </Text>
         ) : null}
 
-        <View className="flex-row flex-wrap justify-between">
-          {APPS.map((app) => (
-            <AppIcon
-              key={app.label}
-              label={app.label}
-              icon={app.icon}
-              hot={app.hot}
-              live={app.spicy ? live : false}
-              onPress={() => {
-                if (app.spicy) {
-                  void startSpicy();
-                  return;
-                }
-                if (app.href) router.push(app.href as Href);
+        {/* Persistent top widgets */}
+        <View style={{ gap: 10, marginBottom: 18 }}>
+          {HOME_HEADER_WIDGETS.map((widget) => (
+            <Pressable
+              key={widget.id}
+              onPress={() => router.push(widget.href as Href)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 14,
+                borderRadius: 18,
+                backgroundColor: "#14141A",
+                borderWidth: 1,
+                borderColor: `${widget.accent}44`,
               }}
-            />
+            >
+              <View
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  backgroundColor: `${widget.accent}22`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name={widget.icon} size={24} color={widget.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    color: "#F4F4F6",
+                    fontSize: 16,
+                    fontWeight: "700",
+                  }}
+                >
+                  {widget.label}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 2,
+                    color: "rgba(244,244,246,0.55)",
+                    fontSize: 13,
+                    lineHeight: 18,
+                  }}
+                >
+                  {widget.detail}
+                </Text>
+              </View>
+              {widget.id === "calendar" ? (
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    router.push("/hub/milestones");
+                  }}
+                  hitSlop={8}
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                    backgroundColor: `${widget.accent}22`,
+                  }}
+                >
+                  <Ionicons name="timer" size={18} color={widget.accent} />
+                </Pressable>
+              ) : (
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color="rgba(244,244,246,0.35)"
+                />
+              )}
+            </Pressable>
+          ))}
+        </View>
+
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(244,244,246,0.45)",
+            marginBottom: 12,
+          }}
+        >
+          Your hubs
+        </Text>
+
+        <View style={{ gap: 12 }}>
+          {HUBS.map((hub) => (
+            <Pressable
+              key={hub.id}
+              onPress={() => router.push(hub.href as Href)}
+              style={{
+                borderRadius: 22,
+                padding: 16,
+                backgroundColor: "#121218",
+                borderWidth: 1,
+                borderColor: hub.accentSoft,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: 18,
+                    backgroundColor: hub.accentSoft,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name={hub.icon} size={28} color={hub.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontFamily: SERIF,
+                      fontSize: 24,
+                      lineHeight: 28,
+                      color: "#F4F4F6",
+                    }}
+                  >
+                    {hub.label}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      color: "rgba(244,244,246,0.55)",
+                      fontSize: 14,
+                      lineHeight: 20,
+                    }}
+                  >
+                    {hub.tagline}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={hub.accent} />
+              </View>
+              <Text
+                style={{
+                  marginTop: 12,
+                  fontSize: 12,
+                  color: "rgba(244,244,246,0.4)",
+                }}
+              >
+                {hub.features.length} features
+                {hub.features.some((f) => f.isNew)
+                  ? ` · ${hub.features.filter((f) => f.isNew).length} new`
+                  : ""}
+              </Text>
+            </Pressable>
           ))}
         </View>
 

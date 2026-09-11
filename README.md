@@ -10,11 +10,14 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
-- **Us hub** — Daily check-in, curiosity sync (answer + guess, match points), countdowns, coupons, shared Lists (bucket-list movies/places/activities + vault ratings), appreciation jar (visual mason jar that fills as notes drop in), date planner, shared calendar.
-- **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection. Give flow: pick idea → optional reason → use-by window. Wallet tabs for received, used, and expired.
-- **Talk to me** — Conversation decks (one question per deck per day).
-- **Up for it** — Challenges & Dares: pick a category (or write your own), hit Random to spin a dare, then choose who does it and when.
-- **Positions** — Category toggles, Pick me a Position with pink (F) / blue (M) silhouettes, skip or send to your partner.
+- **Home** — Persistent Daily Check-In + Calendar & Countdowns, then four hubs: **Connect**, **Desire**, **Play**, and **Home Base**.
+- **Connect** — Lists & wishlist, curiosity sync, Talk to me, The Jar, plus Apology & Reset (coming soon).
+- **Desire** — Get Spicy, Up for it, Roleplays, Positions Guide, plus Fantasy Matcher / Secret Signals / Audio Vault stubs.
+- **Play** — Coupons plus trivia, prediction market, two truths, photo challenges, doodle, and scoreboard stubs.
+- **Home Base** — Shared lists/todos, date planner, settings, plus meal picker / chore / budget / vault stubs.
+- **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
+- **Positions** — Category toggles and Pick me a Position with realistic cartoon guides (pink-haired F / blue-haired M).
+- **Roleplays** — Care-coupon scenarios across five categories with illustrated cards.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
 Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.

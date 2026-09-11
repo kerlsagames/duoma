@@ -349,8 +349,8 @@ export default function PositionsScreen() {
                 lineHeight: 22,
               }}
             >
-              Your next position lands here — illustrated, pink for her, blue
-              for him.
+              Your next position lands here — realistic cartoon guide, pink hair
+              for her, blue tones for him.
             </Text>
           </View>
         )}
