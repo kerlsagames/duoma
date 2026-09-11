@@ -1,8 +1,3 @@
-import {
-  PositionArt,
-  POSITION_F_COLOR,
-  POSITION_M_COLOR,
-} from "@/components/hub/PositionArt";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -162,18 +157,6 @@ export default function PositionsScreen() {
           Toggle categories, spin one up, skip or send it to {partnerName}.
         </Text>
 
-        <View
-          style={{
-            marginTop: 18,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <LegendDot color={POSITION_M_COLOR} label="M" />
-          <LegendDot color={POSITION_F_COLOR} label="F" />
-        </View>
-
         <Text
           style={{
             marginTop: 22,
@@ -268,10 +251,8 @@ export default function PositionsScreen() {
               borderColor: T.border,
             }}
           >
-            <PositionArt position={current} size={260} />
             <Text
               style={{
-                marginTop: 16,
                 fontFamily: SERIF,
                 fontSize: 26,
                 lineHeight: 32,
@@ -312,7 +293,7 @@ export default function PositionsScreen() {
                 style={{
                   marginTop: 14,
                   textAlign: "center",
-                  color: POSITION_M_COLOR,
+                  color: T.warm,
                   fontSize: 13,
                   fontWeight: "600",
                 }}
@@ -385,24 +366,6 @@ export default function PositionsScreen() {
         ) : null}
       </View>
     </Screen>
-  );
-}
-
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <View
-        style={{
-          width: 12,
-          height: 12,
-          borderRadius: 6,
-          backgroundColor: color,
-        }}
-      />
-      <Text style={{ color, fontWeight: "700", fontSize: 13, letterSpacing: 1 }}>
-        {label}
-      </Text>
-    </View>
   );
 }
 
