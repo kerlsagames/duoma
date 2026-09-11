@@ -26,12 +26,12 @@ const APPS: {
   { label: "Calendar", icon: "calendar", href: "/hub/calendar" },
   { label: "Countdowns", icon: "timer", href: "/hub/milestones" },
   { label: "Up for it", icon: "flash", href: "/hub/up-for-it", hot: true },
-  { label: "Positions", icon: "body", href: "/hub/positions", hot: true },
   { label: "Coupons", icon: "ticket", href: "/hub/coupons" },
   { label: "Lists", icon: "map", href: "/hub/lists" },
   { label: "The jar", icon: "file-tray", href: "/hub/jar" },
   { label: "Date night", icon: "wine", href: "/hub/planner", hot: true },
   { label: "Settings", icon: "settings-sharp", href: "/hub/settings" },
+  { label: "Positions", icon: "body", href: "/hub/positions", hot: true },
 ];
 
 export default function HomeScreen() {
