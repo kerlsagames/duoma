@@ -21,8 +21,8 @@ import {
 import { useApp } from "@/lib/store";
 import type { Coupon } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 const T = COUPONS_TONE;
 
@@ -190,6 +190,11 @@ export default function CouponsScreen() {
   const [loading, setLoading] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const minDateTime = useMemo(() => toLocalDateTimeValue(new Date()), []);
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [tab, categoryId, idea]);
 
   const received = useMemo(
     () =>
@@ -269,7 +274,7 @@ export default function CouponsScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-4 pb-8">
         <BackButton color={T.accent} style={{ marginBottom: 12 }} />
         <Text

@@ -5,10 +5,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const HIDDEN = new Set(["/welcome", "/create", "/join", "/waiting"]);
 
+function isHomePath(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname === "/index" ||
+    pathname === "/(tabs)" ||
+    pathname === "/(tabs)/index"
+  );
+}
+
 export function HomeBar() {
   const pathname = usePathname();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const atHome = isHomePath(pathname);
 
   if (HIDDEN.has(pathname)) return null;
 
@@ -25,25 +35,69 @@ export function HomeBar() {
         shadowRadius: 16,
       }}
     >
-      <Pressable
-        onPress={() => router.replace("/")}
-        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 2 }}
-        accessibilityRole="button"
-        accessibilityLabel="Home"
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 48,
+        }}
       >
-        <Ionicons name="home" size={24} color="#FF007F" />
-        <Text
+        {!atHome ? (
+          <Pressable
+            onPress={() => {
+              if (router.canGoBack()) router.back();
+              else router.replace("/");
+            }}
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 2,
+              minWidth: 64,
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <Ionicons name="chevron-back" size={24} color="#FF007F" />
+            <Text
+              style={{
+                marginTop: 2,
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 0.4,
+                color: "#FF007F",
+              }}
+            >
+              Back
+            </Text>
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={() => router.replace("/")}
           style={{
-            marginTop: 2,
-            fontSize: 11,
-            fontWeight: "700",
-            letterSpacing: 0.4,
-            color: "#FF007F",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingVertical: 2,
+            minWidth: 64,
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Home"
         >
-          Home
-        </Text>
-      </Pressable>
+          <Ionicons name="home" size={24} color="#FF007F" />
+          <Text
+            style={{
+              marginTop: 2,
+              fontSize: 11,
+              fontWeight: "700",
+              letterSpacing: 0.4,
+              color: "#FF007F",
+            }}
+          >
+            Home
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

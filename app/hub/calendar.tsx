@@ -25,7 +25,7 @@ import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
 const MONTHS = [
   "January",
@@ -450,16 +450,19 @@ export default function CalendarScreen() {
         animationType="fade"
         onRequestClose={() => setSettingsOpen(false)}
       >
-        <Pressable
+        <View
           style={{
             flex: 1,
             backgroundColor: "rgba(22,24,29,0.45)",
             justifyContent: "flex-end",
           }}
-          onPress={() => setSettingsOpen(false)}
         >
           <Pressable
-            onPress={(e) => e.stopPropagation?.()}
+            style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+            onPress={() => setSettingsOpen(false)}
+            accessibilityLabel="Close calendar settings"
+          />
+          <View
             style={{
               backgroundColor: "#FFFFFF",
               paddingHorizontal: 20,
@@ -488,124 +491,132 @@ export default function CalendarScreen() {
               </Pressable>
             </View>
 
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "700",
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: "rgba(22,24,29,0.4)",
-                marginBottom: 10,
-              }}
+            <ScrollView
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator
+              style={{ flexGrow: 0 }}
+              contentContainerStyle={{ paddingBottom: 8 }}
             >
-              Show on calendar
-            </Text>
-            <View style={{ gap: 8, marginBottom: 22 }}>
-              {CALENDAR_KIND_OPTIONS.map((row) => {
-                const on = prefs.enabledKinds[row.kind] !== false;
-                return (
-                  <Pressable
-                    key={row.kind}
-                    onPress={() => toggleKind(row.kind)}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      paddingVertical: 12,
-                      paddingHorizontal: 14,
-                      borderWidth: 1,
-                      borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
-                      backgroundColor: on
-                        ? "rgba(194,59,85,0.08)"
-                        : "#FFFFFF",
-                    }}
-                  >
-                    <Text
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "700",
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: "rgba(22,24,29,0.4)",
+                  marginBottom: 10,
+                }}
+              >
+                Show on calendar
+              </Text>
+              <View style={{ gap: 8, marginBottom: 22 }}>
+                {CALENDAR_KIND_OPTIONS.map((row) => {
+                  const on = prefs.enabledKinds[row.kind] !== false;
+                  return (
+                    <Pressable
+                      key={row.kind}
+                      onPress={() => toggleKind(row.kind)}
                       style={{
-                        fontSize: 15,
-                        fontWeight: "600",
-                        color: "#16181D",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        borderWidth: 1,
+                        borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
+                        backgroundColor: on
+                          ? "rgba(194,59,85,0.08)"
+                          : "#FFFFFF",
                       }}
                     >
-                      {row.label}
-                    </Text>
-                    <Ionicons
-                      name={on ? "checkmark-circle" : "ellipse-outline"}
-                      size={22}
-                      color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: "600",
+                          color: "#16181D",
+                        }}
+                      >
+                        {row.label}
+                      </Text>
+                      <Ionicons
+                        name={on ? "checkmark-circle" : "ellipse-outline"}
+                        size={22}
+                        color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "700",
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: "rgba(22,24,29,0.4)",
-                marginBottom: 10,
-              }}
-            >
-              Day list
-            </Text>
-            <View style={{ gap: 8 }}>
-              {(
-                [
-                  {
-                    mode: "all" as const,
-                    label: "Show all activities at the bottom",
-                  },
-                  {
-                    mode: "preview" as const,
-                    label: "Show first 4, then See all",
-                  },
-                ] as const
-              ).map((row) => {
-                const on = prefs.listMode === row.mode;
-                return (
-                  <Pressable
-                    key={row.mode}
-                    onPress={() =>
-                      savePrefs({ ...prefs, listMode: row.mode })
-                    }
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      paddingVertical: 12,
-                      paddingHorizontal: 14,
-                      borderWidth: 1,
-                      borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
-                      backgroundColor: on
-                        ? "rgba(194,59,85,0.08)"
-                        : "#FFFFFF",
-                    }}
-                  >
-                    <Text
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "700",
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: "rgba(22,24,29,0.4)",
+                  marginBottom: 10,
+                }}
+              >
+                Day list
+              </Text>
+              <View style={{ gap: 8 }}>
+                {(
+                  [
+                    {
+                      mode: "all" as const,
+                      label: "Show all activities at the bottom",
+                    },
+                    {
+                      mode: "preview" as const,
+                      label: "Show first 4, then See all",
+                    },
+                  ] as const
+                ).map((row) => {
+                  const on = prefs.listMode === row.mode;
+                  return (
+                    <Pressable
+                      key={row.mode}
+                      onPress={() =>
+                        savePrefs({ ...prefs, listMode: row.mode })
+                      }
                       style={{
-                        flex: 1,
-                        fontSize: 15,
-                        fontWeight: "600",
-                        color: "#16181D",
-                        paddingRight: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        borderWidth: 1,
+                        borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
+                        backgroundColor: on
+                          ? "rgba(194,59,85,0.08)"
+                          : "#FFFFFF",
                       }}
                     >
-                      {row.label}
-                    </Text>
-                    <Ionicons
-                      name={on ? "radio-button-on" : "radio-button-off"}
-                      size={22}
-                      color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Pressable>
-        </Pressable>
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          fontWeight: "600",
+                          color: "#16181D",
+                          paddingRight: 12,
+                        }}
+                      >
+                        {row.label}
+                      </Text>
+                      <Ionicons
+                        name={on ? "radio-button-on" : "radio-button-off"}
+                        size={22}
+                        color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
     </HubScreen>
   );

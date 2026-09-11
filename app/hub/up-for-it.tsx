@@ -2,13 +2,19 @@ import { SpicyDarePanel } from "@/components/hub/SpicyDarePanel";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF, UP_FOR_IT_TONE } from "@/lib/app-themes";
-import { Text, View } from "react-native";
+import { useCallback, useRef } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 const T = UP_FOR_IT_TONE;
 
 export default function UpForItScreen() {
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollToTop = useCallback(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, []);
+
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-4 pb-8">
         <BackButton color={T.accent} style={{ marginBottom: 12 }} />
         <Text
@@ -46,7 +52,7 @@ export default function UpForItScreen() {
         </Text>
 
         <View className="mt-6">
-          <SpicyDarePanel mode="page" />
+          <SpicyDarePanel mode="page" onNavigate={scrollToTop} />
         </View>
       </View>
     </Screen>

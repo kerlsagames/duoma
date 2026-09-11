@@ -5,6 +5,7 @@ import {
   type NamePair,
 } from "@/lib/personalize";
 import type { Card } from "@/lib/types";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -33,10 +34,12 @@ type Props = {
   disabled?: boolean;
 };
 
-const CARD_GAP = 14;
+const CARD_GAP = 12;
 /** Final pickable card height — deal lands here so nothing remounts. */
 const CARD_HEIGHT = 148;
-const STACK_TOP = 118;
+/** Keep the stacked hand tight under the status line (was leaving a huge deck-sized hole). */
+const STACK_TOP = 0;
+const FLAME = "#FF4D9A";
 
 export function DealHand({
   cards,
@@ -279,7 +282,7 @@ export function DealHand({
 
   return (
     <View className="flex-1">
-      <Text className="mb-3 text-[12px] font-semibold uppercase tracking-[2px] text-neon">
+      <Text className="mb-2 text-[12px] font-semibold uppercase tracking-[2px] text-neon">
         {status}
       </Text>
 
@@ -294,13 +297,13 @@ export function DealHand({
             ],
             zIndex: 2,
           }}
-          className="absolute top-2 h-[100px] w-[72px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
+          className="absolute top-0 h-[96px] w-[70px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
         >
-          <View className="absolute inset-1 rounded-xl border border-crimson/25" />
+          <View className="absolute inset-1 rounded-xl border border-[#FF4D9A]/30" />
           <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
             Deck
           </Text>
-          <Text className="mt-1 text-[20px] font-bold text-crimson">♠</Text>
+          <Ionicons name="flame" size={22} color={FLAME} style={{ marginTop: 4 }} />
         </Animated.View>
 
         {phase === "shuffle"
@@ -363,7 +366,7 @@ export function DealHand({
               key={`${animationKey}-card-${card.id}`}
               style={{
                 position: "absolute",
-                top: 10,
+                top: 0,
                 width: cardWidth,
                 height: CARD_HEIGHT,
                 opacity: slot.opacity,
@@ -387,7 +390,7 @@ export function DealHand({
                   style={{ opacity: backOpacity }}
                   className="absolute inset-0 items-center justify-center rounded-[22px] border border-neon/40 bg-[#1A0B14]"
                 >
-                  <Text className="text-[28px] font-bold text-crimson">♠</Text>
+                  <Ionicons name="flame" size={32} color={FLAME} />
                 </Animated.View>
                 <Animated.View
                   pointerEvents="none"

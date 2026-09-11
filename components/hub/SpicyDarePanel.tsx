@@ -52,9 +52,12 @@ function pickRandom<T>(items: T[], avoid?: T | null): T | null {
 export function SpicyDarePanel({
   onClose,
   mode = "sheet",
+  onNavigate,
 }: {
   onClose?: () => void;
   mode?: "sheet" | "page";
+  /** Called when the panel switches views (category, compose, home). */
+  onNavigate?: () => void;
 }) {
   const {
     user,
@@ -109,6 +112,10 @@ export function SpicyDarePanel({
       spinTimers.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    onNavigate?.();
+  }, [view, onNavigate]);
 
   const clearSpin = () => {
     spinTimers.current.forEach(clearTimeout);

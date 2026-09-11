@@ -408,8 +408,8 @@ export default function PlayScreen() {
 
   return (
     <Screen scroll={showHand}>
-      <View className="flex-1 py-3">
-        <View className="mb-2 flex-row justify-between">
+      <View className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}>
+        <View className="mb-1.5 flex-row justify-between">
           {STAGE_ORDER.map((stage) => {
             const on = game?.currentStage === stage;
             return (
