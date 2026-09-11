@@ -15,9 +15,9 @@ import { View } from "react-native";
 export const POSITION_M_COLOR = "#6E9CFF";
 /** Female silhouette */
 export const POSITION_F_COLOR = "#FF7FA8";
-/** Far-side limbs, for depth */
-const M_FAR = "#3F6BD8";
-const F_FAR = "#D6437A";
+/** Background tone, used to key overlapping bodies apart. */
+const KEYLINE = "#140A12";
+const KEYLINE_W = 2.8;
 
 type Pt = readonly [number, number];
 
@@ -225,6 +225,24 @@ const POSES = {
     kneeB: [20, -14],
     footB: [31, 7],
   },
+  lyingFlat: {
+    pelvis: [0, 0],
+    chest: [-29, -4],
+    neck: [-40, -6],
+    head: [-51, -8],
+    shoulderA: [-33, -9],
+    elbowA: [-45, -4],
+    handA: [-56, 1],
+    shoulderB: [-31, 1],
+    elbowB: [-43, 8],
+    handB: [-54, 14],
+    hipA: [4, -3],
+    kneeA: [26, -5],
+    footA: [48, -3],
+    hipB: [4, 4],
+    kneeB: [26, 5],
+    footB: [48, 9],
+  },
   legsUp: {
     pelvis: [0, 0],
     chest: [-29, -2],
@@ -367,6 +385,7 @@ const FRONT: Record<PoseName, Pt> = {
   straddleWrap: [-1, 0],
   crossLegged: [-1, 0],
   lyingBack: [0, -1],
+  lyingFlat: [0, -1],
   legsUp: [0, -1],
   lyingFront: [0, 1],
   lyingSide: [-1, 0],
@@ -389,27 +408,27 @@ type Build = {
 };
 
 const FEMALE: Build = {
-  shoulderW: 11.5,
-  waistW: 7.6,
-  hipW: 13.2,
-  headR: 8.4,
-  neckW: 4.4,
-  upperArm: [6, 5],
-  forearm: [4.9, 3.8],
-  thigh: [10.6, 6.9],
-  calf: [6.9, 4.3],
+  shoulderW: 11,
+  waistW: 7.2,
+  hipW: 12.8,
+  headR: 7.2,
+  neckW: 3.8,
+  upperArm: [5.3, 4.3],
+  forearm: [4.2, 3.2],
+  thigh: [9.4, 6],
+  calf: [6, 3.7],
 };
 
 const MALE: Build = {
-  shoulderW: 14.6,
-  waistW: 10.8,
-  hipW: 11.4,
-  headR: 9,
-  neckW: 5.6,
-  upperArm: [7.1, 6],
-  forearm: [5.9, 4.5],
-  thigh: [11.2, 7.6],
-  calf: [7.6, 5],
+  shoulderW: 14.2,
+  waistW: 10.2,
+  hipW: 11,
+  headR: 7.6,
+  neckW: 4.8,
+  upperArm: [6.3, 5.2],
+  forearm: [5, 3.8],
+  thigh: [10, 6.6],
+  calf: [6.6, 4.2],
 };
 
 function tx(p: Pt, x: number, y: number, s: number, flip: boolean): Pt {
@@ -432,45 +451,33 @@ function segment(a: Pt, b: Pt, wa: number, wb: number): string {
   ].join(" ");
 }
 
-function Limb({
-  a,
-  b,
-  c,
-  w,
-  fill,
-}: {
-  a: Pt;
-  b: Pt;
-  c: Pt;
-  w: readonly [number, number, number];
-  fill: string;
-}) {
-  return (
-    <G>
-      <Path d={segment(a, b, w[0], w[1])} fill={fill} />
-      <Path d={segment(b, c, w[1], w[2])} fill={fill} />
-      <Circle cx={a[0]} cy={a[1]} r={w[0]} fill={fill} />
-      <Circle cx={b[0]} cy={b[1]} r={w[1]} fill={fill} />
-      <Circle cx={c[0]} cy={c[1]} r={w[2] * 1.15} fill={fill} />
-    </G>
-  );
+type Shape =
+  | { t: "path"; d: string }
+  | { t: "circle"; cx: number; cy: number; r: number }
+  | { t: "ellipse"; cx: number; cy: number; rx: number; ry: number };
+
+function limbShapes(
+  a: Pt,
+  b: Pt,
+  c: Pt,
+  w: readonly [number, number, number]
+): Shape[] {
+  return [
+    { t: "path", d: segment(a, b, w[0], w[1]) },
+    { t: "path", d: segment(b, c, w[1], w[2]) },
+    { t: "circle", cx: a[0], cy: a[1], r: w[0] },
+    { t: "circle", cx: b[0], cy: b[1], r: w[1] },
+    { t: "circle", cx: c[0], cy: c[1], r: w[2] * 1.05 },
+  ];
 }
 
-function Torso({
-  chest,
-  pelvis,
-  build,
-  fill,
-  female,
-  front,
-}: {
-  chest: Pt;
-  pelvis: Pt;
-  build: Build;
-  fill: string;
-  female: boolean;
-  front: Pt;
-}) {
+function torsoShapes(
+  chest: Pt,
+  pelvis: Pt,
+  build: Build,
+  female: boolean,
+  front: Pt
+): Shape[] {
   const dx = pelvis[0] - chest[0];
   const dy = pelvis[1] - chest[1];
   const len = Math.hypot(dx, dy) || 1;
@@ -494,38 +501,99 @@ function Torso({
   const yokeX = chest[0] - ax * sw * 0.7;
   const yokeY = chest[1] - ay * sw * 0.7;
 
-  const d = [
-    `M ${t1[0]} ${t1[1]}`,
-    `Q ${w1[0]} ${w1[1]} ${h1[0]} ${h1[1]}`,
-    `Q ${seatX} ${seatY} ${h2[0]} ${h2[1]}`,
-    `Q ${w2[0]} ${w2[1]} ${t2[0]} ${t2[1]}`,
-    `Q ${yokeX} ${yokeY} ${t1[0]} ${t1[1]}`,
-    "Z",
-  ].join(" ");
+  const shapes: Shape[] = [
+    {
+      t: "path",
+      d: [
+        `M ${t1[0]} ${t1[1]}`,
+        `Q ${w1[0]} ${w1[1]} ${h1[0]} ${h1[1]}`,
+        `Q ${seatX} ${seatY} ${h2[0]} ${h2[1]}`,
+        `Q ${w2[0]} ${w2[1]} ${t2[0]} ${t2[1]}`,
+        `Q ${yokeX} ${yokeY} ${t1[0]} ${t1[1]}`,
+        "Z",
+      ].join(" "),
+    },
+    { t: "circle", cx: t1[0], cy: t1[1], r: sw * 0.34 },
+    { t: "circle", cx: t2[0], cy: t2[1], r: sw * 0.34 },
+    { t: "circle", cx: h1[0], cy: h1[1], r: hw * 0.42 },
+    { t: "circle", cx: h2[0], cy: h2[1], r: hw * 0.42 },
+  ];
 
+  if (female) {
+    shapes.push({
+      t: "circle",
+      cx: chest[0] + front[0] * sw * 0.5 + ax * sw * 0.16,
+      cy: chest[1] + front[1] * sw * 0.5 + ay * sw * 0.16,
+      r: sw * 0.5,
+    });
+    shapes.push({
+      t: "circle",
+      cx: chest[0] + front[0] * sw * 0.42 + ax * sw * 0.66,
+      cy: chest[1] + front[1] * sw * 0.42 + ay * sw * 0.66,
+      r: sw * 0.44,
+    });
+  }
+  return shapes;
+}
+
+function draw(
+  shapes: Shape[],
+  fill: string,
+  stroke?: string,
+  strokeWidth?: number
+) {
+  return shapes.map((s, i) => {
+    if (s.t === "path") {
+      return (
+        <Path
+          key={i}
+          d={s.d}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          strokeLinejoin="round"
+        />
+      );
+    }
+    if (s.t === "circle") {
+      return (
+        <Circle
+          key={i}
+          cx={s.cx}
+          cy={s.cy}
+          r={s.r}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      );
+    }
+    return (
+      <Ellipse
+        key={i}
+        cx={s.cx}
+        cy={s.cy}
+        rx={s.rx}
+        ry={s.ry}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
+    );
+  });
+}
+
+/**
+ * Draws the group fattened in the background tone, then fills it flat on top.
+ * The fill hides every internal edge, so what is left is a single clean
+ * keyline around the whole group — that is what keeps two overlapping bodies
+ * legible without tinting one of them darker.
+ */
+function Painted({ shapes, fill }: { shapes: Shape[]; fill: string }) {
   return (
     <G>
-      <Path d={d} fill={fill} />
-      <Circle cx={t1[0]} cy={t1[1]} r={sw * 0.34} fill={fill} />
-      <Circle cx={t2[0]} cy={t2[1]} r={sw * 0.34} fill={fill} />
-      <Circle cx={h1[0]} cy={h1[1]} r={hw * 0.42} fill={fill} />
-      <Circle cx={h2[0]} cy={h2[1]} r={hw * 0.42} fill={fill} />
-      {female ? (
-        <G>
-          <Circle
-            cx={chest[0] + front[0] * sw * 0.5 + ax * sw * 0.16}
-            cy={chest[1] + front[1] * sw * 0.5 + ay * sw * 0.16}
-            r={sw * 0.5}
-            fill={fill}
-          />
-          <Circle
-            cx={chest[0] + front[0] * sw * 0.42 + ax * sw * 0.66}
-            cy={chest[1] + front[1] * sw * 0.42 + ay * sw * 0.66}
-            r={sw * 0.44}
-            fill={fill}
-          />
-        </G>
-      ) : null}
+      {draw(shapes, KEYLINE, KEYLINE, KEYLINE_W)}
+      {draw(shapes, fill)}
     </G>
   );
 }
@@ -547,93 +615,59 @@ function Figure({
 }) {
   const raw = POSES[pose];
   const build = female ? FEMALE : MALE;
-  const near = female ? POSITION_F_COLOR : POSITION_M_COLOR;
-  const far = female ? F_FAR : M_FAR;
+  const skin = female ? POSITION_F_COLOR : POSITION_M_COLOR;
   const k = (p: Pt) => tx(p, x, y, s, flip);
 
   const head = k(raw.head);
   const neck = k(raw.neck);
-  const chest = k(raw.chest);
-  const pelvis = k(raw.pelvis);
+  const headR = build.headR * s;
+  const neckW = build.neckW * s;
   const scaled: Build = {
     ...build,
     shoulderW: build.shoulderW * s,
     waistW: build.waistW * s,
     hipW: build.hipW * s,
-    headR: build.headR * s,
-    neckW: build.neckW * s,
+    headR,
+    neckW,
   };
-  const facing: Pt = [
-    flip ? -FRONT[pose][0] : FRONT[pose][0],
-    FRONT[pose][1],
-  ];
+  const facing: Pt = [flip ? -FRONT[pose][0] : FRONT[pose][0], FRONT[pose][1]];
   const arm = (w: readonly [number, number]) =>
     [w[0] * s, ((w[0] + w[1]) / 2) * s, w[1] * s] as const;
   const leg = (a: readonly [number, number], b: readonly [number, number]) =>
     [a[0] * s, b[0] * s, b[1] * s] as const;
+  const armW = arm([build.upperArm[0], build.forearm[1]]);
+  const legW = leg(build.thigh, build.calf);
+
+  const back: Shape[] = [
+    ...limbShapes(k(raw.hipA), k(raw.kneeA), k(raw.footA), legW),
+    ...limbShapes(k(raw.shoulderA), k(raw.elbowA), k(raw.handA), armW),
+  ];
+  if (female) {
+    back.push({
+      t: "ellipse",
+      cx: head[0] - facing[0] * headR * 0.55,
+      cy: head[1] - facing[1] * headR * 0.55 + headR * 0.5,
+      rx: headR * 0.78,
+      ry: headR * 0.98,
+    });
+  }
+
+  const core: Shape[] = [
+    ...torsoShapes(k(raw.chest), k(raw.pelvis), scaled, female, facing),
+    { t: "path", d: segment(neck, head, neckW, neckW * 0.9) },
+    { t: "ellipse", cx: head[0], cy: head[1], rx: headR * 0.92, ry: headR },
+  ];
+
+  const near: Shape[] = [
+    ...limbShapes(k(raw.hipB), k(raw.kneeB), k(raw.footB), legW),
+    ...limbShapes(k(raw.shoulderB), k(raw.elbowB), k(raw.handB), armW),
+  ];
 
   return (
     <G>
-      {/* Far side first so the near limbs read as closer */}
-      <Limb
-        a={k(raw.hipA)}
-        b={k(raw.kneeA)}
-        c={k(raw.footA)}
-        w={leg(build.thigh, build.calf)}
-        fill={far}
-      />
-      <Limb
-        a={k(raw.shoulderA)}
-        b={k(raw.elbowA)}
-        c={k(raw.handA)}
-        w={arm([build.upperArm[0], build.forearm[1]])}
-        fill={far}
-      />
-
-      <Torso
-        chest={chest}
-        pelvis={pelvis}
-        build={scaled}
-        fill={near}
-        female={female}
-        front={facing}
-      />
-
-      <Path
-        d={segment(neck, head, scaled.neckW, scaled.neckW * 0.9)}
-        fill={near}
-      />
-      {female ? (
-        <Ellipse
-          cx={head[0] - facing[0] * scaled.headR * 0.5}
-          cy={head[1] - facing[1] * scaled.headR * 0.5 + scaled.headR * 0.35}
-          rx={scaled.headR}
-          ry={scaled.headR * 1.15}
-          fill={far}
-        />
-      ) : null}
-      <Ellipse
-        cx={head[0]}
-        cy={head[1]}
-        rx={scaled.headR * 0.92}
-        ry={scaled.headR}
-        fill={near}
-      />
-
-      <Limb
-        a={k(raw.hipB)}
-        b={k(raw.kneeB)}
-        c={k(raw.footB)}
-        w={leg(build.thigh, build.calf)}
-        fill={near}
-      />
-      <Limb
-        a={k(raw.shoulderB)}
-        b={k(raw.elbowB)}
-        c={k(raw.handB)}
-        w={arm([build.upperArm[0], build.forearm[1]])}
-        fill={near}
-      />
+      <Painted shapes={back} fill={skin} />
+      <Painted shapes={core} fill={skin} />
+      <Painted shapes={near} fill={skin} />
     </G>
   );
 }
@@ -719,8 +753,8 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M26 198 H254" width={13} />
-          <Figure pose="lyingBack" x={150} y={190} s={1.3} female />
-          <Figure pose="allFours" x={158} y={150} s={1.3} />
+          <Figure pose="lyingBack" x={144} y={192} s={1.3} female />
+          <Figure pose="allFours" x={164} y={148} s={1.3} />
         </G>
       );
     // He sits cross-legged, she straddles his lap with legs wrapped around him.
@@ -736,8 +770,8 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M26 212 H254" width={13} />
-          <Figure pose="lyingBack" x={152} y={200} s={1.3} />
-          <Figure pose="straddle" x={150} y={172} s={1.2} female />
+          <Figure pose="lyingFlat" x={140} y={200} s={1.3} />
+          <Figure pose="straddle" x={148} y={172} s={1.2} female />
         </G>
       );
     // Her knees drawn toward her chest, he stays face to face.
@@ -863,8 +897,8 @@ function renderPose(art: string) {
         <G>
           <Prop d="M56 40 V228" width={12} />
           <Prop d="M24 222 H256" width={11} />
-          <Figure pose="standingHooked" x={96} y={150} s={1.35} flip female />
           <Figure pose="standing" x={138} y={150} s={1.4} />
+          <Figure pose="standingHooked" x={96} y={150} s={1.35} flip female />
         </G>
       );
     // He lifts her, legs wrapped around his waist.
@@ -897,8 +931,8 @@ function renderPose(art: string) {
             strokeWidth="3"
             strokeLinecap="round"
           />
-          <Figure pose="standingHooked" x={110} y={154} s={1.3} flip female />
           <Figure pose="standing" x={150} y={152} s={1.35} />
+          <Figure pose="standingHooked" x={110} y={154} s={1.3} flip female />
         </G>
       );
     // She kneels in front of him while he stands.
@@ -915,7 +949,7 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M22 210 H258" width={13} />
-          <Figure pose="lyingBack" x={172} y={196} s={1.3} />
+          <Figure pose="lyingFlat" x={166} y={196} s={1.3} />
           <Figure pose="straddle" x={100} y={158} s={1.2} flip female />
         </G>
       );
