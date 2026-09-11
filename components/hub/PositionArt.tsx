@@ -17,7 +17,7 @@ export const POSITION_M_COLOR = "#6E9CFF";
 export const POSITION_F_COLOR = "#FF7FA8";
 /** Background tone, used to key overlapping bodies apart. */
 const KEYLINE = "#140A12";
-const KEYLINE_W = 2.8;
+const KEYLINE_W = 2.2;
 
 type Pt = readonly [number, number];
 
@@ -45,23 +45,44 @@ type Joints = {
  * the origin and one unit is roughly one pixel of a 110-unit-tall body.
  */
 const POSES = {
+  // Elbows swing wide and the feet part, so there is a void either side of the
+  // waist. Arms held flat against the torso collapse into one unreadable mass.
   standing: {
     pelvis: [0, 0],
     chest: [0, -33],
     neck: [0, -45],
     head: [0, -58],
-    shoulderA: [-11, -40],
-    elbowA: [-15, -21],
-    handA: [-16, -3],
-    shoulderB: [11, -40],
-    elbowB: [15, -21],
-    handB: [16, -3],
+    shoulderA: [-12, -40],
+    elbowA: [-17, -20],
+    handA: [-16, 0],
+    shoulderB: [12, -40],
+    elbowB: [17, -20],
+    handB: [16, 0],
     hipA: [-7, 3],
-    kneeA: [-8, 27],
-    footA: [-8, 51],
+    kneeA: [-10, 27],
+    footA: [-11, 51],
     hipB: [7, 3],
-    kneeB: [8, 27],
-    footB: [8, 51],
+    kneeB: [10, 27],
+    footB: [11, 51],
+  },
+  // Standing, leaning in slightly, both hands reaching out to hold a partner.
+  standingHold: {
+    pelvis: [0, 0],
+    chest: [-2, -33],
+    neck: [-4, -45],
+    head: [-6, -58],
+    shoulderA: [-13, -39],
+    elbowA: [-21, -25],
+    handA: [-32, -13],
+    shoulderB: [10, -40],
+    elbowB: [-2, -27],
+    handB: [-16, -16],
+    hipA: [-7, 3],
+    kneeA: [-10, 27],
+    footA: [-11, 51],
+    hipB: [7, 3],
+    kneeB: [10, 27],
+    footB: [11, 51],
   },
   standingHooked: {
     pelvis: [0, 0],
@@ -376,6 +397,7 @@ type PoseName = keyof typeof POSES;
 /** Unit vector for the direction each pose's chest faces, in local space. */
 const FRONT: Record<PoseName, Pt> = {
   standing: [-1, 0],
+  standingHold: [-1, 0],
   standingHooked: [-1, 0],
   standingBent: [0, 1],
   kneeling: [-1, 0],
@@ -407,46 +429,62 @@ type Build = {
   calf: readonly [number, number];
 };
 
+/**
+ * Widths are half-widths, and every one is a ratio of head width so the figure
+ * holds the classic eight-head proportion at any scale. A thigh reads right at
+ * a little under one head across; an arm at about half. Going heavier than that
+ * is what turns a silhouette into a mannequin.
+ */
 const FEMALE: Build = {
-  shoulderW: 11,
-  waistW: 7.2,
-  hipW: 12.8,
+  shoulderW: 10.4,
+  waistW: 5.8,
+  hipW: 11.8,
   headR: 7.2,
-  neckW: 3.8,
-  upperArm: [5.3, 4.3],
-  forearm: [4.2, 3.2],
-  thigh: [9.4, 6],
-  calf: [6, 3.7],
+  neckW: 3.1,
+  upperArm: [3.4, 2.7],
+  forearm: [2.7, 2],
+  thigh: [5.6, 4.2],
+  calf: [3.6, 2],
 };
 
 const MALE: Build = {
-  shoulderW: 14.2,
-  waistW: 10.2,
-  hipW: 11,
+  shoulderW: 13.4,
+  waistW: 8,
+  hipW: 9.8,
   headR: 7.6,
-  neckW: 4.8,
-  upperArm: [6.3, 5.2],
-  forearm: [5, 3.8],
-  thigh: [10, 6.6],
-  calf: [6.6, 4.2],
+  neckW: 3.9,
+  upperArm: [4, 3.2],
+  forearm: [3.2, 2.3],
+  thigh: [6, 4.6],
+  calf: [4, 2.3],
 };
 
 function tx(p: Pt, x: number, y: number, s: number, flip: boolean): Pt {
   return [x + (flip ? -p[0] : p[0]) * s, y + p[1] * s];
 }
 
-/** Tapered segment: a quad between two widths, capped by joint circles. */
-function segment(a: Pt, b: Pt, wa: number, wb: number): string {
+/**
+ * Tapered segment between two joints, capped by joint circles.
+ *
+ * `bow` swells the middle of both edges so the run of a limb curves like muscle
+ * instead of a straight-sided cone. Straight edges are what make a figure read
+ * as geometry rather than a body, so no limb here is drawn dead straight.
+ */
+function segment(a: Pt, b: Pt, wa: number, wb: number, bow = 0.16): string {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
+  const mx = (a[0] + b[0]) / 2;
+  const my = (a[1] + b[1]) / 2;
+  // A quadratic reaches half its control offset, so double the swell we want.
+  const cw = ((wa + wb) / 2) * (1 + bow * 2);
   return [
     `M ${a[0] + nx * wa} ${a[1] + ny * wa}`,
-    `L ${b[0] + nx * wb} ${b[1] + ny * wb}`,
+    `Q ${mx + nx * cw} ${my + ny * cw} ${b[0] + nx * wb} ${b[1] + ny * wb}`,
     `L ${b[0] - nx * wb} ${b[1] - ny * wb}`,
-    `L ${a[0] - nx * wa} ${a[1] - ny * wa}`,
+    `Q ${mx - nx * cw} ${my - ny * cw} ${a[0] - nx * wa} ${a[1] - ny * wa}`,
     "Z",
   ].join(" ");
 }
@@ -456,18 +494,24 @@ type Shape =
   | { t: "circle"; cx: number; cy: number; r: number }
   | { t: "ellipse"; cx: number; cy: number; rx: number; ry: number };
 
+/**
+ * Two tapered runs plus a circle at each joint. The joint circle exactly
+ * matches the segment width there, so the bend rounds off instead of kinking,
+ * and `endCap` gives the limb a hand or foot a touch wider than the wrist.
+ */
 function limbShapes(
   a: Pt,
   b: Pt,
   c: Pt,
-  w: readonly [number, number, number]
+  w: readonly [number, number, number],
+  endCap = 1.45
 ): Shape[] {
   return [
     { t: "path", d: segment(a, b, w[0], w[1]) },
     { t: "path", d: segment(b, c, w[1], w[2]) },
     { t: "circle", cx: a[0], cy: a[1], r: w[0] },
     { t: "circle", cx: b[0], cy: b[1], r: w[1] },
-    { t: "circle", cx: c[0], cy: c[1], r: w[2] * 1.05 },
+    { t: "circle", cx: c[0], cy: c[1], r: w[2] * endCap },
   ];
 }
 
@@ -490,10 +534,17 @@ function torsoShapes(
   const midX = chest[0] + dx * 0.52;
   const midY = chest[1] + dy * 0.52;
 
+  // In profile a torso is not a symmetric hourglass: the belly tucks in at the
+  // waist while the back stays one long curve. Which side is which depends on
+  // where the chest faces.
+  const bellySide = px * front[0] + py * front[1] >= 0 ? 1 : -1;
+  const w1w = ww * (bellySide > 0 ? 0.84 : 1.08);
+  const w2w = ww * (bellySide > 0 ? 1.08 : 0.84);
+
   const t1: Pt = [chest[0] + px * sw, chest[1] + py * sw];
   const t2: Pt = [chest[0] - px * sw, chest[1] - py * sw];
-  const w1: Pt = [midX + px * ww, midY + py * ww];
-  const w2: Pt = [midX - px * ww, midY - py * ww];
+  const w1: Pt = [midX + px * w1w, midY + py * w1w];
+  const w2: Pt = [midX - px * w2w, midY - py * w2w];
   const h1: Pt = [pelvis[0] + px * hw, pelvis[1] + py * hw];
   const h2: Pt = [pelvis[0] - px * hw, pelvis[1] - py * hw];
   const seatX = pelvis[0] + ax * hw * 0.85;
@@ -513,10 +564,10 @@ function torsoShapes(
         "Z",
       ].join(" "),
     },
-    { t: "circle", cx: t1[0], cy: t1[1], r: sw * 0.34 },
-    { t: "circle", cx: t2[0], cy: t2[1], r: sw * 0.34 },
-    { t: "circle", cx: h1[0], cy: h1[1], r: hw * 0.42 },
-    { t: "circle", cx: h2[0], cy: h2[1], r: hw * 0.42 },
+    { t: "circle", cx: t1[0], cy: t1[1], r: sw * 0.26 },
+    { t: "circle", cx: t2[0], cy: t2[1], r: sw * 0.26 },
+    { t: "circle", cx: h1[0], cy: h1[1], r: hw * 0.34 },
+    { t: "circle", cx: h2[0], cy: h2[1], r: hw * 0.34 },
   ];
 
   if (female) {
@@ -639,8 +690,8 @@ function Figure({
   const legW = leg(build.thigh, build.calf);
 
   const back: Shape[] = [
-    ...limbShapes(k(raw.hipA), k(raw.kneeA), k(raw.footA), legW),
-    ...limbShapes(k(raw.shoulderA), k(raw.elbowA), k(raw.handA), armW),
+    ...limbShapes(k(raw.hipA), k(raw.kneeA), k(raw.footA), legW, 1.6),
+    ...limbShapes(k(raw.shoulderA), k(raw.elbowA), k(raw.handA), armW, 1.5),
   ];
   if (female) {
     back.push({
@@ -659,8 +710,8 @@ function Figure({
   ];
 
   const near: Shape[] = [
-    ...limbShapes(k(raw.hipB), k(raw.kneeB), k(raw.footB), legW),
-    ...limbShapes(k(raw.shoulderB), k(raw.elbowB), k(raw.handB), armW),
+    ...limbShapes(k(raw.hipB), k(raw.kneeB), k(raw.footB), legW, 1.6),
+    ...limbShapes(k(raw.shoulderB), k(raw.elbowB), k(raw.handB), armW, 1.5),
   ];
 
   return (
@@ -842,7 +893,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M20 142 H150" width={14} />
           <Figure pose="standingBent" x={135} y={150} s={1.25} female />
-          <Figure pose="standing" x={178} y={150} s={1.3} />
+          <Figure pose="standingHold" x={178} y={150} s={1.3} />
         </G>
       );
     // She bent forward holding a wall, he stands behind.
@@ -851,7 +902,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M24 216 H256" width={11} />
           <Figure pose="standingBent" x={128} y={148} s={1.3} female />
-          <Figure pose="standing" x={176} y={148} s={1.32} />
+          <Figure pose="standingHold" x={176} y={148} s={1.32} />
         </G>
       );
     // He sits, she straddles facing him.
@@ -888,7 +939,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M100 160 H256" width={14} />
           <Figure pose="sitEdge" x={178} y={150} s={1.25} female />
-          <Figure pose="standing" x={128} y={158} s={1.3} flip />
+          <Figure pose="standingHold" x={128} y={158} s={1.3} flip />
         </G>
       );
     // She backed to the wall, he presses in close.
@@ -897,7 +948,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M56 40 V228" width={12} />
           <Prop d="M24 222 H256" width={11} />
-          <Figure pose="standing" x={138} y={150} s={1.4} />
+          <Figure pose="standingHold" x={138} y={150} s={1.4} />
           <Figure pose="standingHooked" x={96} y={150} s={1.35} flip female />
         </G>
       );
@@ -906,7 +957,7 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M56 40 V228" width={12} />
-          <Figure pose="standing" x={152} y={155} s={1.35} />
+          <Figure pose="standingHold" x={152} y={155} s={1.35} />
           <Figure pose="lifted" x={130} y={140} s={1.2} flip female />
         </G>
       );
@@ -916,7 +967,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M20 138 H146" width={14} />
           <Figure pose="standingBent" x={130} y={146} s={1.3} female />
-          <Figure pose="standing" x={178} y={146} s={1.32} />
+          <Figure pose="standingHold" x={178} y={146} s={1.32} />
         </G>
       );
     // Face to face under the water, bodies close.
@@ -931,7 +982,7 @@ function renderPose(art: string) {
             strokeWidth="3"
             strokeLinecap="round"
           />
-          <Figure pose="standing" x={150} y={152} s={1.35} />
+          <Figure pose="standingHold" x={150} y={152} s={1.35} />
           <Figure pose="standingHooked" x={110} y={154} s={1.3} flip female />
         </G>
       );
@@ -940,7 +991,7 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M24 212 H256" width={11} />
-          <Figure pose="standing" x={158} y={140} s={1.35} />
+          <Figure pose="standingHold" x={158} y={140} s={1.35} />
           <Figure pose="kneelHeadDown" x={108} y={172} s={1.2} flip female />
         </G>
       );
@@ -958,8 +1009,8 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M18 196 H262" width={13} />
-          <Figure pose="lyingSide" x={178} y={158} s={1.25} />
-          <Figure pose="lyingSide" x={104} y={176} s={1.2} flip female />
+          <Figure pose="lyingSide" x={112} y={162} s={1.2} flip />
+          <Figure pose="lyingSide" x={172} y={182} s={1.2} female />
         </G>
       );
     // She sits on the edge, he kneels between her thighs.
@@ -976,8 +1027,8 @@ function renderPose(art: string) {
       return (
         <G>
           <Prop d="M18 196 H262" width={13} />
-          <Figure pose="lyingSide" x={108} y={172} s={1.25} female />
-          <Figure pose="lyingSide" x={186} y={166} s={1.25} flip />
+          <Figure pose="lyingSide" x={158} y={186} s={1.2} female />
+          <Figure pose="lyingSide" x={178} y={158} s={1.2} flip />
         </G>
       );
     // She on her back, he up on his knees with her legs across him.
@@ -1005,7 +1056,7 @@ function renderPose(art: string) {
         <G>
           <Prop d="M104 160 H258" width={14} />
           <Figure pose="sitEdge" x={180} y={150} s={1.25} female />
-          <Figure pose="standing" x={132} y={152} s={1.3} flip />
+          <Figure pose="standingHold" x={132} y={152} s={1.3} flip />
         </G>
       );
     // Hips elevated, knees toward her shoulders, he kneeling over.
