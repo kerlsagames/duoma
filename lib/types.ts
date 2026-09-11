@@ -467,6 +467,22 @@ export type RoleplayInvite = {
   completedAt: string | null;
 };
 
+/** Shared household groceries & errands (Home Base). */
+export type ErrandKind = "grocery" | "errand";
+
+export type ErrandItem = {
+  id: string;
+  coupleId: string;
+  kind: ErrandKind;
+  title: string;
+  notes: string;
+  createdBy: string;
+  createdAt: string;
+  /** ISO timestamp when checked off; null = still open. */
+  doneAt: string | null;
+  doneBy: string | null;
+};
+
 /** User-added calendar entries (dates, plans, notes). */
 export type CalendarCustomEvent = {
   id: string;
@@ -512,6 +528,7 @@ export type AppDB = {
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
+  errandItems: ErrandItem[];
 };
 
 export type GameModule = {

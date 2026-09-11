@@ -11,8 +11,6 @@ export type HubFeature = {
   detail: string;
   icon: IconName;
   href: string;
-  /** Brand-new feature with a stub screen for now. */
-  isNew?: boolean;
 };
 
 export type HubDef = {
@@ -103,7 +101,6 @@ export const HUBS: HubDef[] = [
         detail: "Low-ego truce request / reset signal",
         icon: "refresh",
         href: "/hub/apology",
-        isNew: true,
       },
       {
         id: "thought-pings",
@@ -111,7 +108,6 @@ export const HUBS: HubDef[] = [
         detail: "Low-pressure haptic / heart buzz to their phone",
         icon: "notifications",
         href: "/hub/thought-pings",
-        isNew: true,
       },
     ],
   },
@@ -160,7 +156,6 @@ export const HUBS: HubDef[] = [
         detail: "Tinder-style swipe deck — matches only when both say yes",
         icon: "heart-circle",
         href: "/hub/fantasy-matcher",
-        isNew: true,
       },
       {
         id: "secret-signals",
@@ -168,7 +163,6 @@ export const HUBS: HubDef[] = [
         detail: "Custom emojis & private phrases",
         icon: "key",
         href: "/hub/secret-signals",
-        isNew: true,
       },
       {
         id: "audio-vault",
@@ -176,7 +170,6 @@ export const HUBS: HubDef[] = [
         detail: "Protected folder for private audio & bedtime stories",
         icon: "mic",
         href: "/hub/audio-vault",
-        isNew: true,
       },
       {
         id: "intimacy-streak",
@@ -184,7 +177,6 @@ export const HUBS: HubDef[] = [
         detail: "Track connection, date nights & deep talks over time",
         icon: "flame",
         href: "/hub/intimacy-streak",
-        isNew: true,
       },
     ],
   },
@@ -212,7 +204,6 @@ export const HUBS: HubDef[] = [
         detail: "Custom relationship quizzes",
         icon: "help-circle",
         href: "/hub/trivia",
-        isNew: true,
       },
       {
         id: "prediction",
@@ -220,7 +211,6 @@ export const HUBS: HubDef[] = [
         detail: "Bet favors on real-life outcomes",
         icon: "trending-up",
         href: "/hub/prediction",
-        isNew: true,
       },
       {
         id: "two-truths",
@@ -228,7 +218,6 @@ export const HUBS: HubDef[] = [
         detail: "Confessions & hidden desire games",
         icon: "shuffle",
         href: "/hub/two-truths",
-        isNew: true,
       },
       {
         id: "photo-challenges",
@@ -236,7 +225,6 @@ export const HUBS: HubDef[] = [
         detail: "Weekly memory upload prompts",
         icon: "camera",
         href: "/hub/photo-challenges",
-        isNew: true,
       },
       {
         id: "doodle",
@@ -244,7 +232,6 @@ export const HUBS: HubDef[] = [
         detail: "Shared digital canvas & games",
         icon: "brush",
         href: "/hub/doodle",
-        isNew: true,
       },
       {
         id: "scoreboard",
@@ -252,7 +239,6 @@ export const HUBS: HubDef[] = [
         detail: "Streaks & achievement badges",
         icon: "trophy",
         href: "/hub/scoreboard",
-        isNew: true,
       },
       {
         id: "crossword",
@@ -260,7 +246,6 @@ export const HUBS: HubDef[] = [
         detail: "Daily mini-puzzle from your relationship history",
         icon: "grid",
         href: "/hub/crossword",
-        isNew: true,
       },
       {
         id: "story",
@@ -268,7 +253,6 @@ export const HUBS: HubDef[] = [
         detail: "Take turns writing alternate story scenes",
         icon: "book",
         href: "/hub/story",
-        isNew: true,
       },
       {
         id: "scrapbook",
@@ -276,7 +260,6 @@ export const HUBS: HubDef[] = [
         detail: "Time capsule that unlocks on future anniversaries",
         icon: "images",
         href: "/hub/scrapbook",
-        isNew: true,
       },
     ],
   },
@@ -297,7 +280,6 @@ export const HUBS: HubDef[] = [
         detail: "Shared household shopping & errand list",
         icon: "cart",
         href: "/hub/groceries",
-        isNew: true,
       },
       {
         id: "meal-picker",
@@ -305,7 +287,6 @@ export const HUBS: HubDef[] = [
         detail: "Blind elimination for dinner",
         icon: "restaurant",
         href: "/hub/meal-picker",
-        isNew: true,
       },
       {
         id: "where-wheel",
@@ -313,7 +294,6 @@ export const HUBS: HubDef[] = [
         detail: "Randomizer for local date spots",
         icon: "navigate",
         href: "/hub/where-wheel",
-        isNew: true,
       },
       {
         id: "fair-share",
@@ -321,7 +301,6 @@ export const HUBS: HubDef[] = [
         detail: "Gamified chore splitting",
         icon: "sync",
         href: "/hub/fair-share",
-        isNew: true,
       },
       {
         id: "travel",
@@ -329,7 +308,6 @@ export const HUBS: HubDef[] = [
         detail: "Collaborative trip boards, packing & reservations",
         icon: "airplane",
         href: "/hub/travel",
-        isNew: true,
       },
       {
         id: "budget",
@@ -337,7 +315,6 @@ export const HUBS: HubDef[] = [
         detail: "Visual savings progress",
         icon: "wallet",
         href: "/hub/budget",
-        isNew: true,
       },
       {
         id: "maintenance",
@@ -345,7 +322,6 @@ export const HUBS: HubDef[] = [
         detail: "Recurring home & car tasks",
         icon: "construct",
         href: "/hub/maintenance",
-        isNew: true,
       },
       {
         id: "emergency-vault",
@@ -353,7 +329,6 @@ export const HUBS: HubDef[] = [
         detail: "Encrypted household essentials",
         icon: "lock-closed",
         href: "/hub/emergency-vault",
-        isNew: true,
       },
       {
         id: "who-did-it",
@@ -361,7 +336,6 @@ export const HUBS: HubDef[] = [
         detail: "Lighthearted chore tally",
         icon: "people",
         href: "/hub/who-did-it",
-        isNew: true,
       },
       {
         id: "settings",

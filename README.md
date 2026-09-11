@@ -10,12 +10,12 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
-- **Home** — Persistent Daily Check-In + Calendar & Countdowns, then four hubs: **Connect**, **Desire**, **Play**, and **Home Base**.
-- **Connect** — Lists & wishlist, curiosity sync, Talk to me, The Jar, plus Apology & Reset (coming soon).
-- **Desire** — Get Spicy, Up for it, Roleplays, Positions Guide, plus Fantasy Matcher / Secret Signals / Audio Vault stubs.
-- **Play** — Coupons plus trivia, prediction market, two truths, photo challenges, doodle, and scoreboard stubs.
-- **Connect** — Check-ins, Date Night Generator (300 tagged ideas with location/time/budget/vibe filters), The Jar, and more.
-- **Home Base** — Shared lists/todos, calendar, settings, plus meal picker / chore / budget / vault stubs.
+- **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip.
+- **Connect** — Lists, Date Night Generator, Curiosity, Talk, Gratitude Jar, Apology & Reset, Thought-of-You Pings.
+- **Desire** — Get Spicy, Dare Me, Roleplays, Positions, Fantasy Matcher, Secret Signals, Audio Voice Notes, Intimacy Streak.
+- **Fun** — Coupons, How Well Do You Know Me, Prediction Market, Two Truths & A Wish, Memory Polaroids, Doodle canvas, Scoreboard, Couple Crossword, Choose-Your-Own Adventure, Virtual Scrapbook.
+- **Home Base** — Groceries & Errands, Meal Eliminator, Where Are We Going wheel, Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Settings.
+
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles and Pick me a Position with flat editorial pink/blue pose art.
 - **Roleplays** — Care-coupon scenarios across five categories (text cards, no images).

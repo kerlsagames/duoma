@@ -95,6 +95,8 @@ import type {
   PositionInvite,
   RoleplayInvite,
   CalendarCustomEvent,
+  ErrandItem,
+  ErrandKind,
 } from "@/lib/types";
 import {
   categoryById,
@@ -397,6 +399,7 @@ type AppContextValue = {
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
+  errandItems: ErrandItem[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
@@ -491,6 +494,14 @@ type AppContextValue = {
     input: { title: string; notes?: string; date: string; happenedAt?: string }
   ) => Promise<void>;
   removeCalendarEvent: (id: string) => Promise<void>;
+  addErrandItem: (input: {
+    title: string;
+    kind: ErrandKind;
+    notes?: string;
+  }) => Promise<ErrandItem>;
+  toggleErrandDone: (id: string) => Promise<void>;
+  removeErrandItem: (id: string) => Promise<void>;
+  clearDoneErrands: (kind?: ErrandKind | "all") => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
   /** Swipe a Fantasy Matcher card. Returns whether it just became a mutual match. */
   swipeFantasy: (
@@ -727,6 +738,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db.calendarEvents
         .filter((row) => row.coupleId === couple?.id)
         .sort((a, b) => b.happenedAt.localeCompare(a.happenedAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const errandItems = useMemo(
+    () =>
+      db.errandItems
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => {
+          const aDone = a.doneAt ? 1 : 0;
+          const bDone = b.doneAt ? 1 : 0;
+          if (aDone !== bDone) return aDone - bDone;
+          return b.createdAt.localeCompare(a.createdAt);
+        }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3033,6 +3058,74 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
+  const addErrandItem = useCallback(
+    async (input: { title: string; kind: ErrandKind; notes?: string }) => {
+      if (!user || !couple) throw new Error("Pair up first.");
+      const title = input.title.trim();
+      if (!title) throw new Error("Add an item.");
+      const stamp = nowIso();
+      const row: ErrandItem = {
+        id: createId(),
+        coupleId: couple.id,
+        kind: input.kind,
+        title,
+        notes: (input.notes ?? "").trim(),
+        createdBy: user.id,
+        createdAt: stamp,
+        doneAt: null,
+        doneBy: null,
+      };
+      db = { ...db, errandItems: [...db.errandItems, row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const toggleErrandDone = useCallback(
+    async (id: string) => {
+      if (!user) throw new Error("Sign in first.");
+      const stamp = nowIso();
+      db = {
+        ...db,
+        errandItems: db.errandItems.map((row) => {
+          if (row.id !== id) return row;
+          if (row.doneAt) {
+            return { ...row, doneAt: null, doneBy: null };
+          }
+          return { ...row, doneAt: stamp, doneBy: user.id };
+        }),
+      };
+      await persist();
+    },
+    [user]
+  );
+
+  const removeErrandItem = useCallback(async (id: string) => {
+    db = {
+      ...db,
+      errandItems: db.errandItems.filter((row) => row.id !== id),
+    };
+    await persist();
+  }, []);
+
+  const clearDoneErrands = useCallback(
+    async (kind: ErrandKind | "all" = "all") => {
+      if (!couple) return;
+      db = {
+        ...db,
+        errandItems: db.errandItems.filter((row) => {
+          if (row.coupleId !== couple.id) return true;
+          if (!row.doneAt) return true;
+          if (kind === "all") return false;
+          return row.kind !== kind;
+        }),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
   const toggleDesire = useCallback(
     async (optionId: string) => {
       if (!user || !couple) return;
@@ -3670,6 +3763,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     nights,
     allDeck,
     calendarEvents,
+    errandItems,
     bestCards,
     checkIns,
     checkInRequests,
@@ -3742,6 +3836,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addCalendarEvent,
     updateCalendarEvent,
     removeCalendarEvent,
+    addErrandItem,
+    toggleErrandDone,
+    removeErrandItem,
+    clearDoneErrands,
     toggleDesire,
     swipeFantasy,
     createCoupon,

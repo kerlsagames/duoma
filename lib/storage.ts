@@ -31,6 +31,7 @@ const hubEmpty = () => ({
   positionInvites: [],
   roleplayInvites: [],
   calendarEvents: [],
+  errandItems: [],
 });
 
 export function emptyDb(): AppDB {
@@ -170,6 +171,20 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     positionInvites: raw.positionInvites ?? [],
     roleplayInvites: raw.roleplayInvites ?? [],
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
+    errandItems: (raw.errandItems ?? []).map(hydrateErrandItem),
+  };
+}
+
+function hydrateErrandItem(
+  row: AppDB["errandItems"][number]
+): AppDB["errandItems"][number] {
+  return {
+    ...row,
+    kind: row.kind === "errand" ? "errand" : "grocery",
+    title: row.title?.trim() || "Item",
+    notes: row.notes ?? "",
+    doneAt: row.doneAt ?? null,
+    doneBy: row.doneBy ?? null,
   };
 }
 

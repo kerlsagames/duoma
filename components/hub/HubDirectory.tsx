@@ -170,40 +170,15 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                 <Ionicons name={feature.icon} size={22} color={hub.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                <Text
+                  style={{
+                    color: "#F4F4F6",
+                    fontSize: 16,
+                    fontWeight: "700",
+                  }}
                 >
-                  <Text
-                    style={{
-                      color: "#F4F4F6",
-                      fontSize: 16,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {feature.label}
-                  </Text>
-                  {feature.isNew ? (
-                    <View
-                      style={{
-                        paddingHorizontal: 7,
-                        paddingVertical: 2,
-                        borderRadius: 8,
-                        backgroundColor: hub.accentSoft,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: hub.accent,
-                          fontSize: 10,
-                          fontWeight: "700",
-                          letterSpacing: 0.8,
-                        }}
-                      >
-                        NEW
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
+                  {feature.label}
+                </Text>
                 <Text
                   style={{
                     marginTop: 2,

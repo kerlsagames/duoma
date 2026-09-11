@@ -175,3 +175,17 @@ export const TALK_DECK_TINT: Record<string, string> = {
   lighthearted: "#B5A3D4",
   appreciation: "#E0B48A",
 };
+
+/** Home Base teal for Groceries & Errands. */
+export const ERRANDS_TONE = {
+  background: "#061612",
+  accent: "#3ECFBF",
+  accentSoft: "rgba(62,207,191,0.16)",
+  ink: "#E8F7F4",
+  muted: "rgba(232,247,244,0.58)",
+  surface: "#0C1F1C",
+  surfaceRaised: "#132A26",
+  border: "rgba(62,207,191,0.28)",
+  frame: "#102420",
+  done: "rgba(232,247,244,0.35)",
+} as const;

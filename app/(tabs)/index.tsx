@@ -42,7 +42,7 @@ export default function HomeScreen() {
   const tileWidth = Math.max(140, (width - 40 - 12) / 2);
   const favoriteGap = 8;
   const favoriteBox =
-    Math.max(64, (width - 40 - 20 - favoriteGap * 3) / HOME_FAVORITE_SLOTS);
+    Math.max(56, (width - 40 - 20 - favoriteGap * 3) / HOME_FAVORITE_SLOTS);
 
   const appsByHub = useMemo(() => {
     const used = new Set(favorites.filter(Boolean) as string[]);
@@ -111,10 +111,10 @@ export default function HomeScreen() {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: 14,
-            paddingTop: 4,
+            marginBottom: 10,
+            paddingTop: 2,
             position: "relative",
-            minHeight: 52,
+            minHeight: 44,
           }}
         >
           <DuomaLogo size={44} />
