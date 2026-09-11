@@ -277,7 +277,7 @@ export const HUBS: HubDef[] = [
       {
         id: "todos",
         label: "Groceries & Errands",
-        detail: "Shared household shopping & errand list",
+        detail: "Two notepads: groceries and errands",
         icon: "cart",
         href: "/hub/groceries",
       },

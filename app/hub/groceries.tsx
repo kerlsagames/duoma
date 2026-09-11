@@ -1,77 +1,74 @@
 import { BackButton } from "@/components/ui/BackButton";
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { ERRANDS_TONE, SERIF } from "@/lib/app-themes";
+import { ERRANDS_TONE, HANDWRITING, SERIF } from "@/lib/app-themes";
 import { useApp } from "@/lib/store";
 import type { ErrandItem, ErrandKind } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  Pressable,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 const T = ERRANDS_TONE;
+const LINE = 36;
 
-type Filter = "all" | ErrandKind;
+const QUICK_GROCERIES = [
+  { emoji: "🥛", label: "Milk" },
+  { emoji: "🍞", label: "Bread" },
+  { emoji: "🥚", label: "Eggs" },
+  { emoji: "🧈", label: "Butter" },
+  { emoji: "🧀", label: "Cheese" },
+  { emoji: "🍎", label: "Apples" },
+  { emoji: "🍌", label: "Bananas" },
+  { emoji: "🍅", label: "Tomatoes" },
+  { emoji: "🧅", label: "Onions" },
+  { emoji: "🥔", label: "Potatoes" },
+  { emoji: "🥕", label: "Carrots" },
+  { emoji: "🥬", label: "Greens" },
+  { emoji: "🍗", label: "Chicken" },
+  { emoji: "🥩", label: "Beef" },
+  { emoji: "🍝", label: "Pasta" },
+  { emoji: "🍚", label: "Rice" },
+  { emoji: "☕", label: "Coffee" },
+  { emoji: "🧃", label: "Juice" },
+  { emoji: "🫒", label: "Oil" },
+  { emoji: "🧂", label: "Salt" },
+] as const;
+
+function itemLabel(item: ErrandItem) {
+  return item.title.replace(/^[^\w]+/u, "").trim().toLowerCase();
+}
 
 export default function GroceriesErrandsScreen() {
   const {
-    user,
-    partner,
     errandItems,
     addErrandItem,
     toggleErrandDone,
     removeErrandItem,
     clearDoneErrands,
   } = useApp();
+  const { width } = useWindowDimensions();
+  const sideBySide = width >= 720;
 
-  const [filter, setFilter] = useState<Filter>("all");
-  const [draftKind, setDraftKind] = useState<ErrandKind>("grocery");
-  const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
-  const [showNotes, setShowNotes] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const nameFor = (id: string | null | undefined) => {
-    if (!id) return "someone";
-    if (id === user?.id) return user.displayName || "You";
-    if (id === partner?.id) return partner.displayName || "them";
-    return "someone";
-  };
-
-  const visible = useMemo(() => {
-    if (filter === "all") return errandItems;
-    return errandItems.filter((row) => row.kind === filter);
-  }, [errandItems, filter]);
-
-  const openItems = visible.filter((row) => !row.doneAt);
-  const doneItems = visible.filter((row) => Boolean(row.doneAt));
-  const doneCount = errandItems.filter((row) => row.doneAt).length;
-
-  const onAdd = async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      await addErrandItem({
-        title,
-        kind: draftKind,
-        notes: showNotes ? notes : "",
-      });
-      setTitle("");
-      setNotes("");
-      setShowNotes(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add item.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const groceries = useMemo(
+    () => errandItems.filter((row) => row.kind === "grocery"),
+    [errandItems]
+  );
+  const errands = useMemo(
+    () => errandItems.filter((row) => row.kind === "errand"),
+    [errandItems]
+  );
 
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-10">
         <BackButton
-          color={T.accent}
+          color="#E8D9C4"
           fallback={"/hub/home-base" as Href}
           style={{ marginBottom: 12 }}
         />
@@ -79,433 +76,409 @@ export default function GroceriesErrandsScreen() {
         <Text
           style={{
             fontFamily: "SpaceMono",
-            fontSize: 12,
-            letterSpacing: 3,
+            fontSize: 11,
+            letterSpacing: 2.4,
             textTransform: "uppercase",
-            color: T.accent,
+            color: "#E8D9C4",
           }}
         >
-          Home Base · Shared list
+          Home Base · Kitchen table
         </Text>
         <Text
           style={{
-            marginTop: 10,
-            fontFamily: SERIF,
+            marginTop: 8,
+            fontFamily: HANDWRITING,
             fontSize: 34,
             lineHeight: 40,
-            color: T.ink,
+            color: "#F6EFE2",
           }}
         >
-          Groceries & Errands
+          The lists
         </Text>
         <Text
           style={{
-            marginTop: 10,
+            marginTop: 6,
             fontFamily: SERIF,
-            fontSize: 16,
-            lineHeight: 24,
-            color: T.muted,
+            fontSize: 15,
+            lineHeight: 22,
+            color: "rgba(246,239,226,0.7)",
           }}
         >
-          One household list you both can add to, check off, and clear.
+          Two notepads. Tick things off as you go.
         </Text>
 
         <View
           style={{
             marginTop: 22,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 8,
+            flexDirection: sideBySide ? "row" : "column",
+            alignItems: "flex-start",
+            gap: 18,
           }}
         >
-          {(
-            [
-              { id: "all" as const, label: "All" },
-              { id: "grocery" as const, label: "Groceries" },
-              { id: "errand" as const, label: "Errands" },
-            ] as const
-          ).map((tab) => {
-            const on = filter === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                onPress={() => setFilter(tab.id)}
-                style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 9,
-                  borderRadius: 999,
-                  borderWidth: 1,
-                  borderColor: on ? T.accent : "rgba(255,255,255,0.12)",
-                  backgroundColor: on ? T.accentSoft : T.surface,
-                }}
-              >
-                <Text
-                  style={{
-                    color: on ? T.accent : T.ink,
-                    fontWeight: "700",
-                    fontSize: 13,
-                  }}
-                >
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View
-          style={{
-            marginTop: 18,
-            padding: 16,
-            borderRadius: 24,
-            backgroundColor: T.frame,
-            borderWidth: 1,
-            borderColor: T.border,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "700",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: T.muted,
-            }}
-          >
-            Add to list
-          </Text>
-
-          <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
-            {(
-              [
-                {
-                  id: "grocery" as const,
-                  label: "Grocery",
-                  icon: "cart-outline" as const,
-                },
-                {
-                  id: "errand" as const,
-                  label: "Errand",
-                  icon: "walk-outline" as const,
-                },
-              ] as const
-            ).map((opt) => {
-              const on = draftKind === opt.id;
-              return (
-                <Pressable
-                  key={opt.id}
-                  onPress={() => setDraftKind(opt.id)}
-                  style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    paddingVertical: 10,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: on ? T.accent : "rgba(255,255,255,0.12)",
-                    backgroundColor: on ? T.accentSoft : T.surface,
-                  }}
-                >
-                  <Ionicons
-                    name={opt.icon}
-                    size={16}
-                    color={on ? T.accent : T.muted}
-                  />
-                  <Text
-                    style={{
-                      color: on ? T.accent : T.ink,
-                      fontWeight: "700",
-                      fontSize: 13,
-                    }}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder={
-              draftKind === "grocery"
-                ? "Milk, bread, berries…"
-                : "Pick up dry cleaning…"
-            }
-            placeholderTextColor="rgba(232,247,244,0.35)"
-            style={{
-              marginTop: 12,
-              height: 48,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.14)",
-              backgroundColor: T.surface,
-              paddingHorizontal: 14,
-              color: T.ink,
-              fontSize: 16,
-            }}
-            onSubmitEditing={() => void onAdd()}
-            returnKeyType="done"
-          />
-
-          {showNotes ? (
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Notes (optional)"
-              placeholderTextColor="rgba(232,247,244,0.35)"
-              style={{
-                marginTop: 10,
-                minHeight: 72,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.14)",
-                backgroundColor: T.surface,
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                color: T.ink,
-                fontSize: 15,
-                textAlignVertical: "top",
-              }}
-              multiline
+          <View style={{ flex: 1, width: "100%" }}>
+            <Notepad
+              title="Groceries"
+              kind="grocery"
+              items={groceries}
+              placeholder="Milk, bread, berries…"
+              empty="Nothing on the grocery list."
+              onAdd={(title) => addErrandItem({ title, kind: "grocery" })}
+              onToggle={(id) => toggleErrandDone(id)}
+              onRemove={(id) => removeErrandItem(id)}
+              onClearDone={() => clearDoneErrands("grocery")}
+              quickAdd
             />
-          ) : (
-            <Pressable
-              onPress={() => setShowNotes(true)}
-              style={{ marginTop: 10 }}
-            >
-              <Text style={{ color: T.accent, fontSize: 13, fontWeight: "600" }}>
-                + Add note
-              </Text>
-            </Pressable>
-          )}
-
-          {error ? (
-            <Text style={{ marginTop: 10, color: "#FF6B7A", fontSize: 13 }}>
-              {error}
-            </Text>
-          ) : null}
-
-          <View style={{ marginTop: 14 }}>
-            <PrimaryButton
-              label="Add item"
-              tone="teal"
-              loading={busy}
-              disabled={!title.trim()}
-              onPress={() => void onAdd()}
+          </View>
+          <View style={{ flex: 1, width: "100%" }}>
+            <Notepad
+              title="Errands"
+              kind="errand"
+              items={errands}
+              placeholder="Dry cleaning, post office…"
+              empty="No errands on the pad."
+              onAdd={(title) => addErrandItem({ title, kind: "errand" })}
+              onToggle={(id) => toggleErrandDone(id)}
+              onRemove={(id) => removeErrandItem(id)}
+              onClearDone={() => clearDoneErrands("errand")}
             />
           </View>
         </View>
-
-        <View
-          style={{
-            marginTop: 28,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "700",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: T.muted,
-            }}
-          >
-            To do · {openItems.length}
-          </Text>
-          {doneCount > 0 ? (
-            <Pressable onPress={() => void clearDoneErrands("all")}>
-              <Text style={{ color: T.accent, fontSize: 13, fontWeight: "700" }}>
-                Clear done ({doneCount})
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-
-        <View style={{ marginTop: 12, gap: 10 }}>
-          {openItems.length === 0 ? (
-            <EmptyCard
-              text={
-                filter === "grocery"
-                  ? "No groceries yet. Add milk, snacks, or whatever’s running low."
-                  : filter === "errand"
-                    ? "No errands yet. Add post office, returns, or pickup tasks."
-                    : "List is clear. Add a grocery or errand above."
-              }
-            />
-          ) : (
-            openItems.map((item) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                meta={`Added by ${nameFor(item.createdBy)}`}
-                onToggle={() => void toggleErrandDone(item.id)}
-                onRemove={() => void removeErrandItem(item.id)}
-              />
-            ))
-          )}
-        </View>
-
-        {doneItems.length > 0 ? (
-          <>
-            <Text
-              style={{
-                marginTop: 28,
-                fontSize: 12,
-                fontWeight: "700",
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: T.muted,
-              }}
-            >
-              Done · {doneItems.length}
-            </Text>
-            <View style={{ marginTop: 12, gap: 10 }}>
-              {doneItems.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  meta={`Checked by ${nameFor(item.doneBy)}`}
-                  onToggle={() => void toggleErrandDone(item.id)}
-                  onRemove={() => void removeErrandItem(item.id)}
-                />
-              ))}
-            </View>
-          </>
-        ) : null}
       </View>
     </Screen>
   );
 }
 
-function EmptyCard({ text }: { text: string }) {
+function Notepad({
+  title,
+  kind,
+  items,
+  placeholder,
+  empty,
+  onAdd,
+  onToggle,
+  onRemove,
+  onClearDone,
+  quickAdd,
+}: {
+  title: string;
+  kind: ErrandKind;
+  items: ErrandItem[];
+  placeholder: string;
+  empty: string;
+  onAdd: (title: string) => Promise<unknown>;
+  onToggle: (id: string) => Promise<unknown>;
+  onRemove: (id: string) => Promise<unknown>;
+  onClearDone: () => Promise<unknown>;
+  quickAdd?: boolean;
+}) {
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [showQuick, setShowQuick] = useState(false);
+
+  const open = items.filter((row) => !row.doneAt);
+  const done = items.filter((row) => Boolean(row.doneAt));
+  const listed = [...open, ...done];
+  const blankLines = Math.max(4, 8 - listed.length - (showQuick ? 5 : 1));
+
+  const submit = async (value: string) => {
+    const titleText = value.trim();
+    if (!titleText || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await onAdd(titleText);
+      setDraft("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const alreadyOpen = (label: string) =>
+    open.some((row) => itemLabel(row) === label.toLowerCase());
+
   return (
     <View
       style={{
-        padding: 20,
-        borderRadius: 20,
+        backgroundColor: T.paper,
+        borderRadius: 3,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOpacity: 0.28,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 10 },
         borderWidth: 1,
-        borderStyle: "dashed",
-        borderColor: "rgba(255,255,255,0.14)",
-        backgroundColor: T.surface,
+        borderColor: T.paperEdge,
       }}
     >
-      <Text
+      <View
+        pointerEvents="none"
         style={{
-          fontFamily: SERIF,
-          fontSize: 15,
-          lineHeight: 22,
-          color: T.muted,
-          textAlign: "center",
+          position: "absolute",
+          left: 28,
+          top: 0,
+          bottom: 0,
+          width: 1.5,
+          backgroundColor: T.margin,
+          zIndex: 2,
+        }}
+      />
+      {[18, 44].map((top) => (
+        <View
+          key={top}
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            left: 10,
+            top,
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: T.hole,
+            borderWidth: 1,
+            borderColor: "rgba(44,36,22,0.12)",
+            zIndex: 2,
+          }}
+        />
+      ))}
+
+      <View
+        style={{
+          minHeight: LINE + 10,
+          paddingLeft: 40,
+          paddingRight: 14,
+          paddingTop: 12,
+          paddingBottom: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: T.rule,
+          flexDirection: "row",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: 8,
         }}
       >
-        {text}
-      </Text>
+        <Text
+          style={{
+            fontFamily: HANDWRITING,
+            fontSize: 26,
+            lineHeight: 30,
+            color: T.ink,
+          }}
+        >
+          {title}
+        </Text>
+        {done.length > 0 ? (
+          <Pressable onPress={() => void onClearDone()} hitSlop={8}>
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 12,
+                color: T.accent,
+              }}
+            >
+              Clear done
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <LinedRow>
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          placeholder={placeholder}
+          placeholderTextColor="rgba(44,36,22,0.32)"
+          style={{
+            flex: 1,
+            height: LINE - 2,
+            padding: 0,
+            color: T.ink,
+            fontFamily: SERIF,
+            fontSize: 16,
+          }}
+          onSubmitEditing={() => void submit(draft)}
+          returnKeyType="done"
+        />
+        <Pressable
+          onPress={() => void submit(draft)}
+          disabled={!draft.trim() || busy}
+          hitSlop={8}
+          style={{ paddingHorizontal: 4, opacity: draft.trim() ? 1 : 0.35 }}
+        >
+          <Ionicons name="add" size={22} color={T.ink} />
+        </Pressable>
+      </LinedRow>
+
+      {quickAdd ? (
+        <LinedRow>
+          <Pressable
+            onPress={() => setShowQuick((on) => !on)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              flex: 1,
+              height: LINE - 2,
+            }}
+          >
+            <Text style={{ fontSize: 16 }}>🛒</Text>
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 15,
+                color: T.accent,
+                fontWeight: "600",
+              }}
+            >
+              {showQuick ? "Hide quick add" : "Quick add"}
+            </Text>
+          </Pressable>
+        </LinedRow>
+      ) : null}
+
+      {quickAdd && showQuick ? (
+        <View
+          style={{
+            paddingLeft: 40,
+            paddingRight: 10,
+            paddingTop: 8,
+            paddingBottom: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: T.rule,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 6,
+          }}
+        >
+          {QUICK_GROCERIES.map((item) => {
+            const onList = alreadyOpen(item.label);
+            return (
+              <Pressable
+                key={item.label}
+                disabled={busy || onList}
+                onPress={() => void submit(`${item.emoji} ${item.label}`)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: onList ? T.accentSoft : "rgba(44,36,22,0.04)",
+                  borderWidth: 1,
+                  borderColor: onList ? T.accent : "rgba(44,36,22,0.1)",
+                  opacity: onList ? 0.55 : 1,
+                }}
+              >
+                <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
+      {error ? (
+        <LinedRow>
+          <Text style={{ color: T.margin, fontSize: 13, fontFamily: SERIF }}>
+            {error}
+          </Text>
+        </LinedRow>
+      ) : null}
+
+      {listed.length === 0 ? (
+        <LinedRow>
+          <Text
+            style={{
+              fontFamily: SERIF,
+              fontSize: 15,
+              color: T.muted,
+              fontStyle: "italic",
+            }}
+          >
+            {empty}
+          </Text>
+        </LinedRow>
+      ) : (
+        listed.map((item) => (
+          <ListRow
+            key={item.id}
+            item={item}
+            onToggle={() => void onToggle(item.id)}
+            onRemove={() => void onRemove(item.id)}
+          />
+        ))
+      )}
+
+      {Array.from({ length: blankLines }).map((_, index) => (
+        <LinedRow key={`${kind}-blank-${index}`} />
+      ))}
     </View>
   );
 }
 
-function ItemRow({
+function LinedRow({ children }: { children?: ReactNode }) {
+  return (
+    <View
+      style={{
+        minHeight: LINE,
+        paddingLeft: 40,
+        paddingRight: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: T.rule,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function ListRow({
   item,
-  meta,
   onToggle,
   onRemove,
 }: {
   item: ErrandItem;
-  meta: string;
   onToggle: () => void;
   onRemove: () => void;
 }) {
   const done = Boolean(item.doneAt);
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "flex-start",
-        gap: 12,
-        padding: 14,
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: done ? "rgba(255,255,255,0.08)" : T.border,
-        backgroundColor: done ? T.surface : T.surfaceRaised,
-        opacity: done ? 0.72 : 1,
-      }}
-    >
+    <LinedRow>
       <Pressable
         onPress={onToggle}
         hitSlop={8}
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 9,
-          borderWidth: 2,
-          borderColor: done ? T.accent : "rgba(255,255,255,0.28)",
-          backgroundColor: done ? T.accent : "transparent",
+          width: 20,
+          height: 20,
+          borderRadius: 4,
+          borderWidth: 1.5,
+          borderColor: done ? T.check : T.pencil,
+          backgroundColor: done ? T.check : "transparent",
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 2,
         }}
       >
-        {done ? <Ionicons name="checkmark" size={16} color="#061612" /> : null}
+        {done ? <Ionicons name="checkmark" size={13} color={T.paper} /> : null}
       </Pressable>
-
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View
-            style={{
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: 999,
-              backgroundColor: T.accentSoft,
-            }}
-          >
-            <Text style={{ color: T.accent, fontSize: 11, fontWeight: "700" }}>
-              {item.kind === "grocery" ? "Grocery" : "Errand"}
-            </Text>
-          </View>
-          <Text
-            style={{ color: T.muted, fontSize: 12, flex: 1 }}
-            numberOfLines={1}
-          >
-            {meta}
-          </Text>
-        </View>
-        <Text
-          style={{
-            marginTop: 6,
-            fontFamily: SERIF,
-            fontSize: 18,
-            lineHeight: 24,
-            color: T.ink,
-            textDecorationLine: done ? "line-through" : "none",
-          }}
-        >
-          {item.title}
-        </Text>
-        {item.notes ? (
-          <Text
-            style={{
-              marginTop: 4,
-              fontSize: 13,
-              lineHeight: 18,
-              color: T.muted,
-            }}
-          >
-            {item.notes}
-          </Text>
-        ) : null}
-      </View>
-
-      <Pressable onPress={onRemove} hitSlop={10} style={{ padding: 4 }}>
-        <Ionicons name="trash-outline" size={18} color={T.muted} />
+      <Text
+        numberOfLines={1}
+        style={{
+          flex: 1,
+          fontFamily: SERIF,
+          fontSize: 16,
+          color: done ? T.muted : T.ink,
+          textDecorationLine: done ? "line-through" : "none",
+        }}
+      >
+        {item.title}
+      </Text>
+      <Pressable onPress={onRemove} hitSlop={10} style={{ padding: 2 }}>
+        <Ionicons name="close" size={16} color={T.muted} />
       </Pressable>
-    </View>
+    </LinedRow>
   );
 }

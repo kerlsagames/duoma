@@ -176,16 +176,19 @@ export const TALK_DECK_TINT: Record<string, string> = {
   appreciation: "#E0B48A",
 };
 
-/** Home Base teal for Groceries & Errands. */
+/** Kitchen-table notepad for Groceries & Errands. */
 export const ERRANDS_TONE = {
-  background: "#061612",
-  accent: "#3ECFBF",
-  accentSoft: "rgba(62,207,191,0.16)",
-  ink: "#E8F7F4",
-  muted: "rgba(232,247,244,0.58)",
-  surface: "#0C1F1C",
-  surfaceRaised: "#132A26",
-  border: "rgba(62,207,191,0.28)",
-  frame: "#102420",
-  done: "rgba(232,247,244,0.35)",
+  background: "#3A2C22",
+  desk: "#4A382C",
+  paper: "#F7F0DC",
+  paperEdge: "#E4D8B8",
+  rule: "#C5D4EA",
+  margin: "#E24B4B",
+  accent: "#2F6B56",
+  accentSoft: "rgba(47,107,86,0.12)",
+  ink: "#2C2416",
+  muted: "rgba(44,36,22,0.52)",
+  pencil: "#5C4A32",
+  check: "#2F6B56",
+  hole: "#D7CBB0",
 } as const;
