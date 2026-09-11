@@ -124,7 +124,7 @@ export default function RoleplaysScreen() {
             color: T.accent,
           }}
         >
-          Roleplays
+          Desire · Spicy Roleplays
         </Text>
         <Text
           style={{
@@ -146,7 +146,8 @@ export default function RoleplaysScreen() {
             color: T.muted,
           }}
         >
-          Toggle categories, spin one up, skip or send it to {partnerName}.
+          10 spicy packs · 200 scenes. Toggle categories, spin one, skip or
+          send it to {partnerName}.
         </Text>
 
         <Text
