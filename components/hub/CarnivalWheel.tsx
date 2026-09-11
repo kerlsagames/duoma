@@ -24,11 +24,17 @@ export function CarnivalWheel({
   rotation,
   size = 300,
   bulbColor = "#FFE38A",
+  labelFontSize = 10,
+  maxChars = 9,
+  firstWordOnly = true,
 }: {
   slices: WheelSlice[];
   rotation: Animated.Value;
   size?: number;
   bulbColor?: string;
+  labelFontSize?: number;
+  maxChars?: number;
+  firstWordOnly?: boolean;
 }) {
   const r = size / 2 - 18;
   const cx = size / 2;
@@ -96,8 +102,11 @@ export function CarnivalWheel({
               const start = index * angle;
               const end = start + angle;
               const mid = start + angle / 2;
-              const textPos = polar(cx, cy, r * 0.58, mid);
-              const short = slice.label.split(" ")[0] ?? slice.label;
+              const textPos = polar(cx, cy, r * 0.55, mid);
+              const raw = firstWordOnly
+                ? (slice.label.split(" ")[0] ?? slice.label)
+                : slice.label;
+              const label = raw.slice(0, maxChars);
               return (
                 <G key={`${slice.label}-${index}`}>
                   <Path
@@ -110,11 +119,12 @@ export function CarnivalWheel({
                     x={textPos.x}
                     y={textPos.y}
                     fill="#1A100C"
-                    fontSize="10"
+                    fontSize={labelFontSize}
                     fontWeight="800"
                     textAnchor="middle"
+                    alignmentBaseline="middle"
                   >
-                    {short.slice(0, 9)}
+                    {label}
                   </SvgText>
                 </G>
               );

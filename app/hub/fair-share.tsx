@@ -7,9 +7,20 @@ import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { Href } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
+import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
 
 const BG = "#0C1410";
+const PINK = "#FF6B9A";
+const BLUE = "#5B8CFF";
+
+function sliceColor(
+  gender: string | null | undefined,
+  fallback: string
+) {
+  if (gender === "female") return PINK;
+  if (gender === "male") return BLUE;
+  return fallback;
+}
 
 export default function FairShareScreen() {
   const { user, partner } = useApp();
@@ -17,17 +28,19 @@ export default function FairShareScreen() {
   const you = user?.displayName || "You";
   const them = partner?.displayName || "Them";
   const [choreId, setChoreId] = useState("");
+  const [draft, setDraft] = useState("");
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
   const rotation = useRef(new Animated.Value(0)).current;
   const angle = useRef(0);
-  const people = useMemo(
-    () => [
-      { id: user?.id ?? "you", label: you, color: "#3ECFBF" },
-      { id: partner?.id ?? "them", label: them, color: "#F0C75E" },
-    ],
-    [partner?.id, them, user?.id, you]
-  );
+  const people = useMemo(() => {
+    const youColor = sliceColor(user?.gender, PINK);
+    const themColor = sliceColor(partner?.gender, youColor === PINK ? BLUE : PINK);
+    return [
+      { id: user?.id ?? "you", label: you, color: youColor },
+      { id: partner?.id ?? "them", label: them, color: themColor === youColor ? BLUE : themColor },
+    ];
+  }, [partner?.gender, partner?.id, them, user?.gender, user?.id, you]);
   const chore = data.chores.find((row) => row.id === choreId) ?? data.chores[0];
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -65,9 +78,21 @@ export default function FairShareScreen() {
     });
   };
 
+  const addChore = async () => {
+    const label = draft.trim();
+    if (!label) return;
+    const id = createId();
+    await patch((state) => ({
+      ...state,
+      chores: [...state.chores, { id, label }],
+    }));
+    setChoreId(id);
+    setDraft("");
+  };
+
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent="#3ECFBF">
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={PINK}>
         <Text
           style={{
             textAlign: "center",
@@ -99,6 +124,50 @@ export default function FairShareScreen() {
           the wheel assigns the victim
         </Text>
 
+        <View
+          style={{
+            marginTop: 18,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="Add a chore"
+            placeholderTextColor="rgba(232,255,248,0.35)"
+            onSubmitEditing={() => void addChore()}
+            returnKeyType="done"
+            style={{
+              flex: 1,
+              height: 48,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: "rgba(255,107,154,0.35)",
+              backgroundColor: "#16241E",
+              paddingHorizontal: 14,
+              color: "#E8FFF8",
+              fontSize: 16,
+            }}
+          />
+          <Pressable
+            onPress={() => void addChore()}
+            disabled={!draft.trim()}
+            style={{
+              height: 48,
+              paddingHorizontal: 16,
+              borderRadius: 14,
+              backgroundColor: PINK,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: draft.trim() ? 1 : 0.45,
+            }}
+          >
+            <Text style={{ color: "#1A0508", fontWeight: "800" }}>Add</Text>
+          </Pressable>
+        </View>
+
         <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {data.chores.map((row) => (
             <Pressable
@@ -120,8 +189,11 @@ export default function FairShareScreen() {
           <CarnivalWheel
             slices={people.map((p) => ({ label: p.label, color: p.color }))}
             rotation={rotation}
-            size={260}
-            bulbColor="#7CFFB2"
+            size={300}
+            bulbColor={PINK}
+            labelFontSize={22}
+            maxChars={16}
+            firstWordOnly={false}
           />
         </View>
         <Pressable
