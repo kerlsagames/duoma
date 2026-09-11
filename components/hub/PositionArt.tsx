@@ -63,6 +63,24 @@ const POSES = {
     kneeB: [8, 27],
     footB: [8, 51],
   },
+  standingHooked: {
+    pelvis: [0, 0],
+    chest: [0, -33],
+    neck: [0, -45],
+    head: [0, -58],
+    shoulderA: [-11, -40],
+    elbowA: [-19, -26],
+    handA: [-26, -36],
+    shoulderB: [11, -40],
+    elbowB: [16, -22],
+    handB: [18, -5],
+    hipA: [-7, 3],
+    kneeA: [-23, 3],
+    footA: [-31, -9],
+    hipB: [7, 3],
+    kneeB: [8, 27],
+    footB: [8, 51],
+  },
   standingBent: {
     pelvis: [0, 0],
     chest: [-28, -10],
@@ -255,11 +273,11 @@ const POSES = {
     elbowB: [-41, 10],
     handB: [-51, 16],
     hipA: [4, -3],
-    kneeA: [22, -9],
-    footA: [40, 1],
+    kneeA: [25, -13],
+    footA: [33, 8],
     hipB: [4, 4],
-    kneeB: [22, 3],
-    footB: [40, 13],
+    kneeB: [27, -2],
+    footB: [36, 19],
   },
   sitEdge: {
     pelvis: [0, 0],
@@ -310,10 +328,10 @@ const POSES = {
     handB: [-16, -41],
     hipA: [-6, 2],
     kneeA: [-22, 4],
-    footA: [-31, -9],
+    footA: [-30, 4],
     hipB: [6, 4],
     kneeB: [-14, 14],
-    footB: [-27, 11],
+    footB: [-26, 16],
   },
   kneelHeadDown: {
     pelvis: [0, 0],
@@ -340,6 +358,7 @@ type PoseName = keyof typeof POSES;
 /** Unit vector for the direction each pose's chest faces, in local space. */
 const FRONT: Record<PoseName, Pt> = {
   standing: [-1, 0],
+  standingHooked: [-1, 0],
   standingBent: [0, 1],
   kneeling: [-1, 0],
   allFours: [0, 1],
@@ -695,110 +714,110 @@ export function PositionArt({
  */
 function renderPose(art: string) {
   switch (art) {
-    // She on her back, he between her legs, chests close.
+    // She on her back, he propped between her legs, chests close.
     case "missionary":
       return (
         <G>
-          <Prop d="M34 206 H246" width={12} />
-          <Figure pose="lyingBack" x={158} y={182} s={0.95} female />
-          <Figure pose="allFours" x={168} y={150} s={0.95} />
+          <Prop d="M26 198 H254" width={13} />
+          <Figure pose="lyingBack" x={150} y={190} s={1.3} female />
+          <Figure pose="allFours" x={158} y={150} s={1.3} />
         </G>
       );
     // He sits cross-legged, she straddles his lap with legs wrapped around him.
     case "lotus":
       return (
         <G>
-          <Figure pose="crossLegged" x={148} y={192} s={0.95} />
-          <Figure pose="straddleWrap" x={138} y={176} s={0.9} flip female />
+          <Figure pose="crossLegged" x={155} y={196} s={1.35} />
+          <Figure pose="straddleWrap" x={146} y={176} s={1.25} flip female />
         </G>
       );
     // He on his back, she straddles facing him — so she faces his head.
     case "cowgirl":
       return (
         <G>
-          <Prop d="M34 210 H246" width={12} />
-          <Figure pose="lyingBack" x={156} y={196} s={0.98} />
-          <Figure pose="straddle" x={152} y={156} s={0.92} female />
+          <Prop d="M26 212 H254" width={13} />
+          <Figure pose="lyingBack" x={152} y={200} s={1.3} />
+          <Figure pose="straddle" x={150} y={172} s={1.2} female />
         </G>
       );
     // Her knees drawn toward her chest, he stays face to face.
     case "folded":
       return (
         <G>
-          <Prop d="M34 208 H246" width={12} />
-          <Figure pose="legsUp" x={156} y={186} s={0.95} female />
-          <Figure pose="kneeling" x={180} y={172} s={0.94} />
+          <Prop d="M26 214 H254" width={13} />
+          <Figure pose="legsUp" x={150} y={192} s={1.3} female />
+          <Figure pose="kneeling" x={188} y={182} s={1.3} />
         </G>
       );
     // Both upright, her in his lap facing him.
     case "embrace":
       return (
         <G>
-          <Figure pose="sitting" x={136} y={186} s={0.95} />
-          <Figure pose="straddle" x={120} y={164} s={0.9} flip female />
+          <Figure pose="sitting" x={162} y={186} s={1.3} />
+          <Figure pose="straddle" x={146} y={180} s={1.2} flip female />
         </G>
       );
-    // Her ankles on his shoulders, still face to face.
+    // Her ankles up at his shoulders, still face to face.
     case "legsup":
       return (
         <G>
-          <Prop d="M34 208 H246" width={12} />
-          <Figure pose="legsUp" x={150} y={188} s={0.95} female />
-          <Figure pose="kneeling" x={174} y={174} s={0.94} />
+          <Prop d="M26 214 H254" width={13} />
+          <Figure pose="legsUp" x={148} y={192} s={1.3} female />
+          <Figure pose="kneeling" x={190} y={182} s={1.3} />
         </G>
       );
-    // She on hands and knees, he kneels behind.
+    // She on hands and knees, he kneels behind with hands at her hips.
     case "doggy":
       return (
         <G>
-          <Prop d="M34 202 H246" width={12} />
-          <Figure pose="allFours" x={146} y={166} s={0.96} />
-          <Figure pose="kneeling" x={182} y={158} s={0.96} />
+          <Prop d="M26 212 H254" width={13} />
+          <Figure pose="allFours" x={140} y={172} s={1.3} female />
+          <Figure pose="kneeling" x={188} y={168} s={1.35} />
         </G>
       );
     // Both on your sides, him behind her.
     case "spoon":
       return (
         <G>
-          <Prop d="M28 204 H252" width={12} />
-          <Figure pose="lyingSide" x={146} y={176} s={0.95} female />
-          <Figure pose="lyingSide" x={160} y={164} s={0.98} />
+          <Prop d="M22 200 H258" width={13} />
+          <Figure pose="lyingSide" x={140} y={182} s={1.25} female />
+          <Figure pose="lyingSide" x={152} y={168} s={1.3} />
         </G>
       );
     // She flat on her stomach, he on top from behind.
     case "prone":
       return (
         <G>
-          <Prop d="M28 208 H252" width={12} />
-          <Figure pose="lyingFront" x={142} y={186} s={0.95} female />
-          <Figure pose="lyingFront" x={150} y={164} s={0.98} />
+          <Prop d="M22 204 H258" width={13} />
+          <Figure pose="lyingFront" x={135} y={190} s={1.25} female />
+          <Figure pose="lyingFront" x={145} y={172} s={1.3} />
         </G>
       );
-    // She kneels and leans onto her forearms, he kneels behind.
+    // She kneels down onto her forearms, he kneels behind.
     case "kneel":
       return (
         <G>
-          <Prop d="M34 202 H246" width={12} />
-          <Figure pose="kneelHeadDown" x={146} y={166} s={0.95} female />
-          <Figure pose="kneeling" x={182} y={158} s={0.96} />
+          <Prop d="M26 214 H254" width={13} />
+          <Figure pose="kneelHeadDown" x={145} y={175} s={1.3} female />
+          <Figure pose="kneeling" x={192} y={170} s={1.35} />
         </G>
       );
     // She bent over the edge of the bed, he stands behind.
     case "edgerear":
       return (
         <G>
-          <Prop d="M28 150 H176" width={13} />
-          <Figure pose="standingBent" x={140} y={140} s={0.92} female />
-          <Figure pose="standing" x={188} y={142} s={0.95} />
+          <Prop d="M20 142 H150" width={14} />
+          <Figure pose="standingBent" x={135} y={150} s={1.25} female />
+          <Figure pose="standing" x={178} y={150} s={1.3} />
         </G>
       );
     // She bent forward holding a wall, he stands behind.
     case "standdog":
       return (
         <G>
-          <Prop d="M30 212 H250" width={10} />
-          <Figure pose="standingBent" x={128} y={148} s={0.95} female />
-          <Figure pose="standing" x={178} y={148} s={0.96} />
+          <Prop d="M24 216 H256" width={11} />
+          <Figure pose="standingBent" x={128} y={148} s={1.3} female />
+          <Figure pose="standing" x={176} y={148} s={1.32} />
         </G>
       );
     // He sits, she straddles facing him.
@@ -806,142 +825,143 @@ function renderPose(art: string) {
     case "straddle":
       return (
         <G>
-          <Prop d="M98 214 V160 H186 V214" width={9} />
-          <Figure pose="sitting" x={152} y={176} s={0.9} />
-          <Figure pose="straddle" x={134} y={150} s={0.86} flip female />
+          <Prop d="M118 226 V190 H184 V146" width={10} />
+          <Figure pose="sitting" x={158} y={180} s={1.25} />
+          <Figure pose="straddle" x={142} y={176} s={1.15} flip female />
         </G>
       );
     // She sits on him facing away, so both face the same way.
     case "throne":
       return (
         <G>
-          <Prop d="M98 214 V162 H186 V214" width={9} />
-          <Figure pose="sitting" x={152} y={178} s={0.9} />
-          <Figure pose="straddle" x={136} y={152} s={0.86} female />
+          <Prop d="M118 226 V190 H184 V146" width={10} />
+          <Figure pose="sitting" x={158} y={182} s={1.25} />
+          <Figure pose="straddle" x={140} y={176} s={1.15} female />
         </G>
       );
     // She kneels facing the backrest, he behind.
     case "couch":
       return (
         <G>
-          <Prop d="M40 196 H240" width={16} />
-          <Figure pose="kneelHeadDown" x={140} y={158} s={0.9} female />
-          <Figure pose="kneeling" x={178} y={152} s={0.92} />
+          <Prop d="M34 202 H246" width={17} />
+          <Figure pose="kneelHeadDown" x={132} y={164} s={1.2} female />
+          <Figure pose="kneeling" x={180} y={158} s={1.3} />
         </G>
       );
-    // She sits on the counter, he stands between her legs.
+    // She sits up on the counter, he stands between her legs.
     case "counter":
       return (
         <G>
-          <Prop d="M70 158 H248" width={13} />
-          <Figure pose="sitEdge" x={172} y={144} s={0.9} female />
-          <Figure pose="standing" x={134} y={166} s={0.94} flip />
+          <Prop d="M100 160 H256" width={14} />
+          <Figure pose="sitEdge" x={178} y={150} s={1.25} female />
+          <Figure pose="standing" x={128} y={158} s={1.3} flip />
         </G>
       );
     // She backed to the wall, he presses in close.
     case "wall":
       return (
         <G>
-          <Prop d="M60 42 V236" width={11} />
-          <Figure pose="standing" x={110} y={152} s={1} flip female />
-          <Figure pose="standing" x={150} y={152} s={1.02} />
+          <Prop d="M56 40 V228" width={12} />
+          <Prop d="M24 222 H256" width={11} />
+          <Figure pose="standingHooked" x={96} y={150} s={1.35} flip female />
+          <Figure pose="standing" x={138} y={150} s={1.4} />
         </G>
       );
     // He lifts her, legs wrapped around his waist.
     case "lift":
       return (
         <G>
-          <Prop d="M60 42 V236" width={11} />
-          <Figure pose="standing" x={152} y={170} s={1} />
-          <Figure pose="lifted" x={136} y={142} s={0.88} flip female />
+          <Prop d="M56 40 V228" width={12} />
+          <Figure pose="standing" x={152} y={155} s={1.35} />
+          <Figure pose="lifted" x={130} y={140} s={1.2} flip female />
         </G>
       );
     // She folds forward onto a table, he stands behind.
     case "bentstand":
       return (
         <G>
-          <Prop d="M28 152 H172" width={13} />
-          <Figure pose="standingBent" x={134} y={142} s={0.94} female />
-          <Figure pose="standing" x={184} y={144} s={0.95} />
+          <Prop d="M20 138 H146" width={14} />
+          <Figure pose="standingBent" x={130} y={146} s={1.3} female />
+          <Figure pose="standing" x={178} y={146} s={1.32} />
         </G>
       );
-    // Face to face under the water, one foot raised.
+    // Face to face under the water, bodies close.
     case "shower":
       return (
         <G>
-          <Prop d="M60 42 V236" width={11} />
-          <Circle cx="206" cy="52" r="9" fill="rgba(140,205,255,0.28)" />
+          <Prop d="M56 40 V228" width={12} />
+          <Circle cx="212" cy="54" r="10" fill="rgba(140,205,255,0.3)" />
           <Path
-            d="M206 62 V96 M196 66 V92 M216 66 V92"
+            d="M212 66 V104 M200 70 V100 M224 70 V100"
             stroke="rgba(140,205,255,0.25)"
             strokeWidth="3"
             strokeLinecap="round"
           />
-          <Figure pose="standing" x={122} y={156} s={0.96} flip female />
-          <Figure pose="standing" x={162} y={154} s={1} />
+          <Figure pose="standingHooked" x={110} y={154} s={1.3} flip female />
+          <Figure pose="standing" x={150} y={152} s={1.35} />
         </G>
       );
     // She kneels in front of him while he stands.
     case "oral-kneel":
       return (
         <G>
-          <Prop d="M30 212 H250" width={10} />
-          <Figure pose="standing" x={152} y={134} s={0.95} />
-          <Figure pose="kneelHeadDown" x={108} y={182} s={0.86} flip female />
+          <Prop d="M24 212 H256" width={11} />
+          <Figure pose="standing" x={158} y={140} s={1.35} />
+          <Figure pose="kneelHeadDown" x={108} y={172} s={1.2} flip female />
         </G>
       );
-    // She kneels over his face.
+    // She kneels up over his face.
     case "facesit":
       return (
         <G>
-          <Prop d="M28 210 H252" width={12} />
-          <Figure pose="lyingBack" x={166} y={196} s={0.98} />
-          <Figure pose="straddle" x={106} y={158} s={0.86} flip female />
+          <Prop d="M22 210 H258" width={13} />
+          <Figure pose="lyingBack" x={172} y={196} s={1.3} />
+          <Figure pose="straddle" x={100} y={158} s={1.2} flip female />
         </G>
       );
     // Head to toe on your sides.
     case "sixtynine":
       return (
         <G>
-          <Prop d="M24 206 H256" width={12} />
-          <Figure pose="lyingSide" x={172} y={152} s={0.94} />
-          <Figure pose="lyingSide" x={112} y={170} s={0.9} flip female />
+          <Prop d="M18 196 H262" width={13} />
+          <Figure pose="lyingSide" x={178} y={158} s={1.25} />
+          <Figure pose="lyingSide" x={104} y={176} s={1.2} flip female />
         </G>
       );
     // She sits on the edge, he kneels between her thighs.
     case "edgeoral":
       return (
         <G>
-          <Prop d="M78 152 H250" width={13} />
-          <Figure pose="sitEdge" x={166} y={138} s={0.9} female />
-          <Figure pose="kneelHeadDown" x={112} y={196} s={0.86} flip />
+          <Prop d="M100 154 H256" width={14} />
+          <Figure pose="sitEdge" x={176} y={144} s={1.25} female />
+          <Figure pose="kneelHeadDown" x={122} y={178} s={1.2} flip />
         </G>
       );
     // On your sides, legs interleaved in the middle.
     case "scissors":
       return (
         <G>
-          <Prop d="M24 206 H256" width={12} />
-          <Figure pose="lyingSide" x={114} y={166} s={0.94} female />
-          <Figure pose="lyingSide" x={174} y={162} s={0.94} flip />
+          <Prop d="M18 196 H262" width={13} />
+          <Figure pose="lyingSide" x={108} y={172} s={1.25} female />
+          <Figure pose="lyingSide" x={186} y={166} s={1.25} flip />
         </G>
       );
-    // She on her back, he perpendicular on his side.
+    // She on her back, he up on his knees with her legs across him.
     case "cross":
       return (
         <G>
-          <Prop d="M28 208 H252" width={12} />
-          <Figure pose="lyingBack" x={144} y={186} s={0.95} female />
-          <Figure pose="kneeling" x={188} y={172} s={0.94} />
+          <Prop d="M26 212 H254" width={13} />
+          <Figure pose="lyingBack" x={140} y={190} s={1.3} female />
+          <Figure pose="kneeling" x={196} y={176} s={1.3} />
         </G>
       );
     // She arches her hips up, he kneels between.
     case "bridge":
       return (
         <G>
-          <Prop d="M28 208 H252" width={12} />
-          <Figure pose="bridge" x={148} y={180} s={0.98} female />
-          <Figure pose="kneeling" x={186} y={172} s={0.94} />
+          <Prop d="M26 212 H254" width={13} />
+          <Figure pose="bridge" x={140} y={186} s={1.3} female />
+          <Figure pose="kneeling" x={192} y={178} s={1.3} />
         </G>
       );
     // She perched on the edge with legs open, he standing.
@@ -949,25 +969,25 @@ function renderPose(art: string) {
     case "butterfly":
       return (
         <G>
-          <Prop d="M74 160 H250" width={13} />
-          <Figure pose="sitEdge" x={170} y={146} s={0.9} female />
-          <Figure pose="standing" x={132} y={168} s={0.94} flip />
+          <Prop d="M104 160 H258" width={14} />
+          <Figure pose="sitEdge" x={180} y={150} s={1.25} female />
+          <Figure pose="standing" x={132} y={152} s={1.3} flip />
         </G>
       );
     // Hips elevated, knees toward her shoulders, he kneeling over.
     case "foldedpress":
       return (
         <G>
-          <Prop d="M30 208 H250" width={12} />
-          <Figure pose="legsUp" x={150} y={184} s={0.95} female />
-          <Figure pose="kneeling" x={176} y={164} s={0.94} />
+          <Prop d="M26 212 H254" width={13} />
+          <Figure pose="legsUp" x={144} y={188} s={1.3} female />
+          <Figure pose="kneeling" x={182} y={176} s={1.3} />
         </G>
       );
     default:
       return (
         <G>
-          <Figure pose="standing" x={118} y={152} s={1} flip female />
-          <Figure pose="standing" x={162} y={150} s={1.02} />
+          <Figure pose="standing" x={110} y={152} s={1.3} flip female />
+          <Figure pose="standing" x={166} y={150} s={1.35} />
         </G>
       );
   }
