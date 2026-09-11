@@ -522,14 +522,14 @@ export const DEFAULT_MEALS: { label: string; tag: string }[] = [
 ];
 
 export const DEFAULT_SPOTS: Spot[] = [
-  { id: "spot-1", label: "The walk with no destination", vibe: "slow", color: "#3ECFBF" },
-  { id: "spot-2", label: "That wine bar we over-tip", vibe: "glow", color: "#FF6B9A" },
-  { id: "spot-3", label: "Bookstore + coffee after", vibe: "paper", color: "#F0C75E" },
-  { id: "spot-4", label: "Night market / street food", vibe: "buzz", color: "#FF7A45" },
-  { id: "spot-5", label: "A museum we rush then linger", vibe: "art", color: "#8FA8C8" },
-  { id: "spot-6", label: "The lookout at blue hour", vibe: "sky", color: "#C9A0DC" },
-  { id: "spot-7", label: "Bowling, unseriously", vibe: "play", color: "#7CFFB2" },
-  { id: "spot-8", label: "Stay in. Build a nest.", vibe: "home", color: "#E4C37A" },
+  { id: "spot-1", label: "Aimless walk", vibe: "slow", color: "#3ECFBF" },
+  { id: "spot-2", label: "Wine bar", vibe: "glow", color: "#FF6B9A" },
+  { id: "spot-3", label: "Bookstore", vibe: "paper", color: "#F0C75E" },
+  { id: "spot-4", label: "Night market", vibe: "buzz", color: "#FF7A45" },
+  { id: "spot-5", label: "Museum linger", vibe: "art", color: "#8FA8C8" },
+  { id: "spot-6", label: "Blue-hour view", vibe: "sky", color: "#C9A0DC" },
+  { id: "spot-7", label: "Unserious bowling", vibe: "play", color: "#7CFFB2" },
+  { id: "spot-8", label: "Stay in nest", vibe: "home", color: "#E4C37A" },
 ];
 
 export const DEFAULT_CHORES: Chore[] = [
