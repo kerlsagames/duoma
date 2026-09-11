@@ -3179,16 +3179,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       let next = [...withoutMine, mine];
 
-      // Demo partner: seed a stable like set once so mutual matches can appear.
+      // Demo partner: like a stable subset. Top up when new scenarios are added
+      // so a finished older deck does not hide leftover cards from matching.
       if (partner?.isDemo && partner.id) {
-        const demoHasAny = next.some(
-          (row) => row.coupleId === couple.id && row.userId === partner.id
+        const demoSeen = new Set(
+          next
+            .filter(
+              (row) =>
+                row.coupleId === couple.id && row.userId === partner.id
+            )
+            .map((row) => row.fantasyId)
         );
-        if (!demoHasAny) {
-          const likedIds = new Set(demoLikedFantasyIds());
+        const likedIds = new Set(demoLikedFantasyIds());
+        const missing = FANTASY_IDEAS.filter((idea) => !demoSeen.has(idea.id));
+        if (missing.length) {
           next = [
             ...next,
-            ...FANTASY_IDEAS.map((idea) => ({
+            ...missing.map((idea) => ({
               id: createId(),
               coupleId: couple.id,
               userId: partner.id,

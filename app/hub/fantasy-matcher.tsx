@@ -6,6 +6,9 @@ import {
   FANTASY_IDEAS,
   fantasyById,
   fantasyCategoryMeta,
+  groupFantasiesByCategory,
+  leftoverFantasies,
+  type FantasyCategoryId,
   type FantasyIdea,
 } from "@/lib/fantasy-matcher";
 import { useApp } from "@/lib/store";
@@ -29,6 +32,9 @@ type Tab = "deck" | "matches";
 export default function FantasyMatcherScreen() {
   const { user, partner, fantasySwipes, swipeFantasy } = useApp();
   const [tab, setTab] = useState<Tab>("deck");
+  const [matchCategory, setMatchCategory] = useState<FantasyCategoryId | null>(
+    null
+  );
   const [busy, setBusy] = useState(false);
   const [matchFlash, setMatchFlash] = useState<FantasyIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +50,12 @@ export default function FantasyMatcherScreen() {
     [fantasySwipes, partner?.id]
   );
 
-  const remaining = useMemo(() => {
-    const seen = new Set(mySwipes.map((row) => row.fantasyId));
-    return FANTASY_IDEAS.filter((idea) => !seen.has(idea.id));
-  }, [mySwipes]);
+  const remaining = useMemo(
+    () => leftoverFantasies(mySwipes.map((row) => row.fantasyId)),
+    [mySwipes]
+  );
+  const seenCount = mySwipes.length;
+  const catalogCount = FANTASY_IDEAS.length;
 
   const current = remaining[0] ?? null;
   const nextPeek = remaining[1] ?? null;
@@ -64,6 +72,14 @@ export default function FantasyMatcherScreen() {
       (idea) => myLikes.has(idea.id) && theirLikes.has(idea.id)
     );
   }, [mySwipes, partner, partnerSwipes, user]);
+
+  const matchGroups = useMemo(
+    () => groupFantasiesByCategory(matches),
+    [matches]
+  );
+  const openMatchGroup = matchCategory
+    ? matchGroups.find((row) => row.category.id === matchCategory) ?? null
+    : null;
 
   const resetCard = () => {
     pan.setValue({ x: 0, y: 0 });
@@ -212,7 +228,10 @@ export default function FantasyMatcherScreen() {
             return (
               <Pressable
                 key={item.id}
-                onPress={() => setTab(item.id)}
+                onPress={() => {
+                  setTab(item.id);
+                  if (item.id === "deck") setMatchCategory(null);
+                }}
                 style={{
                   flex: 1,
                   borderRadius: 12,
@@ -246,8 +265,10 @@ export default function FantasyMatcherScreen() {
               }}
             >
               {remaining.length
-                ? `${remaining.length} left in your deck`
-                : "Deck cleared — check your matches"}
+                ? `${remaining.length} left in your deck · ${catalogCount} scenarios`
+                : seenCount
+                  ? `You swiped ${seenCount} of ${catalogCount} — check your matches`
+                  : `${catalogCount} scenarios ready when you are`}
             </Text>
 
             <View style={{ height: 420, alignItems: "center" }}>
@@ -421,7 +442,9 @@ export default function FantasyMatcherScreen() {
                       textAlign: "center",
                     }}
                   >
-                    You’re caught up
+                    {remaining.length
+                      ? "Keep going"
+                      : "You’re caught up"}
                   </Text>
                   <Text
                     style={{
@@ -433,11 +456,15 @@ export default function FantasyMatcherScreen() {
                       textAlign: "center",
                     }}
                   >
-                    {matches.length
-                      ? `You have ${matches.length} match${
-                          matches.length === 1 ? "" : "es"
-                        }. Open Matches to plan one.`
-                      : `Keep swiping when new ideas land — or wait for ${partnerLabel} to catch up.`}
+                    {remaining.length
+                      ? `${remaining.length} scenario${
+                          remaining.length === 1 ? "" : "s"
+                        } still waiting in the deck.`
+                      : matches.length
+                        ? `You have ${matches.length} match${
+                            matches.length === 1 ? "" : "es"
+                          }. Open Matches and browse by category.`
+                        : `Every scenario is swiped. When new ones land, they’ll show up here — or wait for ${partnerLabel} to catch up.`}
                   </Text>
                   {matches.length ? (
                     <Pressable
@@ -552,7 +579,7 @@ export default function FantasyMatcherScreen() {
                   }}
                 >
                   Keep swiping right on ideas you’d try. When {partnerLabel}{" "}
-                  does the same, they land here.
+                  does the same, they land here in categories you can open.
                 </Text>
                 <PrimaryButton
                   label="Back to deck"
@@ -561,90 +588,156 @@ export default function FantasyMatcherScreen() {
                   style={{ marginTop: 16 }}
                 />
               </View>
-            ) : (
-              matches.map((idea) => {
-                const cat = fantasyCategoryMeta(idea.category);
-                return (
-                  <View
-                    key={idea.id}
+            ) : openMatchGroup ? (
+              <View style={{ gap: 12 }}>
+                <Pressable
+                  onPress={() => setMatchCategory(null)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    alignSelf: "flex-start",
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={18} color={T.accent} />
+                  <Text
                     style={{
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: T.border,
-                      backgroundColor: T.surface,
-                      padding: 18,
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                      letterSpacing: 1.6,
+                      textTransform: "uppercase",
+                      color: T.accent,
                     }}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <View
-                        style={{
-                          borderRadius: 999,
-                          backgroundColor: cat.tint + "33",
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: cat.tint,
-                            fontSize: 11,
-                            fontWeight: "700",
-                            letterSpacing: 1,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {cat.label}
-                        </Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <Ionicons name="heart" size={14} color={T.accent} />
-                        <Text
-                          style={{
-                            color: T.accent,
-                            fontSize: 12,
-                            fontWeight: "700",
-                          }}
-                        >
-                          Match
-                        </Text>
-                      </View>
-                    </View>
+                    All categories
+                  </Text>
+                </Pressable>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 16,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: openMatchGroup.category.tint + "33",
+                    }}
+                  >
+                    <Ionicons
+                      name={openMatchGroup.category.icon}
+                      size={22}
+                      color={openMatchGroup.category.tint}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        marginTop: 12,
                         fontFamily: SERIF,
-                        fontSize: 22,
+                        fontSize: 26,
                         color: T.ink,
                       }}
                     >
-                      {idea.title}
+                      {openMatchGroup.category.label}
                     </Text>
                     <Text
                       style={{
-                        marginTop: 8,
+                        marginTop: 2,
                         fontFamily: SERIF,
-                        fontSize: 15,
-                        lineHeight: 22,
+                        fontSize: 14,
                         color: T.muted,
                       }}
                     >
-                      {idea.blurb}
+                      {openMatchGroup.items.length} match
+                      {openMatchGroup.items.length === 1 ? "" : "es"} you can
+                      look through
                     </Text>
                   </View>
-                );
-              })
+                </View>
+                {openMatchGroup.items.map((idea) => (
+                  <MatchCard key={idea.id} idea={idea} />
+                ))}
+              </View>
+            ) : (
+              <View>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 15,
+                    lineHeight: 22,
+                    color: T.muted,
+                    marginBottom: 14,
+                  }}
+                >
+                  Tap a category to look through the yeses you share.
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {matchGroups.map(({ category, items }) => (
+                    <Pressable
+                      key={category.id}
+                      onPress={() => setMatchCategory(category.id)}
+                      style={{
+                        width: "48%",
+                        marginBottom: 12,
+                        borderRadius: 22,
+                        borderWidth: 1,
+                        borderColor: T.border,
+                        backgroundColor: T.surface,
+                        paddingVertical: 18,
+                        paddingHorizontal: 14,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 14,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: category.tint + "33",
+                        }}
+                      >
+                        <Ionicons
+                          name={category.icon}
+                          size={22}
+                          color={category.tint}
+                        />
+                      </View>
+                      <Text
+                        style={{
+                          marginTop: 12,
+                          fontFamily: SERIF,
+                          fontSize: 18,
+                          color: T.ink,
+                        }}
+                      >
+                        {category.label}
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 4,
+                          fontSize: 12,
+                          color: T.muted,
+                        }}
+                      >
+                        {items.length} match{items.length === 1 ? "" : "es"}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
             )}
           </View>
         )}
@@ -712,8 +805,10 @@ export default function FantasyMatcherScreen() {
             <PrimaryButton
               label="See matches"
               onPress={() => {
+                const category = matchFlash.category;
                 setMatchFlash(null);
                 setTab("matches");
+                setMatchCategory(category);
               }}
             />
             <PrimaryButton
@@ -725,6 +820,89 @@ export default function FantasyMatcherScreen() {
         </Pressable>
       ) : null}
     </Screen>
+  );
+}
+
+function MatchCard({ idea }: { idea: FantasyIdea }) {
+  const cat = fantasyCategoryMeta(idea.category);
+  return (
+    <View
+      style={{
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: T.border,
+        backgroundColor: T.surface,
+        padding: 18,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <View
+          style={{
+            borderRadius: 999,
+            backgroundColor: cat.tint + "33",
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}
+        >
+          <Text
+            style={{
+              color: cat.tint,
+              fontSize: 11,
+              fontWeight: "700",
+              letterSpacing: 1,
+              textTransform: "uppercase",
+            }}
+          >
+            {cat.label}
+          </Text>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <Ionicons name="heart" size={14} color={T.accent} />
+          <Text
+            style={{
+              color: T.accent,
+              fontSize: 12,
+              fontWeight: "700",
+            }}
+          >
+            Match
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={{
+          marginTop: 12,
+          fontFamily: SERIF,
+          fontSize: 22,
+          color: T.ink,
+        }}
+      >
+        {idea.title}
+      </Text>
+      <Text
+        style={{
+          marginTop: 8,
+          fontFamily: SERIF,
+          fontSize: 15,
+          lineHeight: 22,
+          color: T.muted,
+        }}
+      >
+        {idea.blurb}
+      </Text>
+    </View>
   );
 }
 
