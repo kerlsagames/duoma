@@ -419,6 +419,25 @@ export type SpicyDarePlay = {
   completedAt: string | null;
 };
 
+export type PositionInviteStatus =
+  | "offered"
+  | "accepted"
+  | "declined"
+  | "done";
+
+/** Partner ping for a suggested sex position. */
+export type PositionInvite = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  positionId: string;
+  status: PositionInviteStatus;
+  createdAt: string;
+  answeredAt: string | null;
+  completedAt: string | null;
+};
+
 /** User-added calendar entries (dates, plans, notes). */
 export type CalendarCustomEvent = {
   id: string;
@@ -460,6 +479,7 @@ export type AppDB = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  positionInvites: PositionInvite[];
   calendarEvents: CalendarCustomEvent[];
 };
 

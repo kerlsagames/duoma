@@ -14,6 +14,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection. Give flow: pick idea → optional reason → use-by window. Wallet tabs for received, used, and expired.
 - **Talk to me** — Conversation decks (one question per deck per day).
 - **Up for it** — Challenges & Dares: pick a category (or write your own), hit Random to spin a dare, then choose who does it and when.
+- **Positions** — Category toggles, Pick me a Position with pink (F) / blue (M) silhouettes, skip or send to your partner.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
 Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.

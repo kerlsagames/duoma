@@ -38,6 +38,21 @@ export const UP_FOR_IT_TONE = {
 /** @deprecated use UP_FOR_IT_TONE */
 export const WILDCARD_TONE = UP_FOR_IT_TONE;
 
+/** Ink + rose for Sex Positions — pink F / blue M accents. */
+export const POSITIONS_TONE = {
+  background: "#0C0810",
+  accent: "#FF6B9A",
+  accentSoft: "rgba(255,107,154,0.16)",
+  male: "#5B8CFF",
+  maleSoft: "rgba(91,140,255,0.16)",
+  ink: "#F6EEF2",
+  muted: "rgba(246,238,242,0.58)",
+  surface: "#16101A",
+  surfaceRaised: "#1E1624",
+  border: "rgba(255,107,154,0.28)",
+  frame: "#1A1018",
+} as const;
+
 /** Warm glass mason jar for Appreciation notes. */
 export const JAR_TONE = {
   background: "#100E0C",

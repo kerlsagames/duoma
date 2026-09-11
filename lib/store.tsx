@@ -91,6 +91,7 @@ import type {
   DareDirection,
   DareTimeframe,
   SpicyDarePlay,
+  PositionInvite,
   CalendarCustomEvent,
 } from "@/lib/types";
 import {
@@ -386,6 +387,7 @@ type AppContextValue = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  positionInvites: PositionInvite[];
   calendarEvents: CalendarCustomEvent[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
@@ -452,6 +454,12 @@ type AppContextValue = {
   }) => Promise<void>;
   respondSpicyDare: (id: string, status: "accepted" | "declined") => Promise<void>;
   completeSpicyDare: (id: string) => Promise<void>;
+  sendPositionInvite: (positionId: string) => Promise<void>;
+  respondPositionInvite: (
+    id: string,
+    status: "accepted" | "declined"
+  ) => Promise<void>;
+  completePositionInvite: (id: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -793,6 +801,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const spicyDares = useMemo(
     () => db.spicyDares.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const positionInvites = useMemo(
+    () => db.positionInvites.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -2711,6 +2724,96 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [partner, user]
   );
 
+  const sendPositionInvite = useCallback(
+    async (positionId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then send a position.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before sending a position.");
+      }
+      const id = positionId.trim();
+      if (!id) throw new Error("Pick a position first.");
+      const row: PositionInvite = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        positionId: id,
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+        completedAt: null,
+      };
+      db = {
+        ...db,
+        positionInvites: [...db.positionInvites, row],
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Sex Positions",
+        body: `${user.displayName} suggested a position.`,
+        url: "/hub/positions",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondPositionInvite = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = db.positionInvites.find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      if (existing.toUserId !== user.id) return;
+      db = {
+        ...db,
+        positionInvites: db.positionInvites.map((row) =>
+          row.id === id
+            ? { ...row, status, answeredAt: nowIso() }
+            : row
+        ),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Sex Positions",
+        body:
+          status === "accepted"
+            ? `${user.displayName} is into that position.`
+            : `${user.displayName} passed on that one.`,
+        url: "/hub/positions",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const completePositionInvite = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        positionInvites: db.positionInvites.map((row) => {
+          const involved =
+            row.fromUserId === user.id || row.toUserId === user.id;
+          const demoHold = Boolean(
+            partner?.isDemo &&
+              (row.toUserId === partner.id || row.fromUserId === partner.id)
+          );
+          if (
+            row.id === id &&
+            row.status === "accepted" &&
+            (involved || demoHold)
+          ) {
+            return { ...row, status: "done", completedAt: nowIso() };
+          }
+          return row;
+        }),
+      };
+      await persist();
+    },
+    [partner, user]
+  );
+
   const addMilestone = useCallback(
     async (input: { title: string; kind: MilestoneKind; date: string }) => {
       if (!user || !couple) return;
@@ -3385,6 +3488,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     talkDraws,
     talkVault,
     spicyDares,
+    positionInvites,
     milestones,
     desireToggles,
     coupons,
@@ -3433,6 +3537,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendSpicyDare,
     respondSpicyDare,
     completeSpicyDare,
+    sendPositionInvite,
+    respondPositionInvite,
+    completePositionInvite,
     addMilestone,
     removeMilestone,
     addCalendarEvent,
