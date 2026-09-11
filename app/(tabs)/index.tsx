@@ -3,7 +3,7 @@ import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import { gameResumeHref } from "@/lib/home-status";
-import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
+import { HOME_HEADER_WIDGETS, HOME_QUICK_LINKS, HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -127,6 +127,75 @@ export default function HomeScreen() {
                   color="rgba(244,244,246,0.35)"
                 />
               )}
+            </Pressable>
+          ))}
+        </View>
+
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(244,244,246,0.45)",
+            marginBottom: 12,
+          }}
+        >
+          Jump back in
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 10,
+            marginBottom: 18,
+          }}
+        >
+          {HOME_QUICK_LINKS.map((link) => (
+            <Pressable
+              key={link.id}
+              onPress={() => router.push(link.href as Href)}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+                borderRadius: 18,
+                backgroundColor: "#14141A",
+                borderWidth: 1,
+                borderColor: `${link.accent}55`,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${link.accent}22`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name={link.icon} size={20} color={link.accent} />
+              </View>
+              <Text
+                style={{
+                  color: "#F4F4F6",
+                  fontSize: 15,
+                  fontWeight: "700",
+                }}
+              >
+                {link.label}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 3,
+                  color: "rgba(244,244,246,0.5)",
+                  fontSize: 12,
+                  lineHeight: 16,
+                }}
+              >
+                {link.detail}
+              </Text>
             </Pressable>
           ))}
         </View>
