@@ -105,6 +105,7 @@ export type Prediction = {
   noVoters: string[];
   resolved: "yes" | "no" | null;
   createdAt: string;
+  kind?: "who" | "will";
 };
 
 export type TwoTruthsRound = {
