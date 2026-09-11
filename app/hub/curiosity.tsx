@@ -112,26 +112,8 @@ export default function CuriosityScreen() {
   return (
     <HubScreen
       kicker="Curiosity"
-      title="Daily multiple-choice sync."
       body="One question a day. Answer for yourself, then guess theirs. Points land when you both lock in."
     >
-      <View className="mb-5 rounded-3xl border border-neon/40 bg-neon/15 px-4 py-4">
-        <Text className="text-[12px] font-bold uppercase tracking-[2px] text-neon">
-          Curiosity Synergy
-        </Text>
-        <View className="mt-2 flex-row items-end justify-between">
-          <Text className="text-[34px] font-bold text-mist">
-            {synergy.matchScore} pts
-          </Text>
-          <Text className="pb-1 text-[14px] font-semibold text-mist/70">
-            Match rate {synergy.matchRate}%
-            {synergy.daysPlayed
-              ? ` · ${synergy.daysPlayed} day${synergy.daysPlayed === 1 ? "" : "s"}`
-              : ""}
-          </Text>
-        </View>
-      </View>
-
       {!couple || !question ? (
         <Text className="text-[15px] leading-6 text-mist/65">
           Pair up to receive today's question.
@@ -282,6 +264,23 @@ export default function CuriosityScreen() {
           )}
         </>
       )}
+
+      <View className="mt-8 rounded-3xl border border-neon/40 bg-neon/15 px-4 py-4">
+        <Text className="text-[12px] font-bold uppercase tracking-[2px] text-neon">
+          Curiosity Synergy
+        </Text>
+        <View className="mt-2 flex-row items-end justify-between">
+          <Text className="text-[34px] font-bold text-mist">
+            {synergy.matchScore} pts
+          </Text>
+          <Text className="pb-1 text-[14px] font-semibold text-mist/70">
+            Match rate {synergy.matchRate}%
+            {synergy.daysPlayed
+              ? ` · ${synergy.daysPlayed} day${synergy.daysPlayed === 1 ? "" : "s"}`
+              : ""}
+          </Text>
+        </View>
+      </View>
     </HubScreen>
   );
 }
