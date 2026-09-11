@@ -394,34 +394,32 @@ function shuffleInPlace<T>(items: T[], rand: () => number): T[] {
   return items;
 }
 
-/** Leftover cards, mixed across categories so the deck is not oral-then-anal. */
+/**
+ * One shuffled deck for this couple + user, then leftover cards keep that order.
+ * Rebuilding from leftovers with the same seed used to put the same category
+ * first after every swipe (ten Toys in a row).
+ */
 export function leftoverFantasies(
   seenIds: Iterable<string>,
   seed = "deck"
 ): FantasyIdea[] {
   const seen = new Set(seenIds);
-  const leftover = FANTASY_IDEAS.filter((idea) => !seen.has(idea.id));
-  const rand = seededRand(seed);
-  const piles = shuffleInPlace([...FANTASY_CATEGORIES], rand)
-    .map((category) =>
-      shuffleInPlace(
-        leftover.filter((idea) => idea.category === category.id),
-        rand
-      )
-    )
-    .filter((pile) => pile.length > 0);
+  return shuffledFantasyDeck(`${seed}:v2`).filter((idea) => !seen.has(idea.id));
+}
 
+function shuffledFantasyDeck(seed: string): FantasyIdea[] {
+  const rand = seededRand(seed);
+  const bag = shuffleInPlace([...FANTASY_IDEAS], rand);
   const mixed: FantasyIdea[] = [];
-  let added = true;
-  while (added) {
-    added = false;
-    for (const pile of piles) {
-      const next = pile.shift();
-      if (next) {
-        mixed.push(next);
-        added = true;
-      }
-    }
+  while (bag.length) {
+    const last = mixed[mixed.length - 1]?.category;
+    const options = bag
+      .map((idea, index) => index)
+      .filter((index) => bag[index]!.category !== last);
+    const pool = options.length > 0 ? options : bag.map((_, index) => index);
+    const pick = pool[Math.floor(rand() * pool.length)]!;
+    const [next] = bag.splice(pick, 1);
+    mixed.push(next!);
   }
   return mixed;
 }
