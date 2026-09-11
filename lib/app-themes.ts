@@ -21,6 +21,23 @@ export const COUPONS_TONE = {
   used: "rgba(247,241,227,0.35)",
 } as const;
 
+/** Sportsbook navy / gold / hot-pink for LoveBetz. */
+export const LOVEBETZ_TONE = {
+  background: "#0A0612",
+  navy: "#12081C",
+  surface: "#160C22",
+  surfaceRaised: "#1E1230",
+  gold: "#F5C518",
+  goldSoft: "rgba(245,197,24,0.16)",
+  pink: "#FF2B6E",
+  pinkSoft: "rgba(255,43,110,0.16)",
+  cream: "#FFF6E8",
+  muted: "rgba(255,246,232,0.58)",
+  dim: "rgba(255,246,232,0.38)",
+  border: "rgba(245,197,24,0.32)",
+  ink: "#0A0612",
+} as const;
+
 /** Arcade / slot-machine energy for Up for it challenges. */
 export const UP_FOR_IT_TONE = {
   background: "#070B10",

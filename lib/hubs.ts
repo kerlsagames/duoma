@@ -207,9 +207,9 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "prediction",
-        label: "Prediction Market",
-        detail: "100 bets. 100 stakes. Everyday to AFL.",
-        icon: "trending-up",
+        label: "LoveBetz",
+        detail: "Send a slip. They accept. Even money.",
+        icon: "cash",
         href: "/hub/prediction",
       },
       {

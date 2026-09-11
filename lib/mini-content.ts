@@ -96,16 +96,24 @@ export type KnowMeGuess = {
   createdAt: string;
 };
 
+export type BetStatus = "offered" | "accepted" | "declined" | "settled";
+
 export type Prediction = {
   id: string;
   title: string;
   stake: string;
   createdBy: string;
+  fromUserId: string;
+  toUserId: string;
+  /** Proposer's pick: yes/me or no/them. */
+  side: "yes" | "no";
+  kind?: "who" | "will";
   yesVoters: string[];
   noVoters: string[];
+  status: BetStatus;
   resolved: "yes" | "no" | null;
   createdAt: string;
-  kind?: "who" | "will";
+  answeredAt: string | null;
 };
 
 export type TwoTruthsRound = {
@@ -657,6 +665,48 @@ function asArray<T>(value: unknown, fallback: T[]): T[] {
   return Array.isArray(value) ? (value as T[]) : fallback;
 }
 
+function hydratePrediction(raw: unknown): Prediction {
+  const row = (raw && typeof raw === "object" ? raw : {}) as Partial<Prediction>;
+  const createdBy = typeof row.createdBy === "string" ? row.createdBy : "";
+  const resolved = row.resolved === "yes" || row.resolved === "no" ? row.resolved : null;
+  const status: BetStatus =
+    row.status === "offered" ||
+    row.status === "accepted" ||
+    row.status === "declined" ||
+    row.status === "settled"
+      ? row.status
+      : resolved
+        ? "settled"
+        : "accepted";
+  const createdAt = typeof row.createdAt === "string" ? row.createdAt : nowIso();
+  return {
+    id: typeof row.id === "string" ? row.id : createId(),
+    title: typeof row.title === "string" ? row.title : "Untitled bet",
+    stake: typeof row.stake === "string" ? row.stake : "Bragging rights",
+    createdBy,
+    fromUserId:
+      typeof row.fromUserId === "string" && row.fromUserId ? row.fromUserId : createdBy,
+    toUserId: typeof row.toUserId === "string" ? row.toUserId : "",
+    side: row.side === "no" ? "no" : "yes",
+    kind: row.kind === "who" ? "who" : "will",
+    yesVoters: Array.isArray(row.yesVoters)
+      ? row.yesVoters.filter((id): id is string => typeof id === "string")
+      : [],
+    noVoters: Array.isArray(row.noVoters)
+      ? row.noVoters.filter((id): id is string => typeof id === "string")
+      : [],
+    status,
+    resolved,
+    createdAt,
+    answeredAt:
+      typeof row.answeredAt === "string"
+        ? row.answeredAt
+        : status === "offered"
+          ? null
+          : createdAt,
+  };
+}
+
 export function hydrateMiniState(raw: unknown): MiniState {
   const base = emptyMiniState();
   if (!raw || typeof raw !== "object") return base;
@@ -672,7 +722,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     triviaAttempts: asArray(row.triviaAttempts, base.triviaAttempts),
     knowMeSheets: asArray(row.knowMeSheets, base.knowMeSheets),
     knowMeGuesses: asArray(row.knowMeGuesses, base.knowMeGuesses),
-    predictions: asArray(row.predictions, base.predictions),
+    predictions: asArray(row.predictions, base.predictions).map(hydratePrediction),
     twoTruths: asArray(row.twoTruths, base.twoTruths),
     photos: asArray(row.photos, base.photos),
     doodle: row.doodle ?? base.doodle,
