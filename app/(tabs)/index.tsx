@@ -141,7 +141,7 @@ export default function HomeScreen() {
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 12,
+            marginBottom: 8,
           }}
         >
           Your hubs
@@ -151,8 +151,8 @@ export default function HomeScreen() {
           style={{
             flexDirection: "row",
             flexWrap: "wrap",
-            gap: 12,
-            marginBottom: 22,
+            gap: 10,
+            marginBottom: 14,
           }}
         >
           {HUBS.map((hub) => (
@@ -161,33 +161,33 @@ export default function HomeScreen() {
               onPress={() => router.push(hub.href as Href)}
               style={{
                 width: tileWidth,
-                minHeight: tileWidth,
-                borderRadius: 22,
-                padding: 14,
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 10,
                 backgroundColor: hub.tile,
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 12,
+                gap: 8,
               }}
             >
               <View
                 style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 22,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
                   backgroundColor: "rgba(255,255,255,0.22)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={hub.icon} size={44} color={hub.tileInk} />
+                <Ionicons name={hub.icon} size={28} color={hub.tileInk} />
               </View>
               <View style={{ width: "100%", alignItems: "center" }}>
                 <Text
                   style={{
                     fontFamily: SERIF,
-                    fontSize: 22,
-                    lineHeight: 26,
+                    fontSize: 18,
+                    lineHeight: 22,
                     color: hub.tileInk,
                     textAlign: "center",
                   }}
@@ -196,30 +196,16 @@ export default function HomeScreen() {
                 </Text>
                 <Text
                   style={{
-                    marginTop: 4,
+                    marginTop: 2,
                     color: hub.tileInk,
                     opacity: 0.72,
-                    fontSize: 12,
-                    lineHeight: 17,
+                    fontSize: 11,
+                    lineHeight: 14,
                     textAlign: "center",
                   }}
-                  numberOfLines={2}
+                  numberOfLines={1}
                 >
                   {hub.tagline}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 8,
-                    fontSize: 11,
-                    color: hub.tileInk,
-                    opacity: 0.55,
-                    textAlign: "center",
-                  }}
-                >
-                  {hub.features.length} features
-                  {hub.features.some((f) => f.isNew)
-                    ? ` · ${hub.features.filter((f) => f.isNew).length} new`
-                    : ""}
                 </Text>
               </View>
             </Pressable>
@@ -233,7 +219,7 @@ export default function HomeScreen() {
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 10,
+            marginBottom: 8,
           }}
         >
           Daily rhythm
@@ -319,13 +305,13 @@ export default function HomeScreen() {
 
         <Text
           style={{
-            marginTop: 18,
+            marginTop: 12,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 10,
+            marginBottom: 8,
           }}
         >
           Favorites
