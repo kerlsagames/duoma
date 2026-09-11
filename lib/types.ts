@@ -438,6 +438,25 @@ export type PositionInvite = {
   completedAt: string | null;
 };
 
+export type RoleplayInviteStatus =
+  | "offered"
+  | "accepted"
+  | "declined"
+  | "done";
+
+/** Partner ping for a suggested roleplay scenario. */
+export type RoleplayInvite = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  roleplayId: string;
+  status: RoleplayInviteStatus;
+  createdAt: string;
+  answeredAt: string | null;
+  completedAt: string | null;
+};
+
 /** User-added calendar entries (dates, plans, notes). */
 export type CalendarCustomEvent = {
   id: string;
@@ -480,6 +499,7 @@ export type AppDB = {
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
   positionInvites: PositionInvite[];
+  roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
 };
 

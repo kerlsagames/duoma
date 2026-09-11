@@ -28,6 +28,7 @@ const hubEmpty = () => ({
   talkVault: [],
   spicyDares: [],
   positionInvites: [],
+  roleplayInvites: [],
   calendarEvents: [],
 });
 
@@ -165,6 +166,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     talkVault: raw.talkVault ?? [],
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
     positionInvites: raw.positionInvites ?? [],
+    roleplayInvites: raw.roleplayInvites ?? [],
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
   };
 }

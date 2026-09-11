@@ -92,6 +92,7 @@ import type {
   DareTimeframe,
   SpicyDarePlay,
   PositionInvite,
+  RoleplayInvite,
   CalendarCustomEvent,
 } from "@/lib/types";
 import {
@@ -388,6 +389,7 @@ type AppContextValue = {
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
   positionInvites: PositionInvite[];
+  roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
@@ -460,6 +462,12 @@ type AppContextValue = {
     status: "accepted" | "declined"
   ) => Promise<void>;
   completePositionInvite: (id: string) => Promise<void>;
+  sendRoleplayInvite: (roleplayId: string) => Promise<void>;
+  respondRoleplayInvite: (
+    id: string,
+    status: "accepted" | "declined"
+  ) => Promise<void>;
+  completeRoleplayInvite: (id: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -806,6 +814,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const positionInvites = useMemo(
     () => db.positionInvites.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const roleplayInvites = useMemo(
+    () => db.roleplayInvites.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -2814,6 +2827,96 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [partner, user]
   );
 
+  const sendRoleplayInvite = useCallback(
+    async (roleplayId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then send a roleplay.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before sending a roleplay.");
+      }
+      const id = roleplayId.trim();
+      if (!id) throw new Error("Pick a roleplay first.");
+      const row: RoleplayInvite = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        roleplayId: id,
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+        completedAt: null,
+      };
+      db = {
+        ...db,
+        roleplayInvites: [...db.roleplayInvites, row],
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Roleplays",
+        body: `${user.displayName} suggested a roleplay.`,
+        url: "/hub/roleplays",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondRoleplayInvite = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = db.roleplayInvites.find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      if (existing.toUserId !== user.id) return;
+      db = {
+        ...db,
+        roleplayInvites: db.roleplayInvites.map((row) =>
+          row.id === id
+            ? { ...row, status, answeredAt: nowIso() }
+            : row
+        ),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Roleplays",
+        body:
+          status === "accepted"
+            ? `${user.displayName} is into that roleplay.`
+            : `${user.displayName} passed on that one.`,
+        url: "/hub/roleplays",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const completeRoleplayInvite = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        roleplayInvites: db.roleplayInvites.map((row) => {
+          const involved =
+            row.fromUserId === user.id || row.toUserId === user.id;
+          const demoHold = Boolean(
+            partner?.isDemo &&
+              (row.toUserId === partner.id || row.fromUserId === partner.id)
+          );
+          if (
+            row.id === id &&
+            row.status === "accepted" &&
+            (involved || demoHold)
+          ) {
+            return { ...row, status: "done", completedAt: nowIso() };
+          }
+          return row;
+        }),
+      };
+      await persist();
+    },
+    [partner, user]
+  );
+
   const addMilestone = useCallback(
     async (input: { title: string; kind: MilestoneKind; date: string }) => {
       if (!user || !couple) return;
@@ -3489,6 +3592,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     talkVault,
     spicyDares,
     positionInvites,
+    roleplayInvites,
     milestones,
     desireToggles,
     coupons,
@@ -3540,6 +3644,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendPositionInvite,
     respondPositionInvite,
     completePositionInvite,
+    sendRoleplayInvite,
+    respondRoleplayInvite,
+    completeRoleplayInvite,
     addMilestone,
     removeMilestone,
     addCalendarEvent,

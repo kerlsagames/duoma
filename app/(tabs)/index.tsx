@@ -32,6 +32,7 @@ const APPS: {
   { label: "Date night", icon: "wine", href: "/hub/planner", hot: true },
   { label: "Settings", icon: "settings-sharp", href: "/hub/settings" },
   { label: "Positions", icon: "body", href: "/hub/positions", hot: true },
+  { label: "Roleplays", icon: "sparkles", href: "/hub/roleplays", hot: true },
 ];
 
 export default function HomeScreen() {
