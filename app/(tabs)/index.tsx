@@ -25,7 +25,7 @@ const APPS: {
   { label: "Curiosity", icon: "sparkles", href: "/hub/curiosity" },
   { label: "Calendar", icon: "calendar", href: "/hub/calendar" },
   { label: "Countdowns", icon: "timer", href: "/hub/milestones" },
-  { label: "Wildcard", icon: "flash", href: "/hub/wildcard", hot: true },
+  { label: "Up for it", icon: "flash", href: "/hub/up-for-it", hot: true },
   { label: "Coupons", icon: "ticket", href: "/hub/coupons" },
   { label: "Lists", icon: "map", href: "/hub/lists" },
   { label: "The jar", icon: "file-tray", href: "/hub/jar" },

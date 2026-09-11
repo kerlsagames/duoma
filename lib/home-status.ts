@@ -280,16 +280,16 @@ export function buildHomeNotifications(input: {
       const line =
         play.status === "offered" && incoming
           ? play.direction === "you-do-me"
-            ? "Wildcard · dare for you"
-            : "Wildcard · they want to do this"
+            ? "Up for it · dare for you"
+            : "Up for it · they want to do this"
           : play.status === "offered"
-            ? `Wildcard sent · ${when}`
-            : `Wildcard on · ${when}`;
+            ? `Up for it sent · ${when}`
+            : `Up for it on · ${when}`;
       items.push({
         id: `dare-${play.id}`,
         line,
         when: recentWhen(play.answeredAt ?? play.createdAt),
-        href: "/hub/wildcard",
+        href: "/hub/up-for-it",
         sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
       });
     });

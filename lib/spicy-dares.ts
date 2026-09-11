@@ -25,6 +25,12 @@ export const SPICY_DARE_CATEGORIES = [
   "Sensory & Touch",
   "Location & Adventure",
   "Quick & Playful",
+  "Submission & Control",
+  "Exhibition & Risk",
+  "Digital & Media",
+  "Tech & Toys",
+  "Edging & Teasing",
+  "Quickies & Impulse",
 ] as const;
 
 export type SpicyDareCategory = (typeof SPICY_DARE_CATEGORIES)[number];
@@ -39,7 +45,13 @@ export type SpicyDareCategoryMeta = {
     | "sparkles-outline"
     | "hand-left-outline"
     | "navigate-outline"
-    | "flash-outline";
+    | "flash-outline"
+    | "key-outline"
+    | "eye-outline"
+    | "phone-portrait-outline"
+    | "hardware-chip-outline"
+    | "hourglass-outline"
+    | "timer-outline";
 };
 
 export const SPICY_DARE_CATEGORY_META: SpicyDareCategoryMeta[] = [
@@ -79,6 +91,42 @@ export const SPICY_DARE_CATEGORY_META: SpicyDareCategoryMeta[] = [
     detail: "Short, playful, right now",
     icon: "flash-outline",
   },
+  {
+    id: "Submission & Control",
+    label: "Control",
+    detail: "Commands, restraint, obedience",
+    icon: "key-outline",
+  },
+  {
+    id: "Exhibition & Risk",
+    label: "Risk",
+    detail: "Public edge, exposure, thrill",
+    icon: "eye-outline",
+  },
+  {
+    id: "Digital & Media",
+    label: "Digital",
+    detail: "Screens, audio, private media",
+    icon: "phone-portrait-outline",
+  },
+  {
+    id: "Tech & Toys",
+    label: "Tech",
+    detail: "Vibes, rings, lube, toys",
+    icon: "hardware-chip-outline",
+  },
+  {
+    id: "Edging & Teasing",
+    label: "Edging",
+    detail: "Denial, tempo, brink play",
+    icon: "hourglass-outline",
+  },
+  {
+    id: "Quickies & Impulse",
+    label: "Impulse",
+    detail: "Right now, anywhere",
+    icon: "timer-outline",
+  },
 ];
 
 export function spicyCategoryMeta(
@@ -94,8 +142,8 @@ export type SpicyDare = {
   status?: "unplayed" | "played";
 };
 
-export const SPICY_DARE_DECK_ID = "wildcard" as const;
-export const SPICY_DARE_LEGACY_IDS = ["secret-desires", "spicy-dares"] as const;
+export const SPICY_DARE_DECK_ID = "up-for-it" as const;
+export const SPICY_DARE_LEGACY_IDS = ["wildcard", "secret-desires", "spicy-dares"] as const;
 /** @deprecated use SPICY_DARE_LEGACY_IDS */
 export const SPICY_DARE_LEGACY_ID = "secret-desires" as const;
 
@@ -407,6 +455,246 @@ export const SPICY_DARES: SpicyDare[] = [
     id: "sd-60",
     text: "Coin flip: winner names a five-minute dare. Loser does it immediately.",
     categories: ["Quick & Playful"],
+  },
+  {
+    id: "sd-61",
+    text: "Total Command (30 mins): the holder issues any non-dangerous commands and the other partner obeys without question.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-62",
+    text: "The Kneeling Serve: pass your partner a drink, snack, or item of their choice while kneeling before them.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-63",
+    text: "Hands Tied: loosely bind your partner's wrists with a scarf or belt for the duration of a foreplay session.",
+    categories: ["Submission & Control", "Toys & Accessories"],
+  },
+  {
+    id: "sd-64",
+    text: "Eyes Covered: blindfold your partner and leave them completely at the mercy of your touch and pace.",
+    categories: ["Submission & Control", "Sensory & Touch"],
+  },
+  {
+    id: "sd-65",
+    text: "Permission Required: they must ask out loud \"May I touch you?\" before every single physical contact for the next 20 minutes.",
+    categories: ["Submission & Control", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-66",
+    text: "Posture Control: put your partner on their hands and knees or flat on their stomach and make them hold that exact position until told otherwise.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-67",
+    text: "Silent Obedience: they may not speak a single word — only nod or shake their head — while following every physical direction you give.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-68",
+    text: "Stripping Command: sit back on the bed and point to each piece of clothing your partner takes off next.",
+    categories: ["Submission & Control", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-69",
+    text: "Public Whisper: walk up to your partner in public or around company and whisper an explicit sexual secret in their ear.",
+    categories: ["Exhibition & Risk", "Location & Adventure"],
+  },
+  {
+    id: "sd-70",
+    text: "Car Park Quickie: pull over in a secluded spot on the way home for a quick, risky session in the car.",
+    categories: ["Exhibition & Risk", "Quickies & Impulse"],
+  },
+  {
+    id: "sd-71",
+    text: "No-Underwear Night: demand that your partner goes out to dinner or an event wearing no underwear.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-72",
+    text: "Window View: position play near a window or mirror where there's a slight edge of exposure or risk.",
+    categories: ["Exhibition & Risk", "Location & Adventure"],
+  },
+  {
+    id: "sd-73",
+    text: "Backyard Kiss: step outside into the yard, balcony, or porch at night for a deep, risky 2-minute session in the dark.",
+    categories: ["Exhibition & Risk", "Location & Adventure"],
+  },
+  {
+    id: "sd-74",
+    text: "Doorway Flash: briefly expose a private body part to your partner while standing just inside an open doorway before closing it.",
+    categories: ["Exhibition & Risk", "Quick & Playful"],
+  },
+  {
+    id: "sd-75",
+    text: "Public Hand Drag: slip your hand inside your partner's back pocket or under their jacket to touch skin while walking in public.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-76",
+    text: "Steamy Glass Trace: touch and press your partner up against the glass during a hot shower while watching from the outside.",
+    categories: ["Exhibition & Risk", "Sensory & Touch"],
+  },
+  {
+    id: "sd-77",
+    text: "Porn Director: choose the exact adult video or audio clip for both of you to watch or listen to during foreplay.",
+    categories: ["Digital & Media", "Film & Photo"],
+  },
+  {
+    id: "sd-78",
+    text: "Private Gallery: direct a 3-photo private photoshoot of your partner to keep on a locked phone.",
+    categories: ["Digital & Media", "Film & Photo"],
+  },
+  {
+    id: "sd-79",
+    text: "Voice Note Tease: send an explicit 15-second audio description of what you want to do to them later while one of you is away.",
+    categories: ["Digital & Media", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-80",
+    text: "Screen Blackout: turn off all devices, TVs, and phones for 2 hours to focus 100% on touch and connection.",
+    categories: ["Digital & Media", "Sensory & Touch"],
+  },
+  {
+    id: "sd-81",
+    text: "POV Filming: film a short 15-second point-of-view clip of oral play or penetration to rewatch immediately together.",
+    categories: ["Digital & Media", "Film & Photo"],
+  },
+  {
+    id: "sd-82",
+    text: "Mirror Snapshot: take a single explicit photo together in the full-length mirror during the session.",
+    categories: ["Digital & Media", "Film & Photo"],
+  },
+  {
+    id: "sd-83",
+    text: "Audio Recording Only: turn on a voice memo and record only the audio of your session to play back in the car later.",
+    categories: ["Digital & Media"],
+  },
+  {
+    id: "sd-84",
+    text: "Text Dictation: text your partner three explicit instruction steps from the other room that they must follow in order.",
+    categories: ["Digital & Media", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-85",
+    text: "Vibrator Hijack: take remote or direct control of a vibrator or massager during penetration.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-86",
+    text: "Blind Toy Surprise: while the holder is blindfolded, choose which toy to use on them.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-87",
+    text: "Lube & Slide: a dedicated 15-minute high-slickness massage using warming or sensory lube before sex.",
+    categories: ["Tech & Toys", "Sensory & Touch"],
+  },
+  {
+    id: "sd-88",
+    text: "Double Toy Impact: use two toys at once — e.g. a wand on the clit while using an internal toy or cock ring.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-89",
+    text: "Temperature Wand: warm or chill a glass or silicone toy, then trace it over your partner's sensitive zones.",
+    categories: ["Tech & Toys", "Sensory & Touch"],
+  },
+  {
+    id: "sd-90",
+    text: "Massager Warmup: spend 5 full minutes with a deep-tissue massager on shoulders and thighs before bringing it to sensitive areas.",
+    categories: ["Tech & Toys", "Sensory & Touch"],
+  },
+  {
+    id: "sd-91",
+    text: "Ringing Release: wear a cock ring for the entire session to maximize hardness and endurance until final climax.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-92",
+    text: "Toy-Only Foreplay: reach the first stage of play using zero hands — only toys allowed on both partners.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-93",
+    text: "Denial Pass: bring your partner to the brink of climax three times, forcing a full stop each time before allowing release.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-94",
+    text: "Orgasm Order: they are not allowed to finish until you explicitly give the verbal green light.",
+    categories: ["Edging & Teasing", "Submission & Control"],
+  },
+  {
+    id: "sd-95",
+    text: "Slow-Motion Touch: a 10-minute session where all manual or oral touch must stay at an agonizingly slow tempo.",
+    categories: ["Edging & Teasing", "Sensory & Touch"],
+  },
+  {
+    id: "sd-96",
+    text: "Hands-Off Rule: the holder gets touched and teased for 15 minutes, but is forbidden from touching their partner back.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-97",
+    text: "60-Second Freeze: right when things get fast and intense, freeze completely for 60 seconds while remaining deep inside or touched.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-98",
+    text: "Feather vs Firm: alternate between an ultra-light feather touch and a firm, heavy grip every 30 seconds.",
+    categories: ["Edging & Teasing", "Sensory & Touch"],
+  },
+  {
+    id: "sd-99",
+    text: "Hovering Lip Tease: keep your lips less than a millimeter from theirs (or their nipples/thighs) for 2 minutes without making contact.",
+    categories: ["Edging & Teasing", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-100",
+    text: "Counted Edges: they must count out loud every time they get close to the edge before being forced to stop and rest.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-101",
+    text: "Drop Everything: redeemable immediately — stop whatever you are doing and head straight to the bedroom.",
+    categories: ["Quickies & Impulse", "Quick & Playful"],
+  },
+  {
+    id: "sd-102",
+    text: "Shower Hijack: join your partner in the shower mid-wash for a fast, standing-up encounter.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-103",
+    text: "Morning Surprise: wake your partner with immediate oral attention or deep touch before they get out of bed.",
+    categories: ["Quickies & Impulse"],
+  },
+  {
+    id: "sd-104",
+    text: "Kitchen Counter Quickie: lift your partner onto the kitchen counter for a fast 5-minute session before resuming your day.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-105",
+    text: "Timer Challenge: set a timer for 7 minutes — start, finish, and clean up before the alarm goes off.",
+    categories: ["Quickies & Impulse", "Quick & Playful"],
+  },
+  {
+    id: "sd-106",
+    text: "Hallway Interruption: catch your partner walking between rooms, pin them against the wall, and have a fast standing session.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-107",
+    text: "Commercial Break: use a quick 3-minute break during a show or movie to touch, tease, and get as far as you can before it restarts.",
+    categories: ["Quickies & Impulse", "Quick & Playful"],
+  },
+  {
+    id: "sd-108",
+    text: "Desk Hijack: clear off a home office desk or table and use it for an instant mid-day quickie.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
   },
 ];
 

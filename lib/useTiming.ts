@@ -1,4 +1,4 @@
-/** Shared time-to-use / expiry options for Coupons and Wildcard dares. */
+/** Shared time-to-use / expiry options for Coupons and Up for it dares. */
 
 export const USE_TIMING_OPTIONS = [
   { id: "tonight", label: "Tonight", hint: "Use by end of today" },

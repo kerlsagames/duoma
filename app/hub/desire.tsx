@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 
-/** Desire was replaced by Wildcard Challenges & Dares. */
+/** Desire was replaced by Up for it Challenges & Dares. */
 export default function DesireRedirect() {
-  return <Redirect href="/hub/wildcard" />;
+  return <Redirect href="/hub/up-for-it" />;
 }

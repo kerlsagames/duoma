@@ -1,6 +1,6 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { DateTimeField } from "@/components/ui/DateTimeField";
-import { SERIF, WILDCARD_TONE } from "@/lib/app-themes";
+import { SERIF, UP_FOR_IT_TONE } from "@/lib/app-themes";
 import {
   SPICY_DARE_CATEGORIES,
   SPICY_DARE_CATEGORY_META,
@@ -23,7 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const T = WILDCARD_TONE;
+const T = UP_FOR_IT_TONE;
 
 type ViewMode = "home" | "category" | "compose";
 
@@ -666,7 +666,7 @@ export function SpicyDarePanel({
               color: T.accent,
             }}
           >
-            Wildcard
+            Up for it
           </Text>
           {onClose ? (
             <Pressable onPress={onClose} hitSlop={12}>

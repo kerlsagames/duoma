@@ -21,8 +21,8 @@ export const COUPONS_TONE = {
   used: "rgba(247,241,227,0.35)",
 } as const;
 
-/** Arcade / slot-machine energy for Wildcard challenges. */
-export const WILDCARD_TONE = {
+/** Arcade / slot-machine energy for Up for it challenges. */
+export const UP_FOR_IT_TONE = {
   background: "#070B10",
   accent: "#3DE0C5",
   accentSoft: "rgba(61,224,197,0.16)",
@@ -34,6 +34,9 @@ export const WILDCARD_TONE = {
   border: "rgba(61,224,197,0.28)",
   flash: "#7CFFB2",
 } as const;
+
+/** @deprecated use UP_FOR_IT_TONE */
+export const WILDCARD_TONE = UP_FOR_IT_TONE;
 
 /** Warm glass mason jar for Appreciation notes. */
 export const JAR_TONE = {

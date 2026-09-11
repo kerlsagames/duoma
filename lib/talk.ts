@@ -73,7 +73,7 @@ export function markPlayed(
 }
 
 /**
- * Spicy Wildcard still cycles the deck. Talk uses markPlayed + vault instead.
+ * Up for it still cycles the deck. Talk uses markPlayed + vault instead.
  */
 export function rotatePlayed(
   deck: TalkDeckState,
