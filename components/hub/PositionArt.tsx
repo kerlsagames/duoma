@@ -4,7 +4,6 @@ import Svg, {
   Defs,
   Ellipse,
   G,
-  LinearGradient,
   Path,
   RadialGradient,
   Stop,
@@ -13,13 +12,624 @@ import Svg, {
 import { View } from "react-native";
 
 /** Male silhouette */
-export const POSITION_M_COLOR = "#5B8CFF";
+export const POSITION_M_COLOR = "#6E9CFF";
 /** Female silhouette */
-export const POSITION_F_COLOR = "#FF6B9A";
-const M = POSITION_M_COLOR;
-const F = POSITION_F_COLOR;
-const M_DEEP = "#3A6AE8";
-const F_DEEP = "#E8457A";
+export const POSITION_F_COLOR = "#FF7FA8";
+/** Far-side limbs, for depth */
+const M_FAR = "#3F6BD8";
+const F_FAR = "#D6437A";
+
+type Pt = readonly [number, number];
+
+type Joints = {
+  head: Pt;
+  neck: Pt;
+  chest: Pt;
+  pelvis: Pt;
+  shoulderA: Pt;
+  elbowA: Pt;
+  handA: Pt;
+  shoulderB: Pt;
+  elbowB: Pt;
+  handB: Pt;
+  hipA: Pt;
+  kneeA: Pt;
+  footA: Pt;
+  hipB: Pt;
+  kneeB: Pt;
+  footB: Pt;
+};
+
+/**
+ * Every pose is authored facing left in a local space where the pelvis sits at
+ * the origin and one unit is roughly one pixel of a 110-unit-tall body.
+ */
+const POSES = {
+  standing: {
+    pelvis: [0, 0],
+    chest: [0, -33],
+    neck: [0, -45],
+    head: [0, -58],
+    shoulderA: [-11, -40],
+    elbowA: [-15, -21],
+    handA: [-16, -3],
+    shoulderB: [11, -40],
+    elbowB: [15, -21],
+    handB: [16, -3],
+    hipA: [-7, 3],
+    kneeA: [-8, 27],
+    footA: [-8, 51],
+    hipB: [7, 3],
+    kneeB: [8, 27],
+    footB: [8, 51],
+  },
+  standingBent: {
+    pelvis: [0, 0],
+    chest: [-28, -10],
+    neck: [-39, -13],
+    head: [-50, -14],
+    shoulderA: [-31, -15],
+    elbowA: [-42, 2],
+    handA: [-48, 20],
+    shoulderB: [-28, -6],
+    elbowB: [-39, 10],
+    handB: [-45, 26],
+    hipA: [-6, 3],
+    kneeA: [-7, 27],
+    footA: [-7, 51],
+    hipB: [6, 3],
+    kneeB: [7, 27],
+    footB: [7, 51],
+  },
+  kneeling: {
+    pelvis: [0, 0],
+    chest: [0, -32],
+    neck: [0, -44],
+    head: [0, -57],
+    shoulderA: [-10, -39],
+    elbowA: [-17, -22],
+    handA: [-24, -9],
+    shoulderB: [10, -39],
+    elbowB: [3, -21],
+    handB: [-6, -10],
+    hipA: [-6, 3],
+    kneeA: [-6, 24],
+    footA: [12, 31],
+    hipB: [6, 3],
+    kneeB: [6, 24],
+    footB: [23, 30],
+  },
+  allFours: {
+    pelvis: [0, 0],
+    chest: [-32, -6],
+    neck: [-43, -8],
+    head: [-54, -5],
+    shoulderA: [-36, -9],
+    elbowA: [-40, 10],
+    handA: [-42, 29],
+    shoulderB: [-32, -2],
+    elbowB: [-36, 12],
+    handB: [-38, 29],
+    hipA: [-5, 2],
+    kneeA: [2, 20],
+    footA: [20, 27],
+    hipB: [5, 2],
+    kneeB: [10, 20],
+    footB: [28, 27],
+  },
+  sitting: {
+    pelvis: [0, 0],
+    chest: [-3, -32],
+    neck: [-4, -44],
+    head: [-5, -57],
+    shoulderA: [-13, -39],
+    elbowA: [-21, -22],
+    handA: [-27, -8],
+    shoulderB: [7, -39],
+    elbowB: [1, -20],
+    handB: [-7, -6],
+    hipA: [-4, 2],
+    kneeA: [-26, 4],
+    footA: [-30, 28],
+    hipB: [3, 4],
+    kneeB: [-20, 10],
+    footB: [-24, 30],
+  },
+  straddle: {
+    pelvis: [0, 0],
+    chest: [-2, -31],
+    neck: [-3, -42],
+    head: [-4, -55],
+    shoulderA: [-12, -38],
+    elbowA: [-22, -26],
+    handA: [-33, -30],
+    shoulderB: [8, -38],
+    elbowB: [-2, -24],
+    handB: [-14, -31],
+    hipA: [-6, 3],
+    kneeA: [-18, 16],
+    footA: [-14, 32],
+    hipB: [6, 3],
+    kneeB: [-6, 20],
+    footB: [2, 34],
+  },
+  straddleWrap: {
+    pelvis: [0, 0],
+    chest: [-2, -30],
+    neck: [-3, -41],
+    head: [-4, -54],
+    shoulderA: [-12, -37],
+    elbowA: [-24, -30],
+    handA: [-36, -34],
+    shoulderB: [8, -37],
+    elbowB: [-4, -28],
+    handB: [-16, -35],
+    hipA: [-6, 3],
+    kneeA: [-20, 12],
+    footA: [-34, 2],
+    hipB: [6, 5],
+    kneeB: [-10, 18],
+    footB: [-26, 12],
+  },
+  crossLegged: {
+    pelvis: [0, 0],
+    chest: [-2, -30],
+    neck: [-3, -41],
+    head: [-4, -54],
+    shoulderA: [-12, -37],
+    elbowA: [-20, -22],
+    handA: [-25, -8],
+    shoulderB: [8, -37],
+    elbowB: [0, -22],
+    handB: [-6, -8],
+    hipA: [-5, 4],
+    kneeA: [-23, 10],
+    footA: [-4, 17],
+    hipB: [5, 6],
+    kneeB: [-16, 17],
+    footB: [5, 21],
+  },
+  lyingBack: {
+    pelvis: [0, 0],
+    chest: [-29, -4],
+    neck: [-40, -6],
+    head: [-51, -8],
+    shoulderA: [-33, -9],
+    elbowA: [-44, 2],
+    handA: [-54, 10],
+    shoulderB: [-31, 1],
+    elbowB: [-42, 12],
+    handB: [-52, 18],
+    hipA: [3, -3],
+    kneeA: [16, -23],
+    footA: [27, -3],
+    hipB: [3, 4],
+    kneeB: [20, -14],
+    footB: [31, 7],
+  },
+  legsUp: {
+    pelvis: [0, 0],
+    chest: [-29, -2],
+    neck: [-40, -4],
+    head: [-51, -6],
+    shoulderA: [-33, -7],
+    elbowA: [-45, 4],
+    handA: [-55, 12],
+    shoulderB: [-31, 3],
+    elbowB: [-43, 14],
+    handB: [-53, 20],
+    hipA: [3, -4],
+    kneeA: [8, -29],
+    footA: [12, -51],
+    hipB: [4, 2],
+    kneeB: [15, -24],
+    footB: [21, -46],
+  },
+  lyingFront: {
+    pelvis: [0, 0],
+    chest: [-29, 2],
+    neck: [-40, 2],
+    head: [-51, 0],
+    shoulderA: [-33, -2],
+    elbowA: [-45, 6],
+    handA: [-56, 10],
+    shoulderB: [-32, 6],
+    elbowB: [-44, 14],
+    handB: [-55, 18],
+    hipA: [4, -2],
+    kneeA: [24, -3],
+    footA: [45, 0],
+    hipB: [4, 5],
+    kneeB: [26, 6],
+    footB: [47, 9],
+  },
+  lyingSide: {
+    pelvis: [0, 0],
+    chest: [-28, -2],
+    neck: [-39, -3],
+    head: [-50, -5],
+    shoulderA: [-32, -6],
+    elbowA: [-42, 4],
+    handA: [-52, 10],
+    shoulderB: [-31, 2],
+    elbowB: [-41, 10],
+    handB: [-51, 16],
+    hipA: [4, -3],
+    kneeA: [22, -9],
+    footA: [40, 1],
+    hipB: [4, 4],
+    kneeB: [22, 3],
+    footB: [40, 13],
+  },
+  sitEdge: {
+    pelvis: [0, 0],
+    chest: [-2, -30],
+    neck: [-3, -42],
+    head: [-4, -54],
+    shoulderA: [-12, -37],
+    elbowA: [-21, -20],
+    handA: [-27, -6],
+    shoulderB: [8, -37],
+    elbowB: [1, -20],
+    handB: [-5, -6],
+    hipA: [-4, 3],
+    kneeA: [-25, 10],
+    footA: [-31, 30],
+    hipB: [4, 4],
+    kneeB: [-14, 16],
+    footB: [-18, 34],
+  },
+  bridge: {
+    pelvis: [0, -16],
+    chest: [-28, 2],
+    neck: [-39, 6],
+    head: [-50, 9],
+    shoulderA: [-32, 0],
+    elbowA: [-42, 10],
+    handA: [-52, 18],
+    shoulderB: [-30, 6],
+    elbowB: [-40, 16],
+    handB: [-50, 24],
+    hipA: [3, -18],
+    kneeA: [22, -15],
+    footA: [26, 10],
+    hipB: [4, -12],
+    kneeB: [24, -6],
+    footB: [28, 14],
+  },
+  lifted: {
+    pelvis: [0, 0],
+    chest: [-2, -30],
+    neck: [-3, -41],
+    head: [-4, -53],
+    shoulderA: [-12, -37],
+    elbowA: [-24, -33],
+    handA: [-35, -39],
+    shoulderB: [8, -37],
+    elbowB: [-4, -33],
+    handB: [-16, -41],
+    hipA: [-6, 2],
+    kneeA: [-22, 4],
+    footA: [-31, -9],
+    hipB: [6, 4],
+    kneeB: [-14, 14],
+    footB: [-27, 11],
+  },
+  kneelHeadDown: {
+    pelvis: [0, 0],
+    chest: [-22, -16],
+    neck: [-32, -20],
+    head: [-43, -23],
+    shoulderA: [-26, -20],
+    elbowA: [-34, -6],
+    handA: [-40, 7],
+    shoulderB: [-22, -12],
+    elbowB: [-30, 2],
+    handB: [-36, 15],
+    hipA: [-6, 3],
+    kneeA: [-4, 24],
+    footA: [14, 31],
+    hipB: [6, 3],
+    kneeB: [8, 24],
+    footB: [26, 30],
+  },
+} satisfies Record<string, Joints>;
+
+type PoseName = keyof typeof POSES;
+
+/** Unit vector for the direction each pose's chest faces, in local space. */
+const FRONT: Record<PoseName, Pt> = {
+  standing: [-1, 0],
+  standingBent: [0, 1],
+  kneeling: [-1, 0],
+  allFours: [0, 1],
+  sitting: [-1, 0],
+  straddle: [-1, 0],
+  straddleWrap: [-1, 0],
+  crossLegged: [-1, 0],
+  lyingBack: [0, -1],
+  legsUp: [0, -1],
+  lyingFront: [0, 1],
+  lyingSide: [-1, 0],
+  sitEdge: [-1, 0],
+  bridge: [0, -1],
+  lifted: [-1, 0],
+  kneelHeadDown: [-0.5, 0.87],
+};
+
+type Build = {
+  shoulderW: number;
+  waistW: number;
+  hipW: number;
+  headR: number;
+  neckW: number;
+  upperArm: readonly [number, number];
+  forearm: readonly [number, number];
+  thigh: readonly [number, number];
+  calf: readonly [number, number];
+};
+
+const FEMALE: Build = {
+  shoulderW: 11.5,
+  waistW: 7.6,
+  hipW: 13.2,
+  headR: 8.4,
+  neckW: 4.4,
+  upperArm: [6, 5],
+  forearm: [4.9, 3.8],
+  thigh: [10.6, 6.9],
+  calf: [6.9, 4.3],
+};
+
+const MALE: Build = {
+  shoulderW: 14.6,
+  waistW: 10.8,
+  hipW: 11.4,
+  headR: 9,
+  neckW: 5.6,
+  upperArm: [7.1, 6],
+  forearm: [5.9, 4.5],
+  thigh: [11.2, 7.6],
+  calf: [7.6, 5],
+};
+
+function tx(p: Pt, x: number, y: number, s: number, flip: boolean): Pt {
+  return [x + (flip ? -p[0] : p[0]) * s, y + p[1] * s];
+}
+
+/** Tapered segment: a quad between two widths, capped by joint circles. */
+function segment(a: Pt, b: Pt, wa: number, wb: number): string {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len;
+  const ny = dx / len;
+  return [
+    `M ${a[0] + nx * wa} ${a[1] + ny * wa}`,
+    `L ${b[0] + nx * wb} ${b[1] + ny * wb}`,
+    `L ${b[0] - nx * wb} ${b[1] - ny * wb}`,
+    `L ${a[0] - nx * wa} ${a[1] - ny * wa}`,
+    "Z",
+  ].join(" ");
+}
+
+function Limb({
+  a,
+  b,
+  c,
+  w,
+  fill,
+}: {
+  a: Pt;
+  b: Pt;
+  c: Pt;
+  w: readonly [number, number, number];
+  fill: string;
+}) {
+  return (
+    <G>
+      <Path d={segment(a, b, w[0], w[1])} fill={fill} />
+      <Path d={segment(b, c, w[1], w[2])} fill={fill} />
+      <Circle cx={a[0]} cy={a[1]} r={w[0]} fill={fill} />
+      <Circle cx={b[0]} cy={b[1]} r={w[1]} fill={fill} />
+      <Circle cx={c[0]} cy={c[1]} r={w[2] * 1.15} fill={fill} />
+    </G>
+  );
+}
+
+function Torso({
+  chest,
+  pelvis,
+  build,
+  fill,
+  female,
+  front,
+}: {
+  chest: Pt;
+  pelvis: Pt;
+  build: Build;
+  fill: string;
+  female: boolean;
+  front: Pt;
+}) {
+  const dx = pelvis[0] - chest[0];
+  const dy = pelvis[1] - chest[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const ax = dx / len;
+  const ay = dy / len;
+  const px = -ay;
+  const py = ax;
+
+  const { shoulderW: sw, waistW: ww, hipW: hw } = build;
+  const midX = chest[0] + dx * 0.52;
+  const midY = chest[1] + dy * 0.52;
+
+  const t1: Pt = [chest[0] + px * sw, chest[1] + py * sw];
+  const t2: Pt = [chest[0] - px * sw, chest[1] - py * sw];
+  const w1: Pt = [midX + px * ww, midY + py * ww];
+  const w2: Pt = [midX - px * ww, midY - py * ww];
+  const h1: Pt = [pelvis[0] + px * hw, pelvis[1] + py * hw];
+  const h2: Pt = [pelvis[0] - px * hw, pelvis[1] - py * hw];
+  const seatX = pelvis[0] + ax * hw * 0.85;
+  const seatY = pelvis[1] + ay * hw * 0.85;
+  const yokeX = chest[0] - ax * sw * 0.7;
+  const yokeY = chest[1] - ay * sw * 0.7;
+
+  const d = [
+    `M ${t1[0]} ${t1[1]}`,
+    `Q ${w1[0]} ${w1[1]} ${h1[0]} ${h1[1]}`,
+    `Q ${seatX} ${seatY} ${h2[0]} ${h2[1]}`,
+    `Q ${w2[0]} ${w2[1]} ${t2[0]} ${t2[1]}`,
+    `Q ${yokeX} ${yokeY} ${t1[0]} ${t1[1]}`,
+    "Z",
+  ].join(" ");
+
+  return (
+    <G>
+      <Path d={d} fill={fill} />
+      <Circle cx={t1[0]} cy={t1[1]} r={sw * 0.34} fill={fill} />
+      <Circle cx={t2[0]} cy={t2[1]} r={sw * 0.34} fill={fill} />
+      <Circle cx={h1[0]} cy={h1[1]} r={hw * 0.42} fill={fill} />
+      <Circle cx={h2[0]} cy={h2[1]} r={hw * 0.42} fill={fill} />
+      {female ? (
+        <G>
+          <Circle
+            cx={chest[0] + front[0] * sw * 0.5 + ax * sw * 0.16}
+            cy={chest[1] + front[1] * sw * 0.5 + ay * sw * 0.16}
+            r={sw * 0.5}
+            fill={fill}
+          />
+          <Circle
+            cx={chest[0] + front[0] * sw * 0.42 + ax * sw * 0.66}
+            cy={chest[1] + front[1] * sw * 0.42 + ay * sw * 0.66}
+            r={sw * 0.44}
+            fill={fill}
+          />
+        </G>
+      ) : null}
+    </G>
+  );
+}
+
+function Figure({
+  pose,
+  x,
+  y,
+  s = 1,
+  flip = false,
+  female = false,
+}: {
+  pose: PoseName;
+  x: number;
+  y: number;
+  s?: number;
+  flip?: boolean;
+  female?: boolean;
+}) {
+  const raw = POSES[pose];
+  const build = female ? FEMALE : MALE;
+  const near = female ? POSITION_F_COLOR : POSITION_M_COLOR;
+  const far = female ? F_FAR : M_FAR;
+  const k = (p: Pt) => tx(p, x, y, s, flip);
+
+  const head = k(raw.head);
+  const neck = k(raw.neck);
+  const chest = k(raw.chest);
+  const pelvis = k(raw.pelvis);
+  const scaled: Build = {
+    ...build,
+    shoulderW: build.shoulderW * s,
+    waistW: build.waistW * s,
+    hipW: build.hipW * s,
+    headR: build.headR * s,
+    neckW: build.neckW * s,
+  };
+  const facing: Pt = [
+    flip ? -FRONT[pose][0] : FRONT[pose][0],
+    FRONT[pose][1],
+  ];
+  const arm = (w: readonly [number, number]) =>
+    [w[0] * s, ((w[0] + w[1]) / 2) * s, w[1] * s] as const;
+  const leg = (a: readonly [number, number], b: readonly [number, number]) =>
+    [a[0] * s, b[0] * s, b[1] * s] as const;
+
+  return (
+    <G>
+      {/* Far side first so the near limbs read as closer */}
+      <Limb
+        a={k(raw.hipA)}
+        b={k(raw.kneeA)}
+        c={k(raw.footA)}
+        w={leg(build.thigh, build.calf)}
+        fill={far}
+      />
+      <Limb
+        a={k(raw.shoulderA)}
+        b={k(raw.elbowA)}
+        c={k(raw.handA)}
+        w={arm([build.upperArm[0], build.forearm[1]])}
+        fill={far}
+      />
+
+      <Torso
+        chest={chest}
+        pelvis={pelvis}
+        build={scaled}
+        fill={near}
+        female={female}
+        front={facing}
+      />
+
+      <Path
+        d={segment(neck, head, scaled.neckW, scaled.neckW * 0.9)}
+        fill={near}
+      />
+      {female ? (
+        <Ellipse
+          cx={head[0] - facing[0] * scaled.headR * 0.5}
+          cy={head[1] - facing[1] * scaled.headR * 0.5 + scaled.headR * 0.35}
+          rx={scaled.headR}
+          ry={scaled.headR * 1.15}
+          fill={far}
+        />
+      ) : null}
+      <Ellipse
+        cx={head[0]}
+        cy={head[1]}
+        rx={scaled.headR * 0.92}
+        ry={scaled.headR}
+        fill={near}
+      />
+
+      <Limb
+        a={k(raw.hipB)}
+        b={k(raw.kneeB)}
+        c={k(raw.footB)}
+        w={leg(build.thigh, build.calf)}
+        fill={near}
+      />
+      <Limb
+        a={k(raw.shoulderB)}
+        b={k(raw.elbowB)}
+        c={k(raw.handB)}
+        w={arm([build.upperArm[0], build.forearm[1]])}
+        fill={near}
+      />
+    </G>
+  );
+}
+
+function Prop({ d, width = 10 }: { d: string; width?: number }) {
+  return (
+    <Path
+      d={d}
+      stroke="rgba(255,255,255,0.13)"
+      strokeWidth={width}
+      strokeLinecap="round"
+      fill="none"
+    />
+  );
+}
 
 /** Stylized couple silhouettes — blue = M, pink = F. */
 export function PositionArt({
@@ -29,7 +639,6 @@ export function PositionArt({
   position: SexPosition;
   size?: number;
 }) {
-  const art = position.art;
   return (
     <View
       style={{
@@ -44,38 +653,30 @@ export function PositionArt({
       <Svg width={size} height={size} viewBox="0 0 280 280">
         <Defs>
           <RadialGradient id="glow" cx="50%" cy="45%" r="55%">
-            <Stop offset="0%" stopColor="#FF4D8A" stopOpacity="0.22" />
-            <Stop offset="55%" stopColor="#5B8CFF" stopOpacity="0.1" />
+            <Stop offset="0%" stopColor="#FF4D8A" stopOpacity="0.2" />
+            <Stop offset="55%" stopColor="#5B8CFF" stopOpacity="0.09" />
             <Stop offset="100%" stopColor="#0A0610" stopOpacity="0" />
           </RadialGradient>
-          <LinearGradient id="mGrad" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0%" stopColor={M} />
-            <Stop offset="100%" stopColor={M_DEEP} />
-          </LinearGradient>
-          <LinearGradient id="fGrad" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0%" stopColor={F} />
-            <Stop offset="100%" stopColor={F_DEEP} />
-          </LinearGradient>
         </Defs>
-        <Ellipse cx="140" cy="150" rx="110" ry="90" fill="url(#glow)" />
-        {renderPose(art)}
-        {/* Gender key: blue M · pink F */}
-        <Circle cx="22" cy="256" r="7" fill={M} />
+        <Ellipse cx="140" cy="150" rx="112" ry="92" fill="url(#glow)" />
+        <Ellipse cx="140" cy="228" rx="86" ry="12" fill="rgba(0,0,0,0.35)" />
+        {renderPose(position.art)}
+        <Circle cx="22" cy="256" r="7" fill={POSITION_M_COLOR} />
         <SvgText
           x="34"
           y="260"
-          fill={M}
+          fill={POSITION_M_COLOR}
           fontSize="11"
           fontWeight="700"
           letterSpacing="1"
         >
           M
         </SvgText>
-        <Circle cx="58" cy="256" r="7" fill={F} />
+        <Circle cx="58" cy="256" r="7" fill={POSITION_F_COLOR} />
         <SvgText
           x="70"
           y="260"
-          fill={F}
+          fill={POSITION_F_COLOR}
           fontSize="11"
           fontWeight="700"
           letterSpacing="1"
@@ -87,330 +688,286 @@ export function PositionArt({
   );
 }
 
-function Person({
-  cx,
-  cy,
-  scale = 1,
-  female,
-  lean = 0,
-}: {
-  cx: number;
-  cy: number;
-  scale?: number;
-  female?: boolean;
-  lean?: number;
-}) {
-  const fill = female ? "url(#fGrad)" : "url(#mGrad)";
-  const bodyW = female ? 28 : 32;
-  const bodyH = female ? 52 : 58;
-  return (
-    <G
-      transform={`translate(${cx}, ${cy}) scale(${scale}) rotate(${lean})`}
-    >
-      <Circle cx="0" cy={-bodyH / 2 - 14} r={female ? 13 : 14} fill={fill} />
-      <Path
-        d={`M ${-bodyW / 2} ${-bodyH / 2}
-            Q 0 ${-bodyH / 2 - 4} ${bodyW / 2} ${-bodyH / 2}
-            L ${bodyW / 2 - 2} ${bodyH / 2}
-            Q 0 ${bodyH / 2 + 6} ${-bodyW / 2 + 2} ${bodyH / 2}
-            Z`}
-        fill={fill}
-      />
-      {/* Arms suggestion */}
-      <Path
-        d={`M ${-bodyW / 2 + 2} ${-bodyH / 4} Q ${-bodyW} 8 ${-bodyW - 4} 28`}
-        stroke={fill}
-        strokeWidth="7"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <Path
-        d={`M ${bodyW / 2 - 2} ${-bodyH / 4} Q ${bodyW} 8 ${bodyW + 4} 28`}
-        stroke={fill}
-        strokeWidth="7"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* Legs */}
-      <Path
-        d={`M ${-8} ${bodyH / 2 - 4} Q ${-18} ${bodyH / 2 + 30} ${-14} ${bodyH / 2 + 52}`}
-        stroke={fill}
-        strokeWidth="9"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <Path
-        d={`M ${8} ${bodyH / 2 - 4} Q ${18} ${bodyH / 2 + 30} ${14} ${bodyH / 2 + 52}`}
-        stroke={fill}
-        strokeWidth="9"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </G>
-  );
-}
-
+/**
+ * Poses face left by default and right when flipped, so partners facing each
+ * other need the left figure flipped and the right one not. Rear-entry and
+ * kneeling-over poses face the same way as the partner in front of them.
+ */
 function renderPose(art: string) {
   switch (art) {
+    // She on her back, he between her legs, chests close.
     case "missionary":
       return (
         <G>
-          <Person cx={140} cy={168} female lean={-78} scale={1.05} />
-          <Person cx={148} cy={118} lean={8} scale={1.05} />
+          <Prop d="M34 206 H246" width={12} />
+          <Figure pose="lyingBack" x={158} y={182} s={0.95} female />
+          <Figure pose="allFours" x={168} y={150} s={0.95} />
         </G>
       );
+    // He sits cross-legged, she straddles his lap with legs wrapped around him.
     case "lotus":
       return (
         <G>
-          <Person cx={140} cy={168} scale={1} />
-          <Person cx={140} cy={118} female scale={0.95} />
+          <Figure pose="crossLegged" x={148} y={192} s={0.95} />
+          <Figure pose="straddleWrap" x={138} y={176} s={0.9} flip female />
         </G>
       );
+    // He on his back, she straddles facing him — so she faces his head.
     case "cowgirl":
       return (
         <G>
-          <Person cx={140} cy={175} lean={-85} scale={1} />
-          <Person cx={140} cy={115} female scale={1} />
+          <Prop d="M34 210 H246" width={12} />
+          <Figure pose="lyingBack" x={156} y={196} s={0.98} />
+          <Figure pose="straddle" x={152} y={156} s={0.92} female />
         </G>
       );
+    // Her knees drawn toward her chest, he stays face to face.
     case "folded":
       return (
         <G>
-          <Person cx={145} cy={175} female lean={-70} scale={1} />
-          <Person cx={155} cy={105} lean={25} scale={1} />
+          <Prop d="M34 208 H246" width={12} />
+          <Figure pose="legsUp" x={156} y={186} s={0.95} female />
+          <Figure pose="kneeling" x={180} y={172} s={0.94} />
         </G>
       );
+    // Both upright, her in his lap facing him.
     case "embrace":
       return (
         <G>
-          <Person cx={132} cy={155} scale={1} />
-          <Person cx={152} cy={140} female scale={0.95} lean={-8} />
+          <Figure pose="sitting" x={136} y={186} s={0.95} />
+          <Figure pose="straddle" x={120} y={164} s={0.9} flip female />
         </G>
       );
+    // Her ankles on his shoulders, still face to face.
     case "legsup":
       return (
         <G>
-          <Person cx={130} cy={175} female lean={-80} scale={1} />
-          <Person cx={160} cy={120} lean={20} scale={1} />
+          <Prop d="M34 208 H246" width={12} />
+          <Figure pose="legsUp" x={150} y={188} s={0.95} female />
+          <Figure pose="kneeling" x={174} y={174} s={0.94} />
         </G>
       );
+    // She on hands and knees, he kneels behind.
     case "doggy":
       return (
         <G>
-          <Person cx={110} cy={150} female lean={-55} scale={1} />
-          <Person cx={175} cy={135} lean={-15} scale={1.05} />
+          <Prop d="M34 202 H246" width={12} />
+          <Figure pose="allFours" x={146} y={166} s={0.96} />
+          <Figure pose="kneeling" x={182} y={158} s={0.96} />
         </G>
       );
+    // Both on your sides, him behind her.
     case "spoon":
       return (
         <G>
-          <Person cx={125} cy={155} female lean={-90} scale={0.95} />
-          <Person cx={155} cy={145} lean={-90} scale={1} />
+          <Prop d="M28 204 H252" width={12} />
+          <Figure pose="lyingSide" x={146} y={176} s={0.95} female />
+          <Figure pose="lyingSide" x={160} y={164} s={0.98} />
         </G>
       );
+    // She flat on her stomach, he on top from behind.
     case "prone":
       return (
         <G>
-          <Person cx={140} cy={175} female lean={-90} scale={1} />
-          <Person cx={145} cy={125} lean={-90} scale={1} />
+          <Prop d="M28 208 H252" width={12} />
+          <Figure pose="lyingFront" x={142} y={186} s={0.95} female />
+          <Figure pose="lyingFront" x={150} y={164} s={0.98} />
         </G>
       );
+    // She kneels and leans onto her forearms, he kneels behind.
     case "kneel":
       return (
         <G>
-          <Person cx={115} cy={160} female lean={-40} scale={1} />
-          <Person cx={175} cy={145} lean={-10} scale={1} />
+          <Prop d="M34 202 H246" width={12} />
+          <Figure pose="kneelHeadDown" x={146} y={166} s={0.95} female />
+          <Figure pose="kneeling" x={182} y={158} s={0.96} />
         </G>
       );
+    // She bent over the edge of the bed, he stands behind.
     case "edgerear":
       return (
         <G>
-          <Path
-            d="M40 190 H240"
-            stroke="rgba(255,255,255,0.15)"
-            strokeWidth="10"
-            strokeLinecap="round"
-          />
-          <Person cx={120} cy={145} female lean={-50} scale={1} />
-          <Person cx={180} cy={135} lean={-5} scale={1} />
+          <Prop d="M28 150 H176" width={13} />
+          <Figure pose="standingBent" x={140} y={140} s={0.92} female />
+          <Figure pose="standing" x={188} y={142} s={0.95} />
         </G>
       );
+    // She bent forward holding a wall, he stands behind.
     case "standdog":
       return (
         <G>
-          <Person cx={115} cy={140} female lean={-35} scale={1.05} />
-          <Person cx={175} cy={130} lean={5} scale={1.05} />
+          <Prop d="M30 212 H250" width={10} />
+          <Figure pose="standingBent" x={128} y={148} s={0.95} female />
+          <Figure pose="standing" x={178} y={148} s={0.96} />
         </G>
       );
+    // He sits, she straddles facing him.
     case "chair":
     case "straddle":
       return (
         <G>
-          <Path
-            d="M95 200 V150 H185 V200"
-            stroke="rgba(255,255,255,0.12)"
-            strokeWidth="8"
-            fill="none"
-            strokeLinejoin="round"
-          />
-          <Person cx={140} cy={155} scale={0.95} />
-          <Person cx={140} cy={108} female scale={0.9} />
+          <Prop d="M98 214 V160 H186 V214" width={9} />
+          <Figure pose="sitting" x={152} y={176} s={0.9} />
+          <Figure pose="straddle" x={134} y={150} s={0.86} flip female />
         </G>
       );
+    // She sits on him facing away, so both face the same way.
     case "throne":
       return (
         <G>
-          <Person cx={140} cy={160} scale={0.95} />
-          <Person cx={140} cy={112} female lean={180} scale={0.88} />
+          <Prop d="M98 214 V162 H186 V214" width={9} />
+          <Figure pose="sitting" x={152} y={178} s={0.9} />
+          <Figure pose="straddle" x={136} y={152} s={0.86} female />
         </G>
       );
+    // She kneels facing the backrest, he behind.
     case "couch":
       return (
         <G>
-          <Path
-            d="M50 175 H230"
-            stroke="rgba(255,255,255,0.12)"
-            strokeWidth="14"
-            strokeLinecap="round"
-          />
-          <Person cx={125} cy={130} female lean={-30} scale={1} />
-          <Person cx={175} cy={125} lean={-5} scale={1} />
+          <Prop d="M40 196 H240" width={16} />
+          <Figure pose="kneelHeadDown" x={140} y={158} s={0.9} female />
+          <Figure pose="kneeling" x={178} y={152} s={0.92} />
         </G>
       );
+    // She sits on the counter, he stands between her legs.
     case "counter":
       return (
         <G>
-          <Path
-            d="M40 155 H240"
-            stroke="rgba(255,255,255,0.14)"
-            strokeWidth="12"
-            strokeLinecap="round"
-          />
-          <Person cx={145} cy={115} female lean={-5} scale={0.95} />
-          <Person cx={145} cy={175} lean={0} scale={1} />
+          <Prop d="M70 158 H248" width={13} />
+          <Figure pose="sitEdge" x={172} y={144} s={0.9} female />
+          <Figure pose="standing" x={134} y={166} s={0.94} flip />
         </G>
       );
+    // She backed to the wall, he presses in close.
     case "wall":
       return (
         <G>
-          <Path
-            d="M60 40 V240"
-            stroke="rgba(255,255,255,0.12)"
-            strokeWidth="10"
-            strokeLinecap="round"
-          />
-          <Person cx={110} cy={145} female lean={5} scale={1.05} />
-          <Person cx={155} cy={145} lean={-5} scale={1.05} />
+          <Prop d="M60 42 V236" width={11} />
+          <Figure pose="standing" x={110} y={152} s={1} flip female />
+          <Figure pose="standing" x={150} y={152} s={1.02} />
         </G>
       );
+    // He lifts her, legs wrapped around his waist.
     case "lift":
       return (
         <G>
-          <Person cx={135} cy={165} scale={1.05} />
-          <Person cx={145} cy={105} female scale={0.9} lean={10} />
+          <Prop d="M60 42 V236" width={11} />
+          <Figure pose="standing" x={152} y={170} s={1} />
+          <Figure pose="lifted" x={136} y={142} s={0.88} flip female />
         </G>
       );
+    // She folds forward onto a table, he stands behind.
     case "bentstand":
       return (
         <G>
-          <Person cx={115} cy={140} female lean={-45} scale={1} />
-          <Person cx={175} cy={135} lean={0} scale={1} />
+          <Prop d="M28 152 H172" width={13} />
+          <Figure pose="standingBent" x={134} y={142} s={0.94} female />
+          <Figure pose="standing" x={184} y={144} s={0.95} />
         </G>
       );
+    // Face to face under the water, one foot raised.
     case "shower":
       return (
         <G>
+          <Prop d="M60 42 V236" width={11} />
+          <Circle cx="206" cy="52" r="9" fill="rgba(140,205,255,0.28)" />
           <Path
-            d="M200 50 V90"
-            stroke="rgba(120,200,255,0.35)"
+            d="M206 62 V96 M196 66 V92 M216 66 V92"
+            stroke="rgba(140,205,255,0.25)"
             strokeWidth="3"
+            strokeLinecap="round"
           />
-          <Circle cx="200" cy="48" r="8" fill="rgba(120,200,255,0.3)" />
-          <Person cx={130} cy={150} female lean={8} scale={1} />
-          <Person cx={165} cy={148} lean={-8} scale={1} />
+          <Figure pose="standing" x={122} y={156} s={0.96} flip female />
+          <Figure pose="standing" x={162} y={154} s={1} />
         </G>
       );
+    // She kneels in front of him while he stands.
     case "oral-kneel":
       return (
         <G>
-          <Person cx={150} cy={115} scale={1} />
-          <Person cx={150} cy={185} female lean={0} scale={0.9} />
+          <Prop d="M30 212 H250" width={10} />
+          <Figure pose="standing" x={152} y={134} s={0.95} />
+          <Figure pose="kneelHeadDown" x={108} y={182} s={0.86} flip female />
         </G>
       );
+    // She kneels over his face.
     case "facesit":
       return (
         <G>
-          <Person cx={140} cy={185} lean={-90} scale={1} />
-          <Person cx={140} cy={115} female scale={0.95} />
+          <Prop d="M28 210 H252" width={12} />
+          <Figure pose="lyingBack" x={166} y={196} s={0.98} />
+          <Figure pose="straddle" x={106} y={158} s={0.86} flip female />
         </G>
       );
+    // Head to toe on your sides.
     case "sixtynine":
       return (
         <G>
-          <Person cx={115} cy={140} lean={-90} scale={0.95} />
-          <Person cx={170} cy={145} female lean={90} scale={0.95} />
+          <Prop d="M24 206 H256" width={12} />
+          <Figure pose="lyingSide" x={172} y={152} s={0.94} />
+          <Figure pose="lyingSide" x={112} y={170} s={0.9} flip female />
         </G>
       );
+    // She sits on the edge, he kneels between her thighs.
     case "edgeoral":
       return (
         <G>
-          <Path
-            d="M40 150 H200"
-            stroke="rgba(255,255,255,0.14)"
-            strokeWidth="12"
-            strokeLinecap="round"
-          />
-          <Person cx={145} cy={110} female lean={5} scale={0.95} />
-          <Person cx={145} cy={195} scale={0.9} />
+          <Prop d="M78 152 H250" width={13} />
+          <Figure pose="sitEdge" x={166} y={138} s={0.9} female />
+          <Figure pose="kneelHeadDown" x={112} y={196} s={0.86} flip />
         </G>
       );
+    // On your sides, legs interleaved in the middle.
     case "scissors":
       return (
         <G>
-          <Person cx={110} cy={150} female lean={-90} scale={0.95} />
-          <Person cx={175} cy={150} lean={90} scale={0.95} />
+          <Prop d="M24 206 H256" width={12} />
+          <Figure pose="lyingSide" x={114} y={166} s={0.94} female />
+          <Figure pose="lyingSide" x={174} y={162} s={0.94} flip />
         </G>
       );
+    // She on her back, he perpendicular on his side.
     case "cross":
       return (
         <G>
-          <Person cx={120} cy={165} female lean={-85} scale={1} />
-          <Person cx={175} cy={140} lean={-10} scale={1} />
+          <Prop d="M28 208 H252" width={12} />
+          <Figure pose="lyingBack" x={144} y={186} s={0.95} female />
+          <Figure pose="kneeling" x={188} y={172} s={0.94} />
         </G>
       );
+    // She arches her hips up, he kneels between.
     case "bridge":
       return (
         <G>
-          <Person cx={140} cy={170} female lean={-100} scale={1} />
-          <Person cx={145} cy={115} lean={10} scale={1} />
+          <Prop d="M28 208 H252" width={12} />
+          <Figure pose="bridge" x={148} y={180} s={0.98} female />
+          <Figure pose="kneeling" x={186} y={172} s={0.94} />
         </G>
       );
+    // She perched on the edge with legs open, he standing.
     case "table":
     case "butterfly":
       return (
         <G>
-          <Path
-            d="M40 155 H220"
-            stroke="rgba(255,255,255,0.14)"
-            strokeWidth="12"
-            strokeLinecap="round"
-          />
-          <Person cx={140} cy={115} female lean={-10} scale={0.95} />
-          <Person cx={155} cy={175} lean={5} scale={1} />
+          <Prop d="M74 160 H250" width={13} />
+          <Figure pose="sitEdge" x={170} y={146} s={0.9} female />
+          <Figure pose="standing" x={132} y={168} s={0.94} flip />
         </G>
       );
+    // Hips elevated, knees toward her shoulders, he kneeling over.
     case "foldedpress":
       return (
         <G>
-          <Person cx={140} cy={175} female lean={-60} scale={1} />
-          <Person cx={145} cy={100} lean={15} scale={1} />
+          <Prop d="M30 208 H250" width={12} />
+          <Figure pose="legsUp" x={150} y={184} s={0.95} female />
+          <Figure pose="kneeling" x={176} y={164} s={0.94} />
         </G>
       );
     default:
       return (
         <G>
-          <Person cx={120} cy={150} female />
-          <Person cx={170} cy={145} />
+          <Figure pose="standing" x={118} y={152} s={1} flip female />
+          <Figure pose="standing" x={162} y={150} s={1.02} />
         </G>
       );
   }
