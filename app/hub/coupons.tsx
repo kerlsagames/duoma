@@ -231,6 +231,7 @@ export default function CouponsScreen() {
   );
 
   const ideas = categoryId ? ideasInCategory(categoryId) : [];
+  const focused = tab === "give" && Boolean(categoryId || idea);
 
   const send = async () => {
     if (!idea) {
@@ -276,89 +277,100 @@ export default function CouponsScreen() {
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-4 pb-8">
-        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 12,
-            letterSpacing: 3,
-            textTransform: "uppercase",
-            color: T.accent,
-          }}
-        >
-          Coupons
-        </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: SERIF,
-            fontSize: 34,
-            lineHeight: 40,
-            color: T.ink,
-          }}
-        >
-          Tear one off. Give it away.
-        </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: SERIF,
-            fontSize: 16,
-            lineHeight: 24,
-            color: T.muted,
-          }}
-        >
-          Pick a favor, add why if you want, set when it expires. Their wallet keeps what you
-          sent — and what they already used.
-        </Text>
+        <BackButton
+          color={T.accent}
+          style={{ marginBottom: focused ? 8 : 12 }}
+        />
+        {!focused ? (
+          <>
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 12,
+                letterSpacing: 3,
+                textTransform: "uppercase",
+                color: T.accent,
+              }}
+            >
+              Coupons
+            </Text>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 34,
+                lineHeight: 40,
+                color: T.ink,
+              }}
+            >
+              Tear one off. Give it away.
+            </Text>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 24,
+                color: T.muted,
+              }}
+            >
+              Pick a favor, add why if you want, set when it expires. Their wallet keeps what you
+              sent — and what they already used.
+            </Text>
+          </>
+        ) : null}
 
-        <View
-          style={{
-            marginTop: 22,
-            flexDirection: "row",
-            borderRadius: 18,
-            backgroundColor: T.surface,
-            padding: 4,
-            borderWidth: 1,
-            borderColor: "rgba(247,241,227,0.08)",
-          }}
-        >
-          {(
-            [
-              ["give", "Give"],
-              ["received", "Received"],
-              ["past", "Used / expired"],
-            ] as const
-          ).map(([id, label]) => {
-            const on = tab === id;
-            return (
-              <Pressable
-                key={id}
-                onPress={() => {
-                  setTab(id);
-                  setError(null);
-                }}
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  borderRadius: 14,
-                  paddingVertical: 11,
-                  backgroundColor: on ? T.accent : "transparent",
-                }}
-              >
-                <Text
+        {!idea ? (
+          <View
+            style={{
+              marginTop: focused ? 4 : 22,
+              flexDirection: "row",
+              borderRadius: 18,
+              backgroundColor: T.surface,
+              padding: 4,
+              borderWidth: 1,
+              borderColor: "rgba(247,241,227,0.08)",
+            }}
+          >
+            {(
+              [
+                ["give", "Give"],
+                ["received", "Received"],
+                ["past", "Used / expired"],
+              ] as const
+            ).map(([id, label]) => {
+              const on = tab === id;
+              return (
+                <Pressable
+                  key={id}
+                  onPress={() => {
+                    setTab(id);
+                    setCategoryId(null);
+                    setIdea(null);
+                    setError(null);
+                  }}
                   style={{
-                    fontSize: 13,
-                    fontWeight: "700",
-                    color: on ? "#14110A" : T.muted,
+                    flex: 1,
+                    alignItems: "center",
+                    borderRadius: 14,
+                    paddingVertical: 11,
+                    backgroundColor: on ? T.accent : "transparent",
                   }}
                 >
-                  {label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "700",
+                      color: on ? "#14110A" : T.muted,
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
 
         {sentFlash ? (
           <Text

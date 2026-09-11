@@ -1,5 +1,4 @@
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
-import { PushSetupCard } from "@/components/PushSetupCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
@@ -115,6 +114,12 @@ export default function SettingsScreen() {
           </Section>
 
           <SettingsRow
+            label="Notifications"
+            hint="Enable lock-screen pings and choose what shows on Home."
+            icon="notifications"
+            onPress={() => router.push("/hub/notification-settings" as Href)}
+          />
+          <SettingsRow
             label="Card Bank"
             hint="Toggle rotation. Write custom cards with your names."
             icon="albums"
@@ -127,7 +132,20 @@ export default function SettingsScreen() {
             onPress={() => router.push("/how-to" as Href)}
           />
 
-          <PushSetupCard />
+          <Section>
+            <Text className="mb-3 text-[12px] uppercase tracking-widest text-mist/40">
+              Lock screen
+            </Text>
+            <Text className="mb-3 text-[14px] leading-5 text-mist/60">
+              Device enable and per-type choices live in Notification settings —
+              also reachable from the cog next to Notifications on Home.
+            </Text>
+            <PrimaryButton
+              label="Open notification settings"
+              tone="ghost"
+              onPress={() => router.push("/hub/notification-settings" as Href)}
+            />
+          </Section>
 
           <Section>
             <Text className="text-[12px] uppercase tracking-widest text-mist/40">

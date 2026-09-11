@@ -53,11 +53,14 @@ export function SpicyDarePanel({
   onClose,
   mode = "sheet",
   onNavigate,
+  onViewChange,
 }: {
   onClose?: () => void;
   mode?: "sheet" | "page";
   /** Called when the panel switches views (category, compose, home). */
   onNavigate?: () => void;
+  /** Lets the page hide titles while browsing or composing. */
+  onViewChange?: (view: ViewMode) => void;
 }) {
   const {
     user,
@@ -115,7 +118,8 @@ export function SpicyDarePanel({
 
   useEffect(() => {
     onNavigate?.();
-  }, [view, onNavigate]);
+    onViewChange?.(view);
+  }, [view, onNavigate, onViewChange]);
 
   const clearSpin = () => {
     spinTimers.current.forEach(clearTimeout);
@@ -255,7 +259,7 @@ export function SpicyDarePanel({
             goHome();
           }
           setError(null);
-        }} className="mb-4 flex-row items-center">
+        }} className="mb-3 flex-row items-center">
           <Ionicons name="chevron-back" size={18} color={T.accent} />
           <Text
             style={{
@@ -271,31 +275,56 @@ export function SpicyDarePanel({
           </Text>
         </Pressable>
 
-        <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
-          {compose.dareId ? "Send it" : "Write your own"}
-        </Text>
-
-        <TextInput
-          value={compose.text}
-          onChangeText={(text) => setCompose({ ...compose, text })}
-          placeholder="The dare, in your words"
-          placeholderTextColor="rgba(232,244,241,0.32)"
-          multiline
-          style={{
-            marginTop: 16,
-            minHeight: 108,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: T.border,
-            backgroundColor: T.surfaceRaised,
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            color: T.ink,
-            fontFamily: SERIF,
-            fontSize: 17,
-            lineHeight: 24,
-          }}
-        />
+        {compose.dareId ? (
+          <View
+            style={{
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surfaceRaised,
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 20,
+                lineHeight: 28,
+                color: T.ink,
+              }}
+            >
+              {compose.text}
+            </Text>
+          </View>
+        ) : (
+          <>
+            <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
+              Write your own
+            </Text>
+            <TextInput
+              value={compose.text}
+              onChangeText={(text) => setCompose({ ...compose, text })}
+              placeholder="The dare, in your words"
+              placeholderTextColor="rgba(232,244,241,0.32)"
+              multiline
+              style={{
+                marginTop: 16,
+                minHeight: 108,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: T.border,
+                backgroundColor: T.surfaceRaised,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                color: T.ink,
+                fontFamily: SERIF,
+                fontSize: 17,
+                lineHeight: 24,
+              }}
+            />
+          </>
+        )}
 
         {compose.dareId === null ? (
           <View className="mt-4 flex-row flex-wrap" style={{ gap: 8 }}>
@@ -332,7 +361,7 @@ export function SpicyDarePanel({
 
         <Text
           style={{
-            marginTop: 22,
+            marginTop: compose.dareId ? 18 : 22,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 1.4,
