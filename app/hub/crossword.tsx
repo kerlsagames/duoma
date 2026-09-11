@@ -1,4 +1,4 @@
-import { MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import {
@@ -14,9 +14,8 @@ import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#0E1116";
-const INK = "#D7E4F2";
-const NAVY = "#8FA8C8";
+const PAPER = "#E7DFC8";
+const INK = "#1A140C";
 
 export default function CrosswordScreen() {
   const { data, ready, patch } = useMiniApps();
@@ -34,10 +33,12 @@ export default function CrosswordScreen() {
       const current = state.crossword.find((row) => row.puzzleId === puzzle.id);
       const nextLetters = { ...(current?.letters ?? {}), [key]: ch };
       if (!ch) delete nextLetters[key];
-      const rest = state.crossword.filter((row) => row.puzzleId !== puzzle.id);
       return {
         ...state,
-        crossword: [{ puzzleId: puzzle.id, letters: nextLetters }, ...rest],
+        crossword: [
+          { puzzleId: puzzle.id, letters: nextLetters },
+          ...state.crossword.filter((row) => row.puzzleId !== puzzle.id),
+        ],
       };
     });
   };
@@ -59,47 +60,68 @@ export default function CrosswordScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
-      <MiniChrome
-        accent={NAVY}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · sunday"
-        title="Couple crossword"
-        body="Mini puzzles from the private mythology. Ink optional. Cheating encouraged if it ends in a kiss."
-        ready={ready}
-      >
-        <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {CROSSWORD_PUZZLES.map((row) => (
-            <Pressable
-              key={row.id}
-              onPress={() => setPuzzleId(row.id)}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: puzzleId === row.id ? `${NAVY}33` : "rgba(255,255,255,0.05)",
-              }}
-            >
-              <Text style={{ color: puzzleId === row.id ? INK : "#F4F4F6" }}>{row.title}</Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {done ? (
+    <Screen scroll background={PAPER}>
+      <Stage background={PAPER} fallback={"/hub/play" as Href} accent="#8B1E1E">
+        <View style={{ borderBottomWidth: 3, borderBottomColor: INK, paddingBottom: 8 }}>
           <Text
             style={{
-              marginTop: 14,
               fontFamily: SERIF,
-              fontSize: 22,
-              color: "#7CFFB2",
+              fontSize: 40,
+              color: INK,
               textAlign: "center",
             }}
           >
-            Filled. You're dangerous together.
+            The Us Times
+          </Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              color: INK,
+              letterSpacing: 2,
+            }}
+          >
+            SUNDAY MINI · VOL. 2 · LATE CITY
+          </Text>
+        </View>
+        <View style={{ marginTop: 10, flexDirection: "row", justifyContent: "center", gap: 12 }}>
+          {CROSSWORD_PUZZLES.map((row) => (
+            <Pressable key={row.id} onPress={() => setPuzzleId(row.id)}>
+              <Text
+                style={{
+                  color: puzzleId === row.id ? "#8B1E1E" : INK,
+                  fontFamily: SERIF,
+                  fontSize: 16,
+                  textDecorationLine: puzzleId === row.id ? "underline" : "none",
+                }}
+              >
+                {row.title}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {done ? (
+          <Text
+            style={{
+              marginTop: 10,
+              textAlign: "center",
+              fontFamily: SERIF,
+              fontSize: 20,
+              color: "#8B1E1E",
+            }}
+          >
+            Solved over coffee. You’re dangerous.
           </Text>
         ) : null}
 
-        <View style={{ marginTop: 16, alignItems: "center" }}>
+        <View
+          style={{
+            marginTop: 14,
+            alignSelf: "center",
+            transform: [{ rotate: "-0.4deg" }],
+          }}
+        >
           {Array.from({ length: puzzle.size }, (_, r) => (
             <View key={r} style={{ flexDirection: "row" }}>
               {Array.from({ length: puzzle.size }, (_, c) => {
@@ -110,40 +132,25 @@ export default function CrosswordScreen() {
                   return (
                     <View
                       key={key}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        backgroundColor: "#07090C",
-                        borderWidth: 0.5,
-                        borderColor: "#11151C",
-                      }}
+                      style={{ width: 42, height: 42, backgroundColor: INK }}
                     />
                   );
                 }
                 return (
-                  <Pressable
+                  <View
                     key={key}
-                    onPress={() => setActive(key)}
                     style={{
-                      width: 44,
-                      height: 44,
-                      backgroundColor: active === key ? "#243044" : "#F4F1EA",
+                      width: 42,
+                      height: 42,
+                      backgroundColor: active === key ? "#FFF6D6" : "#FAF4E6",
                       borderWidth: 1,
-                      borderColor: "#C9C2B4",
+                      borderColor: INK,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
                     {num ? (
-                      <Text
-                        style={{
-                          position: "absolute",
-                          top: 2,
-                          left: 3,
-                          fontSize: 9,
-                          color: "#333",
-                        }}
-                      >
+                      <Text style={{ position: "absolute", top: 1, left: 3, fontSize: 8, color: INK }}>
                         {num}
                       </Text>
                     ) : null}
@@ -156,32 +163,35 @@ export default function CrosswordScreen() {
                       style={{
                         fontSize: 18,
                         fontWeight: "800",
-                        color: "#1A140C",
+                        color: INK,
                         textAlign: "center",
-                        width: 40,
+                        width: 36,
                       }}
                     />
-                  </Pressable>
+                  </View>
                 );
               })}
             </View>
           ))}
         </View>
 
-        <View style={{ marginTop: 18, gap: 10 }}>
+        <View style={{ marginTop: 18, gap: 8 }}>
           {puzzle.entries.map((entry) => (
-            <View key={entry.id}>
-              <Text style={{ color: NAVY, fontWeight: "700" }}>
-                {entry.num} {entry.dir}
+            <Text key={entry.id} style={{ color: INK, fontSize: 14, lineHeight: 20 }}>
+              <Text style={{ fontWeight: "800" }}>
+                {entry.num} {entry.dir}.{" "}
               </Text>
-              <Text style={{ color: "rgba(244,244,246,0.7)" }}>{entry.clue}</Text>
-            </View>
+              {entry.clue}
+            </Text>
           ))}
         </View>
-        <Pressable onPress={() => void reveal()} style={{ marginTop: 16 }}>
-          <Text style={{ color: "rgba(244,244,246,0.4)" }}>Reveal answers (no judgment)</Text>
+        <Pressable onPress={() => void reveal()} style={{ marginTop: 14 }}>
+          <Text style={{ color: "#8B1E1E", fontStyle: "italic" }}>
+            Peek at the answers (the editor won’t tell)
+          </Text>
         </Pressable>
-      </MiniChrome>
+        {!ready ? <Text style={{ color: INK }}>Setting type…</Text> : null}
+      </Stage>
     </Screen>
   );
 }

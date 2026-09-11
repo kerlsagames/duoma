@@ -1,44 +1,41 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Marquee, Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { TRIVIA_PROMPTS } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
+import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-const BG = "#120E08";
-const GOLD = "#F0C75E";
+const BG = "#08060C";
+const NEON = "#F6E27A";
+const PINK = "#FF3D8B";
 
 type Mode = "write" | "play" | "done";
 
 export default function TriviaScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
-  const you = user?.displayName || "You";
-  const them = partner?.displayName || "them";
+  const you = user?.displayName || "YOU";
+  const them = partner?.displayName || "THEM";
   const mine = data.triviaQuestions.filter((row) => row.authorId === user?.id);
   const [mode, setMode] = useState<Mode>(mine.length >= 6 ? "play" : "write");
   const [cursor, setCursor] = useState(0);
   const [picks, setPicks] = useState<number[]>([]);
   const [draft, setDraft] = useState<number[]>(Array(TRIVIA_PROMPTS.length).fill(-1));
   const [error, setError] = useState<string | null>(null);
-
   const quiz = mine;
   const current = quiz[cursor] ?? null;
   const last = data.triviaAttempts.filter((row) => row.quizOwnerId === user?.id)[0];
-
-  const unanswered = useMemo(
-    () => draft.filter((n) => n < 0).length,
-    [draft]
-  );
+  const unanswered = useMemo(() => draft.filter((n) => n < 0).length, [draft]);
 
   const saveAnswers = async () => {
     if (!user) return;
     if (draft.some((n) => n < 0)) {
-      setError("Answer every question about yourself first.");
+      setError("Every light on the board has to be on.");
       return;
     }
     setError(null);
@@ -68,10 +65,7 @@ export default function TriviaScreen() {
       setCursor(cursor + 1);
       return;
     }
-    const score = quiz.reduce(
-      (sum, q, i) => sum + (q.answerIndex === next[i] ? 1 : 0),
-      0
-    );
+    const score = quiz.reduce((sum, q, i) => sum + (q.answerIndex === next[i] ? 1 : 0), 0);
     await patch((state) => ({
       ...state,
       triviaAttempts: [
@@ -91,31 +85,42 @@ export default function TriviaScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={GOLD}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · game show"
-        title="How well do you know me?"
-        body={`You answer as yourself. Then ${them} (or future-you) tries to guess. Lights, no buzzer, mild humiliation.`}
-        ready={ready}
-      >
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={NEON}>
+        <LinearGradient
+          colors={["#2A1030", "#08060C"]}
+          style={{
+            borderRadius: 8,
+            paddingVertical: 16,
+            paddingHorizontal: 12,
+            borderWidth: 3,
+            borderColor: NEON,
+          }}
+        >
+          <Marquee text="HOW WELL DO YOU KNOW ME" color={NEON} />
+          <Text
+            style={{
+              marginTop: 8,
+              textAlign: "center",
+              fontFamily: SERIF,
+              fontSize: 36,
+              color: NEON,
+            }}
+          >
+            {you.toUpperCase()}
+          </Text>
+          <Text style={{ textAlign: "center", color: PINK, fontFamily: "SpaceMono", fontSize: 11 }}>
+            LIVE FROM THE COUCH · {them.toUpperCase()} IN THE BOOTH
+          </Text>
+        </LinearGradient>
+
         {mode === "write" ? (
-          <View style={{ marginTop: 18, gap: 16 }}>
+          <View style={{ marginTop: 16, gap: 14 }}>
             {TRIVIA_PROMPTS.map((prompt, qi) => (
-              <View
-                key={prompt.prompt}
-                style={{
-                  padding: 14,
-                  borderRadius: 18,
-                  backgroundColor: "#1C160C",
-                  borderWidth: 1,
-                  borderColor: "rgba(240,199,94,0.22)",
-                }}
-              >
-                <Text style={{ color: GOLD, fontFamily: SERIF, fontSize: 18 }}>
+              <View key={prompt.prompt}>
+                <Text style={{ color: NEON, fontFamily: SERIF, fontSize: 20 }}>
                   {qi + 1}. {prompt.prompt}
                 </Text>
-                <View style={{ marginTop: 10, gap: 6 }}>
+                <View style={{ marginTop: 8, gap: 6 }}>
                   {prompt.options.map((opt, oi) => {
                     const on = draft[qi] === oi;
                     return (
@@ -127,12 +132,16 @@ export default function TriviaScreen() {
                           setDraft(next);
                         }}
                         style={{
-                          padding: 10,
-                          borderRadius: 12,
-                          backgroundColor: on ? `${GOLD}33` : "rgba(255,255,255,0.04)",
+                          padding: 12,
+                          borderRadius: 6,
+                          backgroundColor: on ? PINK : "#16101C",
+                          borderWidth: 2,
+                          borderColor: on ? NEON : "#2A2030",
                         }}
                       >
-                        <Text style={{ color: on ? GOLD : "#F4F4F6" }}>{opt}</Text>
+                        <Text style={{ color: on ? "#FFF" : "#EDE4F4", fontWeight: "700" }}>
+                          {String.fromCharCode(65 + oi)}  {opt}
+                        </Text>
                       </Pressable>
                     );
                   })}
@@ -142,79 +151,78 @@ export default function TriviaScreen() {
             <Pressable
               onPress={() => void saveAnswers()}
               style={{
-                height: 52,
-                borderRadius: 16,
-                backgroundColor: GOLD,
+                height: 56,
+                backgroundColor: NEON,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: "#1A1405", fontWeight: "800" }}>
-                Lock my answers · {TRIVIA_PROMPTS.length - unanswered} / {TRIVIA_PROMPTS.length}
+              <Text style={{ color: "#1A1008", fontWeight: "900", letterSpacing: 1 }}>
+                LOCK IN · {TRIVIA_PROMPTS.length - unanswered} LIT
               </Text>
             </Pressable>
-            {error ? <Text style={{ color: "#FF8A8A" }}>{error}</Text> : null}
+            {error ? <Text style={{ color: PINK }}>{error}</Text> : null}
           </View>
         ) : null}
 
-        {mode === "play" && current ? (
-          <View style={{ marginTop: 18 }}>
-            <Text style={{ color: GOLD, fontFamily: "SpaceMono", fontSize: 12 }}>
-              Q{cursor + 1} / {quiz.length} · guessing {you}
+        {mode === "play" && current && ready ? (
+          <View style={{ marginTop: 20 }}>
+            <Text style={{ color: PINK, fontFamily: "SpaceMono" }}>
+              BUZZER {cursor + 1} / {quiz.length}
             </Text>
-            <Text
+            <View
               style={{
-                marginTop: 12,
-                fontFamily: SERIF,
-                fontSize: 26,
-                lineHeight: 32,
-                color: "#F7F1E3",
+                marginTop: 10,
+                padding: 18,
+                backgroundColor: "#140C18",
+                borderRadius: 80,
+                borderWidth: 2,
+                borderColor: NEON,
               }}
             >
-              {current.prompt}
-            </Text>
-            <View style={{ marginTop: 16, gap: 8 }}>
+              <Text
+                style={{
+                  fontFamily: SERIF,
+                  fontSize: 24,
+                  lineHeight: 30,
+                  color: "#FFF6D8",
+                  textAlign: "center",
+                }}
+              >
+                {current.prompt}
+              </Text>
+            </View>
+            <View style={{ marginTop: 14, gap: 8 }}>
               {current.options.map((opt, i) => (
                 <Pressable
                   key={opt}
                   onPress={() => void guess(i)}
                   style={{
                     padding: 14,
-                    borderRadius: 14,
-                    backgroundColor: "#1C160C",
-                    borderWidth: 1,
-                    borderColor: "rgba(240,199,94,0.3)",
+                    backgroundColor: i % 2 === 0 ? "#1C1230" : "#201018",
+                    borderWidth: 2,
+                    borderColor: i % 2 === 0 ? "#7C5CFF" : PINK,
                   }}
                 >
-                  <Text style={{ color: "#F4F4F6", fontSize: 16 }}>{opt}</Text>
+                  <Text style={{ color: "#FFF", fontWeight: "800" }}>
+                    {String.fromCharCode(65 + i)} · {opt}
+                  </Text>
                 </Pressable>
               ))}
             </View>
           </View>
         ) : null}
 
-        {mode === "play" && !current ? (
-          <EmptyHint text="Write your answers first so there's a quiz to play." />
-        ) : null}
-
         {mode === "done" ? (
-          <View
-            style={{
-              marginTop: 22,
-              padding: 22,
-              borderRadius: 24,
-              backgroundColor: "#1C160C",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: GOLD, fontFamily: SERIF, fontSize: 18 }}>Score</Text>
-            <Text style={{ fontFamily: SERIF, fontSize: 64, color: GOLD }}>
-              {last?.score ?? 0}/{quiz.length}
+          <View style={{ marginTop: 24, alignItems: "center" }}>
+            <Text style={{ color: NEON, fontFamily: "SpaceMono" }}>FINAL SCORE</Text>
+            <Text style={{ fontFamily: SERIF, fontSize: 84, color: NEON }}>
+              {last?.score ?? 0}
             </Text>
-            <Text style={{ color: "rgba(244,244,246,0.6)", textAlign: "center" }}>
+            <Text style={{ color: PINK, fontFamily: SERIF, fontSize: 20 }}>
               {(last?.score ?? 0) >= quiz.length - 1
-                ? "Dangerously well. Keep a little mystery."
-                : "Room to be surprised. That's healthy."}
+                ? "Dangerously well. Leave a mystery."
+                : "The booth is still guessing."}
             </Text>
             <Pressable
               onPress={() => {
@@ -222,16 +230,13 @@ export default function TriviaScreen() {
                 setCursor(0);
                 setPicks([]);
               }}
-              style={{ marginTop: 16, padding: 12 }}
+              style={{ marginTop: 16 }}
             >
-              <Text style={{ color: GOLD }}>Play again</Text>
-            </Pressable>
-            <Pressable onPress={() => setMode("write")}>
-              <Text style={{ color: "rgba(244,244,246,0.5)" }}>Rewrite my answers</Text>
+              <Text style={{ color: NEON }}>PLAY AGAIN</Text>
             </Pressable>
           </View>
         ) : null}
-      </MiniChrome>
+      </Stage>
     </Screen>
   );
 }

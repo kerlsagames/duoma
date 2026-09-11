@@ -1,6 +1,6 @@
-import { MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { STORY_TRUNKS, storyById } from "@/lib/couple-story";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -9,8 +9,10 @@ import type { Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#100A0C";
-const WINE = "#E08A8A";
+const BG = "#1A1014";
+const PAGE = "#F3E6D0";
+const INK = "#2A1814";
+const WINE = "#7A2030";
 
 export default function StoryScreen() {
   const { user, partner } = useApp();
@@ -69,7 +71,7 @@ export default function StoryScreen() {
   const write = async () => {
     if (!user || !data.story) return;
     if (!draft.trim()) {
-      setError("A chapter needs at least one sentence.");
+      setError("A chapter needs ink.");
       return;
     }
     setError(null);
@@ -94,41 +96,50 @@ export default function StoryScreen() {
     setDraft("");
   };
 
-  const reset = async () => {
-    await patch((state) => ({ ...state, story: null }));
-  };
-
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={WINE}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · novella"
-        title="Choose-your-own"
-        body={`You take turns steering. ${them} writes the next scene. Nobody gets to skip the embarrassing paragraph.`}
-        ready={ready}
-      >
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={PAGE}>
         {!data.story ? (
-          <View style={{ marginTop: 16, gap: 12 }}>
+          <View>
+            <Text
+              style={{
+                textAlign: "center",
+                fontFamily: SERIF,
+                fontSize: 36,
+                color: PAGE,
+              }}
+            >
+              Open a book
+            </Text>
+            <Text
+              style={{
+                textAlign: "center",
+                fontFamily: HANDWRITING,
+                fontSize: 18,
+                color: "rgba(243,230,208,0.65)",
+                marginBottom: 16,
+              }}
+            >
+              {them} writes the next page
+            </Text>
             {STORY_TRUNKS.map((row) => (
               <Pressable
                 key={row.id}
                 onPress={() => void start(row.id)}
                 style={{
+                  marginBottom: 14,
+                  backgroundColor: PAGE,
                   padding: 16,
-                  borderRadius: 18,
-                  backgroundColor: "#1A1014",
-                  borderWidth: 1,
-                  borderColor: "rgba(224,138,138,0.28)",
+                  transform: [{ rotate: row.id === "cabin-key" ? "1deg" : "-1deg" }],
                 }}
               >
-                <Text style={{ color: WINE, fontSize: 12 }}>{row.kicker}</Text>
-                <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 24, color: "#F8E8E8" }}>
-                  {row.title}
+                <Text style={{ color: WINE, fontFamily: "SpaceMono", fontSize: 10 }}>
+                  {row.kicker.toUpperCase()}
                 </Text>
+                <Text style={{ fontFamily: SERIF, fontSize: 26, color: INK }}>{row.title}</Text>
                 <Text
                   numberOfLines={3}
-                  style={{ marginTop: 8, color: "rgba(244,244,246,0.55)", lineHeight: 20 }}
+                  style={{ marginTop: 8, color: "rgba(42,24,20,0.7)", lineHeight: 20 }}
                 >
                   {row.opening}
                 </Text>
@@ -136,103 +147,93 @@ export default function StoryScreen() {
             ))}
           </View>
         ) : (
-          <View style={{ marginTop: 16 }}>
-            <Text style={{ color: WINE, fontFamily: SERIF, fontSize: 22 }}>{trunk?.title}</Text>
-            <View style={{ marginTop: 12, gap: 12 }}>
-              {data.story.chapters.map((chapter) => (
-                <View
-                  key={chapter.id}
+          <View
+            style={{
+              backgroundColor: PAGE,
+              padding: 18,
+              minHeight: 520,
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 28, color: INK }}>{trunk?.title}</Text>
+            <View style={{ height: 1, backgroundColor: WINE, marginVertical: 10 }} />
+            {data.story.chapters.map((chapter, i) => (
+              <View key={chapter.id} style={{ marginBottom: 14 }}>
+                <Text style={{ color: WINE, fontFamily: "SpaceMono", fontSize: 10 }}>
+                  {chapter.authorId === "narrator"
+                    ? "NARRATOR"
+                    : chapter.authorId === user?.id
+                      ? "YOU"
+                      : them.toUpperCase()}
+                </Text>
+                <Text
                   style={{
-                    padding: 14,
-                    borderRadius: 16,
-                    backgroundColor:
-                      chapter.authorId === "narrator" ? "#1A1014" : "rgba(224,138,138,0.1)",
+                    marginTop: 4,
+                    fontFamily: i === 0 ? SERIF : HANDWRITING,
+                    fontSize: i === 0 ? 16 : 18,
+                    lineHeight: 24,
+                    color: INK,
                   }}
                 >
-                  <Text style={{ color: WINE, fontSize: 11, letterSpacing: 1 }}>
-                    {chapter.authorId === "narrator"
-                      ? "NARRATOR"
-                      : chapter.authorId === user?.id
-                        ? "YOU"
-                        : them.toUpperCase()}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 8,
-                      fontFamily: SERIF,
-                      fontSize: 17,
-                      lineHeight: 26,
-                      color: "#F6EDED",
-                    }}
-                  >
-                    {chapter.body}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
+                  {chapter.body}
+                </Text>
+              </View>
+            ))}
             {data.story.chapters.length === 1 && trunk ? (
-              <View style={{ marginTop: 16, gap: 8 }}>
+              <View style={{ gap: 8, marginTop: 8 }}>
                 {trunk.choices.map((choice) => (
                   <Pressable
                     key={choice.id}
                     onPress={() => void choose(choice.id)}
-                    style={{
-                      padding: 14,
-                      borderRadius: 14,
-                      borderWidth: 1,
-                      borderColor: WINE,
-                    }}
+                    style={{ borderBottomWidth: 1, borderBottomColor: WINE, paddingVertical: 8 }}
                   >
-                    <Text style={{ color: WINE, fontWeight: "700" }}>{choice.label}</Text>
+                    <Text style={{ color: WINE, fontFamily: SERIF, fontSize: 18 }}>
+                      ✦ {choice.label}
+                    </Text>
                   </Pressable>
                 ))}
               </View>
             ) : (
-              <View style={{ marginTop: 16 }}>
-                <Text style={{ color: "rgba(244,244,246,0.5)", marginBottom: 8 }}>
-                  {yourTurn
-                    ? "Your turn to write the next beat."
-                    : `Waiting on ${them} — or write anyway if they're asleep.`}
+              <View style={{ marginTop: 8 }}>
+                <Text style={{ color: "rgba(42,24,20,0.5)", fontFamily: HANDWRITING, fontSize: 16 }}>
+                  {yourTurn ? "Your turn. Don’t waste the page." : `Waiting on ${them} — or steal the pen.`}
                 </Text>
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
-                  placeholder="The next sentence changes everything…"
-                  placeholderTextColor="rgba(244,244,246,0.3)"
                   multiline
+                  placeholder="The next sentence changes the weather…"
                   style={{
-                    minHeight: 100,
-                    borderRadius: 16,
-                    padding: 12,
-                    backgroundColor: "#1A1014",
-                    color: "#F4F4F6",
-                    fontFamily: SERIF,
-                    fontSize: 16,
+                    marginTop: 8,
+                    minHeight: 90,
+                    fontFamily: HANDWRITING,
+                    fontSize: 18,
+                    color: INK,
                   }}
                 />
                 <Pressable
                   onPress={() => void write()}
                   style={{
-                    marginTop: 10,
-                    height: 48,
-                    borderRadius: 14,
+                    height: 44,
                     backgroundColor: WINE,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#1A0808", fontWeight: "800" }}>Add the scene</Text>
+                  <Text style={{ color: PAGE, fontWeight: "800" }}>Turn the page</Text>
                 </Pressable>
-                {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+                {error ? <Text style={{ marginTop: 6, color: WINE }}>{error}</Text> : null}
               </View>
             )}
-            <Pressable onPress={() => void reset()} style={{ marginTop: 18 }}>
-              <Text style={{ color: "rgba(244,244,246,0.35)" }}>Abandon this story</Text>
+            <Pressable
+              onPress={() => void patch((s) => ({ ...s, story: null }))}
+              style={{ marginTop: 16 }}
+            >
+              <Text style={{ color: "rgba(42,24,20,0.4)" }}>Close the book</Text>
             </Pressable>
           </View>
         )}
-      </MiniChrome>
+        {!ready ? <Text style={{ color: PAGE }}>Finding the spine…</Text> : null}
+      </Stage>
     </Screen>
   );
 }

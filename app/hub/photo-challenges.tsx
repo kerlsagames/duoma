@@ -1,6 +1,6 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { PHOTO_PROMPTS, POLAROID_TINTS } from "@/lib/mini-content";
@@ -9,8 +9,8 @@ import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#120E0A";
-const AMBER = "#E4C37A";
+const BG = "#1A0A0A";
+const RED = "#C23B3B";
 const STICKERS = ["✦", "♡", "☼", "♪", "❀", "✓"];
 
 export default function PhotoChallengesScreen() {
@@ -30,7 +30,7 @@ export default function PhotoChallengesScreen() {
   const add = async () => {
     if (!user) return;
     if (!caption.trim()) {
-      setError("A polaroid still needs a sentence.");
+      setError("Write on the back. That’s the whole point.");
       return;
     }
     setError(null);
@@ -54,68 +54,98 @@ export default function PhotoChallengesScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={AMBER}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · darkroom"
-        title="Memory polaroids"
-        body="Weekly prompts. No camera required — describe the frame like you're writing on the back of a photo."
-        ready={ready}
-      >
-        <View
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={RED}>
+        <Text
           style={{
-            marginTop: 18,
-            alignSelf: "center",
-            width: 260,
-            backgroundColor: "#F6EFE2",
-            padding: 12,
-            paddingBottom: 36,
-            transform: [{ rotate: "-2deg" }],
+            textAlign: "center",
+            color: RED,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 3,
           }}
         >
-          <View style={{ height: 180, backgroundColor: tint, justifyContent: "center", alignItems: "center" }}>
-            <Text style={{ fontSize: 42 }}>{sticker}</Text>
+          DARKROOM · SAFE LIGHT ON
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 34,
+            color: "#F6D6D6",
+          }}
+        >
+          Clothesline
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            color: "rgba(246,214,214,0.65)",
+          }}
+        >
+          this week: {week.label}
+        </Text>
+
+        <View style={{ marginTop: 16 }}>
+          <View style={{ height: 2, backgroundColor: "#C4A484", marginBottom: -8 }} />
+          <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+            {["│", "│", "│", "│"].map((pin, i) => (
+              <Text key={i} style={{ color: "#C4A484", fontSize: 18 }}>
+                {pin}
+              </Text>
+            ))}
+          </View>
+        </View>
+
+        <View
+          style={{
+            alignSelf: "center",
+            width: 250,
+            backgroundColor: "#F6EFE2",
+            padding: 12,
+            paddingBottom: 40,
+            transform: [{ rotate: "-3deg" }],
+            shadowColor: "#000",
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+          }}
+        >
+          <View
+            style={{
+              height: 170,
+              backgroundColor: tint,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 48 }}>{sticker}</Text>
             <Text
               style={{
                 marginTop: 8,
                 fontFamily: SERIF,
                 color: "#3A2A18",
-                fontSize: 16,
                 textAlign: "center",
-                paddingHorizontal: 12,
+                paddingHorizontal: 10,
               }}
             >
               {prompt.label}
             </Text>
           </View>
-          <Text
-            style={{
-              marginTop: 10,
-              fontFamily: SERIF,
-              color: "#3A2A18",
-              fontSize: 14,
-            }}
-          >
-            {caption || "this week’s frame…"}
+          <Text style={{ marginTop: 10, fontFamily: HANDWRITING, fontSize: 18, color: "#3A2A18" }}>
+            {caption || "write on the back…"}
           </Text>
         </View>
 
-        <Text style={{ marginTop: 20, color: AMBER, fontFamily: "SpaceMono", fontSize: 11 }}>
-          THIS WEEK · {week.label.toUpperCase()}
-        </Text>
-        <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <View style={{ marginTop: 18, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {PHOTO_PROMPTS.map((row) => (
-            <Pressable
-              key={row.id}
-              onPress={() => setPromptId(row.id)}
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                borderRadius: 999,
-                backgroundColor: promptId === row.id ? `${AMBER}33` : "rgba(255,255,255,0.05)",
-              }}
-            >
-              <Text style={{ color: promptId === row.id ? AMBER : "#F4F4F6", fontSize: 12 }}>
+            <Pressable key={row.id} onPress={() => setPromptId(row.id)}>
+              <Text
+                style={{
+                  color: promptId === row.id ? "#F6EFE2" : "rgba(246,214,214,0.4)",
+                  fontSize: 12,
+                }}
+              >
                 {row.label}
               </Text>
             </Pressable>
@@ -127,9 +157,8 @@ export default function PhotoChallengesScreen() {
               key={color}
               onPress={() => setTint(color)}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
+                width: 26,
+                height: 26,
                 backgroundColor: color,
                 borderWidth: tint === color ? 2 : 0,
                 borderColor: "#fff",
@@ -137,81 +166,80 @@ export default function PhotoChallengesScreen() {
             />
           ))}
         </View>
-        <View style={{ marginTop: 10, flexDirection: "row", gap: 8 }}>
+        <View style={{ marginTop: 8, flexDirection: "row", gap: 10 }}>
           {STICKERS.map((s) => (
             <Pressable key={s} onPress={() => setSticker(s)}>
-              <Text style={{ fontSize: 22, opacity: sticker === s ? 1 : 0.4 }}>{s}</Text>
+              <Text style={{ fontSize: 22, opacity: sticker === s ? 1 : 0.35 }}>{s}</Text>
             </Pressable>
           ))}
         </View>
         <TextInput
           value={caption}
           onChangeText={setCaption}
-          placeholder="Write on the back of the photo"
-          placeholderTextColor="rgba(244,244,246,0.3)"
+          placeholder="the sentence on the back"
+          placeholderTextColor="rgba(246,214,214,0.3)"
           style={{
             marginTop: 12,
-            borderRadius: 14,
-            padding: 12,
-            backgroundColor: "#1C160F",
-            color: "#F4F4F6",
+            borderBottomWidth: 1,
+            borderBottomColor: RED,
+            color: "#F6D6D6",
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            paddingVertical: 8,
           }}
         />
         <Pressable
           onPress={() => void add()}
           style={{
-            marginTop: 10,
+            marginTop: 12,
             height: 48,
-            borderRadius: 14,
-            backgroundColor: AMBER,
+            backgroundColor: RED,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "#1A1408", fontWeight: "800" }}>Pin it to the wall</Text>
+          <Text style={{ color: "#F6EFE2", fontWeight: "800" }}>Peg it to the line</Text>
         </Pressable>
-        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+        {error ? <Text style={{ marginTop: 8, color: "#FFB4B4" }}>{error}</Text> : null}
 
-        {data.photos.length === 0 ? (
-          <EmptyHint text="The wall is empty. First polaroid is always a little crooked. That's correct." />
-        ) : (
-          <View style={{ marginTop: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-            {data.photos.map((photo, i) => {
-              const p = PHOTO_PROMPTS.find((row) => row.id === photo.promptId);
-              return (
+        <View style={{ marginTop: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          {!ready || data.photos.length === 0 ? (
+            <Text style={{ color: "rgba(246,214,214,0.4)", fontFamily: SERIF }}>
+              The line is empty. First print is always a little crooked.
+            </Text>
+          ) : (
+            data.photos.map((photo, i) => (
+              <View
+                key={photo.id}
+                style={{
+                  width: "46%",
+                  backgroundColor: "#F6EFE2",
+                  padding: 8,
+                  paddingBottom: 22,
+                  transform: [{ rotate: i % 2 ? "2deg" : "-2deg" }],
+                }}
+              >
                 <View
-                  key={photo.id}
                   style={{
-                    width: "47%",
-                    backgroundColor: "#F6EFE2",
-                    padding: 8,
-                    paddingBottom: 20,
-                    transform: [{ rotate: i % 2 === 0 ? "1.5deg" : "-2deg" }],
+                    height: 80,
+                    backgroundColor: photo.tint,
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <View
-                    style={{
-                      height: 90,
-                      backgroundColor: photo.tint,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text style={{ fontSize: 24 }}>{photo.sticker}</Text>
-                  </View>
-                  <Text
-                    style={{ marginTop: 6, color: "#3A2A18", fontSize: 11, fontFamily: SERIF }}
-                    numberOfLines={3}
-                  >
-                    {photo.caption}
-                  </Text>
-                  <Text style={{ color: "rgba(58,42,24,0.5)", fontSize: 10 }}>{p?.label}</Text>
+                  <Text style={{ fontSize: 22 }}>{photo.sticker}</Text>
                 </View>
-              );
-            })}
-          </View>
-        )}
-      </MiniChrome>
+                <Text
+                  style={{ marginTop: 6, fontFamily: HANDWRITING, color: "#3A2A18", fontSize: 14 }}
+                  numberOfLines={3}
+                >
+                  {photo.caption}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+      </Stage>
     </Screen>
   );
 }

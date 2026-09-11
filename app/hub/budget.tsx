@@ -1,14 +1,14 @@
-import { MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#0C1210";
-const GOLD = "#E4C37A";
+const BG = "#1A140E";
+const CREAM = "#F3E2C0";
 
 export default function BudgetScreen() {
   const { data, ready, patch } = useMiniApps();
@@ -20,7 +20,7 @@ export default function BudgetScreen() {
   const create = async () => {
     const n = Number(target);
     if (!title.trim() || !Number.isFinite(n) || n <= 0) {
-      setError("Need a name and a real target.");
+      setError("A jar needs a name and a number.");
       return;
     }
     setError(null);
@@ -55,119 +55,143 @@ export default function BudgetScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={GOLD}
-        fallback={"/hub/home-base" as Href}
-        kicker="Home Base · jars"
-        title="Shared goals"
-        body="Glass jars, filling. Not a bank — a picture of the weekend, the couch, the dinner that hurts a little."
-        ready={ready}
-      >
-        <View style={{ marginTop: 16, gap: 14 }}>
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={CREAM}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 22,
+            color: CREAM,
+          }}
+        >
+          the shelf
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 34,
+            color: CREAM,
+          }}
+        >
+          Glass jars
+        </Text>
+        <View
+          style={{
+            marginTop: 16,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
           {data.goals.map((goal) => {
             const pct = Math.min(1, goal.saved / Math.max(1, goal.target));
             return (
-              <View
+              <Pressable
                 key={goal.id}
-                style={{
-                  padding: 14,
-                  borderRadius: 20,
-                  backgroundColor: "#141A16",
-                  borderWidth: 1,
-                  borderColor: `${goal.color}55`,
-                }}
+                onPress={() => void contribute(goal.id)}
+                style={{ width: 140, alignItems: "center" }}
               >
-                <Text style={{ fontFamily: SERIF, fontSize: 22, color: goal.color }}>
-                  {goal.title}
-                </Text>
-                <Text style={{ marginTop: 4, color: "rgba(244,244,246,0.55)" }}>
-                  ${Math.round(goal.saved)} / ${goal.target}
-                </Text>
                 <View
                   style={{
-                    marginTop: 12,
-                    height: 88,
-                    borderRadius: 18,
-                    borderWidth: 2,
-                    borderColor: goal.color,
+                    width: 92,
+                    height: 140,
+                    borderRadius: 46,
+                    borderWidth: 3,
+                    borderColor: "rgba(243,226,192,0.45)",
                     overflow: "hidden",
                     justifyContent: "flex-end",
-                    backgroundColor: "rgba(255,255,255,0.03)",
+                    backgroundColor: "rgba(255,255,255,0.04)",
                   }}
                 >
                   <View
                     style={{
-                      height: `${pct * 100}%`,
-                      backgroundColor: `${goal.color}99`,
+                      height: `${Math.max(8, pct * 100)}%`,
+                      backgroundColor: goal.color,
+                      opacity: 0.85,
                     }}
                   />
                 </View>
-                <Pressable
-                  onPress={() => void contribute(goal.id)}
-                  style={{ marginTop: 10, alignSelf: "flex-start" }}
+                <View
+                  style={{
+                    marginTop: -8,
+                    width: 40,
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor: "#8B6A3A",
+                  }}
+                />
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontFamily: HANDWRITING,
+                    fontSize: 18,
+                    color: CREAM,
+                    textAlign: "center",
+                  }}
                 >
-                  <Text style={{ color: goal.color, fontWeight: "700" }}>
-                    Drop in ${addAmt}
-                  </Text>
-                </Pressable>
-              </View>
+                  {goal.title}
+                </Text>
+                <Text style={{ color: goal.color, fontFamily: "SpaceMono", fontSize: 11 }}>
+                  ${Math.round(goal.saved)} / ${goal.target}
+                </Text>
+              </Pressable>
             );
           })}
         </View>
-        <View style={{ marginTop: 16, flexDirection: "row", gap: 8 }}>
+        <Text
+          style={{
+            marginTop: 16,
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            color: "rgba(243,226,192,0.6)",
+          }}
+        >
+          tap a jar to drop ${addAmt}
+        </Text>
+        <View style={{ marginTop: 8, flexDirection: "row", justifyContent: "center", gap: 8 }}>
           {["10", "20", "50", "100"].map((n) => (
-            <Pressable
-              key={n}
-              onPress={() => setAddAmt(n)}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: addAmt === n ? `${GOLD}33` : "rgba(255,255,255,0.05)",
-              }}
-            >
-              <Text style={{ color: GOLD }}>${n}</Text>
+            <Pressable key={n} onPress={() => setAddAmt(n)}>
+              <Text style={{ color: addAmt === n ? "#F0C75E" : CREAM, fontFamily: "SpaceMono" }}>
+                ${n}
+              </Text>
             </Pressable>
           ))}
         </View>
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="New jar name"
-          placeholderTextColor="rgba(244,244,246,0.3)"
-          style={inputStyle}
+          placeholder="new jar"
+          placeholderTextColor="rgba(243,226,192,0.3)"
+          style={field}
         />
         <TextInput
           value={target}
           onChangeText={setTarget}
           keyboardType="numeric"
-          placeholder="Target"
-          placeholderTextColor="rgba(244,244,246,0.3)"
-          style={inputStyle}
+          placeholder="target"
+          placeholderTextColor="rgba(243,226,192,0.3)"
+          style={field}
         />
-        <Pressable
-          onPress={() => void create()}
-          style={{
-            marginTop: 10,
-            height: 48,
-            borderRadius: 14,
-            backgroundColor: GOLD,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "#1A1408", fontWeight: "800" }}>Start a jar</Text>
+        <Pressable onPress={() => void create()} style={{ marginTop: 10 }}>
+          <Text style={{ textAlign: "center", color: "#F0C75E", fontFamily: HANDWRITING, fontSize: 20 }}>
+            set a new jar on the shelf
+          </Text>
         </Pressable>
-        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-      </MiniChrome>
+        {error ? <Text style={{ textAlign: "center", color: "#FF8A8A" }}>{error}</Text> : null}
+        {!ready ? <Text style={{ color: CREAM }}>Wiping the glass…</Text> : null}
+      </Stage>
     </Screen>
   );
 }
 
-const inputStyle = {
+const field = {
   marginTop: 8,
-  borderRadius: 12,
-  padding: 12,
-  backgroundColor: "#141A16",
-  color: "#F4F4F6",
+  borderBottomWidth: 1,
+  borderBottomColor: "rgba(243,226,192,0.3)",
+  color: CREAM,
+  fontFamily: HANDWRITING,
+  fontSize: 18,
+  paddingVertical: 6,
 } as const;

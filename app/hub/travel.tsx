@@ -1,14 +1,16 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
+import type { PackItem, Trip, TripStop } from "@/lib/mini-content";
 import type { Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#0B1018";
-const BLUE = "#8FA8C8";
+const BG = "#101820";
+const BLUE = "#1E4D8C";
+const PAPER = "#F3EFE4";
 
 export default function TravelScreen() {
   const { data, ready, patch } = useMiniApps();
@@ -23,7 +25,7 @@ export default function TravelScreen() {
 
   const create = async () => {
     if (!title.trim() || !where.trim()) {
-      setError("Name the trip and the place.");
+      setError("A ticket needs a name and a destination.");
       return;
     }
     setError(null);
@@ -40,7 +42,7 @@ export default function TravelScreen() {
           packing: [
             { id: createId(), label: "Chargers", packed: false },
             { id: createId(), label: "The good snacks", packed: false },
-            { id: createId(), label: "Whatever they always forget", packed: false },
+            { id: createId(), label: "Whatever they forget", packed: false },
           ],
         },
         ...state.trips,
@@ -48,216 +50,183 @@ export default function TravelScreen() {
     }));
   };
 
-  const addStop = async () => {
-    if (!trip || !stop.trim()) return;
-    await patch((state) => ({
-      ...state,
-      trips: state.trips.map((row) =>
-        row.id === trip.id
-          ? {
-              ...row,
-              stops: [
-                ...row.stops,
-                {
-                  id: createId(),
-                  title: stop.trim(),
-                  detail: "",
-                  when: "",
-                  done: false,
-                },
-              ],
-            }
-          : row
-      ),
-    }));
-    setStop("");
-  };
-
-  const toggleStop = async (id: string) => {
+  const mutateTrip = async (fn: (current: Trip) => Trip) => {
     if (!trip) return;
     await patch((state) => ({
       ...state,
-      trips: state.trips.map((row) =>
-        row.id === trip.id
-          ? {
-              ...row,
-              stops: row.stops.map((s) =>
-                s.id === id ? { ...s, done: !s.done } : s
-              ),
-            }
-          : row
-      ),
-    }));
-  };
-
-  const addPack = async () => {
-    if (!trip || !pack.trim()) return;
-    await patch((state) => ({
-      ...state,
-      trips: state.trips.map((row) =>
-        row.id === trip.id
-          ? {
-              ...row,
-              packing: [...row.packing, { id: createId(), label: pack.trim(), packed: false }],
-            }
-          : row
-      ),
-    }));
-    setPack("");
-  };
-
-  const togglePack = async (id: string) => {
-    if (!trip) return;
-    await patch((state) => ({
-      ...state,
-      trips: state.trips.map((row) =>
-        row.id === trip.id
-          ? {
-              ...row,
-              packing: row.packing.map((p) =>
-                p.id === id ? { ...p, packed: !p.packed } : p
-              ),
-            }
-          : row
-      ),
+      trips: state.trips.map((row) => (row.id === trip.id ? fn(row) : row)),
     }));
   };
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={BLUE}
-        fallback={"/hub/home-base" as Href}
-        kicker="Home Base · boarding"
-        title="Itinerary"
-        body="A trip board that looks like a ticket. Stops, packing, the reservation you will otherwise lose in a screenshot pile."
-        ready={ready}
-      >
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent="#D7E4F2">
         {!trip ? (
-          <View style={{ marginTop: 16, gap: 8 }}>
-            <TextInput value={title} onChangeText={setTitle} placeholder="Trip name" placeholderTextColor="rgba(244,244,246,0.3)" style={inputStyle} />
-            <TextInput value={where} onChangeText={setWhere} placeholder="Where" placeholderTextColor="rgba(244,244,246,0.3)" style={inputStyle} />
-            <TextInput value={start} onChangeText={setStart} placeholder="Start (date or 'Friday')" placeholderTextColor="rgba(244,244,246,0.3)" style={inputStyle} />
-            <TextInput value={end} onChangeText={setEnd} placeholder="End" placeholderTextColor="rgba(244,244,246,0.3)" style={inputStyle} />
+          <View>
+            <Text style={{ fontFamily: SERIF, fontSize: 32, color: "#D7E4F2" }}>
+              Issue a ticket
+            </Text>
+            <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(215,228,242,0.6)" }}>
+              even a Tuesday can have a gate
+            </Text>
+            {[
+              [title, setTitle, "flight name"],
+              [where, setWhere, "destination"],
+              [start, setStart, "departs"],
+              [end, setEnd, "returns"],
+            ].map(([val, set, ph], i) => (
+              <TextInput
+                key={i}
+                value={val as string}
+                onChangeText={set as (t: string) => void}
+                placeholder={ph as string}
+                placeholderTextColor="rgba(215,228,242,0.3)"
+                style={field}
+              />
+            ))}
             <Pressable
               onPress={() => void create()}
-              style={{
-                height: 50,
-                borderRadius: 14,
-                backgroundColor: BLUE,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={{ marginTop: 14, height: 50, backgroundColor: BLUE, justifyContent: "center" }}
             >
-              <Text style={{ color: "#0B1018", fontWeight: "800" }}>Issue boarding pass</Text>
+              <Text style={{ textAlign: "center", color: PAPER, fontWeight: "800" }}>
+                Print boarding pass
+              </Text>
             </Pressable>
-            {error ? <Text style={{ color: "#FF8A8A" }}>{error}</Text> : null}
-            <EmptyHint text="Start a trip. Even a Tuesday night date can have an itinerary." />
+            {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
           </View>
         ) : (
-          <View style={{ marginTop: 16 }}>
-            <View
-              style={{
-                borderRadius: 20,
-                overflow: "hidden",
-                backgroundColor: "#E8EEF6",
-              }}
-            >
-              <View style={{ padding: 16, backgroundColor: BLUE }}>
-                <Text style={{ color: "#0B1018", fontFamily: "SpaceMono", fontSize: 11 }}>
-                  BOARDING PASS
+          <View>
+            <View style={{ backgroundColor: PAPER, overflow: "hidden" }}>
+              <View style={{ backgroundColor: BLUE, padding: 14 }}>
+                <Text style={{ color: PAPER, fontFamily: "SpaceMono", fontSize: 10 }}>
+                  BOARDING PASS · DUOMA AIR
                 </Text>
-                <Text style={{ fontFamily: SERIF, fontSize: 28, color: "#0B1018" }}>
-                  {trip.title}
-                </Text>
+                <Text style={{ fontFamily: SERIF, fontSize: 28, color: PAPER }}>{trip.title}</Text>
               </View>
-              <View style={{ padding: 16 }}>
-                <Text style={{ color: "#1A2430", fontSize: 16 }}>{trip.where}</Text>
-                <Text style={{ marginTop: 4, color: "rgba(26,36,48,0.6)" }}>
-                  {trip.start}  →  {trip.end}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={section}>STOPS</Text>
-            {trip.stops.map((row) => (
-              <Pressable
-                key={row.id}
-                onPress={() => void toggleStop(row.id)}
+              <View
                 style={{
-                  marginTop: 8,
-                  padding: 12,
-                  borderRadius: 12,
-                  backgroundColor: "#141C28",
+                  flexDirection: "row",
+                  padding: 14,
+                  borderStyle: "dashed",
+                  borderBottomWidth: 2,
+                  borderColor: BLUE,
                 }}
               >
-                <Text
-                  style={{
-                    color: "#F4F4F6",
-                    textDecorationLine: row.done ? "line-through" : "none",
-                  }}
-                >
-                  {row.done ? "✓  " : "○  "}
-                  {row.title}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>TO</Text>
+                  <Text style={{ fontFamily: SERIF, fontSize: 22, color: "#1A2430" }}>
+                    {trip.where}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>
+                    {trip.start} → {trip.end}
+                  </Text>
+                  <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "#1A2430" }}>
+                    gate whenever
+                  </Text>
+                </View>
+              </View>
+              <View style={{ padding: 14 }}>
+                <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>ITINERARY</Text>
+                {trip.stops.map((row) => (
+                  <Pressable key={row.id} onPress={() => void mutateTrip((t) => ({
+                    ...t,
+                    stops: t.stops.map((s: TripStop) =>
+                      s.id === row.id ? { ...s, done: !s.done } : s
+                    ),
+                  }))}>
+                    <Text
+                      style={{
+                        fontFamily: HANDWRITING,
+                        fontSize: 18,
+                        color: "#1A2430",
+                        textDecorationLine: row.done ? "line-through" : "none",
+                      }}
+                    >
+                      {row.done ? "☑" : "☐"} {row.title}
+                    </Text>
+                  </Pressable>
+                ))}
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+                  <TextInput
+                    value={stop}
+                    onChangeText={setStop}
+                    placeholder="add a stop"
+                    style={{ flex: 1, fontFamily: HANDWRITING, fontSize: 16, color: "#1A2430" }}
+                  />
+                  <Pressable
+                    onPress={() => {
+                      if (!stop.trim()) return;
+                      void mutateTrip((t) => ({
+                        ...t,
+                        stops: [
+                          ...t.stops,
+                          { id: createId(), title: stop.trim(), detail: "", when: "", done: false },
+                        ],
+                      }));
+                      setStop("");
+                    }}
+                  >
+                    <Text style={{ color: BLUE }}>add</Text>
+                  </Pressable>
+                </View>
+                <Text style={{ marginTop: 14, fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>
+                  PACKING
                 </Text>
-              </Pressable>
-            ))}
-            <View style={{ marginTop: 8, flexDirection: "row", gap: 8 }}>
-              <TextInput
-                value={stop}
-                onChangeText={setStop}
-                placeholder="Add a stop / reservation"
-                placeholderTextColor="rgba(244,244,246,0.3)"
-                style={[inputStyle, { flex: 1, marginTop: 0 }]}
-              />
-              <Pressable onPress={() => void addStop()} style={{ justifyContent: "center" }}>
-                <Text style={{ color: BLUE }}>Add</Text>
-              </Pressable>
-            </View>
-
-            <Text style={section}>PACKING</Text>
-            {trip.packing.map((row) => (
-              <Pressable
-                key={row.id}
-                onPress={() => void togglePack(row.id)}
-                style={{ marginTop: 6 }}
-              >
-                <Text style={{ color: row.packed ? BLUE : "#F4F4F6" }}>
-                  {row.packed ? "▣" : "□"}  {row.label}
-                </Text>
-              </Pressable>
-            ))}
-            <View style={{ marginTop: 8, flexDirection: "row", gap: 8 }}>
-              <TextInput
-                value={pack}
-                onChangeText={setPack}
-                placeholder="Don't forget…"
-                placeholderTextColor="rgba(244,244,246,0.3)"
-                style={[inputStyle, { flex: 1, marginTop: 0 }]}
-              />
-              <Pressable onPress={() => void addPack()} style={{ justifyContent: "center" }}>
-                <Text style={{ color: BLUE }}>Add</Text>
-              </Pressable>
+                {trip.packing.map((row) => (
+                  <Pressable
+                    key={row.id}
+                    onPress={() =>
+                      void mutateTrip((t) => ({
+                        ...t,
+                        packing: t.packing.map((p: PackItem) =>
+                          p.id === row.id ? { ...p, packed: !p.packed } : p
+                        ),
+                      }))
+                    }
+                  >
+                    <Text style={{ color: row.packed ? BLUE : "#1A2430" }}>
+                      {row.packed ? "▣" : "□"} {row.label}
+                    </Text>
+                  </Pressable>
+                ))}
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+                  <TextInput
+                    value={pack}
+                    onChangeText={setPack}
+                    placeholder="don’t forget"
+                    style={{ flex: 1, fontFamily: HANDWRITING, fontSize: 16, color: "#1A2430" }}
+                  />
+                  <Pressable
+                    onPress={() => {
+                      if (!pack.trim()) return;
+                      void mutateTrip((t) => ({
+                        ...t,
+                        packing: [...t.packing, { id: createId(), label: pack.trim(), packed: false }],
+                      }));
+                      setPack("");
+                    }}
+                  >
+                    <Text style={{ color: BLUE }}>add</Text>
+                  </Pressable>
+                </View>
+              </View>
             </View>
           </View>
         )}
-      </MiniChrome>
+        {!ready ? <Text style={{ color: "#D7E4F2" }}>Stamping passports…</Text> : null}
+      </Stage>
     </Screen>
   );
 }
 
-const inputStyle = {
-  marginTop: 0,
-  borderRadius: 12,
-  padding: 12,
-  backgroundColor: "#141C28",
-  color: "#F4F4F6",
+const field = {
+  marginTop: 10,
+  borderBottomWidth: 1,
+  borderBottomColor: "rgba(215,228,242,0.3)",
+  color: "#D7E4F2",
+  fontFamily: HANDWRITING,
+  fontSize: 20,
+  paddingVertical: 6,
 } as const;
-
-const section = {
-  marginTop: 22,
-  fontFamily: "SpaceMono" as const,
-  fontSize: 11,
-  letterSpacing: 2,
-  color: BLUE,
-};

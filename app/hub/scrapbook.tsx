@@ -1,6 +1,6 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { localDateKey } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -9,8 +9,9 @@ import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#140F0C";
-const CREAM = "#E8D5A8";
+const KRAFT = "#C4A574";
+const BG = "#3A2A18";
+const INK = "#2A1C10";
 
 function addDays(n: number): string {
   const d = new Date();
@@ -26,9 +27,16 @@ export default function ScrapbookScreen() {
   const [when, setWhen] = useState(addDays(30));
   const [error, setError] = useState<string | null>(null);
   const today = localDateKey();
-
   const sealed = data.capsules.filter((row) => row.unlockAt > today);
   const open = data.capsules.filter((row) => row.unlockAt <= today);
+  const presets = useMemo(
+    () => [
+      { label: "a month", key: addDays(30) },
+      { label: "100 days", key: addDays(100) },
+      { label: "a year", key: addDays(365) },
+    ],
+    []
+  );
 
   const daysUntil = (key: string) => {
     const [y, m, d] = key.split("-").map(Number);
@@ -38,19 +46,10 @@ export default function ScrapbookScreen() {
     return Math.ceil((target.getTime() - start.getTime()) / 86400000);
   };
 
-  const presets = useMemo(
-    () => [
-      { label: "In a month", key: addDays(30) },
-      { label: "In 100 days", key: addDays(100) },
-      { label: "Next anniversary-ish", key: addDays(365) },
-    ],
-    []
-  );
-
   const seal = async () => {
     if (!user) return;
     if (!title.trim() || !body.trim()) {
-      setError("A capsule needs a title and a letter.");
+      setError("An envelope needs a name and a letter.");
       return;
     }
     setError(null);
@@ -74,52 +73,69 @@ export default function ScrapbookScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={CREAM}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · time capsule"
-        title="Virtual scrapbook"
-        body="Seal a letter for a future version of you two. It stays shut until the date you pick."
-        ready={ready}
-      >
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={KRAFT}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 22,
+            color: "#F3E2C0",
+          }}
+        >
+          washi · stamps · later
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 36,
+            color: "#F3E2C0",
+          }}
+        >
+          Time capsules
+        </Text>
+
         <View
           style={{
             marginTop: 16,
+            backgroundColor: KRAFT,
             padding: 16,
-            borderRadius: 20,
-            backgroundColor: "#1C1610",
-            borderWidth: 1,
-            borderColor: "rgba(232,213,168,0.28)",
+            transform: [{ rotate: "-1deg" }],
           }}
         >
+          <View
+            style={{
+              height: 14,
+              backgroundColor: "#7A2030",
+              marginHorizontal: -16,
+              marginTop: -16,
+              marginBottom: 12,
+            }}
+          />
           <TextInput
             value={title}
             onChangeText={setTitle}
-            placeholder="Capsule title"
-            placeholderTextColor="rgba(244,244,246,0.3)"
-            style={inputStyle}
+            placeholder="on the envelope"
+            style={ink}
           />
           <TextInput
             value={body}
             onChangeText={setBody}
-            placeholder="What should future-you remember?"
-            placeholderTextColor="rgba(244,244,246,0.3)"
+            placeholder="the letter inside"
             multiline
-            style={[inputStyle, { minHeight: 90 }]}
+            style={[ink, { minHeight: 80 }]}
           />
-          <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <View style={{ marginTop: 10, flexDirection: "row", gap: 8 }}>
             {presets.map((row) => (
-              <Pressable
-                key={row.key}
-                onPress={() => setWhen(row.key)}
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  borderRadius: 999,
-                  backgroundColor: when === row.key ? `${CREAM}33` : "rgba(255,255,255,0.05)",
-                }}
-              >
-                <Text style={{ color: when === row.key ? CREAM : "#F4F4F6", fontSize: 12 }}>
+              <Pressable key={row.key} onPress={() => setWhen(row.key)}>
+                <Text
+                  style={{
+                    fontFamily: HANDWRITING,
+                    fontSize: 18,
+                    color: when === row.key ? "#7A2030" : INK,
+                    textDecorationLine: when === row.key ? "underline" : "none",
+                  }}
+                >
                   {row.label}
                 </Text>
               </Pressable>
@@ -128,78 +144,66 @@ export default function ScrapbookScreen() {
           <Pressable
             onPress={() => void seal()}
             style={{
-              marginTop: 12,
-              height: 48,
-              borderRadius: 14,
-              backgroundColor: CREAM,
+              marginTop: 14,
+              alignSelf: "center",
+              width: 86,
+              height: 86,
+              borderRadius: 43,
+              backgroundColor: "#7A2030",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#1A1408", fontWeight: "800" }}>Seal until {when}</Text>
+            <Text style={{ color: "#F3E2C0", fontFamily: HANDWRITING, fontSize: 18 }}>seal</Text>
           </Pressable>
-          {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+          {error ? <Text style={{ marginTop: 8, color: "#7A2030" }}>{error}</Text> : null}
         </View>
 
-        {sealed.length === 0 && open.length === 0 ? (
-          <EmptyHint text="Nothing sealed yet. Write the thing you'd only say to yourselves a year from now." />
-        ) : null}
-
-        {sealed.length > 0 ? (
-          <View style={{ marginTop: 20, gap: 10 }}>
-            <Text style={{ color: CREAM, fontFamily: "SpaceMono", fontSize: 11 }}>SEALED</Text>
-            {sealed.map((row) => (
-              <View
-                key={row.id}
-                style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderStyle: "dashed",
-                  borderColor: "rgba(232,213,168,0.35)",
-                }}
-              >
-                <Text style={{ fontFamily: SERIF, fontSize: 20, color: CREAM }}>{row.title}</Text>
-                <Text style={{ marginTop: 4, color: "rgba(244,244,246,0.5)" }}>
-                  Opens in {daysUntil(row.unlockAt)} days · {row.unlockAt}
-                </Text>
-                <Text style={{ marginTop: 8, color: "rgba(244,244,246,0.25)" }}>
-                  ████████ the letter is waxed shut ████████
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        {open.length > 0 ? (
-          <View style={{ marginTop: 20, gap: 10 }}>
-            <Text style={{ color: CREAM, fontFamily: "SpaceMono", fontSize: 11 }}>OPEN</Text>
-            {open.map((row) => (
-              <View
-                key={row.id}
-                style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  backgroundColor: "#F6EFE2",
-                }}
-              >
-                <Text style={{ fontFamily: SERIF, fontSize: 20, color: "#3A2A18" }}>
-                  {row.title}
-                </Text>
-                <Text style={{ marginTop: 8, color: "#3A2A18", lineHeight: 22 }}>{row.body}</Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-      </MiniChrome>
+        <View style={{ marginTop: 20, gap: 12 }}>
+          {!ready || (sealed.length === 0 && open.length === 0) ? (
+            <Text style={{ color: "rgba(243,226,192,0.5)", fontFamily: SERIF }}>
+              Nothing sealed. Write the thing you’d only say in a year.
+            </Text>
+          ) : null}
+          {sealed.map((row) => (
+            <View
+              key={row.id}
+              style={{
+                backgroundColor: "#E8D4A8",
+                padding: 14,
+                borderWidth: 2,
+                borderStyle: "dashed",
+                borderColor: "#7A2030",
+              }}
+            >
+              <Text style={{ fontFamily: SERIF, fontSize: 20, color: INK }}>{row.title}</Text>
+              <Text style={{ fontFamily: HANDWRITING, fontSize: 16, color: "#7A2030" }}>
+                do not open for {daysUntil(row.unlockAt)} days
+              </Text>
+              <Text style={{ marginTop: 8, color: "rgba(42,28,16,0.3)" }}>
+                ░░░░░ waxed shut ░░░░░
+              </Text>
+            </View>
+          ))}
+          {open.map((row) => (
+            <View key={row.id} style={{ backgroundColor: "#F6EFE2", padding: 16 }}>
+              <Text style={{ fontFamily: SERIF, fontSize: 22, color: INK }}>{row.title}</Text>
+              <Text style={{ marginTop: 8, fontFamily: HANDWRITING, fontSize: 20, color: INK }}>
+                {row.body}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Stage>
     </Screen>
   );
 }
 
-const inputStyle = {
-  marginTop: 8,
-  borderRadius: 12,
-  padding: 12,
-  backgroundColor: "#241C14",
-  color: "#F4F4F6",
+const ink = {
+  marginTop: 6,
+  color: INK,
+  fontFamily: HANDWRITING,
+  fontSize: 20,
+  borderBottomWidth: 1,
+  borderBottomColor: "rgba(42,28,16,0.25)",
 } as const;

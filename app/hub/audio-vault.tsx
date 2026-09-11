@@ -1,6 +1,6 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
@@ -10,67 +10,58 @@ import {
   type AudioNote,
 } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
-import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Pressable, Text, TextInput, View } from "react-native";
+import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
+import Svg, { Circle, Rect } from "react-native-svg";
 
-const BG = "#0B0710";
-const ROSE = "#FF8FA3";
-const FOLDERS: { id: AudioFolder; label: string }[] = [
-  { id: "sweet", label: "Sweet" },
-  { id: "bedtime", label: "Bedtime" },
-  { id: "spicy", label: "After dark" },
-  { id: "voice", label: "Voice memos" },
+const BG = "#12080C";
+const ROSE = "#E8A0B0";
+const FOLDERS: { id: AudioFolder; label: string; tape: string }[] = [
+  { id: "sweet", label: "Side A · sweet", tape: "#E8A0B0" },
+  { id: "bedtime", label: "Side B · sleep", tape: "#8FA8C8" },
+  { id: "spicy", label: "After dark", tape: "#FF4D6A" },
+  { id: "voice", label: "Field notes", tape: "#F0C75E" },
 ];
 
-function Wave({ playing }: { playing: boolean }) {
-  const bars = useRef(
-    Array.from({ length: 18 }, () => new Animated.Value(0.3))
-  ).current;
-
+function Reel({ spinning, x }: { spinning: boolean; x: number }) {
+  const rot = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!playing) {
-      bars.forEach((bar) => bar.setValue(0.28));
-      return;
-    }
-    const loops = bars.map((bar, i) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(bar, {
-            toValue: 0.3 + ((i * 17) % 70) / 100,
-            duration: 280 + (i % 5) * 90,
-            useNativeDriver: false,
-          }),
-          Animated.timing(bar, {
-            toValue: 0.2,
-            duration: 260 + (i % 4) * 80,
-            useNativeDriver: false,
-          }),
-        ])
-      )
+    if (!spinning) return;
+    const loop = Animated.loop(
+      Animated.timing(rot, {
+        toValue: 1,
+        duration: 1600,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
     );
-    loops.forEach((loop) => loop.start());
-    return () => loops.forEach((loop) => loop.stop());
-  }, [bars, playing]);
-
+    loop.start();
+    return () => {
+      loop.stop();
+      rot.setValue(0);
+    };
+  }, [rot, spinning]);
+  const spin = rot.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 48 }}>
-      {bars.map((bar, i) => (
-        <Animated.View
-          key={i}
-          style={{
-            width: 6,
-            borderRadius: 4,
-            backgroundColor: ROSE,
-            height: bar.interpolate({
-              inputRange: [0, 1],
-              outputRange: [6, 48],
-            }),
-          }}
-        />
-      ))}
-    </View>
+    <Animated.View style={{ position: "absolute", left: x, top: 28, transform: [{ rotate: spin }] }}>
+      <Svg width={72} height={72}>
+        <Circle cx={36} cy={36} r={34} fill="#2A1A16" stroke="#C4A484" strokeWidth={3} />
+        <Circle cx={36} cy={36} r={10} fill="#C4A484" />
+        {[0, 60, 120, 180, 240, 300].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          return (
+            <Circle
+              key={deg}
+              cx={36 + Math.cos(rad) * 18}
+              cy={36 + Math.sin(rad) * 18}
+              r={4}
+              fill="#8B6A4A"
+            />
+          );
+        })}
+      </Svg>
+    </Animated.View>
   );
 }
 
@@ -84,11 +75,11 @@ export default function AudioVaultScreen() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const them = partner?.displayName || "them";
-
   const notes = useMemo(
     () => data.audioNotes.filter((row) => row.folder === folder),
     [data.audioNotes, folder]
   );
+  const tape = FOLDERS.find((row) => row.id === folder)?.tape ?? ROSE;
 
   useEffect(() => {
     if (!playing) return;
@@ -111,7 +102,7 @@ export default function AudioVaultScreen() {
     const nextBody = (preset?.body ?? body).trim();
     const nextFolder = preset?.folder ?? folder;
     if (!nextTitle || !nextBody) {
-      setError("Give it a title and something to hear.");
+      setError("A tape needs a title and something to hear.");
       return;
     }
     setError(null);
@@ -136,62 +127,79 @@ export default function AudioVaultScreen() {
     }
   };
 
-  const visibleText = playing
-    ? playing.body.slice(0, Math.max(12, Math.floor(playing.body.length * progress)))
+  const visible = playing
+    ? playing.body.slice(0, Math.max(8, Math.floor(playing.body.length * progress)))
     : "";
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={ROSE}
-        fallback={"/hub/desire" as Href}
-        kicker="Desire · vault"
-        title="Voice notes"
-        body={`Whispers, bedtime stories, and the thing you meant to say in the kitchen. Played as a private reading — for ${them} or for later-you.`}
-        ready={ready}
-      >
-        <View
+      <Stage background={BG} fallback={"/hub/desire" as Href} accent={ROSE}>
+        <Text
           style={{
-            marginTop: 18,
-            padding: 16,
-            borderRadius: 22,
-            backgroundColor: "#160E16",
-            borderWidth: 1,
-            borderColor: "rgba(255,143,163,0.28)",
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            color: ROSE,
+            textAlign: "center",
           }}
         >
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Text style={{ color: ROSE, fontFamily: "SpaceMono", fontSize: 11 }}>
-              {playing ? "PLAYING" : "CASSETTE"}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 12 }}>
-              {playing ? `${Math.round(progress * (playing.seconds))}s` : "idle"}
-            </Text>
-          </View>
-          <View style={{ marginTop: 16, alignItems: "center" }}>
-            <Wave playing={Boolean(playing)} />
-          </View>
+          mixtape for {them}
+        </Text>
+        <View
+          style={{
+            marginTop: 10,
+            height: 168,
+            borderRadius: 18,
+            backgroundColor: "#2A1614",
+            borderWidth: 3,
+            borderColor: "#C4A484",
+            overflow: "hidden",
+          }}
+        >
+          <Svg width="100%" height="168">
+            <Rect x={0} y={0} width={400} height={168} fill="#2A1614" />
+            <Rect x={24} y={118} width={280} height={18} rx={4} fill="#1A0C0C" />
+            <Rect x={24} y={118} width={280 * (playing ? progress : 0.12)} height={18} rx={4} fill={tape} />
+          </Svg>
+          <Reel spinning={Boolean(playing)} x={36} />
+          <Reel spinning={Boolean(playing)} x={168} />
+          <Text
+            style={{
+              position: "absolute",
+              right: 16,
+              top: 18,
+              fontFamily: "SpaceMono",
+              color: "#7CFFB2",
+              fontSize: 12,
+            }}
+          >
+            {playing ? String(Math.floor(progress * playing.seconds)).padStart(3, "0") : "000"}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            marginTop: 14,
+            minHeight: 110,
+            backgroundColor: "#1A1012",
+            borderRadius: 12,
+            padding: 14,
+            borderLeftWidth: 4,
+            borderLeftColor: tape,
+          }}
+        >
           {playing ? (
-            <Text
-              style={{
-                marginTop: 16,
-                fontFamily: SERIF,
-                fontSize: 18,
-                lineHeight: 26,
-                color: "#F8E8EE",
-              }}
-            >
-              {visibleText}
-              <Text style={{ color: ROSE }}>▌</Text>
+            <Text style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 26, color: "#F8E8EE" }}>
+              {visible}
+              <Text style={{ color: tape }}>▍</Text>
             </Text>
           ) : (
-            <Text style={{ marginTop: 16, color: "rgba(244,244,246,0.4)", fontFamily: SERIF }}>
-              Press play on a note. It reads in their voice, in yours — whichever you saved.
+            <Text style={{ fontFamily: HANDWRITING, fontSize: 20, color: "rgba(248,232,238,0.45)" }}>
+              Press a track. The deck reads it in your voice — slowly, like a late-night radio.
             </Text>
           )}
         </View>
 
-        <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {FOLDERS.map((row) => (
             <Pressable
               key={row.id}
@@ -199,136 +207,120 @@ export default function AudioVaultScreen() {
               style={{
                 paddingHorizontal: 12,
                 paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: folder === row.id ? `${ROSE}33` : "rgba(255,255,255,0.05)",
+                backgroundColor: folder === row.id ? row.tape : "#1A1012",
+                borderRadius: 4,
+                transform: [{ rotate: folder === row.id ? "-2deg" : "0deg" }],
               }}
             >
-              <Text style={{ color: folder === row.id ? ROSE : "#F4F4F6", fontSize: 13 }}>
+              <Text
+                style={{
+                  color: folder === row.id ? "#1A0810" : ROSE,
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                }}
+              >
                 {row.label}
               </Text>
             </Pressable>
           ))}
         </View>
 
-        {notes.length === 0 ? (
-          <EmptyHint text="This folder is quiet. Record a whisper, or drop in a bedtime story from the library below." />
-        ) : (
-          <View style={{ marginTop: 14, gap: 8 }}>
-            {notes.map((note) => (
+        <View style={{ marginTop: 12, gap: 8 }}>
+          {!ready || notes.length === 0 ? (
+            <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF }}>
+              This side of the tape is blank. Record a whisper, or drop a library story in.
+            </Text>
+          ) : (
+            notes.map((note, i) => (
               <Pressable
                 key={note.id}
                 onPress={() => setPlaying(note)}
                 style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  backgroundColor: "#151018",
                   flexDirection: "row",
-                  gap: 12,
                   alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 8,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "rgba(255,255,255,0.06)",
                 }}
               >
-                <Ionicons
-                  name={playing?.id === note.id ? "pause" : "play"}
-                  size={20}
-                  color={ROSE}
-                />
+                <Text style={{ color: tape, fontFamily: "SpaceMono", width: 28 }}>
+                  {String(i + 1).padStart(2, "0")}
+                </Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: "#F4F4F6", fontWeight: "700" }}>{note.title}</Text>
-                  <Text style={{ color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
-                    {note.seconds}s · {note.fromId === user?.id ? "You" : them}
+                  <Text style={{ color: "#F8E8EE", fontFamily: SERIF, fontSize: 18 }}>
+                    {note.title}
+                  </Text>
+                  <Text style={{ color: "rgba(248,232,238,0.4)", fontSize: 12 }}>
+                    {note.seconds}s
                   </Text>
                 </View>
+                <Text style={{ color: tape }}>{playing?.id === note.id ? "■" : "▶"}</Text>
               </Pressable>
-            ))}
-          </View>
-        )}
+            ))
+          )}
+        </View>
 
-        <Text
-          style={{
-            marginTop: 24,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2,
-            color: "rgba(255,143,163,0.7)",
-          }}
-        >
-          RECORD A WHISPER
+        <Text style={{ marginTop: 20, fontFamily: HANDWRITING, fontSize: 22, color: ROSE }}>
+          Record onto the tape
         </Text>
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="Title"
-          placeholderTextColor="rgba(244,244,246,0.3)"
+          placeholder="Track title"
+          placeholderTextColor="rgba(248,232,238,0.3)"
           style={inputStyle}
         />
         <TextInput
           value={body}
           onChangeText={setBody}
-          placeholder="What should they hear?"
-          placeholderTextColor="rgba(244,244,246,0.3)"
+          placeholder="What should they hear in the dark?"
+          placeholderTextColor="rgba(248,232,238,0.3)"
           multiline
-          style={[inputStyle, { minHeight: 90 }]}
+          style={[inputStyle, { minHeight: 80 }]}
         />
         <Pressable
           onPress={() => void save()}
           style={{
+            marginTop: 8,
             height: 48,
-            borderRadius: 14,
             backgroundColor: ROSE,
             alignItems: "center",
             justifyContent: "center",
+            borderRadius: 4,
           }}
         >
-          <Text style={{ color: "#1A0810", fontWeight: "800" }}>Lock in the vault</Text>
+          <Text style={{ color: "#1A0810", fontWeight: "800" }}>Press record</Text>
         </Pressable>
-        {error ? <Text style={{ color: "#FF8A8A" }}>{error}</Text> : null}
+        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
 
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2,
-            color: "rgba(255,143,163,0.7)",
-          }}
-        >
-          LIBRARY
-        </Text>
-        <View style={{ marginTop: 10, gap: 8 }}>
+        <View style={{ marginTop: 20, gap: 8 }}>
           {AUDIO_WHISPERS.map((row) => (
             <Pressable
               key={row.title}
               onPress={() => void save(row)}
               style={{
-                padding: 14,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: "rgba(255,143,163,0.2)",
+                padding: 12,
+                backgroundColor: "#1A1012",
+                borderRadius: 8,
               }}
             >
-              <Text style={{ color: ROSE, fontSize: 12 }}>{row.folder}</Text>
-              <Text style={{ color: "#F4F4F6", fontFamily: SERIF, fontSize: 18 }}>
-                {row.title}
+              <Text style={{ color: ROSE, fontFamily: "SpaceMono", fontSize: 10 }}>
+                LIBRARY · {row.folder}
               </Text>
-              <Text
-                numberOfLines={2}
-                style={{ marginTop: 4, color: "rgba(244,244,246,0.5)", fontSize: 13 }}
-              >
-                {row.body}
-              </Text>
+              <Text style={{ fontFamily: SERIF, fontSize: 18, color: "#F8E8EE" }}>{row.title}</Text>
             </Pressable>
           ))}
         </View>
-      </MiniChrome>
+      </Stage>
     </Screen>
   );
 }
 
 const inputStyle = {
   marginTop: 8,
-  borderRadius: 14,
-  paddingHorizontal: 14,
-  paddingVertical: 12,
-  backgroundColor: "#151018",
-  color: "#F4F4F6",
+  borderRadius: 6,
+  padding: 12,
+  backgroundColor: "#1A1012",
+  color: "#F8E8EE",
 } as const;

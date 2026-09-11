@@ -1,31 +1,28 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { DEFAULT_MEALS } from "@/lib/mini-content";
 import type { Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#0A1410";
-const TEAL = "#3ECFBF";
+const PAPER = "#EFE4C4";
+const INK = "#2A1C10";
+const STAMP = "#B42318";
 
 export default function MealPickerScreen() {
   const { data, ready, patch } = useMiniApps();
   const [draft, setDraft] = useState("");
   const alive = data.meals.filter((row) => !row.eliminated);
   const winner = alive.length === 1 ? alive[0] : null;
-  const remaining = useMemo(() => alive, [alive]);
 
   const add = async () => {
     if (!draft.trim()) return;
     await patch((state) => ({
       ...state,
-      meals: [
-        ...state.meals,
-        { id: createId(), label: draft.trim(), tag: "custom", eliminated: false },
-      ],
+      meals: [...state.meals, { id: createId(), label: draft.trim(), tag: "special", eliminated: false }],
     }));
     setDraft("");
   };
@@ -34,9 +31,7 @@ export default function MealPickerScreen() {
     if (winner) return;
     await patch((state) => ({
       ...state,
-      meals: state.meals.map((row) =>
-        row.id === id ? { ...row, eliminated: true } : row
-      ),
+      meals: state.meals.map((row) => (row.id === id ? { ...row, eliminated: true } : row)),
     }));
   };
 
@@ -64,116 +59,140 @@ export default function MealPickerScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
-      <MiniChrome
-        accent={TEAL}
-        fallback={"/hub/home-base" as Href}
-        kicker="Home Base · kitchen"
-        title="Meal eliminator"
-        body="Neither of you can pick. Cross dinners off like a murder board until the kitchen has spoken."
-        ready={ready}
-      >
-        {winner ? (
-          <View
+    <Screen scroll background="#2A1C10">
+      <Stage background="#2A1C10" fallback={"/hub/home-base" as Href} accent={PAPER}>
+        <View style={{ backgroundColor: PAPER, padding: 18, transform: [{ rotate: "-0.5deg" }] }}>
+          <Text
             style={{
-              marginTop: 18,
-              padding: 22,
-              borderRadius: 24,
-              backgroundColor: "#10241C",
-              borderWidth: 1,
-              borderColor: TEAL,
-              alignItems: "center",
+              textAlign: "center",
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              color: INK,
+              letterSpacing: 3,
             }}
           >
-            <Text style={{ color: TEAL, fontFamily: "SpaceMono", fontSize: 11 }}>
-              THE KITCHEN HAS SPOKEN
-            </Text>
-            <Text
-              style={{
-                marginTop: 10,
-                fontFamily: SERIF,
-                fontSize: 32,
-                color: "#E8FFF8",
-                textAlign: "center",
-              }}
-            >
-              {winner.label}
-            </Text>
-            <Pressable onPress={() => void reset()} style={{ marginTop: 12 }}>
-              <Text style={{ color: TEAL }}>Reset the board</Text>
-            </Pressable>
-          </View>
-        ) : null}
+            TONIGHT’S BOARD
+          </Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: SERIF,
+              fontSize: 36,
+              color: INK,
+            }}
+          >
+            The kitchen
+          </Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: HANDWRITING,
+              fontSize: 18,
+              color: STAMP,
+            }}
+          >
+            cross it off like you mean it
+          </Text>
 
-        <View style={{ marginTop: 16, gap: 8 }}>
-          {data.meals.map((row) => (
+          {winner ? (
+            <View style={{ marginTop: 16, alignItems: "center" }}>
+              <Text style={{ fontFamily: "SpaceMono", color: STAMP, fontSize: 11 }}>
+                THE SPECIAL
+              </Text>
+              <Text style={{ fontFamily: SERIF, fontSize: 32, color: INK, textAlign: "center" }}>
+                {winner.label}
+              </Text>
+              <Pressable onPress={() => void reset()} style={{ marginTop: 8 }}>
+                <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: STAMP }}>
+                  reprint the menu
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          <View style={{ marginTop: 16, gap: 10 }}>
+            {data.meals.map((row, i) => (
+              <Pressable
+                key={row.id}
+                onPress={() => void eliminate(row.id)}
+                style={{ paddingVertical: 6 }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontFamily: i % 2 ? HANDWRITING : SERIF,
+                      fontSize: 22,
+                      color: INK,
+                      textDecorationLine: row.eliminated ? "line-through" : "none",
+                      opacity: row.eliminated ? 0.4 : 1,
+                    }}
+                  >
+                    {row.label}
+                  </Text>
+                  {row.eliminated ? (
+                    <Text
+                      style={{
+                        fontFamily: SERIF,
+                        fontSize: 28,
+                        color: STAMP,
+                        transform: [{ rotate: "-12deg" }],
+                      }}
+                    >
+                      NO
+                    </Text>
+                  ) : (
+                    <Text style={{ color: "rgba(42,28,16,0.3)" }}>····</Text>
+                  )}
+                </View>
+              </Pressable>
+            ))}
+          </View>
+
+          {!winner ? (
             <Pressable
-              key={row.id}
-              onPress={() => void eliminate(row.id)}
-              disabled={row.eliminated || Boolean(winner)}
+              onPress={() => void suddenDeath()}
               style={{
-                padding: 14,
-                borderRadius: 16,
-                backgroundColor: row.eliminated ? "#0C1814" : "#10241C",
-                opacity: row.eliminated ? 0.45 : 1,
+                marginTop: 16,
+                borderWidth: 2,
+                borderColor: STAMP,
+                paddingVertical: 10,
               }}
             >
               <Text
                 style={{
+                  textAlign: "center",
+                  color: STAMP,
                   fontFamily: SERIF,
-                  fontSize: 20,
-                  color: row.eliminated ? "rgba(244,244,246,0.35)" : "#F4F4F6",
-                  textDecorationLine: row.eliminated ? "line-through" : "none",
+                  fontSize: 18,
                 }}
               >
-                {row.eliminated ? "✕  " : ""}
-                {row.label}
+                Cleaver · {alive.length} left
               </Text>
-              <Text style={{ color: TEAL, fontSize: 11, marginTop: 4 }}>{row.tag}</Text>
             </Pressable>
-          ))}
-        </View>
+          ) : null}
 
-        {!winner ? (
-          <Pressable
-            onPress={() => void suddenDeath()}
-            style={{
-              marginTop: 14,
-              height: 48,
-              borderRadius: 14,
-              backgroundColor: TEAL,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ color: "#06201C", fontWeight: "800" }}>
-              Sudden death · {remaining.length} left
-            </Text>
-          </Pressable>
-        ) : null}
-
-        <View style={{ marginTop: 16, flexDirection: "row", gap: 8 }}>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Add a contender"
-            placeholderTextColor="rgba(244,244,246,0.3)"
-            style={{
-              flex: 1,
-              borderRadius: 12,
-              padding: 12,
-              backgroundColor: "#10241C",
-              color: "#F4F4F6",
-            }}
-          />
-          <Pressable onPress={() => void add()} style={{ justifyContent: "center" }}>
-            <Text style={{ color: TEAL, fontWeight: "700" }}>Add</Text>
-          </Pressable>
+          <View style={{ marginTop: 14, flexDirection: "row", gap: 8 }}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="add a special"
+              style={{
+                flex: 1,
+                fontFamily: HANDWRITING,
+                fontSize: 18,
+                color: INK,
+                borderBottomWidth: 1,
+                borderBottomColor: INK,
+              }}
+            />
+            <Pressable onPress={() => void add()}>
+              <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: STAMP }}>add</Text>
+            </Pressable>
+          </View>
+          {!ready ? <Text style={{ color: INK }}>Chalking the board…</Text> : null}
         </View>
-        {data.meals.length === 0 ? (
-          <EmptyHint text="Add a few dinners, then start crossing them off with prejudice." />
-        ) : null}
-      </MiniChrome>
+      </Stage>
     </Screen>
   );
 }

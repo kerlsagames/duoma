@@ -1,15 +1,63 @@
-import { EmptyHint, MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { Href } from "expo-router";
-import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import { Animated, Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#100C14";
-const LILAC = "#C9A0DC";
+const FELT = "#0E3B2E";
+const GOLD = "#E4C37A";
+
+function PlayingCard({
+  index,
+  text,
+  flipped,
+  onFlip,
+}: {
+  index: number;
+  text: string;
+  flipped: boolean;
+  onFlip: () => void;
+}) {
+  const rot = useRef(new Animated.Value(flipped ? 1 : 0)).current;
+  const flip = () => {
+    Animated.spring(rot, { toValue: 1, friction: 7, useNativeDriver: true }).start(() =>
+      onFlip()
+    );
+  };
+  const rotateY = rot.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+  return (
+    <Pressable onPress={flipped ? undefined : flip}>
+      <Animated.View
+        style={{
+          height: 150,
+          borderRadius: 12,
+          backgroundColor: flipped ? "#F7F1E3" : "#7B1028",
+          borderWidth: 3,
+          borderColor: GOLD,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16,
+          transform: [{ rotateY }, { rotate: index === 1 ? "-2deg" : index === 2 ? "2deg" : "0deg" }],
+        }}
+      >
+        {flipped ? (
+          <Text style={{ fontFamily: SERIF, fontSize: 20, color: "#1A140C", textAlign: "center" }}>
+            {text}
+          </Text>
+        ) : (
+          <Text style={{ fontFamily: SERIF, fontSize: 42, color: GOLD }}>{index + 1}</Text>
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 export default function TwoTruthsScreen() {
   const { user, partner } = useApp();
@@ -18,18 +66,20 @@ export default function TwoTruthsScreen() {
   const [b, setB] = useState("");
   const [c, setC] = useState("");
   const [wish, setWish] = useState(2);
+  const [flipped, setFlipped] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const them = partner?.displayName || "them";
-  const mine = data.twoTruths.filter((row) => row.authorId === user?.id);
-  const latest = mine[0] ?? null;
+  const latest = data.twoTruths.filter((row) => row.authorId === user?.id)[0] ?? null;
+  const revealed = latest && latest.guessIndex !== null;
 
   const submit = async () => {
     if (!user) return;
     if (!a.trim() || !b.trim() || !c.trim()) {
-      setError("Three lines. Two true, one a wish.");
+      setError("Three cards. Always.");
       return;
     }
     setError(null);
+    setFlipped([]);
     await patch((state) => ({
       ...state,
       twoTruths: [
@@ -62,42 +112,46 @@ export default function TwoTruthsScreen() {
     }));
   };
 
-  const revealed = latest && latest.guessIndex !== null;
-
   return (
-    <Screen scroll background={BG}>
-      <MiniChrome
-        accent={LILAC}
-        fallback={"/hub/play" as Href}
-        kicker="Fun · table"
-        title="Two truths & a wish"
-        body={`Not a lie — a wish. ${them} has to spot the future hiding in the facts.`}
-        ready={ready}
-      >
+    <Screen scroll background={FELT}>
+      <Stage background={FELT} fallback={"/hub/play" as Href} accent={GOLD}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 22,
+            color: GOLD,
+          }}
+        >
+          felt table · {them} deals
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 34,
+            color: "#F4E7C5",
+          }}
+        >
+          Two truths & a wish
+        </Text>
+
         {latest && !revealed ? (
-          <View style={{ marginTop: 18, gap: 10 }}>
-            <Text style={{ color: LILAC, fontFamily: "SpaceMono", fontSize: 11 }}>
-              WHICH ONE IS THE WISH?
+          <View style={{ marginTop: 18, gap: 12 }}>
+            <Text style={{ textAlign: "center", color: GOLD }}>
+              Flip the cards. Tap the one that hasn't happened yet.
             </Text>
             {latest.items.map((item, i) => (
-              <Pressable
+              <PlayingCard
                 key={item}
-                onPress={() => void guess(i)}
-                style={{
-                  padding: 18,
-                  borderRadius: 18,
-                  backgroundColor: "#1A1422",
-                  borderWidth: 1,
-                  borderColor: "rgba(201,160,220,0.3)",
+                index={i}
+                text={item}
+                flipped={flipped.includes(i)}
+                onFlip={() => {
+                  setFlipped((prev) => (prev.includes(i) ? prev : [...prev, i]));
+                  if (flipped.length >= 2) void guess(i);
                 }}
-              >
-                <Text style={{ color: "rgba(201,160,220,0.7)", fontSize: 12 }}>
-                  Card {i + 1}
-                </Text>
-                <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 20, color: "#F4F4F6" }}>
-                  {item}
-                </Text>
-              </Pressable>
+              />
             ))}
           </View>
         ) : null}
@@ -107,76 +161,77 @@ export default function TwoTruthsScreen() {
             style={{
               marginTop: 18,
               padding: 18,
-              borderRadius: 20,
-              backgroundColor: "#1A1422",
+              backgroundColor: "#F7F1E3",
+              borderRadius: 8,
             }}
           >
-            <Text style={{ color: LILAC, fontFamily: SERIF, fontSize: 22 }}>
+            <Text style={{ fontFamily: SERIF, fontSize: 24, color: "#1A140C" }}>
               {latest.guessIndex === latest.wishIndex
-                ? "Caught. That's the wish."
-                : "Wrong card. The wish is still loose."}
+                ? "You caught the wish."
+                : "Wrong card. The wish is still loose in the deck."}
             </Text>
-            <Text style={{ marginTop: 10, color: "rgba(244,244,246,0.65)" }}>
-              The wish was: {latest.items[latest.wishIndex]}
+            <Text style={{ marginTop: 8, fontFamily: HANDWRITING, fontSize: 20, color: "#5A3A20" }}>
+              It was: {latest.items[latest.wishIndex]}
             </Text>
           </View>
         ) : null}
 
-        <Text
+        <View
           style={{
-            marginTop: 24,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2,
-            color: "rgba(201,160,220,0.7)",
+            marginTop: 22,
+            backgroundColor: "#0A2A22",
+            padding: 14,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: GOLD,
           }}
         >
-          DEAL A NEW HAND
-        </Text>
-        {[a, b, c].map((val, i) => (
-          <View key={i} style={{ marginTop: 10 }}>
-            <Pressable onPress={() => setWish(i)}>
-              <Text style={{ color: wish === i ? LILAC : "rgba(244,244,246,0.4)", fontSize: 12 }}>
-                {wish === i ? "◆ this is the wish" : "truth"}
+          <Text style={{ color: GOLD, fontFamily: HANDWRITING, fontSize: 20 }}>Deal a new hand</Text>
+          {[a, b, c].map((val, i) => (
+            <Pressable key={i} onPress={() => setWish(i)} style={{ marginTop: 10 }}>
+              <Text style={{ color: wish === i ? GOLD : "rgba(228,195,122,0.45)", fontSize: 12 }}>
+                {wish === i ? "◆ the wish" : "truth"}
               </Text>
+              <TextInput
+                value={val}
+                onChangeText={(t) => {
+                  if (i === 0) setA(t);
+                  if (i === 1) setB(t);
+                  if (i === 2) setC(t);
+                }}
+                placeholder={i === 2 ? "the future, dressed as a fact" : "already true"}
+                placeholderTextColor="rgba(244,231,197,0.3)"
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: GOLD,
+                  color: "#F4E7C5",
+                  fontFamily: SERIF,
+                  fontSize: 18,
+                  paddingVertical: 6,
+                }}
+              />
             </Pressable>
-            <TextInput
-              value={val}
-              onChangeText={(t) => {
-                if (i === 0) setA(t);
-                if (i === 1) setB(t);
-                if (i === 2) setC(t);
-              }}
-              placeholder={i === 2 ? "The wish, disguised as a fact" : "A true thing"}
-              placeholderTextColor="rgba(244,244,246,0.3)"
-              style={{
-                marginTop: 4,
-                borderRadius: 14,
-                padding: 12,
-                backgroundColor: "#1A1422",
-                color: "#F4F4F6",
-              }}
-            />
-          </View>
-        ))}
-        <Pressable
-          onPress={() => void submit()}
-          style={{
-            marginTop: 14,
-            height: 50,
-            borderRadius: 16,
-            backgroundColor: LILAC,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "#160C1C", fontWeight: "800" }}>Lay the cards down</Text>
-        </Pressable>
-        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-        {!latest ? (
-          <EmptyHint text="Write two things that are already true, and one you want to become true. Don't mark it too obviously." />
-        ) : null}
-      </MiniChrome>
+          ))}
+          <Pressable
+            onPress={() => void submit()}
+            style={{
+              marginTop: 14,
+              height: 46,
+              backgroundColor: GOLD,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#0E3B2E", fontWeight: "900" }}>Lay them down</Text>
+          </Pressable>
+          {error ? <Text style={{ marginTop: 8, color: "#FFB4B4" }}>{error}</Text> : null}
+          {!ready || !latest ? (
+            <Text style={{ marginTop: 10, color: "rgba(228,195,122,0.5)" }}>
+              Two things that already happened. One you want. Don’t mark it too obviously.
+            </Text>
+          ) : null}
+        </View>
+      </Stage>
     </Screen>
   );
 }

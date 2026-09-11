@@ -1,23 +1,25 @@
-import { MiniChrome } from "@/components/hub/MiniChrome";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { Href } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-const BG = "#0E1214";
+const BG = "#0A0C12";
 const YOU_C = "#3ECFBF";
-const THEM_C = "#FF6B9A";
+const THEM_C = "#FF4D6A";
 
 export default function WhoDidItScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
-  const you = user?.displayName || "You";
-  const them = partner?.displayName || "Them";
-
+  const you = user?.displayName || "YOU";
+  const them = partner?.displayName || "THEM";
   const lastFor = (taskId: string) => data.whoLast.find((row) => row.taskId === taskId);
+  const score = (id: string) => data.whoLast.filter((row) => row.userId === id).length;
+  const yours = user ? score(user.id) : 0;
+  const theirs = partner ? score(partner.id) : 0;
 
   const claim = async (taskId: string) => {
     if (!user) return;
@@ -30,77 +32,96 @@ export default function WhoDidItScreen() {
     }));
   };
 
-  const score = (id: string) => data.whoLast.filter((row) => row.userId === id).length;
-  const yours = user ? score(user.id) : 0;
-  const theirs = partner ? score(partner.id) : 0;
-  const total = Math.max(1, yours + theirs);
-
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={YOU_C}
-        fallback={"/hub/home-base" as Href}
-        kicker="Home Base · tally"
-        title="Who did it last?"
-        body="A petty, useful scoreboard. Tap when you did the thing. No judges, just receipts."
-        ready={ready}
-      >
-        <View
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={YOU_C}>
+        <View style={{ flexDirection: "row", height: 120 }}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "#0C2420",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRightWidth: 3,
+              borderRightColor: "#F4F4F6",
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 28, color: YOU_C }}>{you}</Text>
+            <Text style={{ fontFamily: "SpaceMono", fontSize: 36, color: YOU_C }}>{yours}</Text>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "#241018",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 28, color: THEM_C }}>{them}</Text>
+            <Text style={{ fontFamily: "SpaceMono", fontSize: 36, color: THEM_C }}>{theirs}</Text>
+          </View>
+        </View>
+        <Text
           style={{
-            marginTop: 16,
-            height: 18,
-            borderRadius: 999,
-            overflow: "hidden",
-            flexDirection: "row",
-            backgroundColor: "rgba(255,255,255,0.08)",
+            textAlign: "center",
+            marginTop: 12,
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            color: "#F4F4F6",
           }}
         >
-          <View style={{ width: `${(yours / total) * 100}%`, backgroundColor: YOU_C }} />
-          <View style={{ width: `${(theirs / total) * 100}%`, backgroundColor: THEM_C }} />
-        </View>
-        <View style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-between" }}>
-          <Text style={{ color: YOU_C }}>{you} · {yours}</Text>
-          <Text style={{ color: THEM_C }}>{them} · {theirs}</Text>
-        </View>
+          tap a row to steal the credit
+        </Text>
 
-        <View style={{ marginTop: 18, gap: 10 }}>
+        <View style={{ marginTop: 14, gap: 8 }}>
           {data.whoTasks.map((task) => {
             const last = lastFor(task.id);
             const mine = last?.userId === user?.id;
-            const name = !last ? "Nobody yet" : mine ? you : them;
-            const color = !last ? "rgba(244,244,246,0.4)" : mine ? YOU_C : THEM_C;
+            const name = !last ? "unclaimed" : mine ? you : them;
+            const color = !last ? "#666" : mine ? YOU_C : THEM_C;
             return (
               <Pressable
                 key={task.id}
                 onPress={() => void claim(task.id)}
                 style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  backgroundColor: "#161C20",
-                  borderWidth: 1,
-                  borderColor: `${color}55`,
+                  flexDirection: "row",
+                  overflow: "hidden",
+                  height: 64,
                 }}
               >
-                <Text style={{ fontFamily: SERIF, fontSize: 20, color: "#F4F4F6" }}>
-                  {task.label}
-                </Text>
-                <Text style={{ marginTop: 4, color }}>
-                  Last: {name}
-                  {last
-                    ? ` · ${new Date(last.at).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}`
-                    : ""}
-                </Text>
-                <Text style={{ marginTop: 6, color: "rgba(244,244,246,0.35)", fontSize: 12 }}>
-                  Tap to claim it
-                </Text>
+                <View
+                  style={{
+                    width: 8,
+                    backgroundColor: color,
+                  }}
+                />
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#12161C",
+                    paddingHorizontal: 12,
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontFamily: SERIF, fontSize: 20, color: "#F4F4F6" }}>
+                    {task.label}
+                  </Text>
+                  <Text style={{ color, fontFamily: "SpaceMono", fontSize: 11 }}>
+                    LAST · {name}
+                    {last
+                      ? ` · ${new Date(last.at).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })}`
+                      : ""}
+                  </Text>
+                </View>
               </Pressable>
             );
           })}
         </View>
-      </MiniChrome>
+        {!ready ? <Text style={{ color: YOU_C }}>Queuing the broadcast…</Text> : null}
+      </Stage>
     </Screen>
   );
 }

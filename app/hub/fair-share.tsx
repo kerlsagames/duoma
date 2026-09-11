@@ -1,7 +1,7 @@
-import { FortuneWheel } from "@/components/hub/FortuneWheel";
-import { MiniChrome } from "@/components/hub/MiniChrome";
+import { CarnivalWheel } from "@/components/hub/CarnivalWheel";
+import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -9,20 +9,18 @@ import type { Href } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
 
-const BG = "#0C1412";
-const MINT = "#3ECFBF";
+const BG = "#0C1410";
 
 export default function FairShareScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const you = user?.displayName || "You";
   const them = partner?.displayName || "Them";
-  const [choreId, setChoreId] = useState(data.chores[0]?.id ?? "");
+  const [choreId, setChoreId] = useState("");
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
   const rotation = useRef(new Animated.Value(0)).current;
   const angle = useRef(0);
-
   const people = useMemo(
     () => [
       { id: user?.id ?? "you", label: you, color: "#3ECFBF" },
@@ -30,9 +28,7 @@ export default function FairShareScreen() {
     ],
     [partner?.id, them, user?.id, you]
   );
-
   const chore = data.chores.find((row) => row.id === choreId) ?? data.chores[0];
-
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
     for (const spin of data.fairSpins) {
@@ -45,30 +41,24 @@ export default function FairShareScreen() {
     if (spinning || !chore || !user) return;
     setSpinning(true);
     setWinner(null);
-    const extra = 360 * 7 + Math.random() * 360;
+    const extra = 360 * 8 + Math.random() * 360;
     const next = angle.current + extra;
     angle.current = next;
     Animated.timing(rotation, {
       toValue: next,
-      duration: 2800,
+      duration: 3000,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
-      const slice = 180;
       const deg = (360 - (next % 360)) % 360;
-      const index = Math.floor(deg / slice) % 2;
+      const index = Math.floor(deg / 180) % 2;
       const person = people[index]!;
       setWinner(person.label);
       setSpinning(false);
       void patch((state) => ({
         ...state,
         fairSpins: [
-          {
-            id: createId(),
-            choreId: chore.id,
-            winnerId: person.id,
-            createdAt: nowIso(),
-          },
+          { id: createId(), choreId: chore.id, winnerId: person.id, createdAt: nowIso() },
           ...state.fairSpins,
         ].slice(0, 40),
       }));
@@ -77,35 +67,61 @@ export default function FairShareScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <MiniChrome
-        accent={MINT}
-        fallback={"/hub/home-base" as Href}
-        kicker="Home Base · justice"
-        title="Fair-share wheel"
-        body="Pick a chore. Spin. Fate assigns the victim. The chart keeps you honest over time."
-        ready={ready}
-      >
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent="#3ECFBF">
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 18,
+            color: "#F0C75E",
+          }}
+        >
+          TONIGHT ONLY
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: SERIF,
+            fontSize: 40,
+            color: "#E8FFF8",
+          }}
+        >
+          {you}  vs  {them}
+        </Text>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            color: "#3ECFBF",
+          }}
+        >
+          the wheel assigns the victim
+        </Text>
+
         <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {data.chores.map((row) => (
             <Pressable
               key={row.id}
               onPress={() => setChoreId(row.id)}
               style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: chore?.id === row.id ? `${MINT}33` : "rgba(255,255,255,0.05)",
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                backgroundColor: chore?.id === row.id ? "#3ECFBF" : "#16241E",
               }}
             >
-              <Text style={{ color: chore?.id === row.id ? MINT : "#F4F4F6" }}>{row.label}</Text>
+              <Text style={{ color: chore?.id === row.id ? "#062016" : "#E8FFF8" }}>
+                {row.label}
+              </Text>
             </Pressable>
           ))}
         </View>
         <View style={{ marginTop: 8 }}>
-          <FortuneWheel
+          <CarnivalWheel
             slices={people.map((p) => ({ label: p.label, color: p.color }))}
             rotation={rotation}
             size={260}
+            bulbColor="#7CFFB2"
           />
         </View>
         <Pressable
@@ -113,53 +129,43 @@ export default function FairShareScreen() {
           disabled={spinning}
           style={{
             height: 52,
-            borderRadius: 16,
-            backgroundColor: MINT,
+            backgroundColor: "#3ECFBF",
             alignItems: "center",
             justifyContent: "center",
             opacity: spinning ? 0.6 : 1,
           }}
         >
-          <Text style={{ color: "#06201C", fontWeight: "800" }}>
-            {spinning ? "Deciding…" : `Spin for ${chore?.label ?? "a chore"}`}
+          <Text style={{ color: "#062016", fontWeight: "900" }}>
+            {spinning ? "fate is thinking…" : `spin for ${chore?.label ?? "a chore"}`}
           </Text>
         </Pressable>
         {winner ? (
           <Text
             style={{
               marginTop: 14,
-              fontFamily: SERIF,
-              fontSize: 24,
-              color: MINT,
               textAlign: "center",
+              fontFamily: SERIF,
+              fontSize: 26,
+              color: "#F0C75E",
             }}
           >
             {winner} does {chore?.label.toLowerCase()}.
           </Text>
         ) : null}
-
-        <View style={{ marginTop: 20, gap: 8 }}>
+        <View style={{ marginTop: 18, gap: 8 }}>
           {people.map((person) => {
             const n = counts[person.id] ?? 0;
             const total = Math.max(1, data.fairSpins.length);
             return (
               <View key={person.id}>
-                <Text style={{ color: person.color }}>
-                  {person.label} · {n} spins
+                <Text style={{ color: person.color, fontFamily: "SpaceMono" }}>
+                  {person.label} · {n}
                 </Text>
-                <View
-                  style={{
-                    marginTop: 4,
-                    height: 8,
-                    borderRadius: 999,
-                    backgroundColor: "rgba(255,255,255,0.08)",
-                  }}
-                >
+                <View style={{ height: 10, backgroundColor: "#16241E" }}>
                   <View
                     style={{
                       width: `${(n / total) * 100}%`,
-                      height: 8,
-                      borderRadius: 999,
+                      height: 10,
                       backgroundColor: person.color,
                     }}
                   />
@@ -168,7 +174,8 @@ export default function FairShareScreen() {
             );
           })}
         </View>
-      </MiniChrome>
+        {!ready ? <Text style={{ color: "#3ECFBF" }}>Oiling the wheel…</Text> : null}
+      </Stage>
     </Screen>
   );
 }
