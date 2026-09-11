@@ -33,7 +33,7 @@ const PAPER_LINE = "rgba(70, 120, 170, 0.28)";
 const PAPER_MARGIN = "rgba(200, 70, 70, 0.55)";
 const PAPER_INK = "#2A1F14";
 const PAPER_MUTED = "rgba(42, 31, 20, 0.55)";
-const ROW_HEIGHT = 46;
+const ROW_HEIGHT = 40;
 
 function Notepad({
   children,
@@ -46,12 +46,12 @@ function Notepad({
     <View
       style={{
         marginTop: 10,
-        borderRadius: 4,
+        borderRadius: 2,
         backgroundColor: PAPER,
         borderWidth: 1,
-        borderColor: "rgba(255,209,102,0.35)",
+        borderColor: "rgba(255,209,102,0.28)",
         overflow: "hidden",
-        transform: [{ rotate: "-0.4deg" }],
+        transform: [{ rotate: "-0.35deg" }],
       }}
     >
       <View
@@ -110,8 +110,8 @@ function NotepadRow({
       style={{
         minHeight: ROW_HEIGHT,
         paddingLeft: 40,
-        paddingRight: 12,
-        paddingVertical: 8,
+        paddingRight: 10,
+        paddingVertical: 6,
         borderBottomWidth: 1,
         borderBottomColor: PAPER_LINE,
         justifyContent: "center",
@@ -128,8 +128,8 @@ function NotepadRow({
           style={{
             flex: 1,
             fontFamily: HANDWRITING,
-            fontSize: 20,
-            lineHeight: 26,
+            fontSize: 18,
+            lineHeight: 22,
             color: PAPER_INK,
           }}
           numberOfLines={2}
