@@ -293,7 +293,7 @@ export default function PositionsScreen() {
                 style={{
                   marginTop: 14,
                   textAlign: "center",
-                  color: T.warm,
+                  color: T.accent,
                   fontSize: 13,
                   fontWeight: "600",
                 }}
