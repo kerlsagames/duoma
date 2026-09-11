@@ -502,6 +502,25 @@ export type MealWant = {
   status: "open" | "used" | "dismissed";
 };
 
+export type CustomMeal = {
+  id: string;
+  coupleId: string;
+  title: string;
+  blurb: string;
+  category: string;
+  staple: boolean;
+  createdBy: string;
+  createdAt: string;
+};
+
+export type HiddenMeal = {
+  id: string;
+  coupleId: string;
+  mealId: string;
+  hiddenBy: string;
+  hiddenAt: string;
+};
+
 /** Shared household groceries & errands (Home Base). */
 export type ErrandKind = "grocery" | "errand";
 
@@ -566,6 +585,8 @@ export type AppDB = {
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
   mealWants: MealWant[];
+  customMeals: CustomMeal[];
+  hiddenMeals: HiddenMeal[];
 };
 
 export type GameModule = {

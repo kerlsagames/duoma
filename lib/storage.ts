@@ -34,6 +34,8 @@ const hubEmpty = () => ({
   errandItems: [],
   mealRounds: [],
   mealWants: [],
+  customMeals: [],
+  hiddenMeals: [],
 });
 
 export function emptyDb(): AppDB {
@@ -176,6 +178,8 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     errandItems: (raw.errandItems ?? []).map(hydrateErrandItem),
     mealRounds: (raw.mealRounds ?? []).map(hydrateMealRound),
     mealWants: (raw.mealWants ?? []).map(hydrateMealWant),
+    customMeals: (raw.customMeals ?? []).map(hydrateCustomMeal),
+    hiddenMeals: raw.hiddenMeals ?? [],
   };
 }
 
@@ -191,6 +195,18 @@ function hydrateMealRound(
     pool: Array.isArray(row.pool) ? row.pool : [],
     votes: Array.isArray(row.votes) ? row.votes : [],
     status,
+  };
+}
+
+function hydrateCustomMeal(
+  row: AppDB["customMeals"][number]
+): AppDB["customMeals"][number] {
+  return {
+    ...row,
+    title: row.title?.trim() || "Dinner",
+    blurb: row.blurb ?? "",
+    category: row.category || "staple",
+    staple: row.staple !== false,
   };
 }
 

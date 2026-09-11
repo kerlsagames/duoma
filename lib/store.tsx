@@ -97,11 +97,15 @@ import type {
   CalendarCustomEvent,
   ErrandItem,
   ErrandKind,
+  CustomMeal,
+  HiddenMeal,
   MealRound,
   MealVoteKind,
   MealWant,
 } from "@/lib/types";
 import {
+  combineMenu,
+  customMealToIdea,
   mealById,
   pickRandomMeal,
   type MealCategoryId,
@@ -410,6 +414,8 @@ type AppContextValue = {
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
   mealWants: MealWant[];
+  customMeals: CustomMeal[];
+  hiddenMeals: HiddenMeal[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
@@ -523,6 +529,12 @@ type AppContextValue = {
     title?: string;
   }) => Promise<MealWant>;
   dismissMealWant: (id: string) => Promise<void>;
+  addCustomMeal: (input: {
+    title: string;
+    blurb?: string;
+    category: MealCategoryId;
+  }) => Promise<CustomMeal>;
+  removeMealFromMenu: (mealId: string) => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
   /** Swipe a Fantasy Matcher card. Returns whether it just became a mutual match. */
   swipeFantasy: (
@@ -791,6 +803,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db.mealWants
         .filter((row) => row.coupleId === couple?.id)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const customMeals = useMemo(
+    () =>
+      db.customMeals
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const hiddenMeals = useMemo(
+    () => db.hiddenMeals.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3174,24 +3201,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) throw new Error("Pair up before spinning dinner.");
       const pool = (input?.pool?.length
         ? input.pool
-        : [
-            "easy",
-            "pasta",
-            "asian",
-            "comfort",
-            "grill",
-            "fresh",
-            "takeout",
-            "breakfast",
-          ]) as MealCategoryId[];
-      const catalog = input?.mealId ? mealById(input.mealId) : null;
+        : ["staple"]) as MealCategoryId[];
+      const extras = db.customMeals
+        .filter((row) => row.coupleId === couple.id)
+        .map(customMealToIdea);
+      const hidden = db.hiddenMeals
+        .filter((row) => row.coupleId === couple.id)
+        .map((row) => row.mealId);
+      const menu = combineMenu(extras, hidden);
+      const catalog = input?.mealId ? mealById(input.mealId, extras) : null;
       const recent = db.mealRounds
         .filter((row) => row.coupleId === couple.id)
         .slice(0, 6)
         .map((row) => row.mealId);
       const picked =
         catalog ??
-        pickRandomMeal(pool, recent);
+        pickRandomMeal(pool, recent, menu);
       if (!picked) throw new Error("Turn on at least one dinner category.");
 
       const stamp = nowIso();
@@ -3277,7 +3302,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : existing.category
             ? [existing.category]
             : ["easy"]) as MealCategoryId[];
-        const next = pickRandomMeal(pool, [existing.mealId]);
+        const extras = db.customMeals
+          .filter((row) => row.coupleId === couple.id)
+          .map(customMealToIdea);
+        const hidden = db.hiddenMeals
+          .filter((row) => row.coupleId === couple.id)
+          .map((row) => row.mealId);
+        const next = pickRandomMeal(
+          pool,
+          [existing.mealId],
+          combineMenu(extras, hidden)
+        );
         if (!next) throw new Error("No other dinners left in those categories.");
         const follow: MealRound = {
           id: createId(),
@@ -3335,7 +3370,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const sendMealWant = useCallback(
     async (input: { mealId?: string | null; title?: string }) => {
       if (!user || !couple) throw new Error("Pair up first.");
-      const catalog = input.mealId ? mealById(input.mealId) : null;
+      const extras = db.customMeals
+        .filter((row) => row.coupleId === couple.id)
+        .map(customMealToIdea);
+      const catalog = input.mealId ? mealById(input.mealId, extras) : null;
       const title = (catalog?.title ?? input.title ?? "").trim();
       if (!title) throw new Error("Pick a dinner first.");
       const already = db.mealWants.find(
@@ -3379,6 +3417,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     await persist();
   }, []);
+
+  const addCustomMeal = useCallback(
+    async (input: {
+      title: string;
+      blurb?: string;
+      category: MealCategoryId;
+    }) => {
+      if (!user || !couple) throw new Error("Pair up first.");
+      const title = input.title.trim();
+      if (!title) throw new Error("Name the dinner first.");
+      const row: CustomMeal = {
+        id: createId(),
+        coupleId: couple.id,
+        title,
+        blurb: (input.blurb ?? "").trim(),
+        category: input.category,
+        staple: true,
+        createdBy: user.id,
+        createdAt: nowIso(),
+      };
+      db = { ...db, customMeals: [...db.customMeals, row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const removeMealFromMenu = useCallback(
+    async (mealId: string) => {
+      if (!user || !couple) throw new Error("Pair up first.");
+      const custom = db.customMeals.find(
+        (row) => row.id === mealId && row.coupleId === couple.id
+      );
+      if (custom) {
+        db = {
+          ...db,
+          customMeals: db.customMeals.filter((row) => row.id !== mealId),
+        };
+        await persist();
+        return;
+      }
+      const already = db.hiddenMeals.some(
+        (row) => row.coupleId === couple.id && row.mealId === mealId
+      );
+      if (already) return;
+      const row: HiddenMeal = {
+        id: createId(),
+        coupleId: couple.id,
+        mealId,
+        hiddenBy: user.id,
+        hiddenAt: nowIso(),
+      };
+      db = { ...db, hiddenMeals: [...db.hiddenMeals, row] };
+      await persist();
+    },
+    [couple, user]
+  );
 
   const toggleDesire = useCallback(
     async (optionId: string) => {
@@ -4027,6 +4122,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     errandItems,
     mealRounds,
     mealWants,
+    customMeals,
+    hiddenMeals,
     bestCards,
     checkIns,
     checkInRequests,
@@ -4107,6 +4204,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     voteMeal,
     sendMealWant,
     dismissMealWant,
+    addCustomMeal,
+    removeMealFromMenu,
     toggleDesire,
     swipeFantasy,
     createCoupon,

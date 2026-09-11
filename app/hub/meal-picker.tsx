@@ -1,7 +1,11 @@
 import { BackButton } from "@/components/ui/BackButton";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { MEALS_TONE, SERIF } from "@/lib/app-themes";
 import {
+  combineMenu,
+  customMealToIdea,
+  DEFAULT_MEAL_POOL,
   groupMealsByCategory,
   mealCategoryMeta,
   mealsInCategories,
@@ -14,10 +18,9 @@ import type { MealRound, MealWant } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = MEALS_TONE;
-const ALL_CATEGORY_IDS = MEAL_CATEGORIES.map((row) => row.id);
 
 export default function MealPickerScreen() {
   const {
@@ -25,21 +28,39 @@ export default function MealPickerScreen() {
     partner,
     mealRounds,
     mealWants,
+    customMeals,
+    hiddenMeals,
     spinMeal,
     voteMeal,
     sendMealWant,
     dismissMealWant,
+    addCustomMeal,
+    removeMealFromMenu,
   } = useApp();
 
-  const [enabled, setEnabled] = useState<MealCategoryId[]>(ALL_CATEGORY_IDS);
+  const [enabled, setEnabled] = useState<MealCategoryId[]>(DEFAULT_MEAL_POOL);
   const [openCategory, setOpenCategory] = useState<MealCategoryId | null>(
-    "easy"
+    "staple"
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftCategory, setDraftCategory] = useState<MealCategoryId>("staple");
+  const [pendingRemove, setPendingRemove] = useState<MealIdea | null>(null);
 
-  const poolSize = useMemo(() => mealsInCategories(enabled).length, [enabled]);
-  const groups = useMemo(() => groupMealsByCategory(), []);
+  const menu = useMemo(
+    () =>
+      combineMenu(
+        customMeals.map(customMealToIdea),
+        hiddenMeals.map((row) => row.mealId)
+      ),
+    [customMeals, hiddenMeals]
+  );
+  const poolSize = useMemo(
+    () => mealsInCategories(enabled, menu).length,
+    [enabled, menu]
+  );
+  const groups = useMemo(() => groupMealsByCategory(menu), [menu]);
   const current =
     mealRounds.find((row) => row.status === "voting") ??
     mealRounds.find((row) => row.status === "agreed") ??
@@ -108,7 +129,8 @@ export default function MealPickerScreen() {
             color: T.muted,
           }}
         >
-          Spin a menu item. Two thumbs up locks it. One thumb down spins again.
+          Spin starts on your staples — the dinners you actually make. Two
+          thumbs up locks it. Thumb down spins again.
         </Text>
 
         <Pressable
@@ -222,8 +244,8 @@ export default function MealPickerScreen() {
             color: T.muted,
           }}
         >
-          Tap a dish to send {partnerLabel} your want. They can put it up for
-          thumbs.
+          Staples open first. Send a want, add one of yours, or remove a dish
+          from the menu.
         </Text>
 
         {wants.length ? (
@@ -253,6 +275,103 @@ export default function MealPickerScreen() {
             ))}
           </View>
         ) : null}
+
+        <View
+          style={{
+            marginTop: 16,
+            borderRadius: 18,
+            borderWidth: 1,
+            borderColor: T.border,
+            backgroundColor: T.surface,
+            padding: 14,
+          }}
+        >
+          <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
+            Add a dinner
+          </Text>
+          <TextInput
+            value={draftTitle}
+            onChangeText={setDraftTitle}
+            placeholder="e.g. Tuesday stir-fry"
+            placeholderTextColor="rgba(246,237,228,0.35)"
+            style={{
+              marginTop: 10,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surfaceRaised,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              color: T.ink,
+              fontFamily: SERIF,
+              fontSize: 16,
+            }}
+          />
+          <View
+            style={{
+              marginTop: 10,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 6,
+            }}
+          >
+            {MEAL_CATEGORIES.map((cat) => {
+              const on = draftCategory === cat.id;
+              return (
+                <Pressable
+                  key={cat.id}
+                  onPress={() => setDraftCategory(cat.id)}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderWidth: 1,
+                    borderColor: on ? T.accent : "rgba(255,255,255,0.12)",
+                    backgroundColor: on ? T.accentSoft : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: on ? T.accent : T.muted,
+                    }}
+                  >
+                    {cat.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Pressable
+            disabled={busy || !draftTitle.trim()}
+            onPress={() =>
+              void run(async () => {
+                await addCustomMeal({
+                  title: draftTitle,
+                  category: draftCategory,
+                });
+                setDraftTitle("");
+                setOpenCategory(
+                  draftCategory === "staple" ? "staple" : draftCategory
+                );
+              })
+            }
+            style={{
+              marginTop: 12,
+              height: 44,
+              borderRadius: 14,
+              backgroundColor: T.accent,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: draftTitle.trim() ? 1 : 0.45,
+            }}
+          >
+            <Text style={{ fontWeight: "800", color: T.ticketInk }}>
+              Add to the menu
+            </Text>
+          </Pressable>
+        </View>
 
         <View style={{ marginTop: 16, gap: 8 }}>
           {groups.map(({ category, items }) => {
@@ -314,6 +433,7 @@ export default function MealPickerScreen() {
                         onWant={() =>
                           void run(() => sendMealWant({ mealId: idea.id }))
                         }
+                        onRemove={() => setPendingRemove(idea)}
                       />
                     ))
                   : null}
@@ -343,7 +463,7 @@ export default function MealPickerScreen() {
             color: T.muted,
           }}
         >
-          Toggle categories like date night. Off means they won’t come up on a
+          Starts on Staples. Turn more on if you want the wider menu in the
           spin.
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -376,6 +496,22 @@ export default function MealPickerScreen() {
           })}
         </View>
       </View>
+      <ConfirmDialog
+        open={Boolean(pendingRemove)}
+        title="Remove this dinner?"
+        body={
+          pendingRemove
+            ? `${pendingRemove.title} comes off your menu for both of you.`
+            : ""
+        }
+        confirmLabel="Remove it"
+        onCancel={() => setPendingRemove(null)}
+        onConfirm={() => {
+          const idea = pendingRemove;
+          setPendingRemove(null);
+          if (idea) void run(() => removeMealFromMenu(idea.id));
+        }}
+      />
     </Screen>
   );
 }
@@ -606,11 +742,13 @@ function BrowseRow({
   wanted,
   busy,
   onWant,
+  onRemove,
 }: {
   idea: MealIdea;
   wanted: boolean;
   busy: boolean;
   onWant: () => void;
+  onRemove: () => void;
 }) {
   return (
     <View
@@ -652,6 +790,24 @@ function BrowseRow({
         >
           {wanted ? "Sent" : "I want this"}
         </Text>
+      </Pressable>
+      <Pressable
+        disabled={busy}
+        onPress={onRemove}
+        hitSlop={8}
+        accessibilityLabel={`Remove ${idea.title}`}
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: "rgba(242,92,58,0.45)",
+          backgroundColor: "rgba(242,92,58,0.12)",
+        }}
+      >
+        <Ionicons name="trash-outline" size={16} color={T.down} />
       </Pressable>
     </View>
   );
