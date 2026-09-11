@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import {
@@ -146,6 +147,7 @@ export default function SetupScreen() {
   return (
     <Screen scroll>
       <View className="pt-4 pb-8">
+        <BackButton style={{ marginBottom: 12 }} />
         <View className="flex-row items-start justify-between">
           <View className="flex-1 pr-3">
             <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">

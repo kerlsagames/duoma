@@ -1,5 +1,6 @@
 import { AppreciationJar } from "@/components/hub/AppreciationJar";
 import { EnvelopeReveal } from "@/components/hub/EnvelopeReveal";
+import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { JAR_TONE, SERIF } from "@/lib/app-themes";
@@ -188,6 +189,7 @@ export default function JarScreen() {
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-2 pb-8">
+        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
         <Text
           style={{
             fontFamily: "SpaceMono",

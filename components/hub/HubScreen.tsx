@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { HUB_TONES, SERIF, type HubTone } from "@/lib/app-themes";
 import { ReactNode } from "react";
@@ -9,27 +10,52 @@ type Props = {
   body?: string;
   children: ReactNode;
   tone?: HubTone;
+  headerRight?: ReactNode;
+  /** Show a back control above the page header. Defaults to true. */
+  showBack?: boolean;
 };
 
-export function HubScreen({ kicker, title, body, children, tone = "default" }: Props) {
+export function HubScreen({
+  kicker,
+  title,
+  body,
+  children,
+  tone = "default",
+  headerRight,
+  showBack = true,
+}: Props) {
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
 
   return (
     <Screen scroll background={theme.background}>
       <View className="pt-4 pb-6">
-        <Text
+        {showBack ? (
+          <BackButton color={theme.accent} style={{ marginBottom: 14 }} />
+        ) : null}
+        <View
           style={{
-            fontSize: 12,
-            fontWeight: "600",
-            letterSpacing: 3,
-            textTransform: "uppercase",
-            color: theme.kicker,
-            fontFamily: tone === "talk" ? "SpaceMono" : undefined,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          {kicker}
-        </Text>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 12,
+              fontWeight: "600",
+              letterSpacing: 3,
+              textTransform: "uppercase",
+              color: theme.kicker,
+              fontFamily: tone === "talk" ? "SpaceMono" : undefined,
+            }}
+          >
+            {kicker}
+          </Text>
+          {headerRight}
+        </View>
         {title ? (
           <Text
             style={{

@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
@@ -270,6 +271,7 @@ export default function CouponsScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-8">
+        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
         <Text
           style={{
             fontFamily: "SpaceMono",

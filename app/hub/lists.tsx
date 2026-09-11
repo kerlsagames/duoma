@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LISTS_DISPLAY, LISTS_ROUNDED, LISTS_TONE } from "@/lib/app-themes";
@@ -97,6 +98,7 @@ export default function ListsScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pb-10 pt-2">
+        <BackButton color={T.teal} style={{ marginBottom: 12 }} />
         <View className="mb-1 flex-row items-start justify-between">
           <View className="flex-1 pr-3">
             <Text

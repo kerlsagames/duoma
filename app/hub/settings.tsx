@@ -1,5 +1,6 @@
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { PushSetupCard } from "@/components/PushSetupCard";
+import { BackButton } from "@/components/ui/BackButton";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -70,6 +71,7 @@ export default function SettingsScreen() {
   return (
     <Screen scroll>
       <View className="pt-4 pb-10">
+        <BackButton style={{ marginBottom: 12 }} />
         <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
           Settings
         </Text>

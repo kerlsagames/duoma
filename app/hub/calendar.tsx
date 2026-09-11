@@ -4,7 +4,15 @@ import {
   activitiesForDate,
   buildCalendarActivities,
   marksByDate,
+  type CalendarActivityKind,
 } from "@/lib/calendar-activity";
+import {
+  CALENDAR_KIND_OPTIONS,
+  defaultCalendarPrefs,
+  readCalendarPrefs,
+  writeCalendarPrefs,
+  type CalendarPrefs,
+} from "@/lib/calendar-prefs";
 import {
   formatClockTime,
   formatLongDate,
@@ -16,7 +24,7 @@ import {
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
 const MONTHS = [
@@ -34,6 +42,8 @@ const MONTHS = [
   "December",
 ];
 
+const PREVIEW_COUNT = 4;
+
 export default function CalendarScreen() {
   const now = new Date();
   const today = localDateKey();
@@ -42,8 +52,12 @@ export default function CalendarScreen() {
     year: now.getFullYear(),
     month: now.getMonth(),
   });
+  const [selected, setSelected] = useState(today);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [prefs, setPrefs] = useState<CalendarPrefs>(defaultCalendarPrefs);
+  const [expanded, setExpanded] = useState(false);
   const {
     nights,
     checkIns,
@@ -63,28 +77,22 @@ export default function CalendarScreen() {
     user,
   } = useApp();
 
+  useEffect(() => {
+    void readCalendarPrefs().then(setPrefs);
+  }, []);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [selected, prefs.listMode]);
+
+  const savePrefs = (next: CalendarPrefs) => {
+    setPrefs(next);
+    void writeCalendarPrefs(next);
+  };
+
   const cells = monthGrid(cursor.year, cursor.month);
-  const activities = useMemo(
-    () =>
-      buildCalendarActivities({
-        nights,
-        checkIns,
-        milestones,
-        bucketItems,
-        ritualChecks,
-        talkDraws,
-        listEntries,
-        coupleLists,
-        spicyDares,
-        coupons,
-        jarNotes,
-        curiosityAnswers,
-        scratches,
-        calendarEvents,
-        partner,
-        user,
-      }),
-    [
+  const activities = useMemo(() => {
+    const all = buildCalendarActivities({
       nights,
       checkIns,
       milestones,
@@ -101,22 +109,80 @@ export default function CalendarScreen() {
       calendarEvents,
       partner,
       user,
-    ]
-  );
+    });
+    return all.filter((row) => prefs.enabledKinds[row.kind] !== false);
+  }, [
+    nights,
+    checkIns,
+    milestones,
+    bucketItems,
+    ritualChecks,
+    talkDraws,
+    listEntries,
+    coupleLists,
+    spicyDares,
+    coupons,
+    jarNotes,
+    curiosityAnswers,
+    scratches,
+    calendarEvents,
+    partner,
+    user,
+    prefs.enabledKinds,
+  ]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
-  const todayItems = useMemo(
-    () => activitiesForDate(activities, today),
-    [activities, today]
+  const dayItems = useMemo(
+    () => activitiesForDate(activities, selected),
+    [activities, selected]
   );
+
+  const showAll =
+    prefs.listMode === "all" || expanded || dayItems.length <= PREVIEW_COUNT;
+  const visibleItems = showAll ? dayItems : dayItems.slice(0, PREVIEW_COUNT);
+  const hiddenCount = dayItems.length - visibleItems.length;
 
   const label = formatMonthYear(cursor.year, cursor.month);
+  const selectedIsToday = selected === today;
 
-  const openDay = (date: string) => {
-    router.push(`/hub/calendar-day?date=${encodeURIComponent(date)}` as Href);
+  const selectDay = (date: string) => {
+    setSelected(date);
+    const [year, month] = date.split("-").map(Number);
+    if (year !== cursor.year || month - 1 !== cursor.month) {
+      setCursor({ year, month: month - 1 });
+    }
+  };
+
+  const toggleKind = (kind: CalendarActivityKind) => {
+    savePrefs({
+      ...prefs,
+      enabledKinds: {
+        ...prefs.enabledKinds,
+        [kind]: !prefs.enabledKinds[kind],
+      },
+    });
   };
 
   return (
-    <HubScreen tone="calendar" kicker="Shared calendar">
+    <HubScreen
+      tone="calendar"
+      kicker="Shared calendar"
+      headerRight={
+        <Pressable
+          onPress={() => setSettingsOpen(true)}
+          hitSlop={12}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(22,24,29,0.06)",
+          }}
+        >
+          <Ionicons name="settings-outline" size={20} color="#C23B55" />
+        </Pressable>
+      }
+    >
       <View
         style={{
           marginBottom: 14,
@@ -159,7 +225,13 @@ export default function CalendarScreen() {
         </Pressable>
       </View>
 
-      <MonthGrid cells={cells} marks={marks} today={today} onSelect={openDay} />
+      <MonthGrid
+        cells={cells}
+        marks={marks}
+        selected={selected}
+        today={today}
+        onSelect={selectDay}
+      />
 
       <View
         style={{
@@ -171,6 +243,7 @@ export default function CalendarScreen() {
       >
         <Text
           style={{
+            flex: 1,
             fontSize: 12,
             fontWeight: "700",
             letterSpacing: 2,
@@ -178,12 +251,12 @@ export default function CalendarScreen() {
             color: "rgba(22,24,29,0.4)",
           }}
         >
-          Today · {formatLongDate(today)}
+          {selectedIsToday ? "Today" : formatLongDate(selected)}
         </Text>
         <Pressable
           onPress={() =>
             router.push(
-              `/hub/calendar-add?date=${encodeURIComponent(today)}` as Href
+              `/hub/calendar-add?date=${encodeURIComponent(selected)}` as Href
             )
           }
           style={{
@@ -200,12 +273,12 @@ export default function CalendarScreen() {
       </View>
 
       <View style={{ marginTop: 12, gap: 8 }}>
-        {todayItems.length === 0 ? (
+        {dayItems.length === 0 ? (
           <Text style={{ fontSize: 15, color: "rgba(22,24,29,0.5)" }}>
-            Nothing logged today yet. Play a night or tap + to add your own.
+            Nothing on this day yet. Tap + to add your own.
           </Text>
         ) : (
-          todayItems.slice(0, 4).map((item) => (
+          visibleItems.map((item) => (
             <Pressable
               key={item.id}
               onPress={() => router.push(item.href as Href)}
@@ -247,10 +320,19 @@ export default function CalendarScreen() {
             </Pressable>
           ))
         )}
-        {todayItems.length > 4 ? (
-          <Pressable onPress={() => openDay(today)}>
+        {prefs.listMode === "preview" && hiddenCount > 0 ? (
+          <Pressable onPress={() => setExpanded(true)}>
             <Text style={{ fontSize: 14, color: "#C23B55", fontWeight: "600" }}>
-              See all {todayItems.length} today →
+              See all {dayItems.length} →
+            </Text>
+          </Pressable>
+        ) : null}
+        {prefs.listMode === "preview" &&
+        expanded &&
+        dayItems.length > PREVIEW_COUNT ? (
+          <Pressable onPress={() => setExpanded(false)}>
+            <Text style={{ fontSize: 14, color: "#C23B55", fontWeight: "600" }}>
+              Show less
             </Text>
           </Pressable>
         ) : null}
@@ -347,6 +429,7 @@ export default function CalendarScreen() {
                 const n = new Date();
                 setCursor({ year: n.getFullYear(), month: n.getMonth() });
                 setPickerYear(n.getFullYear());
+                setSelected(localDateKey(n));
                 setPickerOpen(false);
               }}
               style={{ marginTop: 16, alignItems: "center" }}
@@ -357,6 +440,170 @@ export default function CalendarScreen() {
                 Jump to this month
               </Text>
             </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={settingsOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSettingsOpen(false)}
+      >
+        <Pressable
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(22,24,29,0.45)",
+            justifyContent: "flex-end",
+          }}
+          onPress={() => setSettingsOpen(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation?.()}
+            style={{
+              backgroundColor: "#FFFFFF",
+              paddingHorizontal: 20,
+              paddingTop: 18,
+              paddingBottom: 28,
+              borderTopWidth: 1,
+              borderColor: "rgba(22,24,29,0.12)",
+              maxHeight: "85%",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 18,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: "700", color: "#16181D" }}
+              >
+                Calendar settings
+              </Text>
+              <Pressable onPress={() => setSettingsOpen(false)} hitSlop={10}>
+                <Ionicons name="close" size={22} color="#16181D" />
+              </Pressable>
+            </View>
+
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: "rgba(22,24,29,0.4)",
+                marginBottom: 10,
+              }}
+            >
+              Show on calendar
+            </Text>
+            <View style={{ gap: 8, marginBottom: 22 }}>
+              {CALENDAR_KIND_OPTIONS.map((row) => {
+                const on = prefs.enabledKinds[row.kind] !== false;
+                return (
+                  <Pressable
+                    key={row.kind}
+                    onPress={() => toggleKind(row.kind)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      borderWidth: 1,
+                      borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
+                      backgroundColor: on
+                        ? "rgba(194,59,85,0.08)"
+                        : "#FFFFFF",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "600",
+                        color: "#16181D",
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                    <Ionicons
+                      name={on ? "checkmark-circle" : "ellipse-outline"}
+                      size={22}
+                      color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: "rgba(22,24,29,0.4)",
+                marginBottom: 10,
+              }}
+            >
+              Day list
+            </Text>
+            <View style={{ gap: 8 }}>
+              {(
+                [
+                  {
+                    mode: "all" as const,
+                    label: "Show all activities at the bottom",
+                  },
+                  {
+                    mode: "preview" as const,
+                    label: "Show first 4, then See all",
+                  },
+                ] as const
+              ).map((row) => {
+                const on = prefs.listMode === row.mode;
+                return (
+                  <Pressable
+                    key={row.mode}
+                    onPress={() =>
+                      savePrefs({ ...prefs, listMode: row.mode })
+                    }
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      borderWidth: 1,
+                      borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
+                      backgroundColor: on
+                        ? "rgba(194,59,85,0.08)"
+                        : "#FFFFFF",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        fontWeight: "600",
+                        color: "#16181D",
+                        paddingRight: 12,
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                    <Ionicons
+                      name={on ? "radio-button-on" : "radio-button-off"}
+                      size={22}
+                      color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
           </Pressable>
         </Pressable>
       </Modal>

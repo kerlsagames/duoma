@@ -1,4 +1,5 @@
 import { SpicyDarePanel } from "@/components/hub/SpicyDarePanel";
+import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF, WILDCARD_TONE } from "@/lib/app-themes";
 import { Text, View } from "react-native";
@@ -9,6 +10,7 @@ export default function WildcardScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-8">
+        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
         <Text
           style={{
             fontFamily: "SpaceMono",
