@@ -200,8 +200,9 @@ export default function FantasyMatcherScreen() {
             color: T.muted,
           }}
         >
-          Right = yes. Left = pass. {partnerLabel} never sees your passes —
-          only mutual yeses become matches.
+          Short fantasies, not whole scenes. Right = yes. Left = pass.
+          {partnerLabel} never sees your passes — only mutual yeses become
+          matches.
         </Text>
 
         <View
@@ -265,10 +266,10 @@ export default function FantasyMatcherScreen() {
               }}
             >
               {remaining.length
-                ? `${remaining.length} left in your deck · ${catalogCount} scenarios`
+                ? `${remaining.length} left in your deck · ${catalogCount} short fantasies`
                 : seenCount
                   ? `You swiped ${seenCount} of ${catalogCount} — check your matches`
-                  : `${catalogCount} scenarios ready when you are`}
+                  : `${catalogCount} short fantasies ready when you are`}
             </Text>
 
             <View style={{ height: 420, alignItems: "center" }}>
@@ -387,25 +388,14 @@ export default function FantasyMatcherScreen() {
 
                   <Text
                     style={{
-                      marginTop: 22,
+                      marginTop: 28,
                       fontFamily: SERIF,
-                      fontSize: 28,
-                      lineHeight: 34,
+                      fontSize: 36,
+                      lineHeight: 42,
                       color: T.ink,
                     }}
                   >
                     {current.title}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 14,
-                      fontFamily: SERIF,
-                      fontSize: 17,
-                      lineHeight: 26,
-                      color: T.muted,
-                    }}
-                  >
-                    {current.blurb}
                   </Text>
                   <Text
                     style={{
@@ -885,22 +875,11 @@ function MatchCard({ idea }: { idea: FantasyIdea }) {
         style={{
           marginTop: 12,
           fontFamily: SERIF,
-          fontSize: 22,
+          fontSize: 24,
           color: T.ink,
         }}
       >
         {idea.title}
-      </Text>
-      <Text
-        style={{
-          marginTop: 8,
-          fontFamily: SERIF,
-          fontSize: 15,
-          lineHeight: 22,
-          color: T.muted,
-        }}
-      >
-        {idea.blurb}
       </Text>
     </View>
   );

@@ -1,3 +1,4 @@
+import { RoleplayArt } from "@/components/hub/RoleplayArt";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -218,6 +219,7 @@ export default function RoleplaysScreen() {
             >
               {personalizedBlurb}
             </Text>
+            <RoleplayArt roleplayId={current.id} category={current.category} />
 
             {sentFlash ? (
               <Text

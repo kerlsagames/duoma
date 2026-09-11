@@ -4,18 +4,20 @@ import type { Ionicons } from "@expo/vector-icons";
 export type FantasyIcon = ComponentProps<typeof Ionicons>["name"];
 
 export type FantasyCategoryId =
-  | "tonight"
-  | "weekend"
-  | "roleplay"
-  | "places"
-  | "sensory"
+  | "oral"
+  | "anal"
+  | "toys"
+  | "film"
+  | "group"
   | "power"
-  | "soft";
+  | "impact"
+  | "places"
+  | "watch"
+  | "body";
 
 export type FantasyIdea = {
   id: string;
   title: string;
-  blurb: string;
   category: FantasyCategoryId;
 };
 
@@ -27,885 +29,335 @@ export type FantasyCategory = {
 };
 
 export const FANTASY_CATEGORIES: FantasyCategory[] = [
-  { id: "tonight", label: "Tonight", tint: "#FF6B9A", icon: "moon-outline" },
-  { id: "weekend", label: "Weekend", tint: "#F0A46A", icon: "sunny-outline" },
-  { id: "roleplay", label: "Roleplay", tint: "#C084FC", icon: "color-wand-outline" },
-  { id: "places", label: "Places", tint: "#5B8CFF", icon: "location-outline" },
-  { id: "sensory", label: "Sensory", tint: "#3ECFBF", icon: "flower-outline" },
-  { id: "power", label: "Power", tint: "#FF5C7A", icon: "flash-outline" },
-  { id: "soft", label: "Soft heat", tint: "#E4C37A", icon: "heart-outline" },
+  { id: "oral", label: "Oral", tint: "#FF6B9A", icon: "happy-outline" },
+  { id: "anal", label: "Anal", tint: "#C084FC", icon: "flash-outline" },
+  { id: "toys", label: "Toys", tint: "#F0A46A", icon: "cube-outline" },
+  { id: "film", label: "Film", tint: "#5B8CFF", icon: "videocam-outline" },
+  { id: "group", label: "Others", tint: "#FB7185", icon: "people-outline" },
+  { id: "power", label: "Power", tint: "#FF5C7A", icon: "lock-closed-outline" },
+  { id: "impact", label: "Impact", tint: "#E11D48", icon: "thunderstorm-outline" },
+  { id: "places", label: "Places", tint: "#3ECFBF", icon: "location-outline" },
+  { id: "watch", label: "Watch", tint: "#E4C37A", icon: "eye-outline" },
+  { id: "body", label: "Body", tint: "#F472B6", icon: "heart-outline" },
 ];
 
-export const FANTASY_IDEAS: FantasyIdea[] = [
-  {
-    id: "fx-strangers-bar",
-    title: "Strangers at the bar",
-    blurb:
-      "Act like you just met. Flirt from scratch, pick each other up, and take it from there.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-hotel-key",
-    title: "Hotel key drop",
-    blurb:
-      "Book a room (or fake one at home). One of you leaves a key and a time. No small talk first.",
-    category: "places",
-  },
-  {
-    id: "fx-blindfold-tour",
-    title: "Blindfold tour",
-    blurb:
-      "Blindfold them and lead a slow full-body tour with only your hands and mouth.",
-    category: "sensory",
-  },
-  {
-    id: "fx-shower-rule",
-    title: "Shower with one rule",
-    blurb:
-      "Shower together. One person is not allowed to touch themselves — the other does all the work.",
-    category: "tonight",
-  },
-  {
-    id: "fx-text-filth",
-    title: "Filthy lunch texts",
-    blurb:
-      "Send three daytime texts that get filthier. The last one names exactly when you’ll make it real.",
-    category: "tonight",
-  },
-  {
-    id: "fx-kitchen-counter",
-    title: "Kitchen counter detour",
-    blurb:
-      "Start dinner, abandon it halfway, and finish against the counter before the food burns.",
-    category: "places",
-  },
-  {
-    id: "fx-boss-desk",
-    title: "Boss / assistant desk",
-    blurb:
-      "One of you is in charge. Clear instructions only. Stay in character until someone laughs.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-massage-trap",
-    title: "Massage that isn’t just a massage",
-    blurb:
-      "Oil, slow hands, no sex until they ask twice. If they speak early, restart.",
-    category: "soft",
-  },
-  {
-    id: "fx-tied-wrists",
-    title: "Soft restraint night",
-    blurb:
-      "Tie or hold wrists with something soft. You set the pace. They set the stop word.",
-    category: "power",
-  },
-  {
-    id: "fx-mirror",
-    title: "Mirror watch",
-    blurb:
-      "Do it where you can both see yourselves. No looking away for one whole song.",
-    category: "sensory",
-  },
-  {
-    id: "fx-car-driveway",
-    title: "Parked car ten minutes",
-    blurb:
-      "Driveway or quiet street. Ten minutes. Then walk inside like nothing happened.",
-    category: "places",
-  },
-  {
-    id: "fx-outfit-order",
-    title: "Wear what I pick",
-    blurb:
-      "One partner picks the other’s outfit (or lingerie) for the evening. No vetoes except safety.",
-    category: "weekend",
-  },
-  {
-    id: "fx-voice-note",
-    title: "Voice note preview",
-    blurb:
-      "Record a 20-second voice note of what you want to do. They listen alone before you meet.",
-    category: "tonight",
-  },
-  {
-    id: "fx-edge-timer",
-    title: "Edging timer",
-    blurb:
-      "Twenty minutes of teasing with a timer. Nobody finishes until it hits zero — then you decide.",
-    category: "power",
-  },
-  {
-    id: "fx-public-secret",
-    title: "Public secret",
-    blurb:
-      "One explicit instruction they follow in public without anyone noticing. Payoff later.",
-    category: "places",
-  },
-  {
-    id: "fx-morning-wake",
-    title: "Wake-up claim",
-    blurb:
-      "Wake them up with slow touch and no talking until they pull you in.",
-    category: "soft",
-  },
-  {
-    id: "fx-role-switch",
-    title: "Full role switch",
-    blurb:
-      "Whoever usually leads follows tonight. No asking ‘is this okay’ unless the stop word is used.",
-    category: "power",
-  },
-  {
-    id: "fx-photo-tease",
-    title: "Locked photo tease",
-    blurb:
-      "Send one photo they are not allowed to open until a set time tonight.",
-    category: "tonight",
-  },
-  {
-    id: "fx-ice-warm",
-    title: "Ice then warm",
-    blurb:
-      "Temperature play: cool then warm hands or mouth. Stay until their breathing changes.",
-    category: "sensory",
-  },
-  {
-    id: "fx-movie-pause",
-    title: "Movie pause rule",
-    blurb:
-      "Start a film. Every time someone gets distracted, pause and escalate for two minutes.",
-    category: "weekend",
-  },
-  {
-    id: "fx-new-room",
-    title: "Wrong room on purpose",
-    blurb:
-      "Start in a room you never use. Finish wherever you end up.",
-    category: "places",
-  },
-  {
-    id: "fx-doctor",
-    title: "Very thorough checkup",
-    blurb:
-      "Play doctor / patient with a clipboard of ‘symptoms’ you invent together.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-slow-strip",
-    title: "One piece at a time",
-    blurb:
-      "Clothes come off one piece per song. No rushing the playlist.",
-    category: "soft",
-  },
-  {
-    id: "fx-command-hour",
-    title: "Command hour",
-    blurb:
-      "For sixty minutes they only do what you say. Kind, clear, and specific.",
-    category: "power",
-  },
-  {
-    id: "fx-bath-together",
-    title: "Shared bath first",
-    blurb:
-      "Fill the tub, phones out, candles optional. Touch is allowed. Finish wherever you want after.",
-    category: "weekend",
-  },
-  {
-    id: "fx-toy-instruction",
-    title: "Toy on the bed",
-    blurb:
-      "Leave one toy or accessory on the bed as the only instruction. No talking for five minutes.",
-    category: "tonight",
-  },
-  {
-    id: "fx-praise",
-    title: "Praise-only night",
-    blurb:
-      "Only compliments and dirty praise allowed. No jokes that break the mood.",
-    category: "soft",
-  },
-  {
-    id: "fx-outdoor-risk",
-    title: "Quiet outdoor risk",
-    blurb:
-      "Somewhere private outdoors or a balcony — keep it short, keep it quiet, keep it thrilling.",
-    category: "places",
-  },
-  {
-    id: "fx-name-game",
-    title: "Call me that",
-    blurb:
-      "Pick a name or title. They use it for the next hour, even when you laugh.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-aftercare-first",
-    title: "Aftercare menu first",
-    blurb:
-      "Before anything spicy, agree the aftercare: water, cuddles, snack, or alone time.",
-    category: "soft",
-  },
-  {
-    id: "fx-sixty-nine-timer",
-    title: "Mutual mouth timer",
-    blurb:
-      "Mouth only, ten minutes, no hands. Timer on the nightstand.",
-    category: "tonight",
-  },
-  {
-    id: "fx-weekend-hotel",
-    title: "Fake anniversary hotel",
-    blurb:
-      "Treat a night like a hotel anniversary even if you stay home — robes, order-in, no chores.",
-    category: "weekend",
-  },
-  {
-    id: "fx-lights-off-map",
-    title: "Lights-off body map",
-    blurb:
-      "Lights out. They lie still while you find every place that makes them twitch — no rushing the map.",
-    category: "tonight",
-  },
-  {
-    id: "fx-doorway-pin",
-    title: "Pinned in the doorway",
-    blurb:
-      "Catch them coming through a door. Kiss, pin, and decide together whether you make it to the bed.",
-    category: "tonight",
-  },
-  {
-    id: "fx-remote-under-table",
-    title: "Remote under the table",
-    blurb:
-      "One of you wears a toy through dinner at home. The remote stays across the table. Be kind. Be mean.",
-    category: "tonight",
-  },
-  {
-    id: "fx-no-hands-shower",
-    title: "Hands-off shower",
-    blurb:
-      "Shower together. Hands stay on the wall or on them — never on yourself.",
-    category: "tonight",
-  },
-  {
-    id: "fx-sock-rule",
-    title: "Clothes stay on until…",
-    blurb:
-      "Nothing comes off until one of you says the sentence you agreed at the start. Make them work for it.",
-    category: "tonight",
-  },
-  {
-    id: "fx-whisper-tour",
-    title: "Ear-only instructions",
-    blurb:
-      "Whisper exactly what you want, one sentence at a time. They follow. You don’t repeat yourself.",
-    category: "tonight",
-  },
-  {
-    id: "fx-fridge-break",
-    title: "Midnight fridge break",
-    blurb:
-      "Get up for water. Don’t make it back to bed the same way you left.",
-    category: "tonight",
-  },
-  {
-    id: "fx-phone-away-hour",
-    title: "Phones in another room",
-    blurb:
-      "One hour. Phones out. You only get each other’s attention — including the filthy kind.",
-    category: "tonight",
-  },
-  {
-    id: "fx-count-to-ten",
-    title: "Count to ten out loud",
-    blurb:
-      "They have to count slowly while you tease. If they lose the number, you start over.",
-    category: "tonight",
-  },
-  {
-    id: "fx-sofa-deal",
-    title: "Sofa, then floor",
-    blurb:
-      "Start on the couch like you’ll be good. Finish wherever gravity takes you.",
-    category: "tonight",
-  },
-  {
-    id: "fx-lipstick-trail",
-    title: "Leave a trail",
-    blurb:
-      "Mark a path down their body with mouth or lipstick. They are not allowed to wipe it off until morning.",
-    category: "tonight",
-  },
-  {
-    id: "fx-yes-list-three",
-    title: "Three yeses",
-    blurb:
-      "Each of you names three things you want tonight. You have to hit all six before sleep.",
-    category: "tonight",
-  },
-  {
-    id: "fx-slow-grind-song",
-    title: "One song, clothes on",
-    blurb:
-      "Pick one track. Grind like you’re in public. Clothes stay on until the last beat.",
-    category: "tonight",
-  },
-  {
-    id: "fx-window-light",
-    title: "Against the window light",
-    blurb:
-      "Use the window or balcony door as your backdrop. Curtains are a negotiation.",
-    category: "tonight",
-  },
-  {
-    id: "fx-breakfast-in-bed-filth",
-    title: "Breakfast, then dessert",
-    blurb:
-      "Serve breakfast in bed. Dessert is not food. No getting up until both are handled.",
-    category: "weekend",
-  },
-  {
-    id: "fx-lazy-morning-rule",
-    title: "No leaving the mattress",
-    blurb:
-      "Saturday morning: nobody gets out of bed until you’ve both come or the coffee goes cold. Your call.",
-    category: "weekend",
-  },
-  {
-    id: "fx-picnic-blanket",
-    title: "Indoor picnic that derails",
-    blurb:
-      "Blanket on the floor, snacks, a film. The rule: you have to start something before the credits.",
-    category: "weekend",
-  },
-  {
-    id: "fx-gold-hour-walk",
-    title: "Walk first, rush home",
-    blurb:
-      "Take an evening walk. The first one to say what they want turns you both around immediately.",
-    category: "weekend",
-  },
-  {
-    id: "fx-dress-up-night",
-    title: "Dress like a first date",
-    blurb:
-      "Full outfits, cologne, the nice glasses. Come home and ruin them carefully.",
-    category: "weekend",
-  },
-  {
-    id: "fx-two-hour-tease",
-    title: "Two-hour tease window",
-    blurb:
-      "All afternoon you may tease. Nobody finishes until a time you set. Set a loud alarm.",
-    category: "weekend",
-  },
-  {
-    id: "fx-cook-naked-apron",
-    title: "Apron-only cooking",
-    blurb:
-      "One of you cooks in an apron and nothing else. The other is allowed to interrupt twice.",
-    category: "weekend",
-  },
-  {
-    id: "fx-rain-check-in",
-    title: "Rainy-day marathon",
-    blurb:
-      "If it’s grey out, you stay in. Three rounds, long breaks, no errands until dark.",
-    category: "weekend",
-  },
-  {
-    id: "fx-sunday-reset",
-    title: "Sunday reset sex",
-    blurb:
-      "Slow, unhurried, lights low. The point is to remember you like each other, then get specific.",
-    category: "weekend",
-  },
-  {
-    id: "fx-day-trip-tease",
-    title: "Day trip with a secret",
-    blurb:
-      "Go out for the day. One of you is wearing something they weren’t allowed to mention until the drive home.",
-    category: "weekend",
-  },
-  {
-    id: "fx-long-bath-handoff",
-    title: "Bath handoff",
-    blurb:
-      "One soaks. The other gets in halfway. Trade who leads when the water starts to cool.",
-    category: "weekend",
-  },
-  {
-    id: "fx-record-store-flirt",
-    title: "Public flirt, private payoff",
-    blurb:
-      "Spend an hour in shops being obviously into each other. The second you get home, no small talk.",
-    category: "weekend",
-  },
-  {
-    id: "fx-slow-sunday-oral",
-    title: "Unhurried morning mouth",
-    blurb:
-      "One person gets a long, lazy oral morning. The other can only touch hair and sheets.",
-    category: "weekend",
-  },
-  {
-    id: "fx-mechanic-visit",
-    title: "The mechanic who stays late",
-    blurb:
-      "Hood up, hands dirty, ‘it’ll cost extra.’ Stay in character until the invoice is ‘paid.’",
-    category: "roleplay",
-  },
-  {
-    id: "fx-hotel-porter",
-    title: "Room service you didn’t order",
-    blurb:
-      "Knock, tray optional. They have to let you in and follow the special you describe.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-photographer",
-    title: "Private photoshoot",
-    blurb:
-      "One directs poses. Camera optional. The last pose is not for pictures.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-librarian",
-    title: "Quiet in the stacks",
-    blurb:
-      "One of you is the stern librarian. The other has overdue fines that can be worked off silently.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-bodyguard",
-    title: "Bodyguard in the hallway",
-    blurb:
-      "You don’t leave their side. When the ‘event’ ends, the protection gets very personal.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-artist-model",
-    title: "Stay still for the artist",
-    blurb:
-      "They pose. You ‘sketch’ with your mouth and hands. If they move, you start the pose over.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-pilot-hotel",
-    title: "Layover night",
-    blurb:
-      "You’re only in town until morning. Uniform optional. No exchanging real names until after.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-exes-one-night",
-    title: "Exes who shouldn’t",
-    blurb:
-      "Pretend you broke up months ago and ‘ran into’ each other. The bad idea is the point.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-massage-client",
-    title: "Happy-ending grey area",
-    blurb:
-      "Book a ‘professional’ massage at home. The table talk stays clinical until it absolutely doesn’t.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-detective",
-    title: "Interrogation with a smile",
-    blurb:
-      "One asks questions. The other is cuffed to a chair (softly). Truths get rewarded. Lies get teased.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-vampire-hour",
-    title: "Don’t you dare look away",
-    blurb:
-      "One of you is hungry and polite about it. Necks, wrists, slow bites that don’t break character.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-royal-favor",
-    title: "A favor for the crown",
-    blurb:
-      "One kneels. One grants permission. Titles stay on until someone giggles — then you double down.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-step-into-office",
-    title: "Closed-door review",
-    blurb:
-      "Performance review at the dining table. Ratings are physical. Appeals are allowed on your knees.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-stranger-rideshare",
-    title: "Wrong car on purpose",
-    blurb:
-      "Meet in the parked car like a rideshare mix-up. You don’t go inside until the ‘fare’ is settled.",
-    category: "roleplay",
-  },
-  {
-    id: "fx-laundry-room",
-    title: "Shared laundry room",
-    blurb:
-      "Fold nothing. Use the machine cycle as your timer. If someone ‘walks in,’ freeze, then continue.",
-    category: "places",
-  },
-  {
-    id: "fx-closet-crush",
-    title: "Walk-in closet squeeze",
-    blurb:
-      "Shut the door. Limited space, whispered instructions, try not to knock the hangers down.",
-    category: "places",
-  },
-  {
-    id: "fx-stairs-landing",
-    title: "Halfway up the stairs",
-    blurb:
-      "Don’t make it to the bedroom. Landing, wall, or that one creaky step — pick your risk.",
-    category: "places",
-  },
-  {
-    id: "fx-desk-chair",
-    title: "Work-from-home desk",
-    blurb:
-      "Laptop shut. Chair stays. They can keep typing if they want — you won’t make it easy.",
-    category: "places",
-  },
-  {
-    id: "fx-bathroom-sink",
-    title: "Bathroom sink fog",
-    blurb:
-      "Mirror on. Hands on the porcelain. You both watch. Nobody pretends this was about brushing teeth.",
-    category: "places",
-  },
-  {
-    id: "fx-balcony-two-minutes",
-    title: "Balcony two minutes",
-    blurb:
-      "Step outside. Two minutes. Quiet. Then back in like you were checking the weather.",
-    category: "places",
-  },
-  {
-    id: "fx-hallway-wall",
-    title: "Hallway, coats still on",
-    blurb:
-      "You just got home. Coats stay on. The hallway is far enough.",
-    category: "places",
-  },
-  {
-    id: "fx-kitchen-table",
-    title: "Clear the kitchen table",
-    blurb:
-      "One sweep of the mail. They sit or lie back. Dinner can wait.",
-    category: "places",
-  },
-  {
-    id: "fx-shower-glass",
-    title: "Through the shower glass",
-    blurb:
-      "One of you stays outside the glass first — watching, directing — then joins when asked twice.",
-    category: "places",
-  },
-  {
-    id: "fx-guest-room",
-    title: "The room you never use",
-    blurb:
-      "Guest bed, office floor, or that awkward armchair. New room, same hunger.",
-    category: "places",
-  },
-  {
-    id: "fx-parked-garage",
-    title: "Garage with the door down",
-    blurb:
-      "Engine off. Door closed. Ten minutes before you ‘remember’ you have a house.",
-    category: "places",
-  },
-  {
-    id: "fx-library-carrel",
-    title: "Quiet corner in public",
-    blurb:
-      "A bookstore nook, a museum bench, a dark cinema. Hands only. Faces calm. Payoff later.",
-    category: "places",
-  },
-  {
-    id: "fx-hot-tub-home",
-    title: "Tub or hot tub rule",
-    blurb:
-      "Water up. Suits optional. One rule: nobody stands up until you’ve both had a turn being spoiled.",
-    category: "places",
-  },
-  {
-    id: "fx-feather-ice",
-    title: "Feather, then ice",
-    blurb:
-      "Alternate the lightest touch with something cold. They say which they want next — you may ignore them.",
-    category: "sensory",
-  },
-  {
-    id: "fx-silk-blind",
-    title: "Silk over the eyes",
-    blurb:
-      "Blindfold with something soft. You narrate what you’re about to do, then wait a beat before doing it.",
-    category: "sensory",
-  },
-  {
-    id: "fx-oil-shoulders",
-    title: "Oil from the neck down",
-    blurb:
-      "Warm oil, slow hands, no skipping the boring spots. Sex is allowed only after the full pass.",
-    category: "sensory",
-  },
-  {
-    id: "fx-headphones-guide",
-    title: "Headphones on them",
-    blurb:
-      "They wear headphones. You play a voice note you recorded earlier that tells them what happens next.",
-    category: "sensory",
-  },
-  {
-    id: "fx-taste-tour",
-    title: "Taste, then kiss",
-    blurb:
-      "Honey, mint, chocolate, citrus — one at a time on skin, then kissed off. No mixing until the end.",
-    category: "sensory",
-  },
-  {
-    id: "fx-hair-pull-lesson",
-    title: "Show me how hard",
-    blurb:
-      "They put your hand in their hair and show the exact pressure they want. You copy it all night.",
-    category: "sensory",
-  },
-  {
-    id: "fx-breath-play-soft",
-    title: "Hand over the mouth",
-    blurb:
-      "Soft, consensual, easy to tap out. Cover their mouth while you go slow. Watch their eyes.",
-    category: "sensory",
-  },
-  {
-    id: "fx-nails-map",
-    title: "Nails, not hands",
-    blurb:
-      "For ten minutes you may only use nails and breath. No palms. No mouth. Then you give everything back.",
-    category: "sensory",
-  },
-  {
-    id: "fx-temperature-spoons",
-    title: "Hot spoon, cold spoon",
-    blurb:
-      "Warm a spoon, chill another. Trace them. They guess which is next with their eyes closed.",
-    category: "sensory",
-  },
-  {
-    id: "fx-fabric-only",
-    title: "Fabric between you",
-    blurb:
-      "Keep one layer of clothes or a sheet between you for a whole song. Friction only. Then rip it away.",
-    category: "sensory",
-  },
-  {
-    id: "fx-ear-bites",
-    title: "Ears and throat only",
-    blurb:
-      "Five minutes you are only allowed at their ears, jaw, and throat. They are not allowed to touch you back.",
-    category: "sensory",
-  },
-  {
-    id: "fx-lotion-gloves",
-    title: "Slow lotion gloves",
-    blurb:
-      "Lotion or oil + optional gloves. Make the ordinary parts (arms, calves, back) feel filthy.",
-    category: "sensory",
-  },
-  {
-    id: "fx-mirror-hands",
-    title: "Hands where they can see",
-    blurb:
-      "Stand them at the mirror. Your hands stay visible. They watch every decision you make.",
-    category: "sensory",
-  },
-  {
-    id: "fx-traffic-light",
-    title: "Green / yellow / red night",
-    blurb:
-      "Pick a color system and actually use it. Push toward yellow on purpose, then ease or go.",
-    category: "power",
-  },
-  {
-    id: "fx-ask-permission",
-    title: "Ask for every next thing",
-    blurb:
-      "They have to ask permission to kiss, touch, move, finish. You can say wait. You can say now.",
-    category: "power",
-  },
-  {
-    id: "fx-kneel-first",
-    title: "Kneel before we start",
-    blurb:
-      "One kneels and waits for instructions. Clothes can stay on. The kneeling is the start of the night.",
-    category: "power",
-  },
-  {
-    id: "fx-orgasm-control",
-    title: "You don’t get to decide",
-    blurb:
-      "One person controls if/when the other finishes. Kind check-ins. Mean timing.",
-    category: "power",
-  },
-  {
-    id: "fx-written-rules",
-    title: "Three written rules",
-    blurb:
-      "Write three rules on paper and tape it where you’ll see it. Break one on purpose and take the consequence.",
-    category: "power",
-  },
-  {
-    id: "fx-collar-night",
-    title: "Something at the throat",
-    blurb:
-      "A necklace, scarf, or collar they keep on. When you touch it, they pause and listen.",
-    category: "power",
-  },
-  {
-    id: "fx-over-the-knee",
-    title: "Over the knee, then kinder",
-    blurb:
-      "Playful spanking with a number you both pick. Aftercare is mandatory and longer than the scene.",
-    category: "power",
-  },
-  {
-    id: "fx-no-talking-scene",
-    title: "No words for twenty",
-    blurb:
-      "Twenty minutes, no talking. Gestures and eyes only. If someone speaks, add five minutes.",
-    category: "power",
-  },
-  {
-    id: "fx-service-stretch",
-    title: "Service stretch",
-    blurb:
-      "They spend fifteen minutes doing exactly what you like with no goal of their own. Then you switch or reward.",
-    category: "power",
-  },
-  {
-    id: "fx-hold-still",
-    title: "Hold still or we stop",
-    blurb:
-      "They have to stay as still as they can. Every twitch pauses you. Make stillness feel impossible.",
-    category: "power",
-  },
-  {
-    id: "fx-task-list",
-    title: "A list on the nightstand",
-    blurb:
-      "Leave a short list: kneel, undress, wait, fetch water. They complete it before you touch them.",
-    category: "power",
-  },
-  {
-    id: "fx-eye-contact-order",
-    title: "Don’t break eye contact",
-    blurb:
-      "The leading partner can look anywhere. The other cannot look away. If they do, you restart the beat.",
-    category: "power",
-  },
-  {
-    id: "fx-reward-chart",
-    title: "Earn the next thing",
-    blurb:
-      "Split the night into rewards. Compliments, obedience, or daring — each one unlocks the next act.",
-    category: "power",
-  },
-  {
-    id: "fx-forehead-kisses-filth",
-    title: "Gentle face, filthy hands",
-    blurb:
-      "Kiss them like you’re being sweet. Your hands are not sweet. Keep that split the whole time.",
-    category: "soft",
-  },
-  {
-    id: "fx-spoon-and-steal",
-    title: "Spoon, then steal them",
-    blurb:
-      "Start as the little spoon. Slowly take over until they’re the one being held down — still tender.",
-    category: "soft",
-  },
-  {
-    id: "fx-forehead-checkin",
-    title: "Name what feels good",
-    blurb:
-      "Every few minutes you each say one thing that feels good. No criticism. Adjust like you’re a team.",
-    category: "soft",
-  },
-  {
-    id: "fx-slow-undress-talk",
-    title: "Undress and tell the truth",
-    blurb:
-      "Each piece of clothing comes with a true sentence about what you want from them this week.",
-    category: "soft",
-  },
-  {
-    id: "fx-cuddle-to-grind",
-    title: "Cuddle until it isn’t",
-    blurb:
-      "No agenda for ten minutes of holding. The first person to start grinding owns the next twenty.",
-    category: "soft",
-  },
-  {
-    id: "fx-hair-wash",
-    title: "Wash their hair first",
-    blurb:
-      "Shower or sink. Wash their hair like it’s the main event. Then let the rest of the water get used.",
-    category: "soft",
-  },
-  {
-    id: "fx-letters-then-bed",
-    title: "Read it, then take me to bed",
-    blurb:
-      "Write three sentences about why you want them. Read them out loud. Then stop being literary.",
-    category: "soft",
-  },
-  {
-    id: "fx-forehead-to-forehead",
-    title: "Stay that close",
-    blurb:
-      "Foreheads together as long as you can stand it. When you finally kiss, don’t pull away for a full song.",
-    category: "soft",
-  },
-  {
-    id: "fx-sleep-naked-rule",
-    title: "Sleep naked on purpose",
-    blurb:
-      "Both of you, no clothes, even if you ‘just sleep.’ If someone starts something at 2am, that’s allowed.",
-    category: "soft",
-  },
-  {
-    id: "fx-hand-on-heart",
-    title: "Hand on their chest",
-    blurb:
-      "Keep a hand over their heart while you go slow. Match your pace to their breathing, then steal it.",
-    category: "soft",
-  },
-  {
-    id: "fx-favorite-spot-only",
-    title: "Only their favorite spot",
-    blurb:
-      "Ask what always works. Do only that, patiently, until they’re shaking. Then ask if they want more.",
-    category: "soft",
-  },
-  {
-    id: "fx-good-morning-note",
-    title: "Wake-up note on the pillow",
-    blurb:
-      "Leave one filthy-sweet sentence. They have to do what it says before coffee, or you do it to them.",
-    category: "soft",
-  },
+const SHORTS: [string, string, FantasyCategoryId][] = [
+  ["oral-f", "Head on F", "oral"],
+  ["oral-m", "Head on M", "oral"],
+  ["oral-69", "69", "oral"],
+  ["oral-facesit", "Face sitting", "oral"],
+  ["oral-deep-m", "Deep throat on M", "oral"],
+  ["oral-slow-m", "Slow head on M", "oral"],
+  ["oral-fast-f", "Fast head on F", "oral"],
+  ["oral-morning-m", "Morning head on M", "oral"],
+  ["oral-wake-f", "Wake her with oral", "oral"],
+  ["oral-wall", "Oral against the wall", "oral"],
+  ["oral-bed-edge", "Oral on the edge of the bed", "oral"],
+  ["oral-stand", "Oral while they stand", "oral"],
+  ["oral-mirror", "Oral in the mirror", "oral"],
+  ["oral-handsfree-m", "Hands-free head on M", "oral"],
+  ["oral-tease", "Tease-only oral", "oral"],
+  ["oral-shower", "Oral after a shower", "oral"],
+  ["oral-car", "Oral in the car", "oral"],
+  ["oral-tv", "Oral while they watch TV", "oral"],
+  ["oral-ice", "Ice-and-warm oral", "oral"],
+  ["oral-beg", "Oral until they beg", "oral"],
+  ["oral-swallow", "Swallow", "oral"],
+  ["oral-finish-her-tongue", "Finish on her tongue", "oral"],
+  ["oral-finish-his-tongue", "Finish on his tongue", "oral"],
+  ["oral-vibe-f", "Oral with a vibe on F", "oral"],
+  ["oral-tied-f", "Oral while F is tied", "oral"],
+  ["oral-tied-m", "Oral while M is tied", "oral"],
+  ["oral-sloppy-m", "Sloppy head on M", "oral"],
+  ["oral-gentle-f", "Gentle oral on F", "oral"],
+  ["oral-all-night", "Oral as the whole night", "oral"],
+  ["oral-eye-contact", "Eye-contact oral", "oral"],
+
+  ["anal-f", "Anal on F", "anal"],
+  ["anal-m", "Anal on M", "anal"],
+  ["anal-finger-f", "First finger in F", "anal"],
+  ["anal-finger-m", "First finger in M", "anal"],
+  ["anal-plug-f-sex", "Plug in F during sex", "anal"],
+  ["anal-plug-m-sex", "Plug in M during sex", "anal"],
+  ["anal-behind-f", "Anal from behind on F", "anal"],
+  ["anal-f-on-top", "Anal on F, her on top", "anal"],
+  ["anal-slow-f", "Slow anal on F", "anal"],
+  ["anal-slow-m", "Slow anal on M", "anal"],
+  ["anal-lube", "Anal with lots of lube", "anal"],
+  ["anal-after-oral", "Anal after oral", "anal"],
+  ["anal-shower", "Anal in the shower", "anal"],
+  ["anal-tied-f", "Anal while F is tied", "anal"],
+  ["anal-tied-m", "Anal while M is tied", "anal"],
+  ["anal-strap-m", "Strap-on on M", "anal"],
+  ["anal-strap-f", "Strap-on on F", "anal"],
+  ["anal-training", "Anal training night", "anal"],
+  ["anal-only", "Anal-only night", "anal"],
+  ["anal-toy-first", "Anal with a toy first", "anal"],
+  ["anal-rim-f", "Rimming F", "anal"],
+  ["anal-rim-m", "Rimming M", "anal"],
+  ["anal-mirror", "Anal in front of a mirror", "anal"],
+  ["anal-then-vag", "Anal then vaginal", "anal"],
+  ["anal-vag-then", "Vaginal then anal", "anal"],
+  ["anal-floor", "Anal on the floor", "anal"],
+  ["anal-counter", "Anal against the counter", "anal"],
+  ["anal-prostate", "Prostate play", "anal"],
+  ["anal-talk", "Anal with dirty talk", "anal"],
+  ["anal-reward", "Anal as a reward", "anal"],
+
+  ["toy-f-during", "Toy on F during sex", "toys"],
+  ["toy-vibe-fuck", "Vibe on F while he fucks her", "toys"],
+  ["toy-wand-f", "Wand on F", "toys"],
+  ["toy-dildo-f", "Dildo on F", "toys"],
+  ["toy-rabbit", "Rabbit toy", "toys"],
+  ["toy-sleeve-m", "Sleeve toy on M", "toys"],
+  ["toy-cock-ring", "Cock ring", "toys"],
+  ["toy-remote-public", "Remote vibe in public", "toys"],
+  ["toy-remote-dinner", "Remote vibe at dinner", "toys"],
+  ["toy-porn", "Toy while watching porn", "toys"],
+  ["toy-two-f", "Two toys on F", "toys"],
+  ["toy-mouth", "Toy in her mouth", "toys"],
+  ["toy-tied-f", "Toy while she's tied", "toys"],
+  ["toy-tied-m", "Toy while he's tied", "toys"],
+  ["toy-together", "Shared couple vibe", "toys"],
+  ["toy-prostate-m", "Prostate toy on M", "toys"],
+  ["toy-beads-f", "Anal beads on F", "toys"],
+  ["toy-beads-m", "Anal beads on M", "toys"],
+  ["toy-race", "Toy race — who finishes first", "toys"],
+  ["toy-strap-him", "She fucks him with a strap", "toys"],
+  ["toy-he-only", "He uses a toy on her only", "toys"],
+  ["toy-she-show", "She uses a toy, he watches", "toys"],
+  ["toy-he-show", "He uses a toy, she watches", "toys"],
+  ["toy-table", "Toy under the table", "toys"],
+  ["toy-bullet", "Bullet vibe on her clit", "toys"],
+  ["toy-glass", "Glass toy", "toys"],
+  ["toy-app", "App-controlled toy", "toys"],
+  ["toy-warmup", "Toy as a warm-up", "toys"],
+  ["toy-no-hands", "Toy instead of hands", "toys"],
+  ["toy-finish", "Finish with a toy", "toys"],
+
+  ["film-head-f", "Film head on F", "film"],
+  ["film-head-m", "Film head on M", "film"],
+  ["film-sex", "Film us having sex", "film"],
+  ["film-her-top", "Film her on top", "film"],
+  ["film-behind", "Film from behind", "film"],
+  ["film-close", "Film a close-up", "film"],
+  ["film-mirror", "Film in the mirror", "film"],
+  ["film-shower", "Film a shower", "film"],
+  ["film-photo-her", "Photo her body", "film"],
+  ["film-photo-him", "Photo his body", "film"],
+  ["film-voice", "Voice-note the night", "film"],
+  ["film-replay", "Replay last time's video", "film"],
+  ["film-toys", "Film a toy session", "film"],
+  ["film-60", "Film 60 seconds only", "film"],
+  ["film-her-face", "Film her face when she comes", "film"],
+  ["film-his-face", "Film his face when he comes", "film"],
+  ["film-tripod", "Phone on a tripod", "film"],
+  ["film-one-photo", "One photo after", "film"],
+  ["film-polaroid", "Polaroid then hide it", "film"],
+  ["film-strip", "Film a strip", "film"],
+  ["film-hands", "Film hands only", "film"],
+  ["film-legs", "Film legs and feet", "film"],
+  ["film-ride", "Film her riding", "film"],
+  ["film-him-down", "Film him going down", "film"],
+  ["film-quickie", "Film a quickie", "film"],
+  ["film-watch-us", "Watch our own tape", "film"],
+  ["film-delete", "Delete after watching", "film"],
+  ["film-keep", "Keep one favorite clip", "film"],
+  ["film-lights", "Film with the lights on", "film"],
+  ["film-lingerie", "Film in lingerie", "film"],
+
+  ["group-three", "Threesome", "group"],
+  ["group-ffm", "Threesome with another woman", "group"],
+  ["group-mmf", "Threesome with another man", "group"],
+  ["group-swap", "Couple swap", "group"],
+  ["group-soft-swap", "Soft swap — kiss and touch only", "group"],
+  ["group-watch-couple", "Watch another couple", "group"],
+  ["group-watched", "Be watched by a couple", "group"],
+  ["group-same-room", "Same-room swap", "group"],
+  ["group-sep-rooms", "Separate-rooms swap", "group"],
+  ["group-mfm", "MFM", "group"],
+  ["group-fmf", "FMF", "group"],
+  ["group-hotwife", "Hotwife", "group"],
+  ["group-cuckold", "Cuckold watch", "group"],
+  ["group-she-woman", "She plays with another woman", "group"],
+  ["group-he-man", "He plays with another man", "group"],
+  ["group-third-watch", "Invite a third to watch only", "group"],
+  ["group-third-oral", "Invite a third to join oral", "group"],
+  ["group-club", "Club playroom", "group"],
+  ["group-hotel", "Hotel with another couple", "group"],
+  ["group-text-third", "Text a third together", "group"],
+  ["group-pick-photos", "Pick a third from photos", "group"],
+  ["group-unicorn", "Unicorn night", "group"],
+  ["group-full-swap", "Full swap", "group"],
+  ["group-kiss-else", "Kiss someone else in front of me", "group"],
+  ["group-hands-else", "Hands on someone else in front of me", "group"],
+  ["group-she-directs", "She directs him with a third", "group"],
+  ["group-he-directs", "He directs her with a third", "group"],
+  ["group-aftercare-3", "Aftercare with three", "group"],
+  ["group-blind-who", "Blindfold — don't know who", "group"],
+  ["group-fake-third", "Roleplay a third — just us", "group"],
+
+  ["pow-tied", "Tied up", "power"],
+  ["pow-tied-f", "She tied up", "power"],
+  ["pow-tied-m", "He tied up", "power"],
+  ["pow-wrists-bed", "Wrists to the bed", "power"],
+  ["pow-spread", "Spread and tied", "power"],
+  ["pow-collar-f", "Collar on F", "power"],
+  ["pow-collar-m", "Collar on M", "power"],
+  ["pow-leash-house", "Leash in the house", "power"],
+  ["pow-gag", "Gag", "power"],
+  ["pow-blindfold", "Blindfold", "power"],
+  ["pow-she-charge", "She in charge all night", "power"],
+  ["pow-he-charge", "He in charge all night", "power"],
+  ["pow-ask-come", "Ask permission to come", "power"],
+  ["pow-orgasm-ctrl", "Orgasm control", "power"],
+  ["pow-edge", "Edging until they shake", "power"],
+  ["pow-beg", "Beg for it", "power"],
+  ["pow-orders", "Orders only, no asking", "power"],
+  ["pow-kneel", "Kneel", "power"],
+  ["pow-all-fours", "On all fours and wait", "power"],
+  ["pow-hair", "Hair pulling", "power"],
+  ["pow-throat", "Hand on throat (safe)", "power"],
+  ["pow-spank", "Spanking", "power"],
+  ["pow-otk", "Over the knee", "power"],
+  ["pow-names", "Name-calling (hot)", "power"],
+  ["pow-praise", "Praise only", "power"],
+  ["pow-service", "Service — they get nothing first", "power"],
+  ["pow-tied-tease", "Tied and teased", "power"],
+  ["pow-tied-used", "Tied and used", "power"],
+  ["pow-free-use", "Free use for an hour", "power"],
+  ["pow-safeword", "Safe word practice first", "power"],
+
+  ["imp-whipped", "Whipped", "impact"],
+  ["imp-crop-f", "Crop on F", "impact"],
+  ["imp-crop-m", "Crop on M", "impact"],
+  ["imp-paddle", "Paddle", "impact"],
+  ["imp-belt", "Belt (light)", "impact"],
+  ["imp-hairbrush", "Hairbrush spanking", "impact"],
+  ["imp-slap-ass", "Slapped ass", "impact"],
+  ["imp-slap-face", "Slapped face (consensual)", "impact"],
+  ["imp-flogged", "Flogged", "impact"],
+  ["imp-cane", "Cane lines", "impact"],
+  ["imp-then-sex", "Impact then sex", "impact"],
+  ["imp-then-oral", "Impact then oral", "impact"],
+  ["imp-count", "Count the hits", "impact"],
+  ["imp-marks", "Marks that last tomorrow", "impact"],
+  ["imp-ice", "Ice after impact", "impact"],
+  ["imp-warmup", "Warm-up spanking", "impact"],
+  ["imp-harder-moan", "Harder if they moan", "impact"],
+  ["imp-harder-quiet", "Harder if they stay quiet", "impact"],
+  ["imp-thighs", "Impact on thighs", "impact"],
+  ["imp-riding", "Impact while riding", "impact"],
+  ["imp-tied", "Impact while tied", "impact"],
+  ["imp-she-whips", "She whips him", "impact"],
+  ["imp-he-whips", "He whips her", "impact"],
+  ["imp-heels-crop", "Riding crop in heels", "impact"],
+  ["imp-spoon", "Wooden spoon", "impact"],
+  ["imp-hands", "Bare-hand only", "impact"],
+  ["imp-punish", "Impact as punishment", "impact"],
+  ["imp-gift", "Impact as a gift", "impact"],
+  ["imp-oil", "Aftercare oil", "impact"],
+  ["imp-mirror", "Show the marks in the mirror", "impact"],
+
+  ["plc-counter", "Kitchen counter", "places"],
+  ["plc-shower", "Shower", "places"],
+  ["plc-wall", "Against the wall", "places"],
+  ["plc-floor", "On the floor", "places"],
+  ["plc-couch", "Couch", "places"],
+  ["plc-car", "Car", "places"],
+  ["plc-driveway", "Driveway", "places"],
+  ["plc-hotel", "Hotel", "places"],
+  ["plc-balcony", "Balcony", "places"],
+  ["plc-woods", "Woods", "places"],
+  ["plc-beach", "Beach at night", "places"],
+  ["plc-changing", "Changing room", "places"],
+  ["plc-cinema", "Cinema back row", "places"],
+  ["plc-office", "Office after hours", "places"],
+  ["plc-elevator", "Elevator risk", "places"],
+  ["plc-stairs", "Stairs", "places"],
+  ["plc-alley", "Alley (quick)", "places"],
+  ["plc-pool", "Pool", "places"],
+  ["plc-hottub", "Hot tub", "places"],
+  ["plc-tent", "Tent", "places"],
+  ["plc-guest", "Guest room", "places"],
+  ["plc-window", "In front of a window", "places"],
+  ["plc-washer", "On the washing machine", "places"],
+  ["plc-desk", "Desk", "places"],
+  ["plc-bar-bath", "Bar bathroom", "places"],
+  ["plc-lookout", "Parked lookout", "places"],
+  ["plc-cabin", "Cabin", "places"],
+  ["plc-plane", "Plane fantasy", "places"],
+  ["plc-train", "Train toilet fantasy", "places"],
+  ["plc-roof", "Roof / fire escape", "places"],
+
+  ["wat-toy-her", "Watch her with a toy", "watch"],
+  ["wat-toy-him", "Watch him with a toy", "watch"],
+  ["wat-her-hands", "Watch her touch herself", "watch"],
+  ["wat-him-hands", "Watch him touch himself", "watch"],
+  ["wat-her-else", "He watches her with someone (fantasy)", "watch"],
+  ["wat-him-else", "She watches him with someone (fantasy)", "watch"],
+  ["wat-mirror", "Mirror the whole time", "watch"],
+  ["wat-window", "Window open a crack", "watch"],
+  ["wat-lights", "Lights on, eyes open", "watch"],
+  ["wat-she-show", "She puts on a show", "watch"],
+  ["wat-he-show", "He puts on a show", "watch"],
+  ["wat-strip", "Striptease", "watch"],
+  ["wat-lap", "Lap dance", "watch"],
+  ["wat-porn-us", "Porn on while we do it", "watch"],
+  ["wat-porn-her", "Porn she picked", "watch"],
+  ["wat-porn-him", "Porn he picked", "watch"],
+  ["wat-finish", "Watch each other finish", "watch"],
+  ["wat-no-touch", "No touching — watch only", "watch"],
+  ["wat-doorway", "Peek from the doorway", "watch"],
+  ["wat-catch", "Catch them starting", "watch"],
+  ["wat-exhibit", "Exhibitionist — someone could see", "watch"],
+  ["wat-almost", "Almost-caught", "watch"],
+  ["wat-replay-now", "Record then watch immediately", "watch"],
+  ["wat-mutual", "Mutual masturbation", "watch"],
+  ["wat-she-talks", "She talks him through it", "watch"],
+  ["wat-he-talks", "He talks her through it", "watch"],
+  ["wat-hotel-mirror", "Watch in a hotel mirror", "watch"],
+  ["wat-dress", "Watch her get dressed after", "watch"],
+  ["wat-hard", "Watch him get hard", "watch"],
+  ["wat-eyes-come", "Eyes on them when they come", "watch"],
+
+  ["bod-chest-her", "Finish on her chest", "body"],
+  ["bod-face-her", "Finish on her face", "body"],
+  ["bod-chest-him", "Finish on his chest", "body"],
+  ["bod-inside-f", "Finish inside F", "body"],
+  ["bod-inside-m", "Finish inside M (anal)", "body"],
+  ["bod-creampie", "Creampie", "body"],
+  ["bod-keep-going", "Creampie then keep going", "body"],
+  ["bod-breasts", "Between her breasts", "body"],
+  ["bod-feet", "Feet", "body"],
+  ["bod-hair-sex", "Hair pulling + sex", "body"],
+  ["bod-neck", "Neck kissing only first", "body"],
+  ["bod-bites", "Bite marks", "body"],
+  ["bod-hickeys", "Hickeys", "body"],
+  ["bod-scratch-him", "Scratch his back", "body"],
+  ["bod-scratch-her", "Scratch her back", "body"],
+  ["bod-oil", "Oil everywhere", "body"],
+  ["bod-massage", "Massage into sex", "body"],
+  ["bod-outer", "Outercourse only", "body"],
+  ["bod-grind", "Grinding clothed", "body"],
+  ["bod-dry", "Dry hump then strip", "body"],
+  ["bod-morning", "Morning sex", "body"],
+  ["bod-quickie", "Quickie", "body"],
+  ["bod-marathon", "Marathon", "body"],
+  ["bod-slow-mean", "Slow and mean", "body"],
+  ["bod-fast-messy", "Fast and messy", "body"],
+  ["bod-stand", "Standing up", "body"],
+  ["bod-her-top", "Her on top", "body"],
+  ["bod-behind", "From behind", "body"],
+  ["bod-missionary", "Missionary, deep", "body"],
+  ["bod-fridge", "Against the fridge", "body"],
 ];
+
+export const FANTASY_IDEAS: FantasyIdea[] = SHORTS.map(([id, title, category]) => ({
+  id: `fx-${id}`,
+  title,
+  category,
+}));
 
 export function fantasyById(id: string): FantasyIdea | null {
   return FANTASY_IDEAS.find((item) => item.id === id) ?? null;
@@ -935,7 +387,7 @@ export function groupFantasiesByCategory(ideas: FantasyIdea[]): {
 
 /** Deterministic subset of idea ids a demo partner "already liked". */
 export function demoLikedFantasyIds(): string[] {
-  return FANTASY_IDEAS.filter((_, index) => index % 2 === 0).map(
+  return FANTASY_IDEAS.filter((_, index) => index % 3 === 0).map(
     (item) => item.id
   );
 }
