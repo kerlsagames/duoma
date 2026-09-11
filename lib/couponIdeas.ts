@@ -7,7 +7,12 @@ export type CouponCategoryId =
   | "chores"
   | "outings"
   | "flirty"
-  | "wildcard";
+  | "wildcard"
+  | "escapes"
+  | "nostalgia"
+  | "relief"
+  | "surprises"
+  | "connection";
 
 export type CouponIdea = {
   id: string;
@@ -58,6 +63,36 @@ export const COUPON_CATEGORIES: CouponCategory[] = [
     label: "Wildcard",
     detail: "Funny passes and blank checks",
     icon: "flash-outline",
+  },
+  {
+    id: "escapes",
+    label: "Escapes",
+    detail: "Solo resets, quiet time",
+    icon: "leaf-outline",
+  },
+  {
+    id: "nostalgia",
+    label: "Nostalgia",
+    detail: "Games, snacks, throwbacks",
+    icon: "game-controller-outline",
+  },
+  {
+    id: "relief",
+    label: "Relief",
+    detail: "Venting, hugs, soft landings",
+    icon: "hand-left-outline",
+  },
+  {
+    id: "surprises",
+    label: "Surprises",
+    detail: "Small weekday pick-me-ups",
+    icon: "gift-outline",
+  },
+  {
+    id: "connection",
+    label: "Connection",
+    detail: "Talks, memories, together time",
+    icon: "people-outline",
   },
 ];
 
@@ -231,6 +266,66 @@ export const COUPON_IDEAS: CouponIdea[] = [
     '"Do my hair / style my hair" fun session',
     "Unlimited veto power on today's weekend plans",
     "Blank check coupon: Redeemable for any one reasonable favor of your choice",
+  ]),
+  ...pack("escapes", [
+    "Guilt-Free Solo Hour: 1 hour of zero interruptions where your partner handles everything while you do whatever you want",
+    "Quiet Reading / Scrolling Pass: Immunity from household chatter or requests for 45 minutes while you unwind",
+    "Hobby Sprint: Your partner covers routine responsibilities so you can spend two uninterrupted hours on a project or hobby",
+    "Long Hot Shower Lockout: Complete quiet and zero bathroom interruptions for as long as a hot shower takes",
+    "Solo Drive / Coffee Break: Take the car, get your favorite beverage, and sit somewhere quiet for an hour on your own",
+    "Sleep-In Exemption: Pass this to stay in bed extra late on a weekend morning without explaining why",
+    "Digital Fast Pass: Declare a 2-hour window where you don't have to reply to texts, check emails, or look at your phone",
+    "Hammock / Porch Reset: Your partner brings you a cold drink while you sit outside and do nothing for 30 minutes",
+    "Zero-Decibel Evening: 30 minutes of absolute silence around the house while you decompress after a long day",
+    "Early Night Out-Of-Duty: Redeem to go to bed as early as you want, leaving all closing-up tasks to your partner",
+  ]),
+  ...pack("nostalgia", [
+    "Arcade / Games Night: Head to an arcade, bowling alley, or set up retro games at home for a play session",
+    "Childhood Snack Nostalgia: Your partner tracks down and buys three nostalgic snacks from your past",
+    "Retro Movie Marathon: You pick two movies from your childhood or teenage years to watch back-to-back",
+    "Playstation / Gaming Buddy: Your partner agrees to play co-op or multiplayer games with you for an hour",
+    "Lego / Puzzle Build: Spend a quiet evening putting together a set or puzzle while listening to music",
+    "Ice Cream Parlour Run: Grab a waffle cone or sundae from a local parlor, no matter the time of night",
+    "Show-and-Tell Night: Show your partner your favorite old music videos, classic clips, or photo albums",
+    "Mini-Golf / Trivia Challenge: Redeem for a quick mini-golf round or local pub trivia night together",
+    "Comfort Food Dinner: Request a meal that tastes like home or a favorite childhood dish",
+    "Board Game Rematch: Instantly trigger a rematch on any tabletop or card game you lost recently",
+  ]),
+  ...pack("relief", [
+    "Venting Vault: 15 minutes to complain about work or life with guaranteed validation and zero advice",
+    "Emergency Hug Hold: Hold a continuous 2-minute embrace whenever you need an instant reset",
+    "Decision-Free Evening: Your partner makes every single minor decision (what to eat, watch, or do) for the rest of the night",
+    "Head Massage on Demand: A 10-minute quiet scalp massage when a headache or stress hits",
+    "Priority Comfort Item: Your partner fetches a warm blanket, heat pack, or fresh socks without you asking twice",
+    "Problem-Solving Brainstorm: Sit down for 20 minutes while your partner helps you map out a solution to something stressing you out",
+    "Peace & Quiet Guarantee: Immediate noise reduction in the house for 1 hour when you're overwhelmed",
+    "No-Questions Answered: Get out of explaining why you're in a mood—your partner simply offers a hug or space",
+    "Heavy Lifting Pass: Your partner handles moving, carrying, or lifting heavy items for the day",
+    "Tea / Cocoa Remedy: A fresh hot drink delivered whenever you express that you've had a tough moment",
+  ]),
+  ...pack("surprises", [
+    "Hidden Note Hunt: Your partner hides three sweet or funny notes in your bag, car, or pockets for you to find",
+    "Surprise Treat in Bag: Your partner sneaks your favorite chocolate or snack into your work bag",
+    "Playlist Dedicated to You: Your partner curates a 10-song custom playlist tailored specifically to your taste",
+    "Custom Morning Coffee: Wake up to your favorite coffee prepared exactly how you like it before you ask",
+    "Car Gas Tank Fill-Up: Your partner takes your car to the station and returns it with a full tank",
+    "Desk Pickup Service: Your partner tidies your desk area or workspace while you take a break",
+    "Fresh Sheets Upgrade: Bed made with freshly washed sheets ready for you at the end of the day",
+    "Favorite Local Snack Drop: Your partner drops off a fresh bakery treat or lunch item at your workspace",
+    "Mid-Day Check-in Text: A thoughtful message during a busy workday simply to tell you you're doing great",
+    "Flower / Plant Pick-Me-Up: A small bouquet or potted plant brought home on a random weekday",
+  ]),
+  ...pack("connection", [
+    "Deep Dive Q&A: Spend 30 minutes asking each other open-ended connection questions over a drink",
+    "Sunset / Sunrise View: Drive to a local spot to watch the sun go down or come up together",
+    "Dream Planning Session: Sit down with notebooks and talk about future travel, home projects, or long-term goals",
+    "Unplugged Porch Sit: 30 minutes sitting outside together chatting with zero phones or screens present",
+    "Gratitude Exchange: Share five specific things you deeply appreciate about each other right now",
+    "Memory Lane Drive: Drive around meaningful local spots (where you first met, first date, early memories)",
+    "Shared Podcast / Audio Book: Listen to an episode of an interesting podcast or audiobook chapter together while relaxing",
+    "Cook Together Class at Home: Pick a brand-new recipe you've never tried and cook it as a team",
+    "Stargazing & Music: Lay out a blanket in the yard or balcony with music playing softly in the background",
+    "Photo Album Review: Scroll through photos from a favorite trip or year past and reminisce",
   ]),
 ];
 
