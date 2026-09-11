@@ -166,7 +166,8 @@ export default function HomeScreen() {
                 padding: 14,
                 backgroundColor: hub.tile,
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent: "center",
+                gap: 12,
               }}
             >
               <View
@@ -177,7 +178,6 @@ export default function HomeScreen() {
                   backgroundColor: "rgba(255,255,255,0.22)",
                   alignItems: "center",
                   justifyContent: "center",
-                  alignSelf: "center",
                 }}
               >
                 <Ionicons name={hub.icon} size={44} color={hub.tileInk} />
@@ -209,7 +209,7 @@ export default function HomeScreen() {
                 </Text>
                 <Text
                   style={{
-                    marginTop: 10,
+                    marginTop: 8,
                     fontSize: 11,
                     color: hub.tileInk,
                     opacity: 0.55,
