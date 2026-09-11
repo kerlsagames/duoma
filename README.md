@@ -14,7 +14,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me, Roleplays, Positions, Fantasy Matcher, Secret Signals, Audio Voice Notes, Intimacy Streak.
 - **Fun** — Coupons, How Well Do You Know Me, Prediction Market, Two Truths & A Wish, Memory Polaroids, Doodle canvas, Scoreboard, Couple Crossword, Choose-Your-Own Adventure, Virtual Scrapbook.
-- **Home Base** — Groceries & Errands, Meal Eliminator, Where Are We Going wheel, Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Settings.
+- **Home Base** — Groceries & Errands, Meal Decisions, Where Are We Going wheel, Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Settings.
 
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles and Pick me a Position with flat editorial pink/blue pose art.

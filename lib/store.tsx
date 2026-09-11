@@ -97,7 +97,15 @@ import type {
   CalendarCustomEvent,
   ErrandItem,
   ErrandKind,
+  MealRound,
+  MealVoteKind,
+  MealWant,
 } from "@/lib/types";
+import {
+  mealById,
+  pickRandomMeal,
+  type MealCategoryId,
+} from "@/lib/meals";
 import {
   categoryById,
   ensureDeck,
@@ -400,6 +408,8 @@ type AppContextValue = {
   roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
+  mealRounds: MealRound[];
+  mealWants: MealWant[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
@@ -502,6 +512,17 @@ type AppContextValue = {
   toggleErrandDone: (id: string) => Promise<void>;
   removeErrandItem: (id: string) => Promise<void>;
   clearDoneErrands: (kind?: ErrandKind | "all") => Promise<void>;
+  spinMeal: (input?: {
+    pool?: MealCategoryId[];
+    mealId?: string | null;
+    wantId?: string | null;
+  }) => Promise<MealRound>;
+  voteMeal: (roundId: string, vote: MealVoteKind) => Promise<MealRound | null>;
+  sendMealWant: (input: {
+    mealId?: string | null;
+    title?: string;
+  }) => Promise<MealWant>;
+  dismissMealWant: (id: string) => Promise<void>;
   toggleDesire: (optionId: string) => Promise<void>;
   /** Swipe a Fantasy Matcher card. Returns whether it just became a mutual match. */
   swipeFantasy: (
@@ -752,6 +773,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (aDone !== bDone) return aDone - bDone;
           return b.createdAt.localeCompare(a.createdAt);
         }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const mealRounds = useMemo(
+    () =>
+      db.mealRounds
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+
+  const mealWants = useMemo(
+    () =>
+      db.mealWants
+        .filter((row) => row.coupleId === couple?.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3126,6 +3165,221 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple]
   );
 
+  const spinMeal = useCallback(
+    async (input?: {
+      pool?: MealCategoryId[];
+      mealId?: string | null;
+      wantId?: string | null;
+    }) => {
+      if (!user || !couple) throw new Error("Pair up before spinning dinner.");
+      const pool = (input?.pool?.length
+        ? input.pool
+        : [
+            "easy",
+            "pasta",
+            "asian",
+            "comfort",
+            "grill",
+            "fresh",
+            "takeout",
+            "breakfast",
+          ]) as MealCategoryId[];
+      const catalog = input?.mealId ? mealById(input.mealId) : null;
+      const recent = db.mealRounds
+        .filter((row) => row.coupleId === couple.id)
+        .slice(0, 6)
+        .map((row) => row.mealId);
+      const picked =
+        catalog ??
+        pickRandomMeal(pool, recent);
+      if (!picked) throw new Error("Turn on at least one dinner category.");
+
+      const stamp = nowIso();
+      const round: MealRound = {
+        id: createId(),
+        coupleId: couple.id,
+        mealId: picked.id,
+        title: picked.title,
+        category: picked.category,
+        pool,
+        spunBy: user.id,
+        createdAt: stamp,
+        votes: [],
+        status: "voting",
+      };
+
+      db = {
+        ...db,
+        mealRounds: [
+          ...db.mealRounds.map((row) =>
+            row.coupleId === couple.id && row.status === "voting"
+              ? { ...row, status: "vetoed" as const }
+              : row
+          ),
+          round,
+        ],
+        mealWants: input?.wantId
+          ? db.mealWants.map((row) =>
+              row.id === input.wantId ? { ...row, status: "used" as const } : row
+            )
+          : db.mealWants,
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Dinner spin",
+        body: `${user.displayName} spun ${picked.title}. Thumbs?`,
+        url: "/hub/meal-picker",
+      });
+      return round;
+    },
+    [couple, partner, user]
+  );
+
+  const voteMeal = useCallback(
+    async (roundId: string, vote: MealVoteKind) => {
+      if (!user || !couple) throw new Error("Pair up before voting.");
+      const existing = db.mealRounds.find((row) => row.id === roundId);
+      if (!existing || existing.coupleId !== couple.id) {
+        throw new Error("That dinner is gone.");
+      }
+      if (existing.status !== "voting") {
+        throw new Error("This one’s already settled.");
+      }
+
+      const stamp = nowIso();
+      const partnerId = otherUserId(couple, user.id);
+      let votes = [
+        ...existing.votes.filter((row) => row.userId !== user.id),
+        { userId: user.id, vote, at: stamp },
+      ];
+
+      if (partner?.isDemo && partner.id && vote === "up") {
+        const demoVoted = votes.some((row) => row.userId === partner.id);
+        if (!demoVoted) {
+          votes = [
+            ...votes,
+            { userId: partner.id, vote: "up", at: stamp },
+          ];
+        }
+      }
+
+      const anyDown = votes.some((row) => row.vote === "down");
+      const needed = [user.id, partnerId].filter(Boolean) as string[];
+      const allUp =
+        !anyDown &&
+        needed.every((id) =>
+          votes.some((row) => row.userId === id && row.vote === "up")
+        );
+
+      if (anyDown) {
+        const pool = (existing.pool.length
+          ? existing.pool
+          : existing.category
+            ? [existing.category]
+            : ["easy"]) as MealCategoryId[];
+        const next = pickRandomMeal(pool, [existing.mealId]);
+        if (!next) throw new Error("No other dinners left in those categories.");
+        const follow: MealRound = {
+          id: createId(),
+          coupleId: couple.id,
+          mealId: next.id,
+          title: next.title,
+          category: next.category,
+          pool,
+          spunBy: user.id,
+          createdAt: stamp,
+          votes: [],
+          status: "voting",
+        };
+        db = {
+          ...db,
+          mealRounds: [
+            ...db.mealRounds.map((row) =>
+              row.id === existing.id
+                ? { ...row, votes, status: "vetoed" as const }
+                : row
+            ),
+            follow,
+          ],
+        };
+        await persist();
+        pingPartner(couple, user, partner, {
+          title: "Dinner veto",
+          body: `${user.displayName} passed on ${existing.title}. Now: ${next.title}.`,
+          url: "/hub/meal-picker",
+        });
+        return follow;
+      }
+
+      const status = allUp ? "agreed" : "voting";
+      const updated: MealRound = { ...existing, votes, status };
+      db = {
+        ...db,
+        mealRounds: db.mealRounds.map((row) =>
+          row.id === existing.id ? updated : row
+        ),
+      };
+      await persist();
+      if (allUp) {
+        pingPartner(couple, user, partner, {
+          title: "Dinner’s on",
+          body: `You both want ${existing.title}.`,
+          url: "/hub/meal-picker",
+        });
+      }
+      return updated;
+    },
+    [couple, partner, user]
+  );
+
+  const sendMealWant = useCallback(
+    async (input: { mealId?: string | null; title?: string }) => {
+      if (!user || !couple) throw new Error("Pair up first.");
+      const catalog = input.mealId ? mealById(input.mealId) : null;
+      const title = (catalog?.title ?? input.title ?? "").trim();
+      if (!title) throw new Error("Pick a dinner first.");
+      const already = db.mealWants.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.fromUserId === user.id &&
+          row.status === "open" &&
+          (catalog
+            ? row.mealId === catalog.id
+            : row.title.toLowerCase() === title.toLowerCase())
+      );
+      if (already) return already;
+      const row: MealWant = {
+        id: createId(),
+        coupleId: couple.id,
+        mealId: catalog?.id ?? input.mealId ?? null,
+        title,
+        category: catalog?.category ?? null,
+        fromUserId: user.id,
+        createdAt: nowIso(),
+        status: "open",
+      };
+      db = { ...db, mealWants: [...db.mealWants, row] };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Dinner want",
+        body: `${user.displayName} wants ${title}.`,
+        url: "/hub/meal-picker",
+      });
+      return row;
+    },
+    [couple, partner, user]
+  );
+
+  const dismissMealWant = useCallback(async (id: string) => {
+    db = {
+      ...db,
+      mealWants: db.mealWants.map((row) =>
+        row.id === id ? { ...row, status: "dismissed" as const } : row
+      ),
+    };
+    await persist();
+  }, []);
+
   const toggleDesire = useCallback(
     async (optionId: string) => {
       if (!user || !couple) return;
@@ -3771,6 +4025,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     allDeck,
     calendarEvents,
     errandItems,
+    mealRounds,
+    mealWants,
     bestCards,
     checkIns,
     checkInRequests,
@@ -3847,6 +4103,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleErrandDone,
     removeErrandItem,
     clearDoneErrands,
+    spinMeal,
+    voteMeal,
+    sendMealWant,
+    dismissMealWant,
     toggleDesire,
     swipeFantasy,
     createCoupon,

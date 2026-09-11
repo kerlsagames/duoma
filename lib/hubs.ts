@@ -283,8 +283,8 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "meal-picker",
-        label: "Meal Decision Eliminator",
-        detail: "Blind elimination for dinner",
+        label: "Meal Decisions",
+        detail: "Spin dinner, thumbs up or spin again",
         icon: "restaurant",
         href: "/hub/meal-picker",
       },

@@ -467,6 +467,41 @@ export type RoleplayInvite = {
   completedAt: string | null;
 };
 
+/** Shared dinner spin + thumbs (Meal Decisions). */
+export type MealVoteKind = "up" | "down";
+
+export type MealRoundStatus = "voting" | "agreed" | "vetoed";
+
+export type MealVote = {
+  userId: string;
+  vote: MealVoteKind;
+  at: string;
+};
+
+export type MealRound = {
+  id: string;
+  coupleId: string;
+  mealId: string;
+  title: string;
+  category: string;
+  pool: string[];
+  spunBy: string;
+  createdAt: string;
+  votes: MealVote[];
+  status: MealRoundStatus;
+};
+
+export type MealWant = {
+  id: string;
+  coupleId: string;
+  mealId: string | null;
+  title: string;
+  category: string | null;
+  fromUserId: string;
+  createdAt: string;
+  status: "open" | "used" | "dismissed";
+};
+
 /** Shared household groceries & errands (Home Base). */
 export type ErrandKind = "grocery" | "errand";
 
@@ -529,6 +564,8 @@ export type AppDB = {
   roleplayInvites: RoleplayInvite[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
+  mealRounds: MealRound[];
+  mealWants: MealWant[];
 };
 
 export type GameModule = {

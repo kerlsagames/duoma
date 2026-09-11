@@ -32,6 +32,8 @@ const hubEmpty = () => ({
   roleplayInvites: [],
   calendarEvents: [],
   errandItems: [],
+  mealRounds: [],
+  mealWants: [],
 });
 
 export function emptyDb(): AppDB {
@@ -172,6 +174,37 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     roleplayInvites: raw.roleplayInvites ?? [],
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
     errandItems: (raw.errandItems ?? []).map(hydrateErrandItem),
+    mealRounds: (raw.mealRounds ?? []).map(hydrateMealRound),
+    mealWants: (raw.mealWants ?? []).map(hydrateMealWant),
+  };
+}
+
+function hydrateMealRound(
+  row: AppDB["mealRounds"][number]
+): AppDB["mealRounds"][number] {
+  const status =
+    row.status === "agreed" || row.status === "vetoed" ? row.status : "voting";
+  return {
+    ...row,
+    title: row.title?.trim() || "Dinner",
+    category: row.category ?? "easy",
+    pool: Array.isArray(row.pool) ? row.pool : [],
+    votes: Array.isArray(row.votes) ? row.votes : [],
+    status,
+  };
+}
+
+function hydrateMealWant(
+  row: AppDB["mealWants"][number]
+): AppDB["mealWants"][number] {
+  const status =
+    row.status === "used" || row.status === "dismissed" ? row.status : "open";
+  return {
+    ...row,
+    title: row.title?.trim() || "Dinner",
+    mealId: row.mealId ?? null,
+    category: row.category ?? null,
+    status,
   };
 }
 

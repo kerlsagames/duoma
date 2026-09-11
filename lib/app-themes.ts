@@ -176,6 +176,22 @@ export const TALK_DECK_TINT: Record<string, string> = {
   appreciation: "#E0B48A",
 };
 
+/** Diner ticket for Meal Decisions. */
+export const MEALS_TONE = {
+  background: "#1C1410",
+  accent: "#F25C3A",
+  accentSoft: "rgba(242,92,58,0.16)",
+  paper: "#F3E6C4",
+  ticketInk: "#2A1C10",
+  ink: "#F6EDE4",
+  muted: "rgba(246,237,228,0.62)",
+  surface: "#261C16",
+  surfaceRaised: "#2F231C",
+  border: "rgba(242,92,58,0.32)",
+  up: "#3ECF8E",
+  down: "#F25C3A",
+} as const;
+
 /** Kitchen-table notepad for Groceries & Errands. */
 export const ERRANDS_TONE = {
   background: "#3A2C22",
