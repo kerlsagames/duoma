@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 
 type Props = {
   kicker: string;
-  title: string;
+  title?: string;
   body?: string;
   children: ReactNode;
   tone?: HubTone;
@@ -30,18 +30,20 @@ export function HubScreen({ kicker, title, body, children, tone = "default" }: P
         >
           {kicker}
         </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            fontSize: serifTitle ? 34 : 32,
-            fontWeight: serifTitle ? "500" : "700",
-            color: theme.ink,
-            fontFamily: serifTitle ? SERIF : undefined,
-            lineHeight: serifTitle ? 40 : 38,
-          }}
-        >
-          {title}
-        </Text>
+        {title ? (
+          <Text
+            style={{
+              marginTop: 10,
+              fontSize: serifTitle ? 34 : 32,
+              fontWeight: serifTitle ? "500" : "700",
+              color: theme.ink,
+              fontFamily: serifTitle ? SERIF : undefined,
+              lineHeight: serifTitle ? 40 : 38,
+            }}
+          >
+            {title}
+          </Text>
+        ) : null}
         {body ? (
           <Text
             style={{
@@ -55,7 +57,7 @@ export function HubScreen({ kicker, title, body, children, tone = "default" }: P
             {body}
           </Text>
         ) : null}
-        <View className="mt-6">{children}</View>
+        <View className={title || body ? "mt-6" : "mt-3"}>{children}</View>
       </View>
     </Screen>
   );

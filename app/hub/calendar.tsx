@@ -116,12 +116,7 @@ export default function CalendarScreen() {
   };
 
   return (
-    <HubScreen
-      tone="calendar"
-      kicker="Shared calendar"
-      title="Everything you did together"
-      body="Tap a day for the full timeline — Spicy nights, check-ins, lists, dares, and anything you add yourself."
-    >
+    <HubScreen tone="calendar" kicker="Shared calendar">
       <View
         style={{
           marginBottom: 14,
@@ -153,16 +148,6 @@ export default function CalendarScreen() {
             }}
           >
             {label}
-          </Text>
-          <Text
-            style={{
-              marginTop: 2,
-              fontSize: 12,
-              color: "rgba(22,24,29,0.45)",
-              textAlign: "center",
-            }}
-          >
-            Tap to jump months or years
           </Text>
         </Pressable>
         <Pressable

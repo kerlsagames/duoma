@@ -241,8 +241,20 @@ export async function writeDb(db: AppDB): Promise<void> {
 
 export async function readSessionUserId(): Promise<string | null> {
   try {
-    if (Platform.OS === "web" && typeof sessionStorage !== "undefined") {
-      return sessionStorage.getItem(SESSION_KEY);
+    if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+      const fromLocal = localStorage.getItem(SESSION_KEY);
+      if (fromLocal) return fromLocal;
+      // Older builds kept the session in sessionStorage (cleared on tab close).
+      // Promote any leftover value so returning users stay signed in.
+      if (typeof sessionStorage !== "undefined") {
+        const fromSession = sessionStorage.getItem(SESSION_KEY);
+        if (fromSession) {
+          localStorage.setItem(SESSION_KEY, fromSession);
+          sessionStorage.removeItem(SESSION_KEY);
+          return fromSession;
+        }
+      }
+      return null;
     }
     return await AsyncStorage.getItem(SESSION_KEY);
   } catch {
@@ -251,9 +263,12 @@ export async function readSessionUserId(): Promise<string | null> {
 }
 
 export async function writeSessionUserId(userId: string | null): Promise<void> {
-  if (Platform.OS === "web" && typeof sessionStorage !== "undefined") {
-    if (userId) sessionStorage.setItem(SESSION_KEY, userId);
-    else sessionStorage.removeItem(SESSION_KEY);
+  if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+    if (userId) localStorage.setItem(SESSION_KEY, userId);
+    else localStorage.removeItem(SESSION_KEY);
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
     return;
   }
   if (userId) await AsyncStorage.setItem(SESSION_KEY, userId);
