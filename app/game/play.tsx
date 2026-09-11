@@ -43,6 +43,8 @@ export default function PlayScreen() {
     dealHand,
     shuffleHand,
     chooseHandCard,
+    completeActiveCard,
+    playDemoPartnerTurn,
     resolveFinishReveal,
     blockCard,
     unlockPrivate,
@@ -67,8 +69,7 @@ export default function PlayScreen() {
   const active = deck.find((item) => item.status === "active") ?? null;
   const card = cards.find((item) => item.id === active?.cardId);
   const played = deck.filter((item) => item.status === "played");
-  const myTurn =
-    Boolean(partner?.isDemo) || !game?.turnUserId || game.turnUserId === user?.id;
+  const myTurn = !game?.turnUserId || game.turnUserId === user?.id;
 
   const handCards = useMemo(
     () =>
@@ -91,7 +92,7 @@ export default function PlayScreen() {
   const canPass =
     myBlocksRemaining > 0 &&
     Boolean(active) &&
-    (Boolean(partner?.isDemo) || game?.activePlayedBy !== user?.id);
+    game?.activePlayedBy !== user?.id;
 
   const names = resolveCardNames({
     userName: user?.displayName,
@@ -121,11 +122,12 @@ export default function PlayScreen() {
     : 0;
   const progressLabel = `${stagePlayed} / ${stageNeed} this stage`;
 
-  // Fetch a hand, then play the deal animation.
+  // Fetch a hand, then play the deal animation — only on your turn with no live card.
   useEffect(() => {
     if (!game || game.status !== "playing") return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
     if (!myTurn) return;
+    if (active) return;
     if (handCards.length > 0) return;
     if (animating) return;
 
@@ -149,11 +151,44 @@ export default function PlayScreen() {
       cancelled = true;
     };
   }, [
+    active,
     animating,
     dealHand,
     game,
     handCards.length,
     myTurn,
+  ]);
+
+  // Demo partner: after your Complete, Riley plays a card you can see.
+  useEffect(() => {
+    if (!game || game.status !== "playing") return;
+    if (!partner?.isDemo) return;
+    if (game.turnUserId !== partner.id) return;
+    if (game.awaitingPrivate || game.awaitingFinishReveal) return;
+    if (active) return;
+    if (handCards.length > 0) return;
+
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          setError(null);
+          await playDemoPartnerTurn();
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Demo partner could not play"
+          );
+        }
+      })();
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [
+    active,
+    game,
+    handCards.length,
+    partner?.id,
+    partner?.isDemo,
+    playDemoPartnerTurn,
   ]);
 
   const onPick = async (cardId: string) => {
@@ -168,6 +203,20 @@ export default function PlayScreen() {
       setAnimating(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not play");
+    }
+  };
+
+  const onComplete = async () => {
+    setError(null);
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      // native-only
+    }
+    try {
+      await completeActiveCard();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not complete");
     }
   };
 
@@ -362,7 +411,7 @@ export default function PlayScreen() {
     );
   }
 
-  const showHand = myTurn && handCards.length > 0;
+  const showHand = myTurn && !active && handCards.length > 0;
   const shuffleLabel =
     myShufflesRemaining < 0
       ? "Shuffle hand · unlimited"
@@ -416,14 +465,18 @@ export default function PlayScreen() {
             emptyBody={
               myTurn
                 ? "Cards will deal to you in a moment. Pick one when they land."
-                : `${partner?.displayName ?? "Your partner"} is choosing. You can pass if you do not want in.`
+                : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
             }
           />
         )}
 
         <View className="mt-4 flex-row justify-between">
           <Text className="text-[13px] text-mist/50">
-            {myTurn ? "Your turn" : `${partner?.displayName ?? "Partner"}'s turn`}
+            {active
+              ? "Live card"
+              : myTurn
+                ? "Your turn"
+                : `${partner?.displayName ?? "Partner"}'s turn`}
           </Text>
           <Text className="text-[13px] text-mist/50">
             Passes {myBlocksRemaining} · Shuffles{" "}
@@ -431,9 +484,22 @@ export default function PlayScreen() {
           </Text>
         </View>
 
+        {active ? (
+          <Text className="mt-2 text-[14px] leading-5 text-mist/65">
+            When you are both finished with this card, tap Complete to pass the
+            turn.
+          </Text>
+        ) : null}
+
         {error ? <Text className="mt-2 text-[13px] text-crimson">{error}</Text> : null}
 
         <View className="mt-4 gap-3 pb-3">
+          {active ? (
+            <PrimaryButton
+              label="Complete"
+              onPress={() => void onComplete()}
+            />
+          ) : null}
           {showHand ? (
             <PrimaryButton
               label={shuffleLabel}

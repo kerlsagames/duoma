@@ -400,6 +400,8 @@ type AppContextValue = {
   dealHand: () => Promise<void>;
   shuffleHand: () => Promise<void>;
   chooseHandCard: (cardId: string) => Promise<void>;
+  completeActiveCard: () => Promise<void>;
+  playDemoPartnerTurn: () => Promise<void>;
   resolveFinishReveal: () => Promise<void>;
   playCard: () => Promise<void>;
   blockCard: () => Promise<void>;
@@ -1225,13 +1227,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .map((item) => item.cardId)
     );
 
-  const commitActiveToPlayed = (gameId: string, deckRows: DeckCard[]) =>
-    deckRows.map((item) =>
-      item.gameId === gameId && item.status === "active"
-        ? { ...item, status: "played" as const, playedBy: item.playedBy }
-        : item
-    );
-
   const advanceAfterPlay = (
     row: GameSession,
     deckRows: DeckCard[],
@@ -1508,8 +1503,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dealHand = useCallback(async () => {
     if (!game || !user || !couple || game.status !== "playing") return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
-    const demo = Boolean(partner?.isDemo);
-    if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+    if (game.turnUserId && game.turnUserId !== user.id) {
       throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
     }
     const stage = game.currentStage;
@@ -1517,21 +1511,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (
       (stage === "finish_off" &&
         game.finishPickerId &&
-        game.finishPickerId !== user.id &&
-        !demo) ||
+        game.finishPickerId !== user.id) ||
       (stage === "afterglow" &&
         game.afterglowPickerId &&
-        game.afterglowPickerId !== user.id &&
-        !demo)
+        game.afterglowPickerId !== user.id)
     ) {
       throw new Error("This stage belongs to your partner.");
     }
     if ((game.handCardIds?.length ?? 0) > 0) return;
 
     let deckRows = db.deck.filter((item) => item.gameId === game.id);
-    // Commit previous active card when the next player deals
-    if (deckRows.some((item) => item.status === "active")) {
-      deckRows = commitActiveToPlayed(game.id, deckRows);
+    // Keep the live card on screen until someone taps Complete.
+    if (game.activeCardId || deckRows.some((item) => item.status === "active")) {
+      return;
     }
 
     const used = new Set(deckRows.map((item) => item.cardId));
@@ -1557,13 +1549,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [cards, couple, game, partner, user]);
+  }, [cards, couple, game, user]);
 
   const shuffleHand = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
-    const demo = Boolean(partner?.isDemo);
-    if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+    if (game.turnUserId && game.turnUserId !== user.id) {
       throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
+    }
+    if (game.activeCardId) {
+      throw new Error("Complete the live card before shuffling.");
     }
     const stage = game.currentStage;
     if (!stage) return;
@@ -1605,14 +1599,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [cards, game, partner, user]);
+  }, [cards, game, user]);
 
   const chooseHandCard = useCallback(
     async (cardId: string) => {
       if (!game || !user || !couple || game.status !== "playing") return;
-      const demo = Boolean(partner?.isDemo);
-      if (!demo && game.turnUserId && game.turnUserId !== user.id) {
+      if (game.turnUserId && game.turnUserId !== user.id) {
         throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
+      }
+      if (game.activeCardId) {
+        throw new Error("Complete the live card first.");
       }
       if (!(game.handCardIds ?? []).includes(cardId)) {
         throw new Error("Pick one of the three dealt cards.");
@@ -1622,16 +1618,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("That card is not available right now.");
       }
 
-      const partnerId = partnerIdOf(user.id);
-      const passTo =
-        partnerId && !demo
-          ? exclusiveTurnForStage(game, game.currentStage, partnerId)
-          : user.id;
-
-      let deckRows = commitActiveToPlayed(
-        game.id,
-        db.deck.filter((item) => item.gameId === game.id)
-      );
+      const deckRows = db.deck.filter((item) => item.gameId === game.id);
       const maxOrder = deckRows.reduce(
         (max, item) => Math.max(max, item.sortOrder),
         -1
@@ -1645,48 +1632,142 @@ export function AppProvider({ children }: { children: ReactNode }) {
         status: "active",
         playedBy: user.id,
       };
-      // Count this play toward the stage immediately
-      const countedRows: DeckCard[] = [
-        ...deckRows,
-        { ...activeRow, status: "played" },
-      ];
-      const patch = advanceAfterPlay(
-        game,
-        countedRows,
-        card.stage,
-        user.id,
-        passTo
-      );
 
-      // Keep the chosen card visible as active unless we cleared it for a gate/reveal
-      const keepActive = !patch.awaitingPrivate && !patch.awaitingFinishReveal && patch.status !== "rating";
-      const finalDeck = [
-        ...deckRows,
-        keepActive ? activeRow : { ...activeRow, status: "played" as const },
-      ];
-
+      // Park the card as live. Turn advances only after Complete.
       db = {
         ...db,
         deck: [
           ...db.deck.filter((item) => item.gameId !== game.id),
-          ...finalDeck,
+          ...deckRows,
+          activeRow,
         ],
         games: db.games.map((row) =>
           row.id === game.id
             ? sessionFields(row, {
-                ...patch,
-                activeCardId: keepActive ? activeRow.id : null,
-                activePlayedBy: keepActive ? user.id : null,
+                activeCardId: activeRow.id,
+                activePlayedBy: user.id,
                 handCardIds: [],
-                status: patch.status ?? "playing",
+                turnUserId: user.id,
               })
             : row
         ),
       };
       await persist();
     },
-    [cards, couple, game, partner, user]
+    [cards, couple, game, user]
   );
+
+  const completeActiveCard = useCallback(async () => {
+    if (!game || !user || !couple || game.status !== "playing") return;
+    const deckRows = db.deck.filter((item) => item.gameId === game.id);
+    const active = deckRows.find((item) => item.status === "active");
+    if (!active) {
+      throw new Error("No live card to complete.");
+    }
+
+    const playedBy = active.playedBy ?? game.activePlayedBy ?? user.id;
+    const partnerId = partnerIdOf(user.id);
+    const otherId =
+      playedBy === user.id ? partnerId ?? user.id : user.id;
+    const passTo = exclusiveTurnForStage(game, active.stage, otherId);
+
+    const nextDeck = deckRows.map((item) =>
+      item.id === active.id
+        ? { ...item, status: "played" as const, playedBy }
+        : item
+    );
+    const patch = advanceAfterPlay(
+      game,
+      nextDeck,
+      active.stage,
+      user.id,
+      passTo
+    );
+
+    db = {
+      ...db,
+      deck: [
+        ...db.deck.filter((item) => item.gameId !== game.id),
+        ...nextDeck,
+      ],
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              ...patch,
+              activeCardId: null,
+              activePlayedBy: null,
+              handCardIds: [],
+              status: patch.status ?? "playing",
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [couple, game, user]);
+
+  const playDemoPartnerTurn = useCallback(async () => {
+    if (!game || !user || !couple || game.status !== "playing") return;
+    if (!partner?.isDemo) return;
+    if (game.turnUserId !== partner.id) return;
+    if (game.awaitingPrivate || game.awaitingFinishReveal) return;
+    if (game.activeCardId) return;
+    if ((game.handCardIds?.length ?? 0) > 0) return;
+
+    const stage = game.currentStage;
+    if (!stage) return;
+    if (
+      (stage === "finish_off" &&
+        game.finishPickerId &&
+        game.finishPickerId !== partner.id) ||
+      (stage === "afterglow" &&
+        game.afterglowPickerId &&
+        game.afterglowPickerId !== partner.id)
+    ) {
+      return;
+    }
+
+    const deckRows = db.deck.filter((item) => item.gameId === game.id);
+    if (deckRows.some((item) => item.status === "active")) return;
+
+    const used = new Set(deckRows.map((item) => item.cardId));
+    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    if (dealt.length === 0) return;
+
+    const pick = dealt[Math.floor(Math.random() * dealt.length)] ?? dealt[0];
+    const maxOrder = deckRows.reduce(
+      (max, item) => Math.max(max, item.sortOrder),
+      -1
+    );
+    const activeRow: DeckCard = {
+      id: createId(),
+      gameId: game.id,
+      cardId: pick.id,
+      stage: pick.stage,
+      sortOrder: maxOrder + 1,
+      status: "active",
+      playedBy: partner.id,
+    };
+
+    db = {
+      ...db,
+      deck: [
+        ...db.deck.filter((item) => item.gameId !== game.id),
+        ...deckRows,
+        activeRow,
+      ],
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              activeCardId: activeRow.id,
+              activePlayedBy: partner.id,
+              handCardIds: [],
+              turnUserId: partner.id,
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [cards, couple, game, partner, user]);
 
   const resolveFinishReveal = useCallback(async () => {
     if (!game || !couple?.partnerA || !couple.partnerB) return;
@@ -1881,8 +1962,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const blockCard = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
-    const demo = Boolean(partner?.isDemo);
-    if (!demo && game.activePlayedBy && game.activePlayedBy === user.id) {
+    if (game.activePlayedBy && game.activePlayedBy === user.id) {
       throw new Error("You can't pass your own card. That's your partner's call.");
     }
     const player = db.gamePlayers.find(
@@ -1927,7 +2007,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [game, partner, user]);
+  }, [game, user]);
 
   const rateCard = useCallback(
     async (cardId: string, stars: number) => {
@@ -3124,6 +3204,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dealHand,
     shuffleHand,
     chooseHandCard,
+    completeActiveCard,
+    playDemoPartnerTurn,
     resolveFinishReveal,
     playCard,
     blockCard,
