@@ -76,6 +76,26 @@ export type TriviaAttempt = {
   createdAt: string;
 };
 
+/** One person's locked-in answers for a How Well Do You Know Me pack. */
+export type KnowMeSheet = {
+  id: string;
+  packId: string;
+  userId: string;
+  answers: number[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type KnowMeGuess = {
+  id: string;
+  packId: string;
+  ownerId: string;
+  guesserId: string;
+  guesses: number[];
+  score: number;
+  createdAt: string;
+};
+
 export type Prediction = {
   id: string;
   title: string;
@@ -241,6 +261,8 @@ export type MiniState = {
   intimacy: IntimacyLog[];
   triviaQuestions: TriviaQuestion[];
   triviaAttempts: TriviaAttempt[];
+  knowMeSheets: KnowMeSheet[];
+  knowMeGuesses: KnowMeGuess[];
   predictions: Prediction[];
   twoTruths: TwoTruthsRound[];
   photos: PhotoMemory[];
@@ -595,6 +617,8 @@ export function emptyMiniState(): MiniState {
     intimacy: [],
     triviaQuestions: [],
     triviaAttempts: [],
+    knowMeSheets: [],
+    knowMeGuesses: [],
     predictions: [],
     twoTruths: [],
     photos: [],
@@ -645,6 +669,8 @@ export function hydrateMiniState(raw: unknown): MiniState {
     intimacy: asArray(row.intimacy, base.intimacy),
     triviaQuestions: asArray(row.triviaQuestions, base.triviaQuestions),
     triviaAttempts: asArray(row.triviaAttempts, base.triviaAttempts),
+    knowMeSheets: asArray(row.knowMeSheets, base.knowMeSheets),
+    knowMeGuesses: asArray(row.knowMeGuesses, base.knowMeGuesses),
     predictions: asArray(row.predictions, base.predictions),
     twoTruths: asArray(row.twoTruths, base.twoTruths),
     photos: asArray(row.photos, base.photos),

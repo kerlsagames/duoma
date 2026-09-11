@@ -31,7 +31,7 @@ export default function ScoreboardScreen() {
     () => [
       { id: "ping", label: "GHOST PING", icon: "heart", earned: data.pings.length > 0 },
       { id: "fire", label: "KINDLING", icon: "flame", earned: data.intimacy.length > 0 },
-      { id: "quiz", label: "BOOTH ACE", icon: "help-circle", earned: data.triviaAttempts.length > 0 },
+      { id: "quiz", label: "BOOTH ACE", icon: "help-circle", earned: data.triviaAttempts.length > 0 || data.knowMeGuesses.length > 0 },
       { id: "bet", label: "MARKET", icon: "trending-up", earned: data.predictions.some((p) => p.resolved) },
       { id: "grid", label: "INK", icon: "grid", earned: crosswordWon },
       { id: "story", label: "CO-AUTHOR", icon: "book", earned: (data.story?.chapters.length ?? 0) > 0 },
