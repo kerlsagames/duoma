@@ -32,7 +32,7 @@ const STEPS = [
   {
     kicker: "Stage 1",
     title: "Pre-foreplay is daytime",
-    body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap when you are both ready for private sexy time. Foreplay will not auto-start.",
+    body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap We are ready to move on when you both want foreplay. Your partner will not see your daytime cards until then.",
   },
   {
     kicker: "Finish Off",

@@ -125,7 +125,7 @@ export default function CardBankScreen() {
                     <View className="flex-1">
                       <Text className="text-[11px] font-semibold uppercase tracking-widest text-crimson">
                         {card.isDefault ? "Default" : "Custom"}
-                        {avg ? ` · ${avg.toFixed(1)}★` : ""}
+                        {avg ? ` · ${avg.toFixed(1)}/10` : ""}
                       </Text>
                       <Text className="mt-1 text-[15px] font-semibold text-mist/70">
                         {copy.title}

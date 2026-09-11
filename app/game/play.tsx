@@ -1,6 +1,7 @@
 import { DealHand } from "@/components/DealHand";
 import { FinishReveal } from "@/components/FinishReveal";
 import { RealtimeCardStage } from "@/components/RealtimeCardStage";
+import { ScoreSlider } from "@/components/ScoreSlider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { STAGE_ORDER } from "@/games/get-spicy/engine";
@@ -14,24 +15,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-
-function Stars({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (stars: number) => void;
-}) {
-  return (
-    <View className="flex-row gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Pressable key={star} onPress={() => onChange(star)} className="px-1 py-1">
-          <Text className="text-[22px]">{star <= value ? "★" : "☆"}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 export default function PlayScreen() {
   const router = useRouter();
@@ -253,12 +236,12 @@ export default function PlayScreen() {
             Pre-foreplay is done.
           </Text>
           <Text className="mt-4 text-[16px] leading-7 text-mist/70">
-            That was the daytime tease. When you are both somewhere private and
-            ready for sexy time, tap below. Foreplay will not start until you do.
+            That was the daytime tease. When you are both ready for what comes
+            next, tap below. Foreplay will not start until you do.
           </Text>
           <View className="mt-8 gap-3">
             <PrimaryButton
-              label="We are ready for private sexy time"
+              label="We are ready to move on"
               onPress={() => void unlockPrivate()}
             />
             <PrimaryButton
@@ -318,8 +301,8 @@ export default function PlayScreen() {
           </Text>
           <Text className="mt-3 text-[32px] font-bold text-mist">Best cards</Text>
           <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-            Both of you rate the cards you actually played. High scores land in
-            your bank so you can find them again.
+            Score each played card from 0 to 10 (decimals ok). High scores land
+            in your bank so you can find them again.
           </Text>
           <View className="mt-6 gap-3">
             {played.length === 0 ? (
@@ -338,7 +321,7 @@ export default function PlayScreen() {
                   previewGenders
                 );
                 const current =
-                  mine.find((row) => row.cardId === playedCard.id)?.stars ?? 0;
+                  mine.find((row) => row.cardId === playedCard.id)?.stars ?? 7.5;
                 return (
                   <View
                     key={item.id}
@@ -353,10 +336,10 @@ export default function PlayScreen() {
                     <Text className="mt-2 text-[14px] leading-5 text-mist/70">
                       {copy.body}
                     </Text>
-                    <View className="mt-3">
-                      <Stars
+                    <View className="mt-4">
+                      <ScoreSlider
                         value={current}
-                        onChange={(stars) => void rateCard(playedCard.id, stars)}
+                        onChange={(score) => void rateCard(playedCard.id, score)}
                       />
                     </View>
                   </View>
@@ -410,6 +393,12 @@ export default function PlayScreen() {
       </Screen>
     );
   }
+
+  const concealPreForeplay =
+    Boolean(active) &&
+    active?.stage === "pre_foreplay" &&
+    !game?.privateUnlocked &&
+    (active?.playedBy ?? game?.activePlayedBy) !== user?.id;
 
   const showHand = myTurn && !active && handCards.length > 0;
   const shuffleLabel =
@@ -467,6 +456,10 @@ export default function PlayScreen() {
                 ? "Cards will deal to you in a moment. Pick one when they land."
                 : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
             }
+          
+            conceal={concealPreForeplay}
+            concealTitle={`${partner?.displayName ?? "They"} played a daytime tease`}
+            concealBody="You will see the card when you both move on to the night."
           />
         )}
 
@@ -486,8 +479,9 @@ export default function PlayScreen() {
 
         {active ? (
           <Text className="mt-2 text-[14px] leading-5 text-mist/65">
-            When you are both finished with this card, tap Complete to pass the
-            turn.
+            {concealPreForeplay
+              ? "A daytime tease is in play. Tap Complete when they are done — you will see the card after you move on."
+              : "When you are both finished with this card, tap Complete to pass the turn."}
           </Text>
         ) : null}
 

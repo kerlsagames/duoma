@@ -2020,7 +2020,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const rateCard = useCallback(
     async (cardId: string, stars: number) => {
       if (!game || !user || !couple) return;
-      const clamped = Math.min(5, Math.max(1, Math.round(stars)));
+      const clamped = clampScore(stars);
       const existing = db.ratings.find(
         (row) =>
           row.gameId === game.id && row.cardId === cardId && row.userId === user.id

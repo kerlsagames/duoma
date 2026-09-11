@@ -175,11 +175,11 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
   tag("pre_foreplay", "timer", "Timers & countdowns", [
     "timer",
     "countdown",
-    "clock",
-    "minutes",
+    "set a clock",
     "tonight at",
     "schedule",
-    "for the next",
+    "for the next hour",
+    "alarm",
   ]),
   tag("pre_foreplay", "open", "Open / mixed tease", [], true),
 
@@ -599,6 +599,11 @@ export function normalizeFlavorTags(
   return tags.filter((id) => known.has(id));
 }
 
+/**
+ * A card is dealable only when every flavor it matches is still enabled.
+ * That way unchecking "At home together" blocks couch / sit-next cards even if
+ * they also hit a secondary tag like Timers ("for 5 minutes").
+ */
 export function cardAllowedByFlavorTags(
   card: Pick<Card, "stage" | "title" | "body">,
   enabledTagIds: string[] | null | undefined
@@ -607,7 +612,8 @@ export function cardAllowedByFlavorTags(
   if (enabledTagIds == null) return true;
   if (enabledTagIds.length === 0) return false;
   const enabled = new Set(enabledTagIds);
-  return tagsForCard(card).some((id) => enabled.has(id));
+  const matched = tagsForCard(card);
+  return matched.length > 0 && matched.every((id) => enabled.has(id));
 }
 
 export function stageHasAnyFlavorEnabled(

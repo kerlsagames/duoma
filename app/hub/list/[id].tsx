@@ -99,11 +99,13 @@ function NotepadRow({
   action,
   onAction,
   subtitle,
+  score,
 }: {
   title: string;
   action?: string;
   onAction?: () => void;
   subtitle?: string | null;
+  score?: string | null;
 }) {
   return (
     <View
@@ -136,6 +138,20 @@ function NotepadRow({
         >
           {title}
         </Text>
+        {score ? (
+          <Text
+            style={{
+              fontFamily: LISTS_DISPLAY,
+              fontSize: 28,
+              fontWeight: "700",
+              color: T.stamp,
+              minWidth: 64,
+              textAlign: "right",
+            }}
+          >
+            {score}
+          </Text>
+        ) : null}
         {action && onAction ? (
           <Pressable
             onPress={onAction}
@@ -165,10 +181,12 @@ function NotepadRow({
       {subtitle ? (
         <Text
           style={{
-            marginTop: 2,
+            marginTop: 4,
             fontFamily: LISTS_ROUNDED,
-            fontSize: 11,
-            color: PAPER_MUTED,
+            fontSize: 16,
+            fontWeight: "700",
+            color: PAPER_INK,
+            letterSpacing: 0.2,
           }}
           numberOfLines={2}
         >
@@ -379,10 +397,17 @@ export default function ListDetailScreen() {
               <View key={entry.id}>
                 <NotepadRow
                   title={entry.title}
+                  score={avg != null ? scoreLabel(avg) : null}
                   subtitle={
-                    doneOn
-                      ? `${copy.doneLabel} · ${doneOn} · ${scoreBits}`
-                      : scoreBits
+                    [
+                      doneOn ? `${copy.doneLabel} · ${doneOn}` : null,
+                      `You ${mine ? scoreLabel(mine.stars) : "—"}`,
+                      `${partner?.displayName ?? "Them"} ${
+                        theirs ? scoreLabel(theirs.stars) : "—"
+                      }`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
                   }
                 />
                 <View

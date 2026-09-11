@@ -178,7 +178,7 @@ export default function SettingsScreen() {
                 return (
                   <View key={row.card.id} className="mt-3">
                     <Text className="text-[12px] text-neon">
-                      {row.average.toFixed(1)} ★
+                      {row.average.toFixed(1)}/10
                     </Text>
                     <Text className="mt-1 text-[15px] leading-6 text-mist">
                       {copy.body}

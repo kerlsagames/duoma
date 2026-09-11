@@ -18,6 +18,10 @@ type Props = {
   emptyTitle: string;
   emptyBody: string;
   actorLabel?: string | null;
+  /** Hide card text (pre-foreplay tease until the night unlocks). */
+  conceal?: boolean;
+  concealTitle?: string;
+  concealBody?: string;
 };
 
 export function RealtimeCardStage({
@@ -30,9 +34,13 @@ export function RealtimeCardStage({
   emptyTitle,
   emptyBody,
   actorLabel,
+  conceal = false,
+  concealTitle = "Daytime tease",
+  concealBody = "They played a card. You will see what it was when the night starts.",
 }: Props) {
   const meta = stage ? STAGE_META[stage] : null;
   const copy = card ? personalizeCard(card, names, genders) : null;
+  const showLive = Boolean(active && copy) && !conceal;
 
   return (
     <View className="flex-1">
@@ -45,16 +53,31 @@ export function RealtimeCardStage({
 
       <View className="flex-1 justify-center">
         <View className="min-h-[280px] rounded-[28px] border border-neon/30 bg-white/5 p-7">
-          {active && copy ? (
+          {showLive ? (
             <>
               <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
                 {actorLabel ?? "Live card"}
               </Text>
               <Text className="mt-4 text-[15px] font-semibold text-mist/55">
-                {copy.title}
+                {copy!.title}
               </Text>
               <Text className="mt-3 text-[26px] font-bold leading-8 text-mist">
-                {copy.body}
+                {copy!.body}
+              </Text>
+            </>
+          ) : active && conceal ? (
+            <>
+              <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
+                {actorLabel ?? "Live card"}
+              </Text>
+              <Text className="mt-4 text-[15px] font-semibold text-mist/55">
+                Face down
+              </Text>
+              <Text className="mt-3 text-[26px] font-bold leading-8 text-mist">
+                {concealTitle}
+              </Text>
+              <Text className="mt-4 text-[16px] leading-7 text-mist/65">
+                {concealBody}
               </Text>
             </>
           ) : (

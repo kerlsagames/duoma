@@ -33,7 +33,7 @@ const SETUP_RULES = [
   },
   {
     title: "Daytime pause",
-    body: "Pre-foreplay is daytime tease. When those cards are done, the game pauses until you are both private and ready for sexy time.",
+    body: "Pre-foreplay is daytime tease. Those cards stay hidden from your partner until you both tap We are ready to move on.",
   },
   {
     title: "Finish Off",
