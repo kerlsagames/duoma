@@ -16,7 +16,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Play** — Coupons plus trivia, prediction market, two truths, photo challenges, doodle, and scoreboard stubs.
 - **Home Base** — Shared lists/todos, date planner, settings, plus meal picker / chore / budget / vault stubs.
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
-- **Positions** — Category toggles and Pick me a Position (pose art paused until we find a better style).
+- **Positions** — Category toggles and Pick me a Position with flat editorial pink/blue pose art.
 - **Roleplays** — Care-coupon scenarios across five categories (text cards, no images).
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
