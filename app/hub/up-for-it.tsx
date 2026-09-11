@@ -51,7 +51,7 @@ export default function UpForItScreen() {
                 color: T.muted,
               }}
             >
-              Pick a vibe. Spin one. Send it.
+              Send a dare, see what you sent, or open what they sent you.
             </Text>
           </>
         ) : null}
@@ -60,7 +60,7 @@ export default function UpForItScreen() {
           <SpicyDarePanel
             mode="page"
             onNavigate={scrollToTop}
-            onViewChange={(view) => setFocused(view !== "home")}
+            onViewChange={(view) => setFocused(view !== "hub")}
           />
         </View>
       </View>

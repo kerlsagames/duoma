@@ -25,7 +25,22 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = UP_FOR_IT_TONE;
 
-type ViewMode = "home" | "category" | "compose";
+type ViewMode = "hub" | "send" | "sent" | "received" | "category" | "compose";
+
+const STATUS_RANK: Record<SpicyDarePlay["status"], number> = {
+  offered: 0,
+  accepted: 1,
+  done: 2,
+  declined: 3,
+};
+
+function sortDares(rows: SpicyDarePlay[]): SpicyDarePlay[] {
+  return [...rows].sort((a, b) => {
+    const rank = STATUS_RANK[a.status] - STATUS_RANK[b.status];
+    if (rank !== 0) return rank;
+    return b.createdAt.localeCompare(a.createdAt);
+  });
+}
 
 type Compose = {
   dareId: string | null;
@@ -57,9 +72,9 @@ export function SpicyDarePanel({
 }: {
   onClose?: () => void;
   mode?: "sheet" | "page";
-  /** Called when the panel switches views (category, compose, home). */
+  /** Called when the panel switches views (hub, send, lists, compose). */
   onNavigate?: () => void;
-  /** Lets the page hide titles while browsing or composing. */
+  /** Lets the page hide titles while browsing, listing, or composing. */
   onViewChange?: (view: ViewMode) => void;
 }) {
   const {
@@ -72,7 +87,7 @@ export function SpicyDarePanel({
     completeSpicyDare,
   } = useApp();
 
-  const [view, setView] = useState<ViewMode>("home");
+  const [view, setView] = useState<ViewMode>("hub");
   const [category, setCategory] = useState<SpicyDareCategory | null>(null);
   const [picked, setPicked] = useState<SpicyDare | null>(null);
   const [flashText, setFlashText] = useState<string | null>(null);
@@ -104,10 +119,22 @@ export function SpicyDarePanel({
     });
   }, [category, playedIds]);
 
-  const live = useMemo(
-    () => spicyDares.filter((row) => row.status === "offered" || row.status === "accepted"),
-    [spicyDares]
+  const sent = useMemo(
+    () =>
+      sortDares(spicyDares.filter((row) => row.fromUserId === user?.id)),
+    [spicyDares, user?.id]
   );
+
+  const received = useMemo(
+    () =>
+      sortDares(spicyDares.filter((row) => row.toUserId === user?.id)),
+    [spicyDares, user?.id]
+  );
+
+  const sentOpenCount = sent.filter(
+    (row) => row.status === "offered" || row.status === "accepted"
+  ).length;
+  const receivedWaitingCount = received.filter((row) => row.status === "offered").length;
 
   useEffect(() => {
     return () => {
@@ -215,7 +242,7 @@ export function SpicyDarePanel({
       setDirection(null);
       setPicked(null);
       setCategory(null);
-      setView("home");
+      setView("sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send the dare.");
     } finally {
@@ -234,14 +261,25 @@ export function SpicyDarePanel({
     });
   };
 
-  const goHome = () => {
+  const goHub = () => {
     clearSpin();
     setSpinning(false);
     setFlashText(null);
     setCompose(null);
     setCategory(null);
     setPicked(null);
-    setView("home");
+    setView("hub");
+    setError(null);
+  };
+
+  const goSend = () => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
+    setCompose(null);
+    setCategory(null);
+    setPicked(null);
+    setView("send");
     setError(null);
   };
 
@@ -256,7 +294,7 @@ export function SpicyDarePanel({
             setCompose(null);
             setView("category");
           } else {
-            goHome();
+            goSend();
           }
           setError(null);
         }} className="mb-3 flex-row items-center">
@@ -480,7 +518,7 @@ export function SpicyDarePanel({
   if (view === "category" && category) {
     return (
       <View>
-        <Pressable onPress={goHome} className="mb-4 flex-row items-center">
+        <Pressable onPress={goSend} className="mb-4 flex-row items-center">
           <Ionicons name="chevron-back" size={18} color={T.accent} />
           <Text
             style={{
@@ -492,7 +530,7 @@ export function SpicyDarePanel({
               color: T.accent,
             }}
           >
-            All categories
+            Send a dare
           </Text>
         </Pressable>
 
@@ -689,6 +727,170 @@ export function SpicyDarePanel({
     );
   }
 
+  if (view === "sent" || view === "received") {
+    const isSent = view === "sent";
+    const rows = isSent ? sent : received;
+    return (
+      <View>
+        <BackLink label="Challenges & Dares" onPress={goHub} />
+        <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
+          {isSent ? "Sent dares" : "Dares received"}
+        </Text>
+        <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
+          {isSent
+            ? "Everything you've thrown their way."
+            : `What ${partner?.displayName ?? "they"} sent you.`}
+        </Text>
+        {rows.length ? (
+          <View className="mt-5" style={{ gap: 10 }}>
+            {rows.map((play) => (
+              <LiveDareCard
+                key={play.id}
+                play={play}
+                userId={user?.id}
+                partnerName={partner?.displayName ?? "them"}
+                onRespond={(status) => void respondSpicyDare(play.id, status)}
+                onDone={() => void completeSpicyDare(play.id)}
+              />
+            ))}
+          </View>
+        ) : (
+          <View
+            style={{
+              marginTop: 22,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              padding: 20,
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 17, lineHeight: 24, color: T.ink }}>
+              {isSent ? "Nothing sent yet." : "Nothing waiting for you."}
+            </Text>
+            <Text style={{ marginTop: 6, fontSize: 14, lineHeight: 21, color: T.muted }}>
+              {isSent
+                ? "Pick a vibe and send the first one."
+                : "When they dare you, it lands here."}
+            </Text>
+            {isSent ? (
+              <View className="mt-4">
+                <PrimaryButton label="Send a dare" tone="teal" onPress={goSend} />
+              </View>
+            ) : null}
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  if (view === "send") {
+    return (
+      <View>
+        <BackLink label="Challenges & Dares" onPress={goHub} />
+        <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
+          Send a dare
+        </Text>
+        <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
+          Pick a vibe. Spin one. Or write your own.
+        </Text>
+
+        <View className="mt-5 flex-row flex-wrap justify-between">
+          {SPICY_DARE_CATEGORY_META.map((cat) => (
+            <Pressable
+              key={cat.id}
+              onPress={() => openCategory(cat.id)}
+              style={{
+                width: "48%",
+                marginBottom: 12,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: T.border,
+                backgroundColor: T.surfaceRaised,
+                paddingVertical: 18,
+                paddingHorizontal: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: T.accentSoft,
+                  borderWidth: 1,
+                  borderColor: T.border,
+                }}
+              >
+                <Ionicons name={cat.icon} size={22} color={T.accent} />
+              </View>
+              <Text
+                style={{
+                  marginTop: 12,
+                  fontFamily: SERIF,
+                  fontSize: 18,
+                  color: T.ink,
+                }}
+              >
+                {cat.label}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  lineHeight: 17,
+                  color: T.muted,
+                }}
+              >
+                {cat.detail}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Pressable
+          onPress={() => openCompose(null)}
+          style={{
+            marginTop: 4,
+            borderRadius: 22,
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: "rgba(61,224,197,0.45)",
+            backgroundColor: T.surface,
+            paddingVertical: 18,
+            paddingHorizontal: 16,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: T.accentSoft,
+              borderWidth: 1,
+              borderColor: T.border,
+            }}
+          >
+            <Ionicons name="create-outline" size={22} color={T.accent} />
+          </View>
+          <View className="ml-3 flex-1">
+            <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
+              Write your own
+            </Text>
+            <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
+              Skip the deck. Make one up.
+            </Text>
+          </View>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View>
       {mode === "sheet" ? (
@@ -712,125 +914,142 @@ export function SpicyDarePanel({
         </View>
       ) : null}
 
-      {live.length ? (
-        <View className="mb-5" style={{ gap: 10 }}>
-          <Text
-            style={{
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: T.hot,
-            }}
-          >
-            Live
-          </Text>
-          {live.map((play) => (
-            <LiveDareCard
-              key={play.id}
-              play={play}
-              userId={user?.id}
-              partnerName={partner?.displayName ?? "them"}
-              onRespond={(status) => void respondSpicyDare(play.id, status)}
-              onDone={() => void completeSpicyDare(play.id)}
-            />
-          ))}
-        </View>
-      ) : null}
-
-      <View className="flex-row flex-wrap justify-between">
-        {SPICY_DARE_CATEGORY_META.map((cat) => (
-          <Pressable
-            key={cat.id}
-            onPress={() => openCategory(cat.id)}
-            style={{
-              width: "48%",
-              marginBottom: 12,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: T.border,
-              backgroundColor: T.surfaceRaised,
-              paddingVertical: 18,
-              paddingHorizontal: 14,
-            }}
-          >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: T.accentSoft,
-                borderWidth: 1,
-                borderColor: T.border,
-              }}
-            >
-              <Ionicons name={cat.icon} size={22} color={T.accent} />
-            </View>
-            <Text
-              style={{
-                marginTop: 12,
-                fontFamily: SERIF,
-                fontSize: 18,
-                color: T.ink,
-              }}
-            >
-              {cat.label}
-            </Text>
-            <Text
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                lineHeight: 17,
-                color: T.muted,
-              }}
-            >
-              {cat.detail}
-            </Text>
-          </Pressable>
-        ))}
+      <View style={{ gap: 12 }}>
+        <HubDoor
+          icon="flash-outline"
+          title="Send a dare"
+          detail="Pick a vibe, spin one, or write your own."
+          onPress={goSend}
+        />
+        <HubDoor
+          icon="paper-plane-outline"
+          title="See sent dares"
+          detail={
+            sentOpenCount
+              ? `${sentOpenCount} still live`
+              : sent.length
+                ? `${sent.length} sent`
+                : "Nothing sent yet"
+          }
+          badge={sentOpenCount || undefined}
+          onPress={() => setView("sent")}
+        />
+        <HubDoor
+          icon="mail-unread-outline"
+          title="Dares received"
+          detail={
+            receivedWaitingCount
+              ? `${receivedWaitingCount} waiting on you`
+              : received.length
+                ? `${received.length} received`
+                : "Nothing waiting for you"
+          }
+          badge={receivedWaitingCount || undefined}
+          hot
+          onPress={() => setView("received")}
+        />
       </View>
+    </View>
+  );
+}
 
-      <Pressable
-        onPress={() => openCompose(null)}
+function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} className="mb-4 flex-row items-center">
+      <Ionicons name="chevron-back" size={18} color={T.accent} />
+      <Text
         style={{
-          marginTop: 4,
-          borderRadius: 22,
-          borderWidth: 1,
-          borderStyle: "dashed",
-          borderColor: "rgba(61,224,197,0.45)",
-          backgroundColor: T.surface,
-          paddingVertical: 18,
-          paddingHorizontal: 16,
-          flexDirection: "row",
-          alignItems: "center",
+          marginLeft: 4,
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          letterSpacing: 1.4,
+          textTransform: "uppercase",
+          color: T.accent,
         }}
       >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function HubDoor({
+  icon,
+  title,
+  detail,
+  badge,
+  hot,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  detail: string;
+  badge?: number;
+  hot?: boolean;
+  onPress: () => void;
+}) {
+  const accent = hot ? T.hot : T.accent;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: hot ? "rgba(255,90,122,0.4)" : T.border,
+        backgroundColor: T.surfaceRaised,
+        paddingVertical: 20,
+        paddingHorizontal: 16,
+        flexDirection: "row",
+        alignItems: "center",
+      }}
+    >
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 16,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: hot ? "rgba(255,90,122,0.12)" : T.accentSoft,
+          borderWidth: 1,
+          borderColor: hot ? "rgba(255,90,122,0.35)" : T.border,
+        }}
+      >
+        <Ionicons name={icon} size={22} color={accent} />
+      </View>
+      <View className="ml-3 flex-1">
+        <Text style={{ fontFamily: SERIF, fontSize: 22, color: T.ink }}>{title}</Text>
+        <Text style={{ marginTop: 4, fontSize: 14, lineHeight: 20, color: T.muted }}>
+          {detail}
+        </Text>
+      </View>
+      {badge ? (
         <View
           style={{
-            width: 44,
-            height: 44,
+            minWidth: 28,
+            height: 28,
+            paddingHorizontal: 8,
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: T.accentSoft,
-            borderWidth: 1,
-            borderColor: T.border,
+            backgroundColor: hot ? T.hot : T.accent,
+            marginLeft: 8,
           }}
         >
-          <Ionicons name="create-outline" size={22} color={T.accent} />
-        </View>
-        <View className="ml-3 flex-1">
-          <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
-            Write your own
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 12,
+              color: "#070B10",
+            }}
+          >
+            {badge}
           </Text>
-          <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
-            Skip the deck. Make one up.
-          </Text>
         </View>
-      </Pressable>
-    </View>
+      ) : (
+        <Ionicons name="chevron-forward" size={18} color={T.muted} />
+      )}
+    </Pressable>
   );
 }
 
@@ -850,7 +1069,10 @@ function LiveDareCard({
   const mineIncoming = play.toUserId === userId && play.status === "offered";
   const waitingOnThem = play.fromUserId === userId && play.status === "offered";
   const accepted = play.status === "accepted";
+  const declined = play.status === "declined";
+  const done = play.status === "done";
   const heading = play.direction === "i-do-you" ? "I'll do this to you" : "You do this to me";
+  const live = play.status === "offered" || play.status === "accepted";
 
   return (
     <View
@@ -858,8 +1080,9 @@ function LiveDareCard({
         borderRadius: 20,
         padding: 16,
         borderWidth: 1,
-        borderColor: "rgba(255,90,122,0.4)",
-        backgroundColor: "rgba(255,90,122,0.1)",
+        borderColor: live ? "rgba(255,90,122,0.4)" : T.border,
+        backgroundColor: live ? "rgba(255,90,122,0.1)" : T.surface,
+        opacity: declined || done ? 0.78 : 1,
       }}
     >
       <Text
@@ -868,7 +1091,7 @@ function LiveDareCard({
           fontSize: 11,
           letterSpacing: 0.8,
           textTransform: "uppercase",
-          color: T.hot,
+          color: live ? T.hot : T.muted,
         }}
       >
         {heading} · {dareWhen(play)}
@@ -918,6 +1141,34 @@ function LiveDareCard({
         <View className="mt-3">
           <PrimaryButton label="Mark it done" tone="teal" onPress={onDone} />
         </View>
+      ) : null}
+      {declined ? (
+        <Text
+          style={{
+            marginTop: 10,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: T.muted,
+          }}
+        >
+          Passed
+        </Text>
+      ) : null}
+      {done ? (
+        <Text
+          style={{
+            marginTop: 10,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: T.accent,
+          }}
+        >
+          Done
+        </Text>
       ) : null}
     </View>
   );
