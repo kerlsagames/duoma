@@ -86,6 +86,7 @@ import type {
   TodayNeed,
   TalkDeckState,
   TalkDraw,
+  TalkVaultEntry,
   TalkReaction,
   DareDirection,
   DareTimeframe,
@@ -94,9 +95,13 @@ import type {
 import {
   categoryById,
   ensureDeck,
+  markPlayed,
   nextQuestionId,
+  questionById,
   rotatePlayed,
   todaysDraw,
+  todaysPick,
+  vaultQuestionIds,
 } from "@/lib/talk";
 import {
   SPICY_DARE_DECK_ID,
@@ -378,6 +383,7 @@ type AppContextValue = {
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
   talkDraws: TalkDraw[];
+  talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
@@ -430,11 +436,8 @@ type AppContextValue = {
     guessIndex: number;
   }) => Promise<void>;
   drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
-  submitTalkAnswer: (input: {
-    categoryId: string;
-    body: string;
-    reaction: TalkReaction | null;
-  }) => Promise<void>;
+  shuffleTalkQuestion: () => Promise<TalkDraw>;
+  submitTalkAnswer: (input?: { categoryId?: string }) => Promise<void>;
   sendSpicyDare: (input: {
     dareId: string | null;
     text: string;
@@ -748,6 +751,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const talkDraws = useMemo(
     () => db.talkDraws.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const talkVault = useMemo(
+    () => db.talkVault.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -2330,6 +2338,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       categoryById(categoryId);
       const today = localDateKey();
+      const pick = todaysPick(db.talkDraws, user.id, today);
+      if (pick && pick.categoryId !== categoryId) {
+        throw new Error("You already picked today's topic. Come back tomorrow for another.");
+      }
       const existing = todaysDraw(db.talkDraws, {
         userId: user.id,
         categoryId,
@@ -2349,7 +2361,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         userId: user.id,
         categoryId,
       });
-      const questionId = nextQuestionId(deck);
+      const excluded = vaultQuestionIds(db.talkVault, {
+        coupleId: couple.id,
+        categoryId,
+      });
+      const questionId = nextQuestionId(deck, excluded);
+      if (!questionId) {
+        throw new Error("This deck is empty — every question is already in your vault.");
+      }
       const row: TalkDraw = {
         id: createId(),
         coupleId: couple.id,
@@ -2360,6 +2379,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         body: "",
         reaction: null,
         answeredAt: null,
+        shuffledToday: false,
         createdAt: nowIso(),
       };
       db = {
@@ -2373,68 +2393,144 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const shuffleTalkQuestion = useCallback(async () => {
+    if (!user || !couple) {
+      throw new Error("Pair first, then shuffle.");
+    }
+    const today = localDateKey();
+    const existing = todaysPick(db.talkDraws, user.id, today);
+    if (!existing) {
+      throw new Error("Pick a topic first.");
+    }
+    if (existing.answeredAt) {
+      throw new Error("Today's question is already answered.");
+    }
+    if (existing.shuffledToday) {
+      throw new Error("You already used today's shuffle.");
+    }
+
+    const question = questionById(existing.categoryId, existing.questionId);
+    const vaultRow: TalkVaultEntry = {
+      id: createId(),
+      coupleId: couple.id,
+      userId: user.id,
+      categoryId: existing.categoryId,
+      questionId: existing.questionId,
+      text: question?.text ?? existing.questionId,
+      readAt: nowIso(),
+      source: "shuffled",
+    };
+
+    const previous = db.talkDecks.find(
+      (row) =>
+        row.coupleId === couple.id &&
+        row.userId === user.id &&
+        row.categoryId === existing.categoryId
+    );
+    let deck = markPlayed(
+      ensureDeck(previous, {
+        id: previous?.id ?? createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        categoryId: existing.categoryId,
+      }),
+      existing.questionId
+    );
+    const talkVault = [...db.talkVault, vaultRow];
+    const excluded = vaultQuestionIds(talkVault, {
+      coupleId: couple.id,
+      categoryId: existing.categoryId,
+    });
+    const nextId = nextQuestionId(deck, excluded);
+    if (!nextId) {
+      throw new Error("No fresh questions left in this deck.");
+    }
+    deck = markPlayed(deck, nextId);
+    // nextId is live, not vaulted yet — undo the premature mark
+    deck = { ...deck, played: deck.played.filter((id) => id !== nextId) };
+
+    const next: TalkDraw = {
+      ...existing,
+      questionId: nextId,
+      shuffledToday: true,
+    };
+    db = {
+      ...db,
+      talkDecks: [...db.talkDecks.filter((item) => item.id !== deck.id), deck],
+      talkDraws: db.talkDraws.map((row) => (row.id === existing.id ? next : row)),
+      talkVault,
+    };
+    await persist();
+    return next;
+  }, [couple, user]);
+
   const submitTalkAnswer = useCallback(
-    async (input: {
-      categoryId: string;
-      body: string;
-      reaction: TalkReaction | null;
-    }) => {
+    async (input?: { categoryId?: string }) => {
       if (!user || !couple) {
-        throw new Error("Pair first, then save.");
-      }
-      const text = input.body.trim();
-      if (!input.reaction && !text) {
-        throw new Error("Tap a thumb or leave a note.");
+        throw new Error("Pair first, then mark answered.");
       }
       const today = localDateKey();
-      const existing = todaysDraw(db.talkDraws, {
-        userId: user.id,
-        categoryId: input.categoryId,
-        date: today,
-      });
+      const existing =
+        (input?.categoryId
+          ? todaysDraw(db.talkDraws, {
+              userId: user.id,
+              categoryId: input.categoryId,
+              date: today,
+            })
+          : undefined) ?? todaysPick(db.talkDraws, user.id, today);
       if (!existing) {
         throw new Error("Draw a card first.");
       }
-      const firstAnswer = !existing.answeredAt;
-      let talkDecks = db.talkDecks;
-      if (firstAnswer) {
-        const previous = talkDecks.find(
-          (row) =>
-            row.coupleId === couple.id &&
-            row.userId === user.id &&
-            row.categoryId === input.categoryId
-        );
-        const rotated = rotatePlayed(
-          ensureDeck(previous, {
-            id: previous?.id ?? createId(),
-            coupleId: couple.id,
-            userId: user.id,
-            categoryId: input.categoryId,
-          }),
-          existing.questionId
-        );
-        talkDecks = [...talkDecks.filter((row) => row.id !== rotated.id), rotated];
+      if (existing.answeredAt) {
+        return;
       }
+
+      const question = questionById(existing.categoryId, existing.questionId);
+      const vaultRow: TalkVaultEntry = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        categoryId: existing.categoryId,
+        questionId: existing.questionId,
+        text: question?.text ?? existing.questionId,
+        readAt: nowIso(),
+        source: "answered",
+      };
+
+      const previous = db.talkDecks.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.categoryId === existing.categoryId
+      );
+      const marked = markPlayed(
+        ensureDeck(previous, {
+          id: previous?.id ?? createId(),
+          coupleId: couple.id,
+          userId: user.id,
+          categoryId: existing.categoryId,
+        }),
+        existing.questionId
+      );
       const next: TalkDraw = {
         ...existing,
-        body: text,
-        reaction: input.reaction,
-        answeredAt: existing.answeredAt ?? nowIso(),
+        body: "",
+        reaction: null,
+        answeredAt: nowIso(),
       };
       db = {
         ...db,
-        talkDecks,
+        talkDecks: [...db.talkDecks.filter((row) => row.id !== marked.id), marked],
         talkDraws: db.talkDraws.map((row) => (row.id === existing.id ? next : row)),
+        talkVault: [...db.talkVault, vaultRow],
       };
       await persist();
-      if (firstAnswer) {
-        const category = categoryById(input.categoryId);
-        pingPartner(couple, user, partner, {
-          title: "Let's Talk",
-          body: `${user.displayName} pulled ${category.name}.`,
-          url: "/hub/talk",
-        });
-      }
+      const category = categoryById(existing.categoryId);
+      pingPartner(couple, user, partner, {
+        title: "Let's Talk",
+        body: `${user.displayName} answered ${category.name}.`,
+        url: "/hub/talk",
+      });
     },
     [couple, partner, user]
   );
@@ -3175,6 +3271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     curiosityMatchScore,
     talkDecks,
     talkDraws,
+    talkVault,
     spicyDares,
     milestones,
     desireToggles,
@@ -3219,6 +3316,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     requestCheckIn,
     submitCuriosity,
     drawTalkQuestion,
+    shuffleTalkQuestion,
     submitTalkAnswer,
     sendSpicyDare,
     respondSpicyDare,

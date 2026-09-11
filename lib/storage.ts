@@ -25,6 +25,7 @@ const hubEmpty = () => ({
   pushSubscriptions: [],
   talkDecks: [],
   talkDraws: [],
+  talkVault: [],
   spicyDares: [],
 });
 
@@ -152,7 +153,13 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     ritualChecks: raw.ritualChecks ?? [],
     pushSubscriptions: raw.pushSubscriptions ?? [],
     talkDecks: raw.talkDecks ?? [],
-    talkDraws: raw.talkDraws ?? [],
+    talkDraws: (raw.talkDraws ?? []).map((row) => ({
+      ...row,
+      shuffledToday: Boolean(row.shuffledToday),
+      body: row.body ?? "",
+      reaction: row.reaction ?? null,
+    })),
+    talkVault: raw.talkVault ?? [],
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
   };
 }

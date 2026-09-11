@@ -365,10 +365,25 @@ export type TalkDraw = {
   categoryId: string;
   questionId: string;
   date: string;
+  /** @deprecated Kept for older saves; Talk no longer uses notes. */
   body: string;
+  /** @deprecated Kept for older saves; Talk no longer uses thumbs. */
   reaction: TalkReaction | null;
   answeredAt: string | null;
+  /** One free reshuffle per draw per day. */
+  shuffledToday: boolean;
   createdAt: string;
+};
+
+export type TalkVaultEntry = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  categoryId: string;
+  questionId: string;
+  text: string;
+  readAt: string;
+  source: "answered" | "shuffled";
 };
 
 export type DareDirection = "i-do-you" | "you-do-me";
@@ -427,6 +442,7 @@ export type AppDB = {
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
   talkDraws: TalkDraw[];
+  talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
 };
 
