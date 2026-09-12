@@ -13,6 +13,8 @@ type Props = {
   headerRight?: ReactNode;
   /** Show a back control above the page header. Defaults to true. */
   showBack?: boolean;
+  /** Defaults to true. Set false to lock the page to one screen. */
+  scroll?: boolean;
 };
 
 export function HubScreen({
@@ -23,15 +25,19 @@ export function HubScreen({
   tone = "default",
   headerRight,
   showBack = true,
+  scroll = true,
 }: Props) {
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
 
   return (
-    <Screen scroll background={theme.background}>
-      <View className="pt-4 pb-6">
+    <Screen scroll={scroll} background={theme.background}>
+      <View className={scroll ? "pt-4 pb-6" : "flex-1 pt-3 pb-3"}>
         {showBack ? (
-          <BackButton color={theme.accent} style={{ marginBottom: 14 }} />
+          <BackButton
+            color={theme.accent}
+            style={{ marginBottom: scroll ? 14 : 8 }}
+          />
         ) : null}
         <View
           style={{
@@ -83,7 +89,9 @@ export function HubScreen({
             {body}
           </Text>
         ) : null}
-        <View className={title || body ? "mt-6" : "mt-3"}>{children}</View>
+        <View className={`${title || body ? "mt-6" : "mt-3"}${scroll ? "" : " flex-1"}`}>
+          {children}
+        </View>
       </View>
     </Screen>
   );

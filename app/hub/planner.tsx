@@ -167,33 +167,8 @@ export default function PlannerScreen() {
     <HubScreen
       kicker="Connect · Date night"
       title="Date Night Generator"
-      body="Flip the filters, spin an idea from 300 tagged dates, then save keepers to your shared list."
+      body="Spin a date, then narrow the pot with filters."
     >
-      <FilterRow
-        label="Location"
-        options={DATE_LOCATION_FILTERS}
-        value={filters.location}
-        onChange={(location) => setFilters((f) => ({ ...f, location }))}
-      />
-      <FilterRow
-        label="Time of day"
-        options={DATE_TIME_FILTERS}
-        value={filters.time}
-        onChange={(time) => setFilters((f) => ({ ...f, time }))}
-      />
-      <FilterRow
-        label="Budget"
-        options={DATE_COST_FILTERS}
-        value={filters.cost}
-        onChange={(cost) => setFilters((f) => ({ ...f, cost }))}
-      />
-      <FilterRow
-        label="Vibe / energy"
-        options={DATE_VIBE_FILTERS}
-        value={filters.vibe}
-        onChange={(vibe) => setFilters((f) => ({ ...f, vibe }))}
-      />
-
       <Text
         style={{
           marginBottom: 12,
@@ -318,6 +293,44 @@ export default function PlannerScreen() {
           {error}
         </Text>
       ) : null}
+
+      <Text
+        style={{
+          marginTop: 28,
+          marginBottom: 12,
+          fontSize: 12,
+          fontWeight: "700",
+          letterSpacing: 2,
+          textTransform: "uppercase",
+          color: "rgba(244,244,246,0.45)",
+        }}
+      >
+        Filters
+      </Text>
+      <FilterRow
+        label="Location"
+        options={DATE_LOCATION_FILTERS}
+        value={filters.location}
+        onChange={(location) => setFilters((f) => ({ ...f, location }))}
+      />
+      <FilterRow
+        label="Time of day"
+        options={DATE_TIME_FILTERS}
+        value={filters.time}
+        onChange={(time) => setFilters((f) => ({ ...f, time }))}
+      />
+      <FilterRow
+        label="Budget"
+        options={DATE_COST_FILTERS}
+        value={filters.cost}
+        onChange={(cost) => setFilters((f) => ({ ...f, cost }))}
+      />
+      <FilterRow
+        label="Vibe / energy"
+        options={DATE_VIBE_FILTERS}
+        value={filters.vibe}
+        onChange={(vibe) => setFilters((f) => ({ ...f, vibe }))}
+      />
 
       <Pressable
         onPress={() => setShowBucket((v) => !v)}

@@ -98,7 +98,7 @@ export default function ListsScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pb-10 pt-2">
-        <BackButton color={T.teal} style={{ marginBottom: 12 }} />
+        <BackButton color={T.teal} style={{ marginBottom: 8 }} />
         <View className="mb-1 flex-row items-start justify-between">
           <View className="flex-1 pr-3">
             <Text
@@ -115,7 +115,7 @@ export default function ListsScreen() {
             </Text>
             <Text
               style={{
-                marginTop: 8,
+                marginTop: 4,
                 fontFamily: LISTS_DISPLAY,
                 fontSize: 36,
                 lineHeight: 40,
@@ -124,17 +124,6 @@ export default function ListsScreen() {
               }}
             >
               Lists
-            </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                fontFamily: LISTS_ROUNDED,
-                fontSize: 15,
-                lineHeight: 22,
-                color: T.muted,
-              }}
-            >
-              Dream it up together, tick it off, then open each vault by list.
             </Text>
           </View>
           <View style={{ alignItems: "flex-end", gap: 8 }}>
@@ -172,7 +161,7 @@ export default function ListsScreen() {
 
         <View
           style={{
-            marginTop: 18,
+            marginTop: 12,
             flexDirection: "row",
             gap: 8,
             padding: 4,

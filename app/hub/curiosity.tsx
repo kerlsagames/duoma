@@ -26,19 +26,19 @@ function OptionList({
   onChange: (index: number) => void;
 }) {
   return (
-    <View className="mt-3 gap-2">
+    <View className="mt-2 gap-1.5">
       {options.map((label, index) => {
         const on = value === index;
         return (
           <Pressable
             key={`${index}-${label}`}
             onPress={() => onChange(index)}
-            className={`rounded-2xl border px-4 py-3.5 ${
+            className={`rounded-2xl border px-3.5 py-2.5 ${
               on ? "border-neon bg-neon/20" : "border-white/10 bg-white/5"
             }`}
           >
             <Text
-              className={`text-[15px] leading-5 ${
+              className={`text-[14px] leading-5 ${
                 on ? "font-semibold text-mist" : "text-mist/80"
               }`}
             >
@@ -112,7 +112,7 @@ export default function CuriosityScreen() {
   return (
     <HubScreen
       kicker="Curiosity"
-      body="One question a day. Answer for yourself, then guess theirs. Points land when you both lock in."
+      scroll={false}
     >
       {!couple || !question ? (
         <Text className="text-[15px] leading-6 text-mist/65">
@@ -120,31 +120,31 @@ export default function CuriosityScreen() {
         </Text>
       ) : (
         <>
-          <View className="rounded-[28px] border border-neon/30 bg-neon/10 p-5">
-            <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-neon">
+          <View className="rounded-[22px] border border-neon/30 bg-neon/10 px-4 py-3">
+            <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
               Today · {question.category}
             </Text>
-            <Text className="mt-3 text-[20px] font-bold leading-7 text-mist">
+            <Text className="mt-1.5 text-[17px] font-bold leading-6 text-mist">
               {question.question}
             </Text>
           </View>
 
           {revealed && headline ? (
-            <View className="mt-5 rounded-3xl border border-neon bg-neon/20 p-5">
-              <Text className="text-[22px] font-bold text-mist">{headline.title}</Text>
-              <Text className="mt-2 text-[15px] leading-6 text-mist/75">
+            <View className="mt-3 rounded-3xl border border-neon bg-neon/20 px-4 py-3.5">
+              <Text className="text-[18px] font-bold text-mist">{headline.title}</Text>
+              <Text className="mt-1 text-[13px] leading-5 text-mist/75">
                 {headline.detail}
               </Text>
 
-              <View className="mt-5 gap-3">
-                <View className="rounded-2xl border border-white/10 bg-night/60 p-4">
+              <View className="mt-3 gap-2">
+                <View className="rounded-2xl border border-white/10 bg-night/60 px-3 py-2.5">
                   <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
                     {partnerName} answered
                   </Text>
-                  <Text className="mt-2 text-[16px] font-semibold text-mist">
+                  <Text className="mt-1 text-[15px] font-semibold text-mist">
                     {optionLabel(question.id, theirs?.answerIndex)}
                   </Text>
-                  <Text className="mt-3 text-[12px] uppercase tracking-widest text-mist/45">
+                  <Text className="mt-2 text-[11px] uppercase tracking-widest text-mist/45">
                     Your guess
                   </Text>
                   <Text
@@ -159,14 +159,14 @@ export default function CuriosityScreen() {
                   </Text>
                 </View>
 
-                <View className="rounded-2xl border border-white/10 bg-night/60 p-4">
+                <View className="rounded-2xl border border-white/10 bg-night/60 px-3 py-2.5">
                   <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
                     You answered
                   </Text>
-                  <Text className="mt-2 text-[16px] font-semibold text-mist">
+                  <Text className="mt-1 text-[15px] font-semibold text-mist">
                     {optionLabel(question.id, mine?.answerIndex)}
                   </Text>
-                  <Text className="mt-3 text-[12px] uppercase tracking-widest text-mist/45">
+                  <Text className="mt-2 text-[11px] uppercase tracking-widest text-mist/45">
                     {partnerName}'s guess
                   </Text>
                   <Text
@@ -183,12 +183,12 @@ export default function CuriosityScreen() {
               </View>
             </View>
           ) : iDone && !theyDone ? (
-            <View className="mt-5 rounded-3xl border border-white/15 bg-white/5 p-5">
-              <Text className="text-[18px] font-bold text-mist">Answers locked!</Text>
-              <Text className="mt-2 text-[15px] leading-6 text-mist/70">
+            <View className="mt-3 rounded-3xl border border-white/15 bg-white/5 px-4 py-3.5">
+              <Text className="text-[17px] font-bold text-mist">Answers locked!</Text>
+              <Text className="mt-1 text-[14px] leading-5 text-mist/70">
                 You’ll see the match results once {partnerName} answers today.
               </Text>
-              <View className="mt-4 rounded-2xl border border-white/10 bg-night/50 p-4">
+              <View className="mt-3 rounded-2xl border border-white/10 bg-night/50 px-3 py-2.5">
                 <Text className="text-[12px] uppercase tracking-widest text-mist/45">
                   Your answer
                 </Text>
@@ -204,7 +204,7 @@ export default function CuriosityScreen() {
               </View>
             </View>
           ) : (
-            <View className="mt-5">
+            <View className="mt-3 flex-1">
               {step === "answer" ? (
                 <>
                   <Text className="text-[12px] font-bold uppercase tracking-[2px] text-neon">
@@ -218,7 +218,7 @@ export default function CuriosityScreen() {
                     value={answerIndex}
                     onChange={setAnswerIndex}
                   />
-                  <View className="mt-4">
+                  <View className="mt-3">
                     <PrimaryButton
                       label="Next — guess theirs"
                       disabled={answerIndex == null}
@@ -245,7 +245,7 @@ export default function CuriosityScreen() {
                   {error ? (
                     <Text className="mt-3 text-[14px] text-crimson">{error}</Text>
                   ) : null}
-                  <View className="mt-4 gap-2">
+                  <View className="mt-3 gap-2">
                     <PrimaryButton
                       label={theyDone ? "Lock in & reveal" : "Lock in answers"}
                       loading={loading}
@@ -265,15 +265,15 @@ export default function CuriosityScreen() {
         </>
       )}
 
-      <View className="mt-8 rounded-3xl border border-neon/40 bg-neon/15 px-4 py-4">
-        <Text className="text-[12px] font-bold uppercase tracking-[2px] text-neon">
+      <View className="mt-auto rounded-3xl border border-neon/40 bg-neon/15 px-4 py-3">
+        <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
           Curiosity Synergy
         </Text>
-        <View className="mt-2 flex-row items-end justify-between">
-          <Text className="text-[34px] font-bold text-mist">
+        <View className="mt-1 flex-row items-end justify-between">
+          <Text className="text-[28px] font-bold text-mist">
             {synergy.matchScore} pts
           </Text>
-          <Text className="pb-1 text-[14px] font-semibold text-mist/70">
+          <Text className="pb-0.5 text-[13px] font-semibold text-mist/70">
             Match rate {synergy.matchRate}%
             {synergy.daysPlayed
               ? ` · ${synergy.daysPlayed} day${synergy.daysPlayed === 1 ? "" : "s"}`
