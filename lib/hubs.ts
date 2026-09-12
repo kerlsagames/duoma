@@ -222,7 +222,7 @@ export const HUBS: HubDef[] = [
       {
         id: "photo-challenges",
         label: "Photo Memory Challenges",
-        detail: "Weekly memory upload prompts",
+        detail: "One photo a week. Three shuffles. Then it's yours.",
         icon: "camera",
         href: "/hub/photo-challenges",
       },

@@ -13,7 +13,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip.
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Secret Signals, Audio Voice Notes, Intimacy Streak.
-- **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Two Truths & A Wish, Memory Polaroids, Doodle canvas, Scoreboard, Couple Crossword, Choose-Your-Own Adventure, Virtual Scrapbook.
+- **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Two Truths & A Wish, Photo Memory (one weekly shot, three shuffles, upload, clothesline gallery), Doodle canvas, Scoreboard, Couple Crossword, Choose-Your-Own Adventure, Virtual Scrapbook.
 - **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Decisions, Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Period Tracker, Settings.
 - **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
 

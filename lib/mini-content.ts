@@ -5,6 +5,18 @@ import {
 } from "@/lib/birthdays";
 import { createId, nowIso } from "@/lib/ids";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
+import {
+  hydratePhotoMemory,
+  hydratePhotoWeek,
+  type PhotoMemory,
+  type PhotoWeek,
+} from "@/lib/photo-challenge";
+
+export type { PhotoMemory, PhotoWeek } from "@/lib/photo-challenge";
+export {
+  PHOTO_PROMPTS,
+  POLAROID_TINTS,
+} from "@/lib/photo-challenge";
 
 export type PingKind =
   | "heart"
@@ -132,15 +144,6 @@ export type TwoTruthsRound = {
   createdAt: string;
 };
 
-export type PhotoMemory = {
-  id: string;
-  userId: string;
-  promptId: string;
-  caption: string;
-  tint: string;
-  sticker: string;
-  createdAt: string;
-};
 
 export type DoodlePoint = { x: number; y: number };
 
@@ -281,6 +284,7 @@ export type MiniState = {
   predictions: Prediction[];
   twoTruths: TwoTruthsRound[];
   photos: PhotoMemory[];
+  photoWeek: PhotoWeek | null;
   doodle: DoodleBoard;
   crossword: CrosswordSave[];
   story: StoryState | null;
@@ -529,26 +533,6 @@ export const TRIVIA_PROMPTS: {
   },
 ];
 
-export const PHOTO_PROMPTS = [
-  { id: "first-kitchen", label: "The first kitchen we shared" },
-  { id: "bad-photo", label: "A bad photo of a good night" },
-  { id: "their-hands", label: "Their hands, doing something ordinary" },
-  { id: "inside-joke", label: "Evidence of an inside joke" },
-  { id: "rain", label: "The weather the day everything shifted" },
-  { id: "table", label: "A table we keep going back to" },
-  { id: "doorway", label: "A doorway you still picture them in" },
-  { id: "ticket", label: "A ticket stub or receipt that matters" },
-];
-
-export const POLAROID_TINTS = [
-  "#F4D6C6",
-  "#D7E4C0",
-  "#C9D7F2",
-  "#F2D5E0",
-  "#F7E7B8",
-  "#D9C4F0",
-];
-
 export const DEFAULT_MEALS: { label: string; tag: string }[] = [
   { label: "The usual takeout", tag: "safe" },
   { label: "Something with noodles", tag: "slurp" },
@@ -639,6 +623,7 @@ export function emptyMiniState(): MiniState {
     predictions: [],
     twoTruths: [],
     photos: [],
+    photoWeek: null,
     doodle: { strokes: [], updatedAt: nowIso(), updatedBy: null },
     crossword: [],
     story: null,
@@ -734,7 +719,10 @@ export function hydrateMiniState(raw: unknown): MiniState {
     knowMeGuesses: asArray(row.knowMeGuesses, base.knowMeGuesses),
     predictions: asArray(row.predictions, base.predictions).map(hydratePrediction),
     twoTruths: asArray(row.twoTruths, base.twoTruths),
-    photos: asArray(row.photos, base.photos),
+    photos: asArray(row.photos, base.photos)
+      .map(hydratePhotoMemory)
+      .filter((item): item is PhotoMemory => Boolean(item)),
+    photoWeek: hydratePhotoWeek(row.photoWeek),
     doodle: row.doodle ?? base.doodle,
     crossword: asArray(row.crossword, base.crossword),
     story: row.story ?? null,
