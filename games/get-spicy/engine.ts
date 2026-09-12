@@ -22,9 +22,9 @@ export const STAGE_META: Record<
 };
 
 export const DEFAULT_STAGE_COUNTS: StageCounts = {
-  pre_foreplay: 2,
-  foreplay: 2,
-  step_it_up: 2,
+  pre_foreplay: 4,
+  foreplay: 4,
+  step_it_up: 4,
   finish_off: 1,
   afterglow: 1,
 };

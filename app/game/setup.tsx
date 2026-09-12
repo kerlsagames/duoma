@@ -14,7 +14,6 @@ import {
 } from "@/games/get-spicy/flavor-tags";
 import { useApp } from "@/lib/store";
 import type { CardStage, StageCounts } from "@/lib/types";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -163,24 +162,29 @@ export default function SetupScreen() {
           </Pressable>
         </View>
 
-        <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Passes each
-        </Text>
-        <View className="mt-3">
-          <Stepper value={passLimit} onChange={setPassLimit} min={0} max={5} />
-        </View>
-
-        <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
-          Shuffles each
-        </Text>
-        <View className="mt-3">
-          <Stepper
-            value={shuffleLimit}
-            onChange={setShuffleLimit}
-            min={0}
-            max={10}
-            unlimited
-          />
+        <View className="mt-7 flex-row gap-3">
+          <View className="flex-1">
+            <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">
+              Passes each
+            </Text>
+            <View className="mt-3">
+              <Stepper value={passLimit} onChange={setPassLimit} min={0} max={5} />
+            </View>
+          </View>
+          <View className="flex-1">
+            <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">
+              Shuffles each
+            </Text>
+            <View className="mt-3">
+              <Stepper
+                value={shuffleLimit}
+                onChange={setShuffleLimit}
+                min={0}
+                max={10}
+                unlimited
+              />
+            </View>
+          </View>
         </View>
 
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -198,9 +202,13 @@ export default function SetupScreen() {
                 </Text>
                 {stage === "finish_off" || stage === "afterglow" ? (
                   <Text className="mt-0.5 text-[12px] text-mist/45">
-                    Suggested: 1
+                    Default 1
                   </Text>
-                ) : null}
+                ) : (
+                  <Text className="mt-0.5 text-[12px] text-mist/45">
+                    Default 4
+                  </Text>
+                )}
               </View>
               <View className="flex-row items-center gap-4">
                 <Pressable onPress={() => bump(stage, -1)}>
@@ -242,57 +250,39 @@ export default function SetupScreen() {
           </Pressable>
         </View>
 
-        <View className="mt-4 gap-5">
+        <View className="mt-4 gap-4">
           {STAGE_ORDER.map((stage) => {
             const tags = flavorTagsForStage(stage);
             const stageIds = tags.map((row) => row.id);
             const stageOn = stageIds.every((id) => enabledSet.has(id));
             return (
-              <View
-                key={stage}
-                className="rounded-3xl border border-white/10 bg-white/5 p-4"
-              >
-                <View className="mb-3 flex-row items-center justify-between">
-                  <View className="flex-1 pr-3">
-                    <Text className="text-[11px] font-semibold uppercase tracking-widest text-neon">
-                      {STAGE_META[stage].heat}
-                    </Text>
-                    <Text className="mt-1 text-[18px] font-semibold text-mist">
-                      {STAGE_META[stage].label}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => setStageTags(stage, !stageOn)}
-                    className="rounded-full border border-white/15 px-3 py-1.5"
-                  >
-                    <Text className="text-[12px] font-semibold text-mist/70">
-                      {stageOn ? "Uncheck stage" : "Check stage"}
+              <View key={stage}>
+                <View className="mb-2 flex-row items-center justify-between">
+                  <Text className="text-[14px] font-semibold text-mist">
+                    {STAGE_META[stage].label}
+                  </Text>
+                  <Pressable onPress={() => setStageTags(stage, !stageOn)} hitSlop={8}>
+                    <Text className="text-[12px] font-semibold text-neon">
+                      {stageOn ? "None" : "All"}
                     </Text>
                   </Pressable>
                 </View>
-                <View className="gap-2">
+                <View className="flex-row flex-wrap gap-2">
                   {tags.map((tag) => {
                     const on = enabledSet.has(tag.id);
                     return (
                       <Pressable
                         key={tag.id}
                         onPress={() => toggleTag(tag.id)}
-                        className={`flex-row items-center rounded-2xl border px-3 py-3 ${
+                        className={`rounded-full border px-3 py-1.5 ${
                           on
-                            ? "border-neon/50 bg-neon/10"
-                            : "border-white/10 bg-night/40"
+                            ? "border-neon bg-neon/15"
+                            : "border-white/12 bg-white/5"
                         }`}
                       >
-                        <View
-                          className={`mr-3 h-6 w-6 items-center justify-center rounded-md border ${
-                            on ? "border-neon bg-neon" : "border-white/25"
-                          }`}
+                        <Text
+                          className={`text-[13px] ${on ? "text-mist" : "text-mist/55"}`}
                         >
-                          {on ? (
-                            <Ionicons name="checkmark" size={16} color="#0B0B0E" />
-                          ) : null}
-                        </View>
-                        <Text className="flex-1 text-[15px] leading-5 text-mist">
                           {tag.label}
                         </Text>
                       </Pressable>
