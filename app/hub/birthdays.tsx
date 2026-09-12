@@ -8,9 +8,12 @@ import {
   birthdayById,
   clampBirthdayDay,
   daysInMonth,
+  ageLabel,
   formatBirthdayDate,
   nextBirthdayKey,
+  normalizeBirthYear,
   removeBirthday,
+  turningAge,
   upcomingInDays,
   type Birthday,
   type BirthdayCircle,
@@ -44,6 +47,7 @@ export default function BirthdaysScreen() {
     month: now.getMonth(),
   });
   const [day, setDay] = useState(now.getDate());
+  const [yearText, setYearText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
 
@@ -57,12 +61,20 @@ export default function BirthdaysScreen() {
   );
   const selectedDay = clampBirthdayDay(cursor.month, day);
   const nextKey = nextBirthdayKey(cursor.month, selectedDay);
+  const parsedYear = normalizeBirthYear(
+    yearText.trim() ? Number(yearText.trim()) : null
+  );
+  const previewTurns = turningAge(parsedYear, now.getFullYear());
   const removeRow = removeId ? birthdayById(data.birthdays, removeId) : null;
 
   const save = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Add a name.");
+      return;
+    }
+    if (yearText.trim() && parsedYear == null) {
+      setError("Birth year should be a real year, or leave it blank.");
       return;
     }
     setError(null);
@@ -73,9 +85,11 @@ export default function BirthdaysScreen() {
         circle,
         month: cursor.month,
         day: selectedDay,
+        year: parsedYear,
       }),
     }));
     setName("");
+    setYearText("");
     setAdding(false);
   };
 
@@ -123,7 +137,7 @@ export default function BirthdaysScreen() {
             color: T.muted,
           }}
         >
-          Family or friends. Pick a date. It shows up on the home calendar every year.
+          Family or friends. Pick a date. Add a birth year if you want the age to fill in.
         </Text>
 
         <View
@@ -468,6 +482,35 @@ export default function BirthdaysScreen() {
 
             <Text
               style={{
+                marginTop: 16,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                textTransform: "uppercase",
+                color: T.paperMuted,
+              }}
+            >
+              Birth year · optional
+            </Text>
+            <TextInput
+              value={yearText}
+              onChangeText={setYearText}
+              placeholder="e.g. 1994"
+              placeholderTextColor="rgba(42,33,22,0.35)"
+              keyboardType="number-pad"
+              maxLength={4}
+              style={{
+                marginTop: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(42,33,22,0.16)",
+                paddingVertical: 8,
+                fontFamily: SERIF,
+                fontSize: 20,
+                color: T.paperInk,
+              }}
+            />
+            <Text
+              style={{
                 marginTop: 12,
                 fontFamily: SERIF,
                 fontSize: 14,
@@ -475,6 +518,7 @@ export default function BirthdaysScreen() {
               }}
             >
               Next: {formatLongDate(nextKey)}
+              {previewTurns != null ? ` · turns ${previewTurns}` : ""}
             </Text>
 
             {error ? (
@@ -488,6 +532,7 @@ export default function BirthdaysScreen() {
                 onPress={() => {
                   setAdding(false);
                   setError(null);
+                  setYearText("");
                 }}
                 style={{
                   flex: 1,
@@ -521,6 +566,7 @@ export default function BirthdaysScreen() {
             onPress={() => {
               setAdding(true);
               setError(null);
+              setYearText("");
               setCursor({ year: now.getFullYear(), month: now.getMonth() });
               setDay(now.getDate());
             }}
@@ -569,6 +615,7 @@ function BirthdayRow({
       : days === 1
         ? "Tomorrow"
         : `In ${days} days`;
+  const age = ageLabel(row.year, row.month, row.day);
   return (
     <View
       style={{
@@ -594,7 +641,8 @@ function BirthdayRow({
           {row.name}
         </Text>
         <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
-          {formatBirthdayDate(row.month, row.day)} · {when}
+          {formatBirthdayDate(row.month, row.day, row.year)} · {when}
+          {age ? ` · ${age}` : ""}
         </Text>
       </View>
       <Pressable onPress={onRemove} hitSlop={10} accessibilityLabel="Remove">

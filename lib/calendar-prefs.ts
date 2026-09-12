@@ -6,10 +6,35 @@ export const CALENDAR_PREFS_KEY = "duoma:calendarPrefs";
 
 export type CalendarListMode = "all" | "preview";
 
+export type CalendarLayout = "stack" | "split" | "agenda";
+
 export type CalendarPrefs = {
   enabledKinds: Record<CalendarActivityKind, boolean>;
   listMode: CalendarListMode;
+  layout: CalendarLayout;
 };
+
+export const CALENDAR_LAYOUT_OPTIONS: {
+  id: CalendarLayout;
+  label: string;
+  hint: string;
+}[] = [
+  {
+    id: "stack",
+    label: "Stacked",
+    hint: "Month on top, that day's notes underneath. The default.",
+  },
+  {
+    id: "split",
+    label: "Split",
+    hint: "Month on the left half, notes and notifications on the right.",
+  },
+  {
+    id: "agenda",
+    label: "Agenda",
+    hint: "This month as a running list of notes, grouped by day.",
+  },
+];
 
 export const CALENDAR_KIND_OPTIONS: {
   kind: CalendarActivityKind;
@@ -38,7 +63,7 @@ export function defaultCalendarPrefs(): CalendarPrefs {
   for (const row of CALENDAR_KIND_OPTIONS) {
     enabledKinds[row.kind] = true;
   }
-  return { enabledKinds, listMode: "preview" };
+  return { enabledKinds, listMode: "preview", layout: "stack" };
 }
 
 export function hydrateCalendarPrefs(
@@ -57,6 +82,8 @@ export function hydrateCalendarPrefs(
   return {
     enabledKinds,
     listMode: raw.listMode === "all" ? "all" : "preview",
+    layout:
+      raw.layout === "split" || raw.layout === "agenda" ? raw.layout : "stack",
   };
 }
 

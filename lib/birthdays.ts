@@ -9,6 +9,7 @@ export type Birthday = {
   circle: BirthdayCircle;
   month: number;
   day: number;
+  year: number | null;
   createdAt: string;
 };
 
@@ -46,8 +47,69 @@ export function birthdayDateKey(
   return `${year}-${mm}-${dd}`;
 }
 
-export function formatBirthdayDate(month: number, day: number): string {
-  return `${BIRTHDAY_MONTHS[month] ?? "January"} ${day}`;
+export function formatBirthdayDate(
+  month: number,
+  day: number,
+  year?: number | null
+): string {
+  const base = `${BIRTHDAY_MONTHS[month] ?? "January"} ${day}`;
+  return year ? `${base}, ${year}` : base;
+}
+
+const MIN_YEAR = 1900;
+
+export function normalizeBirthYear(
+  year: number | null | undefined,
+  from = new Date()
+): number | null {
+  if (year == null || !Number.isFinite(year)) return null;
+  const y = Math.round(year);
+  if (y < MIN_YEAR || y > from.getFullYear()) return null;
+  return y;
+}
+
+/** Age right now. Null if no birth year. */
+export function currentAge(
+  year: number | null | undefined,
+  month: number,
+  day: number,
+  from = new Date()
+): number | null {
+  const born = normalizeBirthYear(year, from);
+  if (born == null) return null;
+  let age = from.getFullYear() - born;
+  if (from.getMonth() < month || (from.getMonth() === month && from.getDate() < day)) {
+    age -= 1;
+  }
+  return Math.max(0, age);
+}
+
+/** Age they turn on this calendar year. */
+export function turningAge(
+  year: number | null | undefined,
+  onYear: number,
+  from = new Date()
+): number | null {
+  const born = normalizeBirthYear(year, from);
+  if (born == null) return null;
+  return Math.max(0, onYear - born);
+}
+
+export function ageLabel(
+  year: number | null | undefined,
+  month: number,
+  day: number,
+  from = new Date()
+): string | null {
+  const born = normalizeBirthYear(year, from);
+  if (born == null) return null;
+  const days = upcomingInDays(month, day, from);
+  const turns = turningAge(born, from.getFullYear(), from);
+  if (turns == null) return null;
+  if (days === 0) return `turns ${turns}`;
+  const age = currentAge(born, month, day, from);
+  if (age == null) return null;
+  return days <= 30 ? `${age} · turns ${turns}` : `${age}`;
 }
 
 export function nextBirthdayKey(
@@ -81,6 +143,7 @@ export function hydrateBirthday(raw: unknown): Birthday | null {
     circle: row.circle === "friends" ? "friends" : "family",
     month: Math.max(0, Math.min(11, month)),
     day: clampBirthdayDay(Math.max(0, Math.min(11, month)), day),
+    year: normalizeBirthYear(typeof row.year === "number" ? row.year : null),
     createdAt: typeof row.createdAt === "string" ? row.createdAt : nowIso(),
   };
 }
@@ -100,21 +163,39 @@ export function sortBirthdays(a: Birthday, b: Birthday): number {
   return a.name.localeCompare(b.name);
 }
 
-export function addBirthday(
-  list: Birthday[],
-  input: { name: string; circle: BirthdayCircle; month: number; day: number }
-): Birthday[] {
+export function createBirthday(input: {
+  name: string;
+  circle: BirthdayCircle;
+  month: number;
+  day: number;
+  year?: number | null;
+}): Birthday | null {
   const name = input.name.trim();
-  if (!name) return list;
+  if (!name) return null;
   const month = Math.max(0, Math.min(11, input.month));
-  const next: Birthday = {
+  return {
     id: createId(),
     name,
     circle: input.circle,
     month,
     day: clampBirthdayDay(month, input.day),
+    year: normalizeBirthYear(input.year),
     createdAt: nowIso(),
   };
+}
+
+export function addBirthday(
+  list: Birthday[],
+  input: {
+    name: string;
+    circle: BirthdayCircle;
+    month: number;
+    day: number;
+    year?: number | null;
+  }
+): Birthday[] {
+  const next = createBirthday(input);
+  if (!next) return list;
   return sortBirthdaysList([...list, next]);
 }
 

@@ -9,6 +9,8 @@ type Props = {
   selected?: string | null;
   today?: string | null;
   onSelect: (date: string) => void;
+  /** Tighter cells for the split layout. */
+  compact?: boolean;
 };
 
 const MARK_COLOR: Record<CalendarMark, string> = {
@@ -36,7 +38,10 @@ export function MonthGrid({
   selected,
   today,
   onSelect,
+  compact = false,
 }: Props) {
+  const cellMin = compact ? 40 : 58;
+  const daySize = compact ? 22 : 28;
   return (
     <View
       style={{
@@ -60,8 +65,8 @@ export function MonthGrid({
             style={{
               flex: 1,
               textAlign: "center",
-              paddingVertical: 10,
-              fontSize: 11,
+              paddingVertical: compact ? 6 : 10,
+              fontSize: compact ? 10 : 11,
               fontWeight: "700",
               letterSpacing: 1,
               color: "rgba(22,24,29,0.45)",
@@ -83,7 +88,7 @@ export function MonthGrid({
                 key={`empty-${index}`}
                 style={{
                   width: "14.2857%",
-                  minHeight: 58,
+                  minHeight: cellMin,
                   borderRightWidth: isLastCol ? 0 : 1,
                   borderBottomWidth: isLastRow ? 0 : 1,
                   borderColor: "rgba(22,24,29,0.12)",
@@ -101,7 +106,7 @@ export function MonthGrid({
               onPress={() => onSelect(cell.date)}
               style={{
                 width: "14.2857%",
-                minHeight: 58,
+                minHeight: cellMin,
                 borderRightWidth: isLastCol ? 0 : 1,
                 borderBottomWidth: isLastRow ? 0 : 1,
                 borderColor: "rgba(22,24,29,0.12)",
@@ -110,16 +115,16 @@ export function MonthGrid({
                   : isToday
                     ? "rgba(61,126,166,0.08)"
                     : "#FFFFFF",
-                paddingTop: 8,
-                paddingBottom: 6,
+                paddingTop: compact ? 4 : 8,
+                paddingBottom: compact ? 4 : 6,
                 alignItems: "center",
               }}
             >
               <View
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
+                  width: daySize,
+                  height: daySize,
+                  borderRadius: daySize / 2,
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: on ? "#C23B55" : "transparent",
@@ -129,7 +134,7 @@ export function MonthGrid({
               >
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: compact ? 12 : 14,
                     fontWeight: "600",
                     color: on ? "#FFFFFF" : "#16181D",
                   }}
@@ -139,8 +144,8 @@ export function MonthGrid({
               </View>
               <View
                 style={{
-                  marginTop: 4,
-                  height: 8,
+                  marginTop: compact ? 2 : 4,
+                  height: compact ? 6 : 8,
                   flexDirection: "row",
                   gap: 3,
                   alignItems: "center",

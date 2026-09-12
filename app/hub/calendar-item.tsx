@@ -1,4 +1,4 @@
-import { birthdayById, formatBirthdayDate } from "@/lib/birthdays";
+import { ageLabel, birthdayById, formatBirthdayDate } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { formatClockTime, formatLongDate } from "@/lib/dates";
 import { HUB_TONES } from "@/lib/app-themes";
@@ -433,13 +433,17 @@ export default function CalendarItemScreen() {
         </Screen>
       );
     }
+    const age = ageLabel(row.year, row.month, row.day);
     return (
       <Screen scroll background={T.background}>
         <Block
           kicker={row.circle === "family" ? "Family birthday" : "Friends birthday"}
           title={row.name}
         >
-          <Meta>{formatBirthdayDate(row.month, row.day)} · every year</Meta>
+          <Meta>
+            {formatBirthdayDate(row.month, row.day, row.year)}
+            {age ? ` · ${age}` : " · every year"}
+          </Meta>
           <View style={{ marginTop: 22 }}>
             <PrimaryButton
               label="Open Birthdays"

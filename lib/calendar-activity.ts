@@ -1,4 +1,9 @@
-import { birthdayDateKey, formatBirthdayDate, type Birthday } from "@/lib/birthdays";
+import {
+  birthdayDateKey,
+  formatBirthdayDate,
+  turningAge,
+  type Birthday,
+} from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import { RITUALS } from "@/lib/hub";
@@ -126,6 +131,37 @@ export function activitiesForLane(
   lane: CalendarLane
 ): CalendarActivity[] {
   return activities.filter((row) => laneForKind(row.kind) === lane);
+}
+
+export function activitiesForMonth(
+  activities: CalendarActivity[],
+  year: number,
+  month: number
+): CalendarActivity[] {
+  const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+  return activities.filter((row) => row.dateKey.startsWith(prefix));
+}
+
+export function groupActivitiesByDate(
+  activities: CalendarActivity[]
+): { dateKey: string; items: CalendarActivity[] }[] {
+  const map = new Map<string, CalendarActivity[]>();
+  for (const row of activities) {
+    const list = map.get(row.dateKey);
+    if (list) list.push(row);
+    else map.set(row.dateKey, [row]);
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dateKey, items]) => ({ dateKey, items }));
+}
+
+function birthdaySubtitle(row: Birthday, year: number): string {
+  const circle = row.circle === "family" ? "Family" : "Friends";
+  const date = formatBirthdayDate(row.month, row.day);
+  const turns = turningAge(row.year, year);
+  if (turns == null) return `${circle} · ${date}`;
+  return `${circle} · ${date} · turns ${turns}`;
 }
 
 const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -434,10 +470,7 @@ export function buildCalendarActivities(
         dateKey,
         at: `${dateKey}T12:00:00.000Z`,
         title: `${row.name}'s birthday`,
-        subtitle:
-          row.circle === "family"
-            ? `Family · ${formatBirthdayDate(row.month, row.day)}`
-            : `Friends · ${formatBirthdayDate(row.month, row.day)}`,
+        subtitle: birthdaySubtitle(row, year),
         mark: "birthday",
         href: `/hub/calendar-item?kind=birthday&id=${encodeURIComponent(row.id)}`,
       });
