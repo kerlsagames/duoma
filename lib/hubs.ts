@@ -132,7 +132,7 @@ export const HUBS: HubDef[] = [
       {
         id: "up-for-it",
         label: "Dare Me",
-        detail: "Challenges & dares — send one or take one",
+        detail: "18 packs. 200 dares. Send one or take one.",
         icon: "flash",
         href: "/hub/up-for-it",
       },

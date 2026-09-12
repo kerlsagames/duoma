@@ -12,7 +12,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
 - **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip.
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Gratitude Jar, Apology & Reset, Thought-of-You Pings.
-- **Desire** — Get Spicy, Dare Me, Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Secret Signals, Audio Voice Notes, Intimacy Streak.
+- **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Secret Signals, Audio Voice Notes, Intimacy Streak.
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Two Truths & A Wish, Memory Polaroids, Doodle canvas, Scoreboard, Couple Crossword, Choose-Your-Own Adventure, Virtual Scrapbook.
 - **Home Base** — Groceries & Errands, Meal Decisions, Where Are We Going wheel, Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Period Tracker, Settings.
 

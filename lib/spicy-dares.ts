@@ -31,6 +31,12 @@ export const SPICY_DARE_CATEGORIES = [
   "Tech & Toys",
   "Edging & Teasing",
   "Quickies & Impulse",
+  "Dirty Talk & Words",
+  "Dress Up & Lingerie",
+  "Oral & Hands",
+  "Aftercare & Soft",
+  "Food & Taste",
+  "Games & Rules",
 ] as const;
 
 export type SpicyDareCategory = (typeof SPICY_DARE_CATEGORIES)[number];
@@ -51,7 +57,13 @@ export type SpicyDareCategoryMeta = {
     | "phone-portrait-outline"
     | "hardware-chip-outline"
     | "hourglass-outline"
-    | "timer-outline";
+    | "timer-outline"
+    | "chatbubble-ellipses-outline"
+    | "shirt-outline"
+    | "happy-outline"
+    | "leaf-outline"
+    | "restaurant-outline"
+    | "game-controller-outline";
 };
 
 export const SPICY_DARE_CATEGORY_META: SpicyDareCategoryMeta[] = [
@@ -126,6 +138,42 @@ export const SPICY_DARE_CATEGORY_META: SpicyDareCategoryMeta[] = [
     label: "Impulse",
     detail: "Right now, anywhere",
     icon: "timer-outline",
+  },
+  {
+    id: "Dirty Talk & Words",
+    label: "Talk",
+    detail: "Whispers, scripts, filthy lines",
+    icon: "chatbubble-ellipses-outline",
+  },
+  {
+    id: "Dress Up & Lingerie",
+    label: "Dress",
+    detail: "Outfits, no-underwear, uniform",
+    icon: "shirt-outline",
+  },
+  {
+    id: "Oral & Hands",
+    label: "Mouth",
+    detail: "Oral, hands, no rush",
+    icon: "happy-outline",
+  },
+  {
+    id: "Aftercare & Soft",
+    label: "Soft",
+    detail: "Water, praise, slow come-down",
+    icon: "leaf-outline",
+  },
+  {
+    id: "Food & Taste",
+    label: "Taste",
+    detail: "Ice, honey, something edible",
+    icon: "restaurant-outline",
+  },
+  {
+    id: "Games & Rules",
+    label: "Games",
+    detail: "Dice, points, house rules",
+    icon: "game-controller-outline",
   },
 ];
 
@@ -695,6 +743,466 @@ export const SPICY_DARES: SpicyDare[] = [
     id: "sd-108",
     text: "Desk Hijack: clear off a home office desk or table and use it for an instant mid-day quickie.",
     categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-109",
+    text: "Take a photo of their mouth after you have been kissing. Send it to them with one word: later.",
+    categories: ["Film & Photo", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-110",
+    text: "Film ten seconds of your hands on them, no faces. Watch it once, then delete or lock it together.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-111",
+    text: "Light them the way you actually like. Three stills. They pick the one that stays.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-112",
+    text: "Record them saying what they want tonight. Play it back when you start.",
+    categories: ["Film & Photo", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-113",
+    text: "Put a toy in their hand and leave the room for two minutes. Come back and use whatever they chose.",
+    categories: ["Toys & Accessories"],
+  },
+  {
+    id: "sd-114",
+    text: "Ice in one hand, warm toy in the other. Alternate every thirty seconds until they pick a favorite.",
+    categories: ["Toys & Accessories", "Sensory & Touch"],
+  },
+  {
+    id: "sd-115",
+    text: "They wear one accessory you pick from the moment they get home. It stays on until they ask to take it off out loud.",
+    categories: ["Toys & Accessories", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-116",
+    text: "Lay out a toy they have never used on you. They get five minutes with it. You do not help.",
+    categories: ["Toys & Accessories"],
+  },
+  {
+    id: "sd-117",
+    text: "You are the new neighbor. Knock. Stay in it until someone laughs, then stay in it anyway.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-118",
+    text: "Give them a job title for the next twenty minutes. Every request has to sound like that job.",
+    categories: ["Roleplay & Teasing", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-119",
+    text: "Text a scene in three lines. Play the last line exactly as written.",
+    categories: ["Roleplay & Teasing", "Digital & Media"],
+  },
+  {
+    id: "sd-120",
+    text: "They are not allowed to start anything. They can only answer. One hour.",
+    categories: ["Roleplay & Teasing", "Submission & Control"],
+  },
+  {
+    id: "sd-121",
+    text: "Trace their spine with one fingernail, neck to tailbone, three times. Do not speed up.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-122",
+    text: "Mouth on their neck, hands still, until they pull you in or say stay.",
+    categories: ["Sensory & Touch", "Oral & Hands"],
+  },
+  {
+    id: "sd-123",
+    text: "Warm lotion, lights low. Ten minutes. If they rush you, start the ten over.",
+    categories: ["Sensory & Touch", "Aftercare & Soft"],
+  },
+  {
+    id: "sd-124",
+    text: "Hold eye contact and breathe on their skin without kissing until the song ends.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-125",
+    text: "Start in the hallway. You do not get the bedroom until someone asks twice.",
+    categories: ["Location & Adventure"],
+  },
+  {
+    id: "sd-126",
+    text: "Balcony, yard, or parked car — coats on, five minutes, then walk back in like nothing.",
+    categories: ["Location & Adventure", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-127",
+    text: "Kitchen counter, standing. Clothes stay mostly on until the timer hits zero.",
+    categories: ["Location & Adventure", "Quickies & Impulse"],
+  },
+  {
+    id: "sd-128",
+    text: "Shower first. One of you does not get to use their hands. The other does all the work.",
+    categories: ["Location & Adventure", "Sensory & Touch"],
+  },
+  {
+    id: "sd-129",
+    text: "Ninety seconds. Get a sound out of them. If you fail, they get ninety on you.",
+    categories: ["Quick & Playful"],
+  },
+  {
+    id: "sd-130",
+    text: "Coin flip. Winner names a three-minute dare. Do it before you sit down again.",
+    categories: ["Quick & Playful", "Games & Rules"],
+  },
+  {
+    id: "sd-131",
+    text: "Strip race to underwear. Loser sits still for two minutes while the winner looks.",
+    categories: ["Quick & Playful", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-132",
+    text: "They pick a number 1 to 20. That many slow kisses. Then ask if they want twenty more.",
+    categories: ["Quick & Playful", "Sensory & Touch"],
+  },
+  {
+    id: "sd-133",
+    text: "They ask before every touch for fifteen minutes. If they forget, you stop for a count of ten.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-134",
+    text: "Kneel, pass them a drink, stay there until they tap your shoulder.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-135",
+    text: "You point. They take off that piece. No arguing the order.",
+    categories: ["Submission & Control", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-136",
+    text: "Hands behind their back. You set the pace for one song. They do not get to help.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-137",
+    text: "Walk them to the door in something they would not wear to the shops. Coat on. Coat off once, then go.",
+    categories: ["Exhibition & Risk", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-138",
+    text: "Whisper one explicit thing in their ear in public. Then act like you said nothing.",
+    categories: ["Exhibition & Risk", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-139",
+    text: "Hand on their lower back, under the jacket, while you walk. Do not take it out until you get home.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-140",
+    text: "Window or mirror with the light on. Two minutes. Then you close it.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-141",
+    text: "Send three voice notes that get filthier. The last one names a time.",
+    categories: ["Digital & Media", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-142",
+    text: "Pick the clip you watch together. No skipping. Hands stay off until it ends.",
+    categories: ["Digital & Media"],
+  },
+  {
+    id: "sd-143",
+    text: "Phones face-down for one hour. If someone checks, they owe a five-minute dare of the other's choosing.",
+    categories: ["Digital & Media", "Games & Rules"],
+  },
+  {
+    id: "sd-144",
+    text: "Record audio only. Play the last thirty seconds in the car tomorrow.",
+    categories: ["Digital & Media"],
+  },
+  {
+    id: "sd-145",
+    text: "Remote or app-controlled toy. You hold it through dinner at home. They do not get the remote.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-146",
+    text: "Warm the toy. They guess hot or cold with their eyes shut. Wrong guess means you linger.",
+    categories: ["Tech & Toys", "Sensory & Touch"],
+  },
+  {
+    id: "sd-147",
+    text: "Two toys at once for three minutes. Then they pick which one stays.",
+    categories: ["Tech & Toys", "Toys & Accessories"],
+  },
+  {
+    id: "sd-148",
+    text: "Toy only for the first ten minutes. Hands are for holding, not helping.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-149",
+    text: "Bring them close twice. Full stop each time. Third time they have to ask.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-150",
+    text: "They count out loud every time they get close. Miss a number and you start that count over.",
+    categories: ["Edging & Teasing", "Games & Rules"],
+  },
+  {
+    id: "sd-151",
+    text: "Agonizingly slow for eight minutes. If they speed you up, the eight restarts.",
+    categories: ["Edging & Teasing", "Sensory & Touch"],
+  },
+  {
+    id: "sd-152",
+    text: "Freeze for forty seconds right when it gets good. Stay touching. Then move again.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-153",
+    text: "Catch them between rooms. Wall. Two minutes. Then let them finish what they were doing.",
+    categories: ["Quickies & Impulse"],
+  },
+  {
+    id: "sd-154",
+    text: "Alarm for six minutes. Start, finish, straighten the room before it rings.",
+    categories: ["Quickies & Impulse", "Quick & Playful"],
+  },
+  {
+    id: "sd-155",
+    text: "Wake them with your mouth. No talking until they say good morning.",
+    categories: ["Quickies & Impulse", "Oral & Hands"],
+  },
+  {
+    id: "sd-156",
+    text: "Join the shower mid-wash. Standing only. Out before the water runs cold.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-157",
+    text: "Whisper the filthiest thing you thought about them this week, in detail, then do the first sentence.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-158",
+    text: "They have to keep talking. If they go quiet, you stop until they start again.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-159",
+    text: "Narrate what you are about to do before every move. Do not skip the sentence.",
+    categories: ["Dirty Talk & Words", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-160",
+    text: "Write three lines on a note they find in a pocket. The last line is tonight's rule.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-161",
+    text: "They pick your outfit, including what is missing. You wear it until they say change.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-162",
+    text: "Put on something of theirs and nothing else. Let them look for one full minute.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-163",
+    text: "No underwear under whatever you already planned to wear out. They get to check before you leave.",
+    categories: ["Dress Up & Lingerie", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-164",
+    text: "You undress them with your mouth as far as you can. Hands only for buttons that will not give.",
+    categories: ["Dress Up & Lingerie", "Oral & Hands"],
+  },
+  {
+    id: "sd-165",
+    text: "One item comes off every time they blink first in a staring contest.",
+    categories: ["Dress Up & Lingerie", "Games & Rules"],
+  },
+  {
+    id: "sd-166",
+    text: "They dress you. You do not get an opinion. Take it off only when they say.",
+    categories: ["Dress Up & Lingerie", "Submission & Control"],
+  },
+  {
+    id: "sd-167",
+    text: "Wear the thing they like and do something ordinary in it first — dishes, email, a show.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-168",
+    text: "Leave one piece on the whole time. They choose which piece before you start.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-169",
+    text: "Mouth only, no hands, ten minutes. Timer where they can see it.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-170",
+    text: "Kiss from collarbone to navel, once, as slow as you can manage. Then ask if they want it again.",
+    categories: ["Oral & Hands", "Sensory & Touch"],
+  },
+  {
+    id: "sd-171",
+    text: "They sit on the edge of the bed. You kneel. They keep one hand in your hair.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-172",
+    text: "Hands only, matching pace, one on them and one on you, until someone asks to switch.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-173",
+    text: "Alternate mouth and hand every thirty seconds. They say stop switching when they have had enough.",
+    categories: ["Oral & Hands", "Edging & Teasing"],
+  },
+  {
+    id: "sd-174",
+    text: "Lick a single stripe up their neck and blow on the wet path. Do the other side.",
+    categories: ["Oral & Hands", "Quick & Playful"],
+  },
+  {
+    id: "sd-175",
+    text: "Finish them with your hand while you keep kissing. No break in the kiss.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-176",
+    text: "They use your mouth for two minutes. Your hands stay on your thighs.",
+    categories: ["Oral & Hands", "Submission & Control"],
+  },
+  {
+    id: "sd-177",
+    text: "Water, a cloth, and two specific compliments before anyone reaches for their phone.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-178",
+    text: "Hold them skin-to-skin for one song after. No talking unless they start.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-179",
+    text: "Ask what they want more of next time. Write it down where you will actually see it.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-180",
+    text: "Slow shower together. You wash them. They do not have to lift a hand.",
+    categories: ["Aftercare & Soft", "Location & Adventure"],
+  },
+  {
+    id: "sd-181",
+    text: "Snack and water in bed. They pick. You fetch. Then you stay until they fall asleep or say go.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-182",
+    text: "Oil or lotion on the places you were rough. Two minutes each spot. No restarting anything else.",
+    categories: ["Aftercare & Soft", "Sensory & Touch"],
+  },
+  {
+    id: "sd-183",
+    text: "Tell them two things they did that worked. Be specific. No jokes for the first one.",
+    categories: ["Aftercare & Soft", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-184",
+    text: "Lights stay low. You bring a warm cloth and ask if they want quiet or talk.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-185",
+    text: "Honey, cream, or chocolate — one stripe you have to clean off with your mouth.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-186",
+    text: "Ice cube from collarbone to navel, then follow the melt with your mouth.",
+    categories: ["Food & Taste", "Sensory & Touch"],
+  },
+  {
+    id: "sd-187",
+    text: "Feed them something they like while they sit in your lap. No hands from them.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-188",
+    text: "Kiss after something cold, then something warm. They say which one stays.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-189",
+    text: "Whipped cream or honey on a place they name. You have two minutes. No rushing to the obvious spot first.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-190",
+    text: "Share a drink. You take a sip, then kiss it to them. Three times.",
+    categories: ["Food & Taste", "Quick & Playful"],
+  },
+  {
+    id: "sd-191",
+    text: "Blindfold. They taste two things and guess. Wrong guess means you choose the next dare.",
+    categories: ["Food & Taste", "Games & Rules"],
+  },
+  {
+    id: "sd-192",
+    text: "Breakfast in bed rule: whoever finished last night cooks or fetches. No debate.",
+    categories: ["Food & Taste", "Aftercare & Soft"],
+  },
+  {
+    id: "sd-193",
+    text: "Roll a die. 1–2 slow kiss, 3–4 mouth only, 5 hands, 6 they pick. Best of three.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-194",
+    text: "Twenty-one. Each point is a kiss lower than the last. Bust and you start at the mouth again.",
+    categories: ["Games & Rules", "Oral & Hands"],
+  },
+  {
+    id: "sd-195",
+    text: "They set three house rules on a note. You follow them until midnight. One veto allowed.",
+    categories: ["Games & Rules", "Submission & Control"],
+  },
+  {
+    id: "sd-196",
+    text: "Truth or dare, three rounds. Dares only from this app's list. No skipping the third.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-197",
+    text: "Keep score tonight. First to three sounds wins a five-minute dare of their choosing tomorrow.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-198",
+    text: "Card draw: red they lead, black you lead, face card means no talking. One draw, one song.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-199",
+    text: "They write a rule on your skin where clothes will hide it. It stays until you shower.",
+    categories: ["Games & Rules", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-200",
+    text: "Two-minute turns. When the timer buzzes, you freeze and swap who is in charge.",
+    categories: ["Games & Rules", "Edging & Teasing"],
   },
 ];
 
