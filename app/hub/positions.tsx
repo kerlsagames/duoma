@@ -157,68 +157,6 @@ export default function PositionsScreen() {
           Toggle categories, spin one up, skip or send it to {partnerName}.
         </Text>
 
-        <Text
-          style={{
-            marginTop: 22,
-            fontSize: 12,
-            fontWeight: "700",
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: T.muted,
-          }}
-        >
-          Categories in the pool · {poolSize}
-        </Text>
-        <View
-          style={{
-            marginTop: 12,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          {POSITION_CATEGORIES.map((cat) => {
-            const on = enabled.includes(cat.id);
-            return (
-              <Pressable
-                key={cat.id}
-                onPress={() => toggleCategory(cat.id)}
-                style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  borderColor: on ? T.accent : "rgba(255,255,255,0.12)",
-                  backgroundColor: on ? T.accentSoft : T.surface,
-                  minWidth: "47%",
-                  flexGrow: 1,
-                }}
-              >
-                <Text
-                  style={{
-                    color: on ? T.accent : T.ink,
-                    fontWeight: "700",
-                    fontSize: 14,
-                  }}
-                >
-                  {cat.label}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 2,
-                    color: T.muted,
-                    fontSize: 12,
-                    lineHeight: 16,
-                  }}
-                  numberOfLines={1}
-                >
-                  {cat.detail}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
         <View style={{ marginTop: 20 }}>
           <PrimaryButton
             label="Pick me a Position"
@@ -342,6 +280,68 @@ export default function PositionsScreen() {
             </Text>
           </View>
         )}
+
+        <Text
+          style={{
+            marginTop: 28,
+            fontSize: 12,
+            fontWeight: "700",
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: T.muted,
+          }}
+        >
+          Categories in the pool · {poolSize}
+        </Text>
+        <View
+          style={{
+            marginTop: 12,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          {POSITION_CATEGORIES.map((cat) => {
+            const on = enabled.includes(cat.id);
+            return (
+              <Pressable
+                key={cat.id}
+                onPress={() => toggleCategory(cat.id)}
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: on ? T.accent : "rgba(255,255,255,0.12)",
+                  backgroundColor: on ? T.accentSoft : T.surface,
+                  minWidth: "47%",
+                  flexGrow: 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: on ? T.accent : T.ink,
+                    fontWeight: "700",
+                    fontSize: 14,
+                  }}
+                >
+                  {cat.label}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 2,
+                    color: T.muted,
+                    fontSize: 12,
+                    lineHeight: 16,
+                  }}
+                  numberOfLines={1}
+                >
+                  {cat.detail}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         {incoming.length ? (
           <InviteSection
