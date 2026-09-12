@@ -289,13 +289,6 @@ export const HUBS: HubDef[] = [
         href: "/hub/meal-picker",
       },
       {
-        id: "where-wheel",
-        label: "Where Are We Going?",
-        detail: "Randomizer for local date spots",
-        icon: "navigate",
-        href: "/hub/where-wheel",
-      },
-      {
         id: "fair-share",
         label: "Fair-Share Task Wheel",
         detail: "Gamified chore splitting",
