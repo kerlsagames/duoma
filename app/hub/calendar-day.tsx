@@ -1,10 +1,9 @@
 import {
   activitiesForDate,
-  buildCalendarActivities,
 } from "@/lib/calendar-activity";
 import { formatClockTime, formatLongDate, parseDateKey } from "@/lib/dates";
 import { HUB_TONES } from "@/lib/app-themes";
-import { useApp } from "@/lib/store";
+import { useCalendarActivities } from "@/lib/useCalendarActivities";
 import { Screen } from "@/components/ui/Screen";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
@@ -21,64 +20,7 @@ export default function CalendarDayScreen() {
       ? params.date
       : null;
 
-  const {
-    nights,
-    checkIns,
-    milestones,
-    bucketItems,
-    ritualChecks,
-    talkDraws,
-    listEntries,
-    coupleLists,
-    spicyDares,
-    coupons,
-    jarNotes,
-    curiosityAnswers,
-    scratches,
-    calendarEvents,
-    partner,
-    user,
-  } = useApp();
-
-  const activities = useMemo(
-    () =>
-      buildCalendarActivities({
-        nights,
-        checkIns,
-        milestones,
-        bucketItems,
-        ritualChecks,
-        talkDraws,
-        listEntries,
-        coupleLists,
-        spicyDares,
-        coupons,
-        jarNotes,
-        curiosityAnswers,
-        scratches,
-        calendarEvents,
-        partner,
-        user,
-      }),
-    [
-      nights,
-      checkIns,
-      milestones,
-      bucketItems,
-      ritualChecks,
-      talkDraws,
-      listEntries,
-      coupleLists,
-      spicyDares,
-      coupons,
-      jarNotes,
-      curiosityAnswers,
-      scratches,
-      calendarEvents,
-      partner,
-      user,
-    ]
-  );
+  const activities = useCalendarActivities();
 
   const dayItems = useMemo(
     () => (date ? activitiesForDate(activities, date) : []),
@@ -206,7 +148,11 @@ export default function CalendarDayScreen() {
                       color: T.accent,
                     }}
                   >
-                    {formatClockTime(item.at) || "—"}
+                    {item.kind === "birthday" ||
+                    item.kind === "trip" ||
+                    item.kind === "job"
+                      ? "All day"
+                      : formatClockTime(item.at) || "—"}
                   </Text>
                 </View>
                 <View style={{ flex: 1 }}>

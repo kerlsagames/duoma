@@ -242,6 +242,23 @@ export const ERRANDS_TONE = {
   hole: "#D7CBB0",
 } as const;
 
+/** Party-card paper for the shared birthday book. */
+export const BIRTHDAYS_TONE = {
+  background: "#1A1624",
+  paper: "#FFF6E8",
+  surface: "#241E30",
+  surfaceRaised: "#2C2538",
+  accent: "#E8A03A",
+  accentSoft: "rgba(232,160,58,0.16)",
+  family: "#E07A8A",
+  friends: "#5BA3C7",
+  ink: "#F7F0E4",
+  paperInk: "#2A2116",
+  muted: "rgba(247,240,228,0.62)",
+  paperMuted: "rgba(42,33,22,0.56)",
+  border: "rgba(232,160,58,0.28)",
+} as const;
+
 /** Soft rose paper for the shared period tracker. */
 export const PERIOD_TONE = {
   background: "#F6EEF2",

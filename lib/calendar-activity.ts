@@ -1,6 +1,8 @@
+import { birthdayDateKey, formatBirthdayDate, type Birthday } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import { RITUALS } from "@/lib/hub";
+import type { MaintTask, Trip } from "@/lib/mini-content";
 import { categoryById, questionById } from "@/lib/talk";
 import type {
   BucketItem,
@@ -35,7 +37,10 @@ export type CalendarMark =
   | "jar"
   | "curiosity"
   | "custom"
-  | "scratch";
+  | "scratch"
+  | "birthday"
+  | "trip"
+  | "job";
 
 export type CalendarActivityKind =
   | "spicy_night"
@@ -50,7 +55,12 @@ export type CalendarActivityKind =
   | "jar"
   | "curiosity"
   | "custom"
-  | "scratch";
+  | "scratch"
+  | "birthday"
+  | "trip"
+  | "job";
+
+export type CalendarLane = "together" | "life";
 
 export type CalendarActivity = {
   id: string;
@@ -78,9 +88,56 @@ export type CalendarActivityInput = {
   curiosityAnswers: CuriosityAnswer[];
   scratches: ScratchReveal[];
   calendarEvents: CalendarCustomEvent[];
+  birthdays?: Birthday[];
+  trips?: Trip[];
+  maintenance?: MaintTask[];
   partner: Profile | null;
   user: Profile | null;
 };
+
+const TOGETHER_KINDS = new Set<CalendarActivityKind>([
+  "spicy_night",
+  "check_in",
+  "milestone",
+  "bucket",
+  "ritual",
+  "talk",
+  "list",
+  "dare",
+  "coupon",
+  "jar",
+  "curiosity",
+  "scratch",
+]);
+
+const LIFE_KINDS = new Set<CalendarActivityKind>([
+  "birthday",
+  "trip",
+  "job",
+  "custom",
+]);
+
+export function laneForKind(kind: CalendarActivityKind): CalendarLane {
+  return LIFE_KINDS.has(kind) ? "life" : "together";
+}
+
+export function activitiesForLane(
+  activities: CalendarActivity[],
+  lane: CalendarLane
+): CalendarActivity[] {
+  return activities.filter((row) => laneForKind(row.kind) === lane);
+}
+
+const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function dueOn(lastDone: string | null, everyDays: number): string {
+  const start =
+    lastDone ?? localDateKey(new Date(Date.now() - everyDays * 86400000));
+  const [y, m, d] = start.split("-").map(Number);
+  const date = new Date(y, (m || 1) - 1, d || 1);
+  date.setDate(date.getDate() + everyDays);
+  return localDateKey(date);
+}
 
 const NIGHT_STATUSES = new Set([
   "playing",
@@ -364,6 +421,72 @@ export function buildCalendarActivities(
       subtitle: row.notes.trim() ? row.notes.slice(0, 80) : "Your note",
       mark: "custom",
       href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
+    });
+  }
+
+  const yearNow = new Date().getFullYear();
+  for (const row of input.birthdays ?? []) {
+    for (const year of [yearNow - 1, yearNow, yearNow + 1, yearNow + 2]) {
+      const dateKey = birthdayDateKey(year, row.month, row.day);
+      items.push({
+        id: `birthday:${row.id}:${year}`,
+        kind: "birthday",
+        dateKey,
+        at: `${dateKey}T12:00:00.000Z`,
+        title: `${row.name}'s birthday`,
+        subtitle:
+          row.circle === "family"
+            ? `Family · ${formatBirthdayDate(row.month, row.day)}`
+            : `Friends · ${formatBirthdayDate(row.month, row.day)}`,
+        mark: "birthday",
+        href: `/hub/calendar-item?kind=birthday&id=${encodeURIComponent(row.id)}`,
+      });
+    }
+  }
+
+  for (const row of input.trips ?? []) {
+    const start = DATE_KEY_RE.test(row.start) ? row.start : null;
+    const end = DATE_KEY_RE.test(row.end) ? row.end : null;
+    if (start) {
+      items.push({
+        id: `trip-start:${row.id}`,
+        kind: "trip",
+        dateKey: start,
+        at: `${start}T12:00:00.000Z`,
+        title: row.title,
+        subtitle: end && end !== start ? `${row.where} · until ${end}` : row.where,
+        mark: "trip",
+        href: `/hub/calendar-item?kind=trip&id=${encodeURIComponent(row.id)}`,
+      });
+    }
+    if (end && end !== start) {
+      items.push({
+        id: `trip-end:${row.id}`,
+        kind: "trip",
+        dateKey: end,
+        at: `${end}T12:00:00.000Z`,
+        title: `${row.title} ends`,
+        subtitle: row.where,
+        mark: "trip",
+        href: `/hub/calendar-item?kind=trip&id=${encodeURIComponent(row.id)}`,
+      });
+    }
+  }
+
+  for (const row of input.maintenance ?? []) {
+    const dateKey = dueOn(row.lastDone, row.everyDays);
+    items.push({
+      id: `job:${row.id}`,
+      kind: "job",
+      dateKey,
+      at: `${dateKey}T12:00:00.000Z`,
+      title: row.label,
+      subtitle:
+        dateKey <= localDateKey()
+          ? "Job due · overdue or today"
+          : `Job due · every ${row.everyDays} days`,
+      mark: "job",
+      href: `/hub/calendar-item?kind=job&id=${encodeURIComponent(row.id)}`,
     });
   }
 

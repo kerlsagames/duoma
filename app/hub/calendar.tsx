@@ -2,9 +2,11 @@ import { MonthGrid } from "@/components/hub/MonthGrid";
 import { HubScreen } from "@/components/hub/HubScreen";
 import {
   activitiesForDate,
-  buildCalendarActivities,
+  activitiesForLane,
+  laneForKind,
   marksByDate,
   type CalendarActivityKind,
+  type CalendarLane,
 } from "@/lib/calendar-activity";
 import {
   CALENDAR_KIND_OPTIONS,
@@ -21,7 +23,7 @@ import {
   monthGrid,
   addMonths,
 } from "@/lib/dates";
-import { useApp } from "@/lib/store";
+import { useCalendarActivities } from "@/lib/useCalendarActivities";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -58,24 +60,8 @@ export default function CalendarScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [prefs, setPrefs] = useState<CalendarPrefs>(defaultCalendarPrefs);
   const [expanded, setExpanded] = useState(false);
-  const {
-    nights,
-    checkIns,
-    milestones,
-    bucketItems,
-    ritualChecks,
-    talkDraws,
-    listEntries,
-    coupleLists,
-    spicyDares,
-    coupons,
-    jarNotes,
-    curiosityAnswers,
-    scratches,
-    calendarEvents,
-    partner,
-    user,
-  } = useApp();
+  const [lane, setLane] = useState<CalendarLane>("together");
+  const allActivities = useCalendarActivities();
 
   useEffect(() => {
     void readCalendarPrefs().then(setPrefs);
@@ -83,7 +69,7 @@ export default function CalendarScreen() {
 
   useEffect(() => {
     setExpanded(false);
-  }, [selected, prefs.listMode]);
+  }, [selected, prefs.listMode, lane]);
 
   const savePrefs = (next: CalendarPrefs) => {
     setPrefs(next);
@@ -92,44 +78,9 @@ export default function CalendarScreen() {
 
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
-    const all = buildCalendarActivities({
-      nights,
-      checkIns,
-      milestones,
-      bucketItems,
-      ritualChecks,
-      talkDraws,
-      listEntries,
-      coupleLists,
-      spicyDares,
-      coupons,
-      jarNotes,
-      curiosityAnswers,
-      scratches,
-      calendarEvents,
-      partner,
-      user,
-    });
-    return all.filter((row) => prefs.enabledKinds[row.kind] !== false);
-  }, [
-    nights,
-    checkIns,
-    milestones,
-    bucketItems,
-    ritualChecks,
-    talkDraws,
-    listEntries,
-    coupleLists,
-    spicyDares,
-    coupons,
-    jarNotes,
-    curiosityAnswers,
-    scratches,
-    calendarEvents,
-    partner,
-    user,
-    prefs.enabledKinds,
-  ]);
+    const laneRows = activitiesForLane(allActivities, lane);
+    return laneRows.filter((row) => prefs.enabledKinds[row.kind] !== false);
+  }, [allActivities, lane, prefs.enabledKinds]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
   const dayItems = useMemo(
     () => activitiesForDate(activities, selected),
@@ -183,6 +134,71 @@ export default function CalendarScreen() {
         </Pressable>
       }
     >
+      <View
+        style={{
+          marginBottom: 16,
+          flexDirection: "row",
+          padding: 4,
+          backgroundColor: "rgba(22,24,29,0.05)",
+          borderWidth: 1,
+          borderColor: "rgba(22,24,29,0.1)",
+        }}
+      >
+        {(
+          [
+            {
+              id: "together" as const,
+              label: "Desire & Connect",
+              hint: "Nights, talks, dares",
+            },
+            {
+              id: "life" as const,
+              label: "General",
+              hint: "Birthdays, trips, jobs",
+            },
+          ] as const
+        ).map((tab) => {
+          const on = lane === tab.id;
+          return (
+            <Pressable
+              key={tab.id}
+              onPress={() => {
+                setLane(tab.id);
+                setExpanded(false);
+              }}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                paddingVertical: 10,
+                paddingHorizontal: 6,
+                backgroundColor: on ? "#C23B55" : "transparent",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: on ? "#FFFFFF" : "#16181D",
+                  textAlign: "center",
+                }}
+              >
+                {tab.label}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontSize: 10,
+                  color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
+                  textAlign: "center",
+                }}
+              >
+                {tab.hint}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <View
         style={{
           marginBottom: 14,
@@ -275,7 +291,9 @@ export default function CalendarScreen() {
       <View style={{ marginTop: 12, gap: 8 }}>
         {dayItems.length === 0 ? (
           <Text style={{ fontSize: 15, color: "rgba(22,24,29,0.5)" }}>
-            Nothing on this day yet. Tap + to add your own.
+            {lane === "together"
+              ? "Nothing recorded this day."
+              : "No birthdays, trips, or jobs this day. Tap + for your own note."}
           </Text>
         ) : (
           visibleItems.map((item) => (
@@ -293,7 +311,11 @@ export default function CalendarScreen() {
               <Text
                 style={{ fontSize: 12, fontWeight: "600", color: "#C23B55" }}
               >
-                {formatClockTime(item.at) || "—"}
+                {item.kind === "birthday" ||
+                item.kind === "trip" ||
+                item.kind === "job"
+                  ? "All day"
+                  : formatClockTime(item.at) || "—"}
               </Text>
               <Text
                 style={{
@@ -511,7 +533,9 @@ export default function CalendarScreen() {
                 Show on calendar
               </Text>
               <View style={{ gap: 8, marginBottom: 22 }}>
-                {CALENDAR_KIND_OPTIONS.map((row) => {
+                {CALENDAR_KIND_OPTIONS.filter(
+                  (row) => laneForKind(row.kind) === lane
+                ).map((row) => {
                   const on = prefs.enabledKinds[row.kind] !== false;
                   return (
                     <Pressable

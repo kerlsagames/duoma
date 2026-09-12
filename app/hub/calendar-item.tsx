@@ -1,7 +1,9 @@
+import { birthdayById, formatBirthdayDate } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { formatClockTime, formatLongDate } from "@/lib/dates";
 import { HUB_TONES } from "@/lib/app-themes";
 import { RITUALS } from "@/lib/hub";
+import { useMiniApps } from "@/lib/mini-apps";
 import { categoryById, questionById } from "@/lib/talk";
 import { useApp } from "@/lib/store";
 import { Screen } from "@/components/ui/Screen";
@@ -126,6 +128,7 @@ export default function CalendarItemScreen() {
     updateCalendarEvent,
     removeCalendarEvent,
   } = useApp();
+  const { data: mini } = useMiniApps();
 
   const nameFor = (userId: string) => {
     if (user && userId === user.id) return user.displayName;
@@ -416,6 +419,84 @@ export default function CalendarItemScreen() {
           <Panel>
             <Text style={{ fontSize: 15, lineHeight: 22, color: T.ink }}>{row.body}</Text>
           </Panel>
+        </Block>
+      </Screen>
+    );
+  }
+
+  if (kind === "birthday") {
+    const row = birthdayById(mini.birthdays, id);
+    if (!row) {
+      return (
+        <Screen scroll background={T.background}>
+          <Block kicker="Birthday" title="Not found" />
+        </Screen>
+      );
+    }
+    return (
+      <Screen scroll background={T.background}>
+        <Block
+          kicker={row.circle === "family" ? "Family birthday" : "Friends birthday"}
+          title={row.name}
+        >
+          <Meta>{formatBirthdayDate(row.month, row.day)} · every year</Meta>
+          <View style={{ marginTop: 22 }}>
+            <PrimaryButton
+              label="Open Birthdays"
+              onPress={() => router.push("/hub/birthdays" as Href)}
+            />
+          </View>
+        </Block>
+      </Screen>
+    );
+  }
+
+  if (kind === "trip") {
+    const row = mini.trips.find((item) => item.id === id);
+    if (!row) {
+      return (
+        <Screen scroll background={T.background}>
+          <Block kicker="Trip" title="Not found" />
+        </Screen>
+      );
+    }
+    return (
+      <Screen scroll background={T.background}>
+        <Block kicker="Trip" title={row.title}>
+          <Meta>{row.where}</Meta>
+          {row.start ? <Meta>{`Departs ${row.start}`}</Meta> : null}
+          {row.end ? <Meta>{`Returns ${row.end}`}</Meta> : null}
+          <View style={{ marginTop: 22 }}>
+            <PrimaryButton
+              label="Open Travel"
+              onPress={() => router.push("/hub/travel" as Href)}
+            />
+          </View>
+        </Block>
+      </Screen>
+    );
+  }
+
+  if (kind === "job") {
+    const row = mini.maintenance.find((item) => item.id === id);
+    if (!row) {
+      return (
+        <Screen scroll background={T.background}>
+          <Block kicker="Job" title="Not found" />
+        </Screen>
+      );
+    }
+    return (
+      <Screen scroll background={T.background}>
+        <Block kicker="Job to do" title={row.label}>
+          <Meta>{`Every ${row.everyDays} days`}</Meta>
+          {row.lastDone ? <Meta>{`Last done ${row.lastDone}`}</Meta> : <Meta>Not done yet</Meta>}
+          <View style={{ marginTop: 22 }}>
+            <PrimaryButton
+              label="Open Household Maintenance"
+              onPress={() => router.push("/hub/maintenance" as Href)}
+            />
+          </View>
         </Block>
       </Screen>
     );

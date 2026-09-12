@@ -1,3 +1,8 @@
+import {
+  emptyBirthdays,
+  hydrateBirthdays,
+  type Birthday,
+} from "@/lib/birthdays";
 import { createId, nowIso } from "@/lib/ids";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 
@@ -293,6 +298,7 @@ export type MiniState = {
   whoTasks: { id: string; label: string }[];
   cheers: Cheer[];
   period: PeriodState;
+  birthdays: Birthday[];
 };
 
 export const PING_KINDS: {
@@ -661,6 +667,7 @@ export function emptyMiniState(): MiniState {
     whoTasks: DEFAULT_WHO_TASKS.map((row) => ({ ...row })),
     cheers: [],
     period: emptyPeriodState(),
+    birthdays: emptyBirthdays(),
   };
 }
 
@@ -745,6 +752,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     whoTasks: asArray(row.whoTasks, base.whoTasks),
     cheers: asArray(row.cheers, base.cheers),
     period: hydratePeriodState(row.period),
+    birthdays: hydrateBirthdays(row.birthdays),
   };
 }
 

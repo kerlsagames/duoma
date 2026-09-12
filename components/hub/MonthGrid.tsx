@@ -25,6 +25,9 @@ const MARK_COLOR: Record<CalendarMark, string> = {
   curiosity: "#3D7EA6",
   custom: "#16181D",
   scratch: "#2F8F6B",
+  birthday: "#E07A8A",
+  trip: "#1E4D8C",
+  job: "#C4A574",
 };
 
 export function MonthGrid({

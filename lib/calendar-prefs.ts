@@ -28,6 +28,9 @@ export const CALENDAR_KIND_OPTIONS: {
   { kind: "milestone", label: "Milestones" },
   { kind: "scratch", label: "Scratch cards" },
   { kind: "custom", label: "Your entries" },
+  { kind: "birthday", label: "Birthdays" },
+  { kind: "trip", label: "Trips" },
+  { kind: "job", label: "Jobs to do" },
 ];
 
 export function defaultCalendarPrefs(): CalendarPrefs {
