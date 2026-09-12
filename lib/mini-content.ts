@@ -1,4 +1,5 @@
 import { createId, nowIso } from "@/lib/ids";
+import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 
 export type PingKind =
   | "heart"
@@ -291,6 +292,7 @@ export type MiniState = {
   whoLast: WhoLast[];
   whoTasks: { id: string; label: string }[];
   cheers: Cheer[];
+  period: PeriodState;
 };
 
 export const PING_KINDS: {
@@ -658,6 +660,7 @@ export function emptyMiniState(): MiniState {
     whoLast: [],
     whoTasks: DEFAULT_WHO_TASKS.map((row) => ({ ...row })),
     cheers: [],
+    period: emptyPeriodState(),
   };
 }
 
@@ -741,6 +744,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     whoLast: asArray(row.whoLast, base.whoLast),
     whoTasks: asArray(row.whoTasks, base.whoTasks),
     cheers: asArray(row.cheers, base.cheers),
+    period: hydratePeriodState(row.period),
   };
 }
 

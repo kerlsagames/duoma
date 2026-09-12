@@ -1,6 +1,11 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { LOVEBETZ_TONE as T, SERIF } from "@/lib/app-themes";
+import {
+  LOVEBETZ_DISPLAY as DISPLAY,
+  LOVEBETZ_SANS as SANS,
+  LOVEBETZ_SCRIPT as SCRIPT,
+  LOVEBETZ_TONE as T,
+} from "@/lib/app-themes";
 import {
   BET_PROMPT_CATEGORIES,
   BET_PROMPTS,
@@ -20,12 +25,9 @@ import { useMiniApps } from "@/lib/mini-apps";
 import type { Prediction } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
-
-const ODDS = "1.90";
 
 type ViewMode =
   | "home"
@@ -78,8 +80,8 @@ export default function PredictionScreen() {
   );
   const ticker =
     [...incoming, ...outgoing, ...live, ...closed]
-      .map((row) => row.title)
-      .join("   ·   ") || "MARKETS OPEN   ·   SEND A SLIP   ·   EVEN MONEY";
+      .map((row) => `${row.title} — winner gets ${row.stake}`)
+      .join("   ·   ") || "SEND A SLIP   ·   THEY TAKE THE OTHER SIDE   ·   WINNER GETS THE STAKE";
 
   const promptRows = useMemo(
     () => (promptCat ? betPromptsIn(promptCat) : []),
@@ -162,7 +164,7 @@ export default function PredictionScreen() {
       return;
     }
     if (!nextStake.trim()) {
-      setError("Name what the loser owes.");
+      setError("Name what the winner collects.");
       return;
     }
     setError(null);
@@ -191,7 +193,7 @@ export default function PredictionScreen() {
     setTitle("");
     setStake("");
     setPickedPrompt(null);
-    setFlash(`Slip sent to ${them}. Waiting for them to accept.`);
+    setFlash(`Slip sent to ${them}. Waiting for them to take the other side.`);
     goHome();
   };
 
@@ -206,7 +208,7 @@ export default function PredictionScreen() {
         return acceptSlip(row);
       }),
     }));
-    setFlash(accept ? "You're on. Book is live." : "Slip declined. Void.");
+    setFlash(accept ? "You're on. If you're right, you collect the stake." : "Passed. Slip is void.");
   };
 
   const voidSlip = async (id: string) => {
@@ -245,34 +247,33 @@ export default function PredictionScreen() {
 
   return (
     <Screen scroll background={T.background}>
-      <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.gold}>
+      <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.pink}>
         <View
           style={{
-            backgroundColor: "#07040C",
-            paddingVertical: 8,
+            backgroundColor: T.pink,
+            paddingVertical: 9,
             overflow: "hidden",
-            borderBottomWidth: 1,
-            borderBottomColor: "rgba(245,197,24,0.28)",
           }}
         >
           <Animated.Text
             style={{
-              color: T.gold,
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 1.2,
-              width: 1100,
+              color: T.onPink,
+              fontFamily: SANS,
+              fontSize: 12,
+              fontWeight: "700",
+              letterSpacing: 0.4,
+              width: 1400,
               transform: [
                 {
                   translateX: tape.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [20, -520],
+                    outputRange: [20, -560],
                   }),
                 },
               ],
             }}
           >
-            {ticker.toUpperCase()}   ·   {ticker.toUpperCase()}
+            {ticker}   ·   {ticker}
           </Animated.Text>
         </View>
 
@@ -281,14 +282,14 @@ export default function PredictionScreen() {
             onPress={goBack}
             style={{ marginTop: 14, flexDirection: "row", alignItems: "center" }}
           >
-            <Ionicons name="chevron-back" size={18} color={T.gold} />
+            <Ionicons name="chevron-back" size={18} color={T.pink} />
             <Text
               style={{
                 marginLeft: 4,
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.6,
-                color: T.gold,
+                fontFamily: DISPLAY,
+                fontSize: 15,
+                letterSpacing: 1.2,
+                color: T.pink,
               }}
             >
               BACK
@@ -298,111 +299,92 @@ export default function PredictionScreen() {
 
         {view === "home" ? (
           <View>
-            <LinearGradient
-              colors={["#1A0A28", "#12081C", "#0A0612"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
                 marginTop: 12,
+                backgroundColor: T.surface,
                 borderWidth: 1,
                 borderColor: T.border,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 16,
+                overflow: "hidden",
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text
+              <View style={{ height: 6, backgroundColor: T.gold }} />
+              <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+                <View
                   style={{
-                    fontFamily: "SpaceMono",
-                    fontSize: 10,
-                    letterSpacing: 1.6,
-                    color: T.dim,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  18+  ·  PLAY FOR FAVORS
-                </Text>
-                <Text
+                  <Text style={kicker}>COUPLES BOOK</Text>
+                  <Text style={[kicker, { color: T.gold }]}>WINNER TAKES THE STAKE</Text>
+                </View>
+                <View
                   style={{
-                    fontFamily: "SpaceMono",
-                    fontSize: 10,
-                    letterSpacing: 1.6,
-                    color: T.gold,
+                    marginTop: 4,
+                    flexDirection: "row",
+                    alignItems: "flex-end",
+                    gap: 6,
                   }}
                 >
-                  EVEN MONEY
+                  <Text
+                    style={{
+                      fontFamily: SCRIPT,
+                      fontSize: 52,
+                      lineHeight: 60,
+                      color: T.pink,
+                    }}
+                  >
+                    Love
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: DISPLAY,
+                      fontSize: 36,
+                      lineHeight: 44,
+                      color: T.ink,
+                      letterSpacing: 1,
+                      paddingBottom: 6,
+                    }}
+                  >
+                    BETZ
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    marginTop: 2,
+                    color: T.ink,
+                    fontFamily: SANS,
+                    fontSize: 16,
+                    lineHeight: 22,
+                  }}
+                >
+                  Send {them} a slip. They take the other side, or pass. Whoever is
+                  right collects the stake.
                 </Text>
+                <View
+                  style={{
+                    marginTop: 14,
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  <Badge label={`${BET_PROMPTS.length} markets`} />
+                  <Badge label={`${BET_STAKES.length} stakes`} tone="gold" />
+                  <Badge
+                    label={
+                      incoming.length
+                        ? `${incoming.length} to accept`
+                        : live.length
+                          ? `${live.length} live`
+                          : "book open"
+                    }
+                  />
+                </View>
               </View>
-              <View style={{ marginTop: 10, flexDirection: "row", alignItems: "baseline" }}>
-                <Text
-                  style={{
-                    color: T.pink,
-                    fontSize: 40,
-                    lineHeight: 42,
-                    fontWeight: "900",
-                    fontStyle: "italic",
-                    letterSpacing: -1.2,
-                  }}
-                >
-                  LOVE
-                </Text>
-                <Text
-                  style={{
-                    color: T.gold,
-                    fontSize: 40,
-                    lineHeight: 42,
-                    fontWeight: "900",
-                    letterSpacing: -1,
-                  }}
-                >
-                  BETZ
-                </Text>
-              </View>
-              <Text
-                style={{
-                  marginTop: 6,
-                  color: T.cream,
-                  fontFamily: SERIF,
-                  fontSize: 16,
-                  lineHeight: 22,
-                }}
-              >
-                The couples book. You send a slip. {them} has to take it or pass.
-              </Text>
-              <View
-                style={{
-                  marginTop: 12,
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 8,
-                }}
-              >
-                <Badge
-                  label={`${BET_PROMPTS.length} MARKETS`}
-                  color={T.gold}
-                />
-                <Badge
-                  label={`${BET_STAKES.length} STAKES`}
-                  color={T.pink}
-                />
-                <Badge
-                  label={
-                    incoming.length
-                      ? `${incoming.length} TO ACCEPT`
-                      : live.length
-                        ? `${live.length} LIVE`
-                        : "BOOK OPEN"
-                  }
-                  color={incoming.length ? T.pink : T.cream}
-                />
-              </View>
-            </LinearGradient>
+            </View>
 
             {flash ? (
               <View
@@ -415,14 +397,14 @@ export default function PredictionScreen() {
                   paddingHorizontal: 12,
                 }}
               >
-                <Text style={{ color: T.gold, fontFamily: "SpaceMono", fontSize: 12 }}>
-                  {flash.toUpperCase()}
+                <Text style={{ color: T.ink, fontFamily: SANS, fontSize: 14 }}>
+                  {flash}
                 </Text>
               </View>
             ) : null}
 
             {incoming.length > 0 ? (
-              <Section label={`Incoming · ${them} wants a piece`}>
+              <Section label={`${them} wants a piece`}>
                 {incoming.map((row) => (
                   <IncomingSlip
                     key={row.id}
@@ -445,7 +427,7 @@ export default function PredictionScreen() {
               <Door
                 kicker="WRITE IN"
                 title="Write your own"
-                detail="Name the future. Name the forfeit."
+                detail="Name the future. Name what the winner collects."
                 onPress={() => {
                   setTitle("");
                   setStake("");
@@ -464,20 +446,9 @@ export default function PredictionScreen() {
                 }}
                 style={tile}
               >
-                <Text
-                  style={{
-                    fontFamily: "SpaceMono",
-                    fontSize: 10,
-                    letterSpacing: 1.6,
-                    color: T.pink,
-                  }}
-                >
-                  LUCKY DIP
-                </Text>
-                <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 20, color: T.cream }}>
-                  Surprise slip
-                </Text>
-                <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
+                <Text style={[kicker, { color: T.pink }]}>LUCKY DIP</Text>
+                <Text style={titleMd}>Surprise slip</Text>
+                <Text style={detail}>
                   Random market. Random stake. You still pick a side.
                 </Text>
               </Pressable>
@@ -500,9 +471,9 @@ export default function PredictionScreen() {
               )}
             </Section>
 
-            <Section label="Live book">
+            <Section label="Live">
               {live.length === 0 ? (
-                <Empty line="Nothing live until a slip is accepted." />
+                <Empty line="Nothing live until they take the other side." />
               ) : (
                 live.map((row) => (
                   <LiveCard
@@ -536,7 +507,7 @@ export default function PredictionScreen() {
         {view === "prompts" ? (
           <Catalog
             heading="Markets"
-            sub={`${BET_PROMPTS.length} lines. Then you pick the stake and your side.`}
+            sub={`${BET_PROMPTS.length} lines. Then you pick the stake the winner collects.`}
             tiles={BET_PROMPT_CATEGORIES.map((cat) => ({
               id: cat.id,
               label: cat.label,
@@ -565,30 +536,10 @@ export default function PredictionScreen() {
 
         {view === "stakes" && pickedPrompt ? (
           <View>
-            <Text
-              style={{
-                marginTop: 12,
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.6,
-                color: T.gold,
-              }}
-            >
-              STAKE
-            </Text>
-            <Text
-              style={{
-                marginTop: 6,
-                fontFamily: SERIF,
-                fontSize: 24,
-                lineHeight: 30,
-                color: T.cream,
-              }}
-            >
-              {pickedPrompt.text}
-            </Text>
-            <Text style={{ marginTop: 8, color: T.muted, fontSize: 14 }}>
-              What does the loser owe?
+            <Text style={{ marginTop: 12, ...kicker, color: T.pink }}>THE STAKE</Text>
+            <Text style={{ marginTop: 6, ...titleLg }}>{pickedPrompt.text}</Text>
+            <Text style={{ marginTop: 8, ...detail }}>
+              Whoever is right collects this. The loser owes it.
             </Text>
             <View style={{ marginTop: 14, gap: 10 }}>
               {BET_STAKE_CATEGORIES.map((cat) => (
@@ -600,10 +551,8 @@ export default function PredictionScreen() {
                   }}
                   style={tile}
                 >
-                  <Text style={{ fontFamily: SERIF, fontSize: 20, color: T.cream }}>
-                    {cat.label}
-                  </Text>
-                  <Text style={{ marginTop: 4, color: T.muted, fontSize: 13 }}>
+                  <Text style={titleMd}>{cat.label}</Text>
+                  <Text style={detail}>
                     {cat.detail} · {betStakesIn(cat.id).length}
                   </Text>
                 </Pressable>
@@ -614,9 +563,7 @@ export default function PredictionScreen() {
                 }
                 style={tile}
               >
-                <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.gold }}>
-                  Shuffle a stake
-                </Text>
+                <Text style={[titleMd, { color: T.pink }]}>Shuffle a stake</Text>
               </Pressable>
             </View>
           </View>
@@ -628,6 +575,7 @@ export default function PredictionScreen() {
               BET_STAKE_CATEGORIES.find((row) => row.id === stakeCat)?.label ??
               "Stakes"
             }
+            hint="Winner collects"
             rows={stakeRows.map((row) => ({
               id: row.id,
               label: row.text,
@@ -659,68 +607,45 @@ export default function PredictionScreen() {
               padding: 14,
             }}
           >
-            <Text
-              style={{
-                color: T.gold,
-                fontFamily: "SpaceMono",
-                fontSize: 10,
-                letterSpacing: 1.6,
-              }}
-            >
-              WRITE-IN SLIP
-            </Text>
+            <Text style={kicker}>WRITE-IN SLIP</Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="We'll use the nice plates"
-              placeholderTextColor="rgba(255,246,232,0.28)"
+              placeholderTextColor={T.dim}
               style={term}
             />
             <TextInput
               value={stake}
               onChangeText={setStake}
-              placeholder="What the loser owes"
-              placeholderTextColor="rgba(255,246,232,0.28)"
+              placeholder="What the winner collects"
+              placeholderTextColor={T.dim}
               style={term}
             />
             <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
-              <Chip
-                label="WILL IT"
-                active={kind === "will"}
-                onPress={() => setKind("will")}
-              />
-              <Chip
-                label="WHO WILL"
-                active={kind === "who"}
-                onPress={() => setKind("who")}
-              />
+              <Chip label="WILL IT" active={kind === "will"} onPress={() => setKind("will")} />
+              <Chip label="WHO WILL" active={kind === "who"} onPress={() => setKind("who")} />
             </View>
-            <Text
-              style={{
-                marginTop: 16,
-                fontFamily: "SpaceMono",
-                fontSize: 10,
-                letterSpacing: 1.6,
-                color: T.gold,
-              }}
-            >
-              YOUR SIDE
-            </Text>
-            <SidePicker kind={kind} side={side} them={them} onSide={setSide} />
+            <Text style={{ marginTop: 16, ...kicker, color: T.pink }}>YOUR SIDE</Text>
+            <SidePicker
+              kind={kind}
+              side={side}
+              them={them}
+              stake={stake || "the stake"}
+              onSide={setSide}
+            />
             <Pressable
               onPress={() => void sendSlip(title, stake || "Bragging rights", kind, side)}
-              style={goldBtn}
+              style={pinkBtn}
             >
-              <Text style={goldBtnText}>SEND TO {them.toUpperCase()}</Text>
+              <Text style={pinkBtnText}>SEND TO {them.toUpperCase()}</Text>
             </Pressable>
-            {error ? (
-              <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text>
-            ) : null}
+            {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
           </View>
         ) : null}
 
         {error && view !== "custom" && view !== "slip" ? (
-          <Text style={{ marginTop: 12, color: T.pink }}>{error}</Text>
+          <Text style={{ marginTop: 12, color: T.pink, fontFamily: SANS }}>{error}</Text>
         ) : null}
       </Stage>
     </Screen>
@@ -794,35 +719,14 @@ function IncomingSlip({
       style={{
         borderWidth: 1,
         borderColor: T.pink,
-        backgroundColor: T.surfaceRaised,
+        backgroundColor: T.surface,
         padding: 14,
       }}
     >
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.6,
-          color: T.pink,
-        }}
-      >
-        SLIP FROM {them.toUpperCase()}  ·  {ODDS}
-      </Text>
-      <Text
-        style={{
-          marginTop: 8,
-          fontFamily: SERIF,
-          fontSize: 22,
-          lineHeight: 28,
-          color: T.cream,
-        }}
-      >
-        {row.title}
-      </Text>
-      <Text style={{ marginTop: 8, color: T.muted, fontSize: 13 }}>
-        Stake · {row.stake}
-      </Text>
-      <Text style={{ marginTop: 4, color: T.cream, fontSize: 13 }}>
+      <Text style={[kicker, { color: T.pink }]}>SLIP FROM {them.toUpperCase()}</Text>
+      <Text style={{ marginTop: 8, ...titleLg }}>{row.title}</Text>
+      <PrizeStrip stake={row.stake} />
+      <Text style={{ marginTop: 8, ...detail }}>
         They took {theirSide}. Accept and you are on {yourSide}.
       </Text>
       <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
@@ -830,7 +734,7 @@ function IncomingSlip({
           onPress={onDecline}
           style={{
             flex: 1,
-            height: 44,
+            height: 46,
             borderWidth: 1,
             borderColor: T.pink,
             justifyContent: "center",
@@ -840,15 +744,16 @@ function IncomingSlip({
             style={{
               textAlign: "center",
               color: T.pink,
-              fontWeight: "800",
+              fontFamily: DISPLAY,
+              fontSize: 16,
               letterSpacing: 1,
             }}
           >
-            DECLINE
+            PASS
           </Text>
         </Pressable>
-        <Pressable onPress={onAccept} style={[goldBtn, { flex: 1, marginTop: 0 }]}>
-          <Text style={goldBtnText}>ACCEPT {ODDS}</Text>
+        <Pressable onPress={onAccept} style={[pinkBtn, { flex: 1, marginTop: 0 }]}>
+          <Text style={pinkBtnText}>TAKE {yourSide.toUpperCase()}</Text>
         </Pressable>
       </View>
     </View>
@@ -870,41 +775,17 @@ function PendingCard({
 }) {
   return (
     <View style={card}>
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.6,
-          color: T.gold,
-        }}
-      >
-        PENDING  ·  STAKE {row.stake.toUpperCase()}
-      </Text>
-      <Text
-        style={{
-          marginTop: 6,
-          fontFamily: SERIF,
-          fontSize: 20,
-          lineHeight: 26,
-          color: T.cream,
-        }}
-      >
-        {row.title}
-      </Text>
-      <Text style={{ marginTop: 8, color: T.muted, fontSize: 13 }}>
-        You took {myPick(row, row.fromUserId, me, them)}. Waiting on {them}.
+      <Text style={kicker}>WAITING ON {them.toUpperCase()}</Text>
+      <Text style={{ marginTop: 6, ...titleMd }}>{row.title}</Text>
+      <PrizeStrip stake={row.stake} />
+      <Text style={{ marginTop: 8, ...detail }}>
+        You took {myPick(row, row.fromUserId, me, them)}. They still have to take the
+        other side.
       </Text>
       {mine && onVoid ? (
         <Pressable onPress={onVoid} style={{ marginTop: 10 }}>
-          <Text
-            style={{
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 1.2,
-              color: T.pink,
-            }}
-          >
-            PULL THIS SLIP
+          <Text style={{ fontFamily: SANS, fontSize: 13, color: T.pink }}>
+            Pull this slip
           </Text>
         </Pressable>
       ) : null}
@@ -930,51 +811,21 @@ function LiveCard({
   const noName = personName(row.toUserId, userId, me, them);
   return (
     <View style={card}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 10,
-            letterSpacing: 1.6,
-            color: T.gold,
-          }}
-        >
-          LIVE  ·  {ODDS}
-        </Text>
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 10,
-            letterSpacing: 1.2,
-            color: T.pink,
-          }}
-        >
-          STAKE {row.stake.toUpperCase()}
-        </Text>
-      </View>
-      <Text
-        style={{
-          marginTop: 6,
-          fontFamily: SERIF,
-          fontSize: 22,
-          lineHeight: 28,
-          color: T.cream,
-        }}
-      >
-        {row.title}
-      </Text>
-      <Text style={{ marginTop: 8, color: T.muted, fontSize: 13 }}>
-        You are on {myPick(row, userId, me, them)}.
+      <Text style={kicker}>LIVE</Text>
+      <Text style={{ marginTop: 6, ...titleLg }}>{row.title}</Text>
+      <PrizeStrip stake={row.stake} />
+      <Text style={{ marginTop: 8, ...detail }}>
+        You are on {myPick(row, userId, me, them)}. If you are right, you collect.
       </Text>
       <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
         <Pressable onPress={() => onSettle("yes")} style={settleBtn(T.gold)}>
-          <Text style={{ color: T.gold, fontFamily: "SpaceMono", fontSize: 11 }}>
-            {who ? `SETTLE ${yesName.toUpperCase()}` : "SETTLE YES"}
+          <Text style={{ color: T.gold, fontFamily: DISPLAY, fontSize: 13, letterSpacing: 0.6 }}>
+            {who ? `IT WAS ${yesName.toUpperCase()}` : "IT WAS YES"}
           </Text>
         </Pressable>
         <Pressable onPress={() => onSettle("no")} style={settleBtn(T.pink)}>
-          <Text style={{ color: T.pink, fontFamily: "SpaceMono", fontSize: 11 }}>
-            {who ? `SETTLE ${noName.toUpperCase()}` : "SETTLE NO"}
+          <Text style={{ color: T.pink, fontFamily: DISPLAY, fontSize: 13, letterSpacing: 0.6 }}>
+            {who ? `IT WAS ${noName.toUpperCase()}` : "IT WAS NO"}
           </Text>
         </Pressable>
       </View>
@@ -996,30 +847,13 @@ function ResultCard({
   const voided = row.status === "declined";
   const name = winnerName(row, me, them, userId);
   return (
-    <View style={[card, { opacity: 0.88 }]}>
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.6,
-          color: voided ? T.dim : T.gold,
-        }}
-      >
-        {voided ? "VOID" : `PAID  ·  ${name.toUpperCase()}`}
+    <View style={[card, { opacity: 0.92 }]}>
+      <Text style={[kicker, { color: voided ? T.dim : T.gold }]}>
+        {voided ? "VOID" : `${name.toUpperCase()} COLLECTS`}
       </Text>
-      <Text
-        style={{
-          marginTop: 6,
-          fontFamily: SERIF,
-          fontSize: 18,
-          lineHeight: 24,
-          color: T.cream,
-        }}
-      >
-        {row.title}
-      </Text>
-      <Text style={{ marginTop: 6, color: T.muted, fontSize: 13 }}>
-        {voided ? `${them} passed.` : `Stake · ${row.stake}`}
+      <Text style={{ marginTop: 6, ...titleMd }}>{row.title}</Text>
+      <Text style={{ marginTop: 6, ...detail }}>
+        {voided ? `${them} passed.` : row.stake}
       </Text>
     </View>
   );
@@ -1049,66 +883,30 @@ function SlipBuilder({
       style={{
         marginTop: 16,
         borderWidth: 1,
-        borderColor: T.gold,
-        backgroundColor: T.surfaceRaised,
-        padding: 14,
+        borderColor: T.border,
+        backgroundColor: T.surface,
+        overflow: "hidden",
       }}
     >
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 10,
-            letterSpacing: 1.6,
-            color: T.gold,
-          }}
-        >
-          BETTING SLIP
+      <View style={{ height: 6, backgroundColor: T.gold }} />
+      <View style={{ padding: 14 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Text style={kicker}>BETTING SLIP</Text>
+          <Text style={[kicker, { color: T.pink }]}>LOVEBETZ</Text>
+        </View>
+        <Text style={{ marginTop: 10, ...titleLg }}>{title}</Text>
+        <PrizeStrip stake={stake} />
+        <Text style={{ marginTop: 16, ...kicker, color: T.pink }}>PICK YOUR SIDE</Text>
+        <SidePicker kind={kind} side={side} them={them} stake={stake} onSide={onSide} />
+        <Text style={{ marginTop: 10, ...detail, lineHeight: 20 }}>
+          {them} is offered the other side. Same stake either way. If they pass, nothing
+          is owed.
         </Text>
-        <Text
-          style={{
-            fontFamily: "SpaceMono",
-            fontSize: 10,
-            letterSpacing: 1.6,
-            color: T.pink,
-          }}
-        >
-          LOVEBETZ
-        </Text>
+        <Pressable onPress={onSend} style={pinkBtn}>
+          <Text style={pinkBtnText}>SEND SLIP TO {them.toUpperCase()}</Text>
+        </Pressable>
+        {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
       </View>
-      <Text
-        style={{
-          marginTop: 10,
-          fontFamily: SERIF,
-          fontSize: 24,
-          lineHeight: 30,
-          color: T.cream,
-        }}
-      >
-        {title}
-      </Text>
-      <Text style={{ marginTop: 8, color: T.muted, fontSize: 14 }}>
-        Stake · {stake}
-      </Text>
-      <Text
-        style={{
-          marginTop: 16,
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.6,
-          color: T.gold,
-        }}
-      >
-        PICK YOUR SIDE
-      </Text>
-      <SidePicker kind={kind} side={side} them={them} onSide={onSide} />
-      <Text style={{ marginTop: 10, color: T.muted, fontSize: 13, lineHeight: 18 }}>
-        {them} gets the other side if they accept. If they pass, the slip is void.
-      </Text>
-      <Pressable onPress={onSend} style={goldBtn}>
-        <Text style={goldBtnText}>SEND SLIP TO {them.toUpperCase()}</Text>
-      </Pressable>
-      {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
     </View>
   );
 }
@@ -1117,88 +915,121 @@ function SidePicker({
   kind,
   side,
   them,
+  stake,
   onSide,
 }: {
   kind: BetKind;
   side: "yes" | "no";
   them: string;
+  stake: string;
   onSide: (side: "yes" | "no") => void;
 }) {
-  const left = kind === "who" ? "ME" : "YES";
-  const right = kind === "who" ? them.toUpperCase() : "NO";
+  const left = kind === "who" ? "Me" : "Yes";
+  const right = kind === "who" ? them : "No";
   return (
     <View style={{ marginTop: 10, flexDirection: "row", gap: 8 }}>
-      <OddsButton
+      <SideTile
         label={left}
+        stake={stake}
         active={side === "yes"}
-        tone="gold"
         onPress={() => onSide("yes")}
       />
-      <OddsButton
+      <SideTile
         label={right}
+        stake={stake}
         active={side === "no"}
-        tone="pink"
         onPress={() => onSide("no")}
       />
     </View>
   );
 }
 
-function OddsButton({
+function SideTile({
   label,
+  stake,
   active,
-  tone,
   onPress,
 }: {
   label: string;
+  stake: string;
   active: boolean;
-  tone: "gold" | "pink";
   onPress: () => void;
 }) {
-  const color = tone === "gold" ? T.gold : T.pink;
   return (
     <Pressable
       onPress={onPress}
       style={{
         flex: 1,
-        minHeight: 72,
-        borderWidth: 1,
-        borderColor: color,
-        backgroundColor: active ? (tone === "gold" ? T.gold : T.pink) : "transparent",
+        minHeight: 88,
+        borderWidth: 1.5,
+        borderColor: active ? T.pink : T.border,
+        backgroundColor: active ? T.pink : T.paper,
         justifyContent: "center",
         paddingHorizontal: 10,
+        paddingVertical: 10,
       }}
     >
       <Text
         style={{
-          textAlign: "center",
-          fontFamily: "SpaceMono",
-          fontSize: 12,
-          letterSpacing: 1.2,
-          color: active ? T.ink : color,
+          fontFamily: DISPLAY,
+          fontSize: 20,
+          letterSpacing: 0.4,
+          color: active ? T.onPink : T.ink,
         }}
       >
         {label}
       </Text>
       <Text
         style={{
-          marginTop: 4,
-          textAlign: "center",
-          fontSize: 22,
-          fontWeight: "800",
-          color: active ? T.ink : T.cream,
+          marginTop: 6,
+          fontFamily: SANS,
+          fontSize: 11,
+          color: active ? "rgba(255,247,242,0.78)" : T.muted,
         }}
       >
-        {ODDS}
+        Winner gets
+      </Text>
+      <Text
+        numberOfLines={2}
+        style={{
+          marginTop: 2,
+          fontFamily: SANS,
+          fontSize: 13,
+          lineHeight: 17,
+          fontWeight: "700",
+          color: active ? T.onPink : T.ink,
+        }}
+      >
+        {stake}
       </Text>
     </Pressable>
   );
 }
 
+function PrizeStrip({ stake }: { stake: string }) {
+  return (
+    <View
+      style={{
+        marginTop: 10,
+        backgroundColor: T.goldSoft,
+        borderLeftWidth: 3,
+        borderLeftColor: T.gold,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+      }}
+    >
+      <Text style={{ fontFamily: SANS, fontSize: 11, color: T.gold }}>Winner gets</Text>
+      <Text style={{ marginTop: 2, fontFamily: SANS, fontSize: 15, color: T.ink, fontWeight: "700" }}>
+        {stake}
+      </Text>
+    </View>
+  );
+}
+
 function Door({
-  kicker,
+  kicker: kickerLabel,
   title,
-  detail,
+  detail: line,
   onPress,
 }: {
   kicker: string;
@@ -1208,20 +1039,9 @@ function Door({
 }) {
   return (
     <Pressable onPress={onPress} style={tile}>
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.6,
-          color: T.gold,
-        }}
-      >
-        {kicker}
-      </Text>
-      <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 22, color: T.cream }}>
-        {title}
-      </Text>
-      <Text style={{ marginTop: 4, color: T.muted, fontSize: 13 }}>{detail}</Text>
+      <Text style={kicker}>{kickerLabel}</Text>
+      <Text style={[titleMd, { marginTop: 4 }]}>{title}</Text>
+      <Text style={[detail, { marginTop: 4 }]}>{line}</Text>
     </Pressable>
   );
 }
@@ -1237,21 +1057,13 @@ function Catalog({
 }) {
   return (
     <View>
-      <Text style={{ marginTop: 12, fontFamily: SERIF, fontSize: 28, color: T.gold }}>
-        {heading}
-      </Text>
-      <Text style={{ marginTop: 6, color: T.muted, fontSize: 14, lineHeight: 20 }}>
-        {sub}
-      </Text>
+      <Text style={{ marginTop: 12, ...headingXl }}>{heading}</Text>
+      <Text style={{ marginTop: 6, ...detail, lineHeight: 20 }}>{sub}</Text>
       <View style={{ marginTop: 14, gap: 10 }}>
         {tiles.map((tileItem) => (
           <Pressable key={tileItem.id} onPress={tileItem.onPress} style={tile}>
-            <Text style={{ fontFamily: SERIF, fontSize: 20, color: T.cream }}>
-              {tileItem.label}
-            </Text>
-            <Text style={{ marginTop: 4, color: T.muted, fontSize: 13 }}>
-              {tileItem.detail}
-            </Text>
+            <Text style={titleMd}>{tileItem.label}</Text>
+            <Text style={detail}>{tileItem.detail}</Text>
           </Pressable>
         ))}
       </View>
@@ -1261,16 +1073,16 @@ function Catalog({
 
 function ListPane({
   heading,
+  hint,
   rows,
 }: {
   heading: string;
+  hint?: string;
   rows: { id: string; label: string; onPress: () => void }[];
 }) {
   return (
     <View>
-      <Text style={{ marginTop: 12, fontFamily: SERIF, fontSize: 26, color: T.gold }}>
-        {heading}
-      </Text>
+      <Text style={{ marginTop: 12, ...headingXl }}>{heading}</Text>
       <View style={{ marginTop: 12, gap: 8 }}>
         {rows.map((row) => (
           <Pressable key={row.id} onPress={row.onPress} style={tile}>
@@ -1278,23 +1090,23 @@ function ListPane({
               <Text
                 style={{
                   flex: 1,
-                  fontFamily: SERIF,
+                  fontFamily: SANS,
                   fontSize: 16,
                   lineHeight: 22,
-                  color: T.cream,
+                  color: T.ink,
                 }}
               >
                 {row.label}
               </Text>
               <Text
                 style={{
-                  fontFamily: "SpaceMono",
+                  fontFamily: DISPLAY,
                   fontSize: 12,
                   color: T.gold,
-                  marginTop: 2,
+                  marginTop: 3,
                 }}
               >
-                {ODDS}
+                {hint ?? "→"}
               </Text>
             </View>
           </Pressable>
@@ -1313,31 +1125,24 @@ function Section({
 }) {
   return (
     <View style={{ marginTop: 22 }}>
-      <Text
-        style={{
-          marginBottom: 10,
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 1.6,
-          color: T.gold,
-        }}
-      >
-        {label.toUpperCase()}
-      </Text>
+      <Text style={{ marginBottom: 10, ...kicker }}>{label.toUpperCase()}</Text>
       <View style={{ gap: 10 }}>{children}</View>
     </View>
   );
 }
 
 function Empty({ line }: { line: string }) {
-  return (
-    <Text style={{ color: T.dim, fontFamily: "SpaceMono", fontSize: 12, lineHeight: 18 }}>
-      {line}
-    </Text>
-  );
+  return <Text style={{ color: T.dim, fontFamily: SANS, fontSize: 14, lineHeight: 20 }}>{line}</Text>;
 }
 
-function Badge({ label, color }: { label: string; color: string }) {
+function Badge({
+  label,
+  tone = "pink",
+}: {
+  label: string;
+  tone?: "pink" | "gold";
+}) {
+  const color = tone === "gold" ? T.gold : T.pink;
   return (
     <View
       style={{
@@ -1349,13 +1154,13 @@ function Badge({ label, color }: { label: string; color: string }) {
     >
       <Text
         style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.2,
+          fontFamily: DISPLAY,
+          fontSize: 12,
+          letterSpacing: 0.8,
           color,
         }}
       >
-        {label}
+        {label.toUpperCase()}
       </Text>
     </View>
   );
@@ -1377,16 +1182,16 @@ function Chip({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderWidth: 1,
-        borderColor: T.gold,
-        backgroundColor: active ? T.gold : "transparent",
+        borderColor: T.pink,
+        backgroundColor: active ? T.pink : "transparent",
       }}
     >
       <Text
         style={{
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 1.2,
-          color: active ? T.ink : T.gold,
+          fontFamily: DISPLAY,
+          fontSize: 13,
+          letterSpacing: 0.8,
+          color: active ? T.onPink : T.pink,
         }}
       >
         {label}
@@ -1394,6 +1199,41 @@ function Chip({
     </Pressable>
   );
 }
+
+const kicker = {
+  fontFamily: DISPLAY,
+  fontSize: 12,
+  letterSpacing: 1.3,
+  color: T.gold,
+} as const;
+
+const headingXl = {
+  fontFamily: DISPLAY,
+  fontSize: 30,
+  color: T.ink,
+} as const;
+
+const titleLg = {
+  fontFamily: SANS,
+  fontSize: 22,
+  lineHeight: 28,
+  fontWeight: "700" as const,
+  color: T.ink,
+};
+
+const titleMd = {
+  fontFamily: SANS,
+  fontSize: 20,
+  lineHeight: 26,
+  fontWeight: "700" as const,
+  color: T.ink,
+};
+
+const detail = {
+  fontFamily: SANS,
+  fontSize: 14,
+  color: T.muted,
+};
 
 const tile = {
   borderWidth: 1,
@@ -1412,25 +1252,27 @@ const card = {
 
 const term = {
   marginTop: 10,
-  color: T.cream,
-  fontFamily: "SpaceMono",
+  color: T.ink,
+  fontFamily: SANS,
+  fontSize: 16,
   borderBottomWidth: 1,
-  borderBottomColor: "rgba(245,197,24,0.28)",
+  borderBottomColor: "rgba(227,27,93,0.28)",
   paddingVertical: 8,
 } as const;
 
-const goldBtn = {
+const pinkBtn = {
   marginTop: 14,
   height: 46,
-  backgroundColor: T.gold,
+  backgroundColor: T.pink,
   justifyContent: "center" as const,
 };
 
-const goldBtnText = {
+const pinkBtnText = {
   textAlign: "center" as const,
-  color: T.ink,
-  fontWeight: "900" as const,
-  letterSpacing: 1.1,
+  color: T.onPink,
+  fontFamily: DISPLAY,
+  fontSize: 16,
+  letterSpacing: 1,
 };
 
 function settleBtn(color: string) {

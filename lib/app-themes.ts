@@ -21,22 +21,38 @@ export const COUPONS_TONE = {
   used: "rgba(247,241,227,0.35)",
 } as const;
 
-/** Sportsbook navy / gold / hot-pink for LoveBetz. */
+/** Light race-day book for LoveBetz — cream paper, magenta, readable gold. */
 export const LOVEBETZ_TONE = {
-  background: "#0A0612",
-  navy: "#12081C",
-  surface: "#160C22",
-  surfaceRaised: "#1E1230",
-  gold: "#F5C518",
-  goldSoft: "rgba(245,197,24,0.16)",
-  pink: "#FF2B6E",
-  pinkSoft: "rgba(255,43,110,0.16)",
-  cream: "#FFF6E8",
-  muted: "rgba(255,246,232,0.58)",
-  dim: "rgba(255,246,232,0.38)",
-  border: "rgba(245,197,24,0.32)",
-  ink: "#0A0612",
+  background: "#FFF1E8",
+  paper: "#FFF8F3",
+  surface: "#FFFFFF",
+  surfaceRaised: "#FFFFFF",
+  pink: "#E31B5D",
+  pinkDeep: "#B01448",
+  pinkSoft: "rgba(227,27,93,0.10)",
+  gold: "#C48412",
+  goldSoft: "rgba(196,132,18,0.14)",
+  ink: "#2A1520",
+  muted: "rgba(42,21,32,0.58)",
+  dim: "rgba(42,21,32,0.40)",
+  border: "rgba(227,27,93,0.16)",
+  cream: "#FFF8F3",
+  onPink: "#FFF7F2",
 } as const;
+
+export const LOVEBETZ_SCRIPT: TextStyle["fontFamily"] = "GreatVibes";
+
+export const LOVEBETZ_DISPLAY: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next Condensed",
+  android: "sans-serif-condensed",
+  default: '"Avenir Next Condensed", "Trebuchet MS", "Segoe UI", Futura, sans-serif',
+});
+
+export const LOVEBETZ_SANS: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next",
+  android: "sans-serif",
+  default: '"Avenir Next", "Nunito", "Trebuchet MS", "Segoe UI", sans-serif',
+});
 
 /** Arcade / slot-machine energy for Up for it challenges. */
 export const UP_FOR_IT_TONE = {
@@ -224,4 +240,22 @@ export const ERRANDS_TONE = {
   pencil: "#5C4A32",
   check: "#2F6B56",
   hole: "#D7CBB0",
+} as const;
+
+/** Soft rose paper for the shared period tracker. */
+export const PERIOD_TONE = {
+  background: "#F6EEF2",
+  paper: "#FFF8FA",
+  surface: "#FFFFFF",
+  rose: "#C45C7A",
+  roseDeep: "#9A3F5C",
+  roseSoft: "rgba(196,92,122,0.14)",
+  fertile: "#E8B4C4",
+  fertileSoft: "rgba(232,180,196,0.35)",
+  ovule: "#6F8F6E",
+  ink: "#2A1A22",
+  muted: "rgba(42,26,34,0.56)",
+  dim: "rgba(42,26,34,0.38)",
+  border: "rgba(196,92,122,0.18)",
+  today: "#2A1A22",
 } as const;

@@ -208,7 +208,7 @@ export const HUBS: HubDef[] = [
       {
         id: "prediction",
         label: "LoveBetz",
-        detail: "Send a slip. They accept. Even money.",
+        detail: "Send a slip. They accept. Winner takes the stake.",
         icon: "cash",
         href: "/hub/prediction",
       },
@@ -336,6 +336,13 @@ export const HUBS: HubDef[] = [
         detail: "Lighthearted chore tally",
         icon: "people",
         href: "/hub/who-did-it",
+      },
+      {
+        id: "period",
+        label: "Period Tracker",
+        detail: "Cycle, symptoms, next period — shared",
+        icon: "water",
+        href: "/hub/period",
       },
       {
         id: "settings",
