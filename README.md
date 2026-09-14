@@ -10,11 +10,17 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
-- **Home** — Daily Check-In, Calendar, Eden (3D island that grows from your real activity), four hubs, and a dotted favorites strip.
+- **Home** — Daily Check-In, Calendar, a shared world you pick together (Sanctuary, Pocket Ecosystem / Eden, Time Capsule Town, Odyssey, or Constellation), four hubs, and a dotted favorites strip.
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Intimacy Streak.
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (100 ideas in four packs, one weekly shot, clothesline gallery), Draw It, Scoreboard, Daily Word, Choose-Your-Own Adventure.
 - **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Period Tracker, Settings. Each hub has a cog to hide, reorder, or switch to two columns.
+- **Shared worlds** — After pairing, lock in one of five reward worlds. The Home tile follows the choice; Worlds in each world (and Home settings) lets you switch. Activity you already do feeds all of them.
+  - **Shared Sanctuary** — cabin → terrace → observatory; photos on the memory wall, bets on the trophy mantle, voice notes on the turntable.
+  - **Pocket Ecosystem (Eden)** — 3D island when WebGL is available, flat island otherwise. Never punitive — quiet only sleeps the world.
+  - **Time Capsule Town** — Memory Cinema, Grand Arena, Love Bakery, Velvet Lounge. Tap an open building to jump into that feature.
+  - **The Odyssey** — fuel kilometres from the same activity; waypoints at Whispering Forest, Crystal Bay, Sunset Peaks, Uncharted Reach.
+  - **The Constellation** — stars from actions, named clusters from dates, photos, and Desire.
 - **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
 
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.

@@ -22,6 +22,11 @@ import {
   type PhotoPrefs,
   type PhotoWeek,
 } from "@/lib/photo-challenge";
+import {
+  emptyWorldChoice,
+  hydrateWorldChoice,
+  type WorldChoice,
+} from "@/lib/worlds";
 
 export type { PhotoMemory, PhotoWeek } from "@/lib/photo-challenge";
 export {
@@ -353,6 +358,7 @@ export type MiniState = {
   birthdays: Birthday[];
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
+  worldChoice: WorldChoice;
 };
 
 export const PING_KINDS: {
@@ -707,6 +713,7 @@ export function emptyMiniState(): MiniState {
     birthdays: emptyBirthdays(),
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
+    worldChoice: emptyWorldChoice(),
   };
 }
 
@@ -808,6 +815,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     birthdays: hydrateBirthdays(row.birthdays),
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
+    worldChoice: hydrateWorldChoice(row.worldChoice),
   };
 }
 

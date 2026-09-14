@@ -47,11 +47,11 @@ export const HOME_HEADER_WIDGETS = [
     accent: "#F0A46A",
   },
   {
-    id: "eden",
-    label: "Eden",
-    detail: "Your island grows when you connect",
+    id: "world",
+    label: "Shared World",
+    detail: "Pick how your story grows — five worlds",
     icon: "planet" as IconName,
-    href: "/hub/eden",
+    href: "/hub/worlds",
     accent: "#7CFFB2",
   },
 ] as const;

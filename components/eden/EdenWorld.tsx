@@ -1,9 +1,26 @@
+import { EdenFallback, canUseWebGL } from "@/components/eden/EdenFallback";
 import type { EdenPhase, EdenSnapshot } from "@/lib/eden";
 import { ContactShadows, Float, OrbitControls, Stars } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactNode } from "react";
 import { View } from "react-native";
 import * as THREE from "three";
+
+class WebGlGate extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    this.setState({ failed: true });
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
 
 const SKY: Record<EdenPhase, string> = {
   dawn: "#F0B8A0",
@@ -588,24 +605,36 @@ export function EdenWorld({
   snapshot: EdenSnapshot;
   onHearth: () => void;
 }) {
+  const [webgl, setWebgl] = useState<boolean | null>(null);
+  useEffect(() => {
+    setWebgl(canUseWebGL());
+  }, []);
+  const fallback = <EdenFallback snapshot={snapshot} onHearth={onHearth} />;
+  if (webgl === false) return fallback;
+  if (webgl === null) {
+    return <View style={{ flex: 1, backgroundColor: "#0B1020" }} />;
+  }
   return (
     <View style={{ flex: 1, backgroundColor: "#0B1020" }}>
-      <Canvas
-        shadows
-        camera={{ position: [8.5, 6.2, 8.5], fov: 42, near: 0.1, far: 80 }}
-        gl={{
-          antialias: true,
-          powerPreference: "high-performance",
-          toneMapping: THREE.ACESFilmicToneMapping,
-          outputColorSpace: THREE.SRGBColorSpace,
-        }}
-        onCreated={({ gl }) => {
-          gl.toneMappingExposure = 1.05;
-        }}
-        style={{ width: "100%", height: "100%", touchAction: "none" }}
-      >
-        <Scene snapshot={snapshot} onHearth={onHearth} />
-      </Canvas>
+      <WebGlGate fallback={fallback}>
+        <Canvas
+          shadows
+          camera={{ position: [8.5, 6.2, 8.5], fov: 42, near: 0.1, far: 80 }}
+          gl={{
+            antialias: true,
+            powerPreference: "default",
+            failIfMajorPerformanceCaveat: false,
+            toneMapping: THREE.ACESFilmicToneMapping,
+            outputColorSpace: THREE.SRGBColorSpace,
+          }}
+          onCreated={({ gl }) => {
+            gl.toneMappingExposure = 1.05;
+          }}
+          style={{ width: "100%", height: "100%", touchAction: "none" }}
+        >
+          <Scene snapshot={snapshot} onHearth={onHearth} />
+        </Canvas>
+      </WebGlGate>
     </View>
   );
 }

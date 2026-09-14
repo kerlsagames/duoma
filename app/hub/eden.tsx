@@ -18,12 +18,14 @@ import { useApp } from "@/lib/store";
 import { listWhiteFlags } from "@/lib/white-flag";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 const INK = "#F4F0E8";
 
 export default function EdenScreen() {
+  const router = useRouter();
   const {
     nights,
     checkIns,
@@ -119,6 +121,25 @@ export default function EdenScreen() {
           }}
         >
           <BackButton color="#9FE8C4" fallback={"/(tabs)" as Href} />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable
+            onPress={() => router.push("/hub/worlds" as Href)}
+            accessibilityLabel="Change shared world"
+            style={{
+              height: 44,
+              paddingHorizontal: 12,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(159,232,196,0.28)",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 6,
+            }}
+          >
+            <Ionicons name="swap-horizontal" size={16} color="#9FE8C4" />
+            <Text style={{ color: "#9FE8C4", fontSize: 12, fontWeight: "700" }}>Worlds</Text>
+          </Pressable>
           <Pressable
             onPress={() => (creatorOpen ? setCreatorOpen(false) : openCreator())}
             accessibilityLabel="Eden creator"
@@ -141,6 +162,7 @@ export default function EdenScreen() {
               color="#9FE8C4"
             />
           </Pressable>
+          </View>
         </View>
         <View style={{ flex: 1, marginTop: -8 }}>
           {ready ? (
@@ -242,7 +264,7 @@ function Hud({
           ? "Preview only — your live couple is unchanged. Wand to edit."
           : snapshot.dormancy
             ? "Twilight fog. Any ping, note, or night wakes it."
-            : `${snapshot.totalEP} EP · drag to orbit · tap the hearth`}
+            : `${snapshot.totalEP} bio-essence · drag to orbit · tap the hearth`}
       </Text>
     </Pressable>
   );
@@ -313,7 +335,7 @@ function StatsSheet({
         <Text style={{ marginTop: 4, color: "rgba(244,240,232,0.55)" }}>
           {previewing
             ? `Creator view · live couple is still level ${live.level} / ${live.totalEP} EP`
-            : `Level ${snapshot.level} · ${snapshot.totalEP} ecosystem points`}
+            : `Level ${snapshot.level} · ${snapshot.totalEP} bio-essence`}
         </Text>
         <View style={{ marginTop: 14, gap: 10 }}>
           {live.essences.map((row) => (

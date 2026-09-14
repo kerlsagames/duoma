@@ -29,7 +29,9 @@ import {
   type HomeWallpaperId,
 } from "@/lib/home-wallpaper";
 import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
+import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
+import { homeWorldWidget } from "@/lib/worlds";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
@@ -46,6 +48,22 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { game, partner, sendSpicyInvite } = useApp();
+  const { data: mini } = useMiniApps();
+  const dailyWidgets = useMemo(() => {
+    const world = homeWorldWidget(mini.worldChoice);
+    return HOME_HEADER_WIDGETS.map((widget) =>
+      widget.id === "world"
+        ? {
+            ...widget,
+            label: world.label,
+            detail: world.detail,
+            href: world.href,
+            icon: world.icon,
+            accent: world.accent,
+          }
+        : widget
+    );
+  }, [mini.worldChoice]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
@@ -309,7 +327,7 @@ export default function HomeScreen() {
         </Text>
 
         <View style={{ gap: 8 }}>
-          {HOME_HEADER_WIDGETS.map((widget) => (
+          {dailyWidgets.map((widget) => (
             <Pressable
               key={widget.id}
               onPress={() => router.push(widget.href as Href)}
@@ -655,6 +673,7 @@ export default function HomeScreen() {
       <HomeSettingsSheet
         layout={layout}
         wallpaperId={wallpaperId}
+        worldLabel={homeWorldWidget(mini.worldChoice).label}
         onClose={() => setSettingsOpen(false)}
         onLayout={(next) => void persistLayout(next)}
         onWallpaper={(id) => void persistWallpaper(id)}
@@ -671,18 +690,21 @@ export default function HomeScreen() {
 function HomeSettingsSheet({
   layout,
   wallpaperId,
+  worldLabel,
   onClose,
   onLayout,
   onWallpaper,
   onReset,
 }: {
   layout: HomeLayout;
+  worldLabel: string;
   wallpaperId: HomeWallpaperId;
   onClose: () => void;
   onLayout: (next: HomeLayout) => void;
   onWallpaper: (id: HomeWallpaperId) => void;
   onReset: () => void;
 }) {
+  const router = useRouter();
   return (
     <View
       pointerEvents="box-none"
@@ -799,6 +821,28 @@ function HomeSettingsSheet({
             on={layout.showDaily}
             onPress={() => onLayout({ ...layout, showDaily: !layout.showDaily })}
           />
+          <Pressable
+            onPress={() => {
+              onClose();
+              router.push("/hub/worlds" as Href);
+            }}
+            style={{
+              marginTop: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: "rgba(124,255,178,0.28)",
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text style={{ color: "#F4F4F6", fontSize: 16, fontWeight: "700" }}>
+              Shared world
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
+              {worldLabel} — change anytime
+            </Text>
+          </Pressable>
           <ToggleRow
             label="Favorites strip"
             on={layout.showFavorites}
