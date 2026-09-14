@@ -1,15 +1,16 @@
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
+import { ScrollDateField } from "@/components/ui/ScrollWheelField";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { sectionAccent } from "@/lib/hub-theme";
 import { money } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
-import { createTrip, tripPlanCost, tripSummary } from "@/lib/trips";
+import { createTrip, todayKey, tripPlanCost, tripSummary } from "@/lib/trips";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 const BG = "#0C1218";
 const PAPER = "#E8EEF4";
@@ -60,7 +61,12 @@ export default function TravelScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
+    <Screen background={BG}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 28 }}
+        keyboardShouldPersistTaps="handled"
+      >
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={accent()}>
         <Text
           style={{
@@ -71,7 +77,7 @@ export default function TravelScreen() {
             marginBottom: 6,
           }}
         >
-          NEW · DAY-BY-DAY
+          UPDATED · SCROLL TIMES · SEP 14
         </Text>
         <Text
           style={{
@@ -91,12 +97,14 @@ export default function TravelScreen() {
             color: MUTED,
           }}
         >
-          day by day, bookings, tickets, costs
+          scroll date & time wheels · days stay put when you add
         </Text>
 
         <Pressable
           onPress={() => {
             setError(null);
+            if (!start) setStart(todayKey());
+            if (!end) setEnd(todayKey());
             setCompose(true);
           }}
           style={{
@@ -209,6 +217,7 @@ export default function TravelScreen() {
           )}
         </View>
       </Stage>
+      </ScrollView>
 
       {compose ? (
         <SheetOverlay
@@ -231,27 +240,30 @@ export default function TravelScreen() {
             onChangeText={setWhere}
             placeholder="City, region, or road trip"
           />
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <View style={{ flex: 1 }}>
-              <Field
-                label="Starts (YYYY-MM-DD)"
-                value={start}
-                onChangeText={setStart}
-                placeholder="2026-10-03"
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Field
-                label="Ends"
-                value={end}
-                onChangeText={setEnd}
-                placeholder="2026-10-10"
-              />
-            </View>
-          </View>
+          <ScrollDateField
+            label="Starts"
+            value={start}
+            onChange={setStart}
+            ink={PAPER}
+            muted={MUTED}
+            accent={accent()}
+            background="#0F1822"
+          />
+          <ScrollDateField
+            label="Ends"
+            value={end}
+            onChange={(value) => {
+              setEnd(value);
+              if (start && value && value < start) setStart(value);
+            }}
+            ink={PAPER}
+            muted={MUTED}
+            accent={accent()}
+            background="#0F1822"
+          />
           <Text style={{ marginTop: 6, color: MUTED, fontSize: 12, lineHeight: 17 }}>
-            Dates are optional. If you add them, day pages are created for each
-            night of the trip. You can always add more days later.
+            Scroll the date wheels. Clear either one if dates are still TBD —
+            you can always add day pages later.
           </Text>
           {error ? (
             <Text style={{ marginTop: 10, color: "#FF8A8A" }}>{error}</Text>

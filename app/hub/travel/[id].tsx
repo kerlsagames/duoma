@@ -13,23 +13,28 @@ import type {
   TripDay,
   TripPlanItem,
 } from "@/lib/mini-content";
+import { ScrollTimeField } from "@/components/ui/ScrollWheelField";
 import {
   BOOKING_KINDS,
   emptyTripDay,
+  sortPlanItems,
   tripDayCount,
   tripPlanCost,
   tripSummary,
 } from "@/lib/trips";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Linking,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 
 const BG = "#0C1218";
@@ -68,12 +73,30 @@ export default function TripDetailScreen() {
   const [bookFileUri, setBookFileUri] = useState("");
   const [bookFileName, setBookFileName] = useState("");
 
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+
   const activeDay = useMemo(() => {
     if (!trip) return null;
     return trip.days.find((day) => day.id === dayId) ?? trip.days[0] ?? null;
   }, [trip, dayId]);
 
+  const dayItems = useMemo(
+    () => (activeDay ? sortPlanItems(activeDay.items) : []),
+    [activeDay]
+  );
+
   const total = trip ? tripPlanCost(trip) : 0;
+
+  const keepScroll = () => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: scrollY.current, animated: false });
+    });
+  };
+
+  const onMainScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollY.current = event.nativeEvent.contentOffset.y;
+  };
 
   const update = async (fn: (current: Trip) => Trip) => {
     if (!trip) return;
@@ -122,7 +145,9 @@ export default function TripDetailScreen() {
     await update((current) => ({
       ...current,
       days: current.days.map((day) =>
-        day.id === activeDay.id ? { ...day, items: [...day.items, item] } : day
+        day.id === activeDay.id
+          ? { ...day, items: sortPlanItems([...day.items, item]) }
+          : day
       ),
     }));
     setItemOpen(false);
@@ -132,6 +157,7 @@ export default function TripDetailScreen() {
     setItemCost("");
     setItemUrl("");
     setError(null);
+    keepScroll();
   };
 
   const pickFile = () => {
@@ -192,10 +218,19 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
+    <Screen background={BG}>
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 28 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        onScroll={onMainScroll}
+        scrollEventThrottle={16}
+      >
       <Stage background={BG} fallback={"/hub/travel" as Href} accent={inkBlue()}>
         <Text style={{ fontFamily: "SpaceMono", fontSize: 11, color: MUTED }}>
-          TRIP PLAN
+          TRIP PLAN · TIMES IN ORDER
         </Text>
         <Text
           style={{
@@ -338,11 +373,11 @@ export default function TripDetailScreen() {
                   </Text>
                 ) : (
                   <View style={{ marginTop: 12, gap: 4 }}>
-                    {activeDay.items.map((item) => (
+                    {dayItems.map((item) => (
                       <DayItemRow
                         key={item.id}
                         item={item}
-                        onToggle={() =>
+                        onToggle={() => {
                           void update((current) => ({
                             ...current,
                             days: current.days.map((day) =>
@@ -357,9 +392,10 @@ export default function TripDetailScreen() {
                                     ),
                                   }
                             ),
-                          }))
-                        }
-                        onRemove={() =>
+                          }));
+                          keepScroll();
+                        }}
+                        onRemove={() => {
                           void update((current) => ({
                             ...current,
                             days: current.days.map((day) =>
@@ -370,8 +406,9 @@ export default function TripDetailScreen() {
                                     items: day.items.filter((row) => row.id !== item.id),
                                   }
                             ),
-                          }))
-                        }
+                          }));
+                          keepScroll();
+                        }}
                       />
                     ))}
                   </View>
@@ -380,6 +417,7 @@ export default function TripDetailScreen() {
                 <Pressable
                   onPress={() => {
                     setError(null);
+                    if (!itemTime) setItemTime("12:00 PM");
                     setItemOpen(true);
                   }}
                   style={{
@@ -512,6 +550,7 @@ export default function TripDetailScreen() {
                     ],
                   }));
                   setPackText("");
+                  keepScroll();
                 }}
                 style={{
                   width: 48,
@@ -581,6 +620,7 @@ export default function TripDetailScreen() {
           </Text>
         </Pressable>
       </Stage>
+      </ScrollView>
 
       {itemOpen && activeDay ? (
         <SheetOverlay
@@ -592,7 +632,15 @@ export default function TripDetailScreen() {
           muted={MUTED}
         >
           <Field label="What" value={itemTitle} onChangeText={setItemTitle} placeholder="Ramen crawl" />
-          <Field label="Time" value={itemTime} onChangeText={setItemTime} placeholder="11:30 or Morning" />
+          <ScrollTimeField
+            label="Time"
+            value={itemTime}
+            onChange={setItemTime}
+            ink={PAPER}
+            muted={MUTED}
+            accent={inkBlue()}
+            background="#0F1822"
+          />
           <Field label="Details" value={itemDetail} onChangeText={setItemDetail} placeholder="Booked under Alex" />
           <Field label="Link" value={itemUrl} onChangeText={setItemUrl} placeholder="https://…" />
           <Field

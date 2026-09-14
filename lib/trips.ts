@@ -115,6 +115,51 @@ export function tripSummary(trip: Trip): string {
   return bits.join(" · ");
 }
 
+/** Minutes from midnight for sorting. Untimed items sink to the end. */
+export function planTimeMinutes(time: string): number | null {
+  const trimmed = time.trim();
+  if (!trimmed) return null;
+
+  const twelve =
+    /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i.exec(trimmed);
+  if (twelve) {
+    let hour = Number(twelve[1]);
+    const minute = Number(twelve[2] ?? "0");
+    const ampm = twelve[3]!.toUpperCase();
+    if (hour < 1 || hour > 12 || minute > 59) return null;
+    if (ampm === "AM") {
+      if (hour === 12) hour = 0;
+    } else if (hour !== 12) {
+      hour += 12;
+    }
+    return hour * 60 + minute;
+  }
+
+  const twentyFour = /^(\d{1,2}):(\d{2})$/.exec(trimmed);
+  if (twentyFour) {
+    const hour = Number(twentyFour[1]);
+    const minute = Number(twentyFour[2]);
+    if (hour > 23 || minute > 59) return null;
+    return hour * 60 + minute;
+  }
+
+  return null;
+}
+
+/** Earliest timed first; untimed keep relative order at the bottom. */
+export function sortPlanItems(items: TripPlanItem[]): TripPlanItem[] {
+  return items
+    .map((item, index) => ({ item, index, minutes: planTimeMinutes(item.time) }))
+    .sort((a, b) => {
+      if (a.minutes == null && b.minutes == null) return a.index - b.index;
+      if (a.minutes == null) return 1;
+      if (b.minutes == null) return -1;
+      if (a.minutes !== b.minutes) return a.minutes - b.minutes;
+      return a.index - b.index;
+    })
+    .map((row) => row.item);
+}
+
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
