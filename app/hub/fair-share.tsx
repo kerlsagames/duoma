@@ -239,50 +239,6 @@ export default function FairShareScreen() {
             ))}
           </View>
 
-          <View
-            style={{
-              marginTop: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              placeholder="Add a chore"
-              placeholderTextColor="rgba(232,255,248,0.35)"
-              onSubmitEditing={() => void addChore()}
-              returnKeyType="done"
-              style={{
-                flex: 1,
-                height: 48,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: "rgba(62,207,191,0.35)",
-                backgroundColor: "#16241E",
-                paddingHorizontal: 14,
-                color: "#E8FFF8",
-                fontSize: 16,
-              }}
-            />
-            <Pressable
-              onPress={() => void addChore()}
-              disabled={!draft.trim()}
-              style={{
-                height: 48,
-                paddingHorizontal: 16,
-                borderRadius: 14,
-                backgroundColor: TEAL,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: draft.trim() ? 1 : 0.45,
-              }}
-            >
-              <Text style={{ color: "#062016", fontWeight: "800" }}>Add</Text>
-            </Pressable>
-          </View>
-
           {tab === "spin" ? (
             <>
               <View style={{ marginTop: 12 }}>
@@ -431,6 +387,50 @@ export default function FairShareScreen() {
               />
             </>
           )}
+
+          <View
+            style={{
+              marginTop: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Add a chore"
+              placeholderTextColor="rgba(232,255,248,0.35)"
+              onSubmitEditing={() => void addChore()}
+              returnKeyType="done"
+              style={{
+                flex: 1,
+                height: 48,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: "rgba(62,207,191,0.35)",
+                backgroundColor: "#16241E",
+                paddingHorizontal: 14,
+                color: "#E8FFF8",
+                fontSize: 16,
+              }}
+            />
+            <Pressable
+              onPress={() => void addChore()}
+              disabled={!draft.trim()}
+              style={{
+                height: 48,
+                paddingHorizontal: 16,
+                borderRadius: 14,
+                backgroundColor: TEAL,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: draft.trim() ? 1 : 0.45,
+              }}
+            >
+              <Text style={{ color: "#062016", fontWeight: "800" }}>Add</Text>
+            </Pressable>
+          </View>
           {!ready ? <Text style={{ color: TEAL }}>Oiling the wheel…</Text> : null}
         </Stage>
       </Screen>
@@ -477,7 +477,7 @@ function ShareTable({
           color: "rgba(232,255,248,0.5)",
         }}
       >
-        No chores yet. Add one above.
+        No chores yet. Add one below.
       </Text>
     );
   }
