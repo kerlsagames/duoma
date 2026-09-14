@@ -60,7 +60,7 @@ export function PushSetupCard() {
     setTestState(null);
     try {
       await sendTestPush();
-      setTestState("Test ping sent. Check the lock screen or notification tray.");
+      setTestState("This is a test ping. You should also see a system notification.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send a test");
     }
@@ -77,8 +77,7 @@ export function PushSetupCard() {
           : "Ping your partner"}
       </Text>
       <Text className="mt-2 text-[14px] leading-5 text-mist/60">
-        Get Spicy invites, favor coupons, today's curiosity, and a ready jar
-        land as web push. HTTPS only. Free VAPID keys — no Apple $99 account.
+        Lock-screen notes for this phone. HTTPS only.
       </Text>
 
       {ios ? (
@@ -126,7 +125,10 @@ export function PushSetupCard() {
 
       {error ? <Text className="mt-3 text-[14px] text-crimson">{error}</Text> : null}
       {testState ? (
-        <Text className="mt-3 text-[14px] leading-5 text-mist/80">{testState}</Text>
+        <View className="mt-3 rounded-2xl border border-neon/35 bg-neon/15 px-4 py-3">
+          <Text className="text-[15px] font-semibold text-mist">Ping received</Text>
+          <Text className="mt-1 text-[14px] leading-5 text-mist/75">{testState}</Text>
+        </View>
       ) : null}
 
       <View className="mt-4 gap-3">

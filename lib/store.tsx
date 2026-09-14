@@ -39,6 +39,7 @@ import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import {
   registerDuomaWorker,
   sendPushToSubscriptions,
+  showLocalPush,
   subscribeToPush,
 } from "@/lib/push";
 import {
@@ -4212,15 +4213,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const sendTestPush = useCallback(async () => {
     if (!user) throw new Error("Sign in first.");
-    const mine = db.pushSubscriptions.filter((row) => row.userId === user.id);
-    if (!mine.length) {
-      throw new Error("Enable notifications on this device first.");
-    }
-    await sendPushToSubscriptions(mine, {
+    const payload = {
       title: "Duoma",
-      body: "Notifications are on. Your partner will get the real pings.",
+      body: "Test ping. This is how a lock-screen note looks.",
       url: "/",
-    });
+    };
+    await showLocalPush(payload);
+    const mine = db.pushSubscriptions.filter((row) => row.userId === user.id);
+    if (!mine.length) return;
+    try {
+      await sendPushToSubscriptions(mine, payload);
+    } catch {
+      // Local ping already landed. Remote send can fail on localhost.
+    }
   }, [user]);
 
   const value: AppContextValue = {

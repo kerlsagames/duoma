@@ -136,6 +136,29 @@ export function toWebPushFormat(row: PushSubscriptionRow) {
   };
 }
 
+/** Show a notification on this device even if the tab is open. */
+export async function showLocalPush(payload: PushPayload): Promise<void> {
+  if (!pushSupported()) {
+    throw new Error("This browser cannot show notifications.");
+  }
+  if (Notification.permission !== "granted") {
+    throw new Error("Enable notifications on this device first.");
+  }
+  const registration = await navigator.serviceWorker.ready.catch(() => null);
+  const options: NotificationOptions = {
+    body: payload.body,
+    icon: "/icon-192.png?v=3",
+    badge: "/favicon.png?v=3",
+    tag: "duoma-test",
+    data: { url: payload.url ?? "/" },
+  };
+  if (registration) {
+    await registration.showNotification(payload.title, options);
+    return;
+  }
+  new Notification(payload.title, options);
+}
+
 export async function sendPushToSubscriptions(
   rows: PushSubscriptionRow[],
   payload: PushPayload
