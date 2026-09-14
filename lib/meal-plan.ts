@@ -33,21 +33,69 @@ export type MealPlanIdea = {
   category: MealCategoryId;
 };
 
+export type MealPlanView = "board" | "list";
+export type MealPlanSize = "s" | "m" | "l";
+export type MealPlanPalette = "mix" | "yellow" | "pink" | "mint" | "blue" | "white";
+
 export type MealPlanState = {
   notes: MealPlanNote[];
   regulars: MealRegular[];
   ideas: MealPlanIdea[];
+  view: MealPlanView;
+  size: MealPlanSize;
+  palette: MealPlanPalette;
 };
 
-export const NOTE_PAPERS = [
-  "#FFE566",
-  "#FFB4C8",
-  "#A8E6CF",
-  "#B8D4FF",
-  "#FFD4A3",
-  "#E0C3FC",
-  "#FFF1A8",
-] as const;
+export const NOTE_PALETTES: {
+  id: MealPlanPalette;
+  label: string;
+  papers: string[];
+}[] = [
+  {
+    id: "mix",
+    label: "Mix",
+    papers: ["#FFE566", "#FFB4C8", "#A8E6CF", "#B8D4FF", "#FFD4A3", "#E0C3FC", "#FFF1A8"],
+  },
+  {
+    id: "yellow",
+    label: "Yellow",
+    papers: ["#FFE566", "#FFF1A8", "#F7D44A", "#FFE566", "#FFF3B0", "#F5C842", "#FFE566"],
+  },
+  {
+    id: "pink",
+    label: "Pink",
+    papers: ["#FFB4C8", "#FFC9D6", "#F7A1B8", "#FFD6E0", "#FFB4C8", "#F28BA6", "#FFC2D1"],
+  },
+  {
+    id: "mint",
+    label: "Mint",
+    papers: ["#A8E6CF", "#C4F1DE", "#8FD9BE", "#B8EBD4", "#A8E6CF", "#7FCFB0", "#D2F5E6"],
+  },
+  {
+    id: "blue",
+    label: "Blue",
+    papers: ["#B8D4FF", "#C9DFFF", "#9EC2F5", "#D6E6FF", "#B8D4FF", "#8BB4F0", "#E4EFFF"],
+  },
+  {
+    id: "white",
+    label: "Fridge",
+    papers: ["#FFF8E7", "#FFFDF6", "#F4EFE0", "#FFF8E7", "#FAF4E6", "#F7F0DC", "#FFF8E7"],
+  },
+];
+
+export const NOTE_SIZES: {
+  id: MealPlanSize;
+  label: string;
+  minHeight: number;
+  title: number;
+  titleLine: number;
+}[] = [
+  { id: "s", label: "Small", minHeight: 128, title: 18, titleLine: 22 },
+  { id: "m", label: "Medium", minHeight: 168, title: 22, titleLine: 26 },
+  { id: "l", label: "Large", minHeight: 208, title: 26, titleLine: 30 },
+];
+
+export const NOTE_PAPERS = NOTE_PALETTES[0]!.papers;
 
 export const NOTE_TILTS = [-2.4, 1.8, -1.2, 2.1, -1.8, 1.4, -0.8] as const;
 
@@ -69,8 +117,19 @@ export function noteHeading(note: MealPlanNote): string {
   return note.weekIndex > 0 ? `${day} · week ${note.weekIndex + 1}` : day;
 }
 
-export function notePaper(index: number): string {
-  return NOTE_PAPERS[index % NOTE_PAPERS.length] ?? NOTE_PAPERS[0];
+export function palettePapers(palette: MealPlanPalette): string[] {
+  return (
+    NOTE_PALETTES.find((row) => row.id === palette)?.papers ?? NOTE_PALETTES[0]!.papers
+  );
+}
+
+export function notePaper(index: number, palette: MealPlanPalette = "mix"): string {
+  const papers = palettePapers(palette);
+  return papers[index % papers.length] ?? papers[0] ?? "#FFE566";
+}
+
+export function noteSize(size: MealPlanSize) {
+  return NOTE_SIZES.find((row) => row.id === size) ?? NOTE_SIZES[1]!;
 }
 
 export function noteTilt(index: number): number {
@@ -101,6 +160,9 @@ export function emptyMealPlan(): MealPlanState {
     notes: createWeekNotes(0),
     regulars: DEFAULT_REGULARS.map((title) => ({ id: createId(), title })),
     ideas: defaultIdeas(),
+    view: "board",
+    size: "m",
+    palette: "mix",
   };
 }
 
@@ -172,6 +234,11 @@ export function hydrateMealPlan(raw: unknown): MealPlanState {
     notes: notes.length ? notes : base.notes,
     regulars,
     ideas: ideas.length ? ideas : base.ideas,
+    view: row.view === "list" || row.view === "board" ? row.view : base.view,
+    size: row.size === "s" || row.size === "l" || row.size === "m" ? row.size : base.size,
+    palette: NOTE_PALETTES.some((item) => item.id === row.palette)
+      ? (row.palette as MealPlanPalette)
+      : base.palette,
   };
 }
 

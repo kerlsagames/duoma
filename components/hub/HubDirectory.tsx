@@ -266,6 +266,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
             left: 0,
             zIndex: 30,
             justifyContent: "flex-end",
+            paddingBottom: 70,
           }}
         >
           <Pressable

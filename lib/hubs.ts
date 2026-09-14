@@ -296,6 +296,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/meal-plan",
       },
       {
+        id: "maintenance",
+        label: "Household Maintenance",
+        detail: "Recurring home & car tasks",
+        icon: "construct",
+        href: "/hub/maintenance",
+      },
+      {
         id: "fair-share",
         label: "Fair-Share Task Wheel",
         detail: "Gamified chore splitting",
@@ -315,13 +322,6 @@ export const HUBS: HubDef[] = [
         detail: "Visual savings progress",
         icon: "wallet",
         href: "/hub/budget",
-      },
-      {
-        id: "maintenance",
-        label: "Household Maintenance",
-        detail: "Recurring home & car tasks",
-        icon: "construct",
-        href: "/hub/maintenance",
       },
       {
         id: "emergency-vault",

@@ -8,8 +8,11 @@ import {
   addRegular,
   clearMealNotes,
   ideasInCategory,
+  NOTE_PALETTES,
+  NOTE_SIZES,
   noteHeading,
   notePaper,
+  noteSize,
   noteTilt,
   pickLuckyIdea,
   removeIdea,
@@ -19,6 +22,9 @@ import {
   updateIdea,
   type MealPlanIdea,
   type MealPlanNote,
+  type MealPlanPalette,
+  type MealPlanSize,
+  type MealPlanView,
   type MealRegular,
 } from "@/lib/meal-plan";
 import { MEAL_CATEGORIES, mealCategoryMeta, type MealCategoryId } from "@/lib/meals";
@@ -32,22 +38,20 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from "react-native";
 
 type Panel = "board" | "settings";
-type SettingsTab = "regulars" | "ideas";
+type SettingsTab = "look" | "regulars" | "ideas";
 type IdeaFilter = "all" | MealCategoryId;
 
 export default function MealPlanScreen() {
   const { data, patch } = useMiniApps();
   const plan = data.mealPlan;
-  const { width } = useWindowDimensions();
-  const noteWidth = Math.max(148, (Math.min(width, 640) - 52) / 2);
+  const look = noteSize(plan.size);
 
   const [panel, setPanel] = useState<Panel>("board");
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>("regulars");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("look");
   const [composeId, setComposeId] = useState<string | null>(null);
   const [composeText, setComposeText] = useState("");
   const [regularsFor, setRegularsFor] = useState<string | null>(null);
@@ -235,19 +239,19 @@ export default function MealPlanScreen() {
             >
               {panel === "settings" ? "Settings" : "Meal Plan"}
             </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                fontFamily: SERIF,
-                fontSize: 15,
-                lineHeight: 22,
-                color: T.muted,
-              }}
-            >
-              {panel === "settings"
-                ? "Regulars for the dropdown. Food ideas for Feeling lucky."
-                : "Sunday top left, Monday top right. Write it, pick a regular, or feel lucky."}
-            </Text>
+            {panel === "settings" ? (
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: SERIF,
+                  fontSize: 15,
+                  lineHeight: 22,
+                  color: T.muted,
+                }}
+              >
+                How the board looks, plus regulars and lucky ideas.
+              </Text>
+            ) : null}
           </View>
           <View style={{ alignItems: "flex-end", gap: 8 }}>
             {panel === "board" ? (
@@ -316,8 +320,8 @@ export default function MealPlanScreen() {
           <>
             <View
               style={{
-                marginTop: 22,
-                padding: 14,
+                marginTop: 18,
+                padding: plan.view === "list" ? 10 : 12,
                 borderRadius: 18,
                 backgroundColor: T.cork,
                 borderWidth: 2,
@@ -326,24 +330,33 @@ export default function MealPlanScreen() {
             >
               <View
                 style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
+                  flexDirection: plan.view === "list" ? "column" : "row",
+                  flexWrap: plan.view === "list" ? "nowrap" : "wrap",
                   justifyContent: "space-between",
-                  rowGap: 14,
+                  rowGap: plan.view === "list" ? 8 : 12,
                 }}
               >
                 {plan.notes.map((note, index) => (
-                  <PostIt
+                  <View
                     key={note.id}
-                    note={note}
-                    width={noteWidth}
-                    paper={notePaper(index)}
-                    tilt={noteTilt(index)}
-                    onType={() => openCompose(note)}
-                    onRegulars={() => setRegularsFor(note.id)}
-                    onLucky={() => openLucky(note)}
-                    onEaten={() => markEaten(note)}
-                  />
+                    style={{
+                      width: plan.view === "list" ? "100%" : "48%",
+                    }}
+                  >
+                    <PostIt
+                      note={note}
+                      paper={notePaper(index, plan.palette)}
+                      tilt={plan.view === "list" ? 0 : noteTilt(index)}
+                      list={plan.view === "list"}
+                      minHeight={look.minHeight}
+                      titleSize={look.title}
+                      titleLine={look.titleLine}
+                      onType={() => openCompose(note)}
+                      onRegulars={() => setRegularsFor(note.id)}
+                      onLucky={() => openLucky(note)}
+                      onEaten={() => markEaten(note)}
+                    />
+                  </View>
                 ))}
               </View>
             </View>
@@ -386,6 +399,14 @@ export default function MealPlanScreen() {
           <SettingsPanel
             tab={settingsTab}
             onTab={setSettingsTab}
+            view={plan.view}
+            size={plan.size}
+            palette={plan.palette}
+            onView={(view) => void updatePlan((current) => ({ ...current, view }))}
+            onSize={(size) => void updatePlan((current) => ({ ...current, size }))}
+            onPalette={(palette) =>
+              void updatePlan((current) => ({ ...current, palette }))
+            }
             regulars={plan.regulars}
             ideas={filteredIdeas}
             ideaTotal={plan.ideas.length}
@@ -602,18 +623,24 @@ export default function MealPlanScreen() {
 
 function PostIt({
   note,
-  width,
   paper,
   tilt,
+  list,
+  minHeight,
+  titleSize,
+  titleLine,
   onType,
   onRegulars,
   onLucky,
   onEaten,
 }: {
   note: MealPlanNote;
-  width: number;
   paper: string;
   tilt: number;
+  list: boolean;
+  minHeight: number;
+  titleSize: number;
+  titleLine: number;
   onType: () => void;
   onRegulars: () => void;
   onLucky: () => void;
@@ -623,8 +650,8 @@ function PostIt({
   return (
     <View
       style={{
-        width,
-        minHeight: 168,
+        width: "100%",
+        minHeight: list ? Math.min(minHeight, 108) : minHeight,
         backgroundColor: paper,
         paddingHorizontal: 12,
         paddingTop: 14,
@@ -667,8 +694,8 @@ function PostIt({
           marginTop: 8,
           flex: 1,
           fontFamily: HANDWRITING,
-          fontSize: empty ? 18 : 22,
-          lineHeight: empty ? 24 : 26,
+          fontSize: empty ? Math.max(16, titleSize - 4) : titleSize,
+          lineHeight: empty ? titleLine : titleLine,
           color: empty ? T.paperMuted : T.paperInk,
           textDecorationLine: note.eaten ? "line-through" : "none",
         }}
@@ -725,6 +752,12 @@ function NoteAction({
 function SettingsPanel({
   tab,
   onTab,
+  view,
+  size,
+  palette,
+  onView,
+  onSize,
+  onPalette,
   regulars,
   ideas,
   ideaTotal,
@@ -751,6 +784,12 @@ function SettingsPanel({
 }: {
   tab: SettingsTab;
   onTab: (tab: SettingsTab) => void;
+  view: MealPlanView;
+  size: MealPlanSize;
+  palette: MealPlanPalette;
+  onView: (view: MealPlanView) => void;
+  onSize: (size: MealPlanSize) => void;
+  onPalette: (palette: MealPlanPalette) => void;
   regulars: MealRegular[];
   ideas: MealPlanIdea[];
   ideaTotal: number;
@@ -789,8 +828,9 @@ function SettingsPanel({
       >
         {(
           [
+            { id: "look" as const, label: "Look" },
             { id: "regulars" as const, label: "Regulars" },
-            { id: "ideas" as const, label: "Food ideas" },
+            { id: "ideas" as const, label: "Ideas" },
           ] as const
         ).map((item) => {
           const on = tab === item.id;
@@ -822,7 +862,130 @@ function SettingsPanel({
         })}
       </View>
 
-      {tab === "regulars" ? (
+      {tab === "look" ? (
+        <View style={{ marginTop: 18, gap: 16 }}>
+          <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+            Two post-its side by side, or a simple list.
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {(
+              [
+                { id: "board" as const, label: "Post-its" },
+                { id: "list" as const, label: "List" },
+              ] as const
+            ).map((item) => {
+              const on = view === item.id;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => onView(item.id)}
+                  style={{
+                    flex: 1,
+                    height: 42,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: on ? T.accent : T.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: on ? T.accent : T.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "SpaceMono",
+                      fontSize: 12,
+                      color: on ? T.paperInk : T.ink,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
+            Note size
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {NOTE_SIZES.map((item) => {
+              const on = size === item.id;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => onSize(item.id)}
+                  style={{
+                    flex: 1,
+                    height: 42,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: on ? T.accent : T.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: on ? T.accent : T.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "SpaceMono",
+                      fontSize: 12,
+                      color: on ? T.paperInk : T.ink,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
+            Colours
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {NOTE_PALETTES.map((item) => {
+              const on = palette === item.id;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => onPalette(item.id)}
+                  style={{
+                    width: "31%",
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    backgroundColor: on ? T.surfaceRaised : T.surface,
+                    borderWidth: 1,
+                    borderColor: on ? T.accent : T.border,
+                  }}
+                >
+                  <View style={{ flexDirection: "row", gap: 4 }}>
+                    {item.papers.slice(0, 3).map((color) => (
+                      <View
+                        key={color}
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 4,
+                          backgroundColor: color,
+                        }}
+                      />
+                    ))}
+                  </View>
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontFamily: "SpaceMono",
+                      fontSize: 10,
+                      color: T.ink,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : tab === "regulars" ? (
         <View style={{ marginTop: 18 }}>
           <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
             Dinners you actually cook on repeat. These show in the dropdown on each note.
