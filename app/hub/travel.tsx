@@ -64,6 +64,17 @@ export default function TravelScreen() {
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={accent()}>
         <Text
           style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.4,
+            color: accent(),
+            marginBottom: 6,
+          }}
+        >
+          NEW · DAY-BY-DAY
+        </Text>
+        <Text
+          style={{
             fontFamily: SERIF,
             fontSize: 34,
             color: PAPER,
