@@ -3,6 +3,7 @@ import {
   hydrateBirthdays,
   type Birthday,
 } from "@/lib/birthdays";
+import { emptyDoodleBoard, hydrateDoodleBoard, type DoodleBoard } from "@/lib/doodle-game";
 import { createId, nowIso } from "@/lib/ids";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 import {
@@ -158,19 +159,7 @@ export type TwoTruthsRound = {
 };
 
 
-export type DoodlePoint = { x: number; y: number };
-
-export type DoodleStroke = {
-  color: string;
-  width: number;
-  points: DoodlePoint[];
-};
-
-export type DoodleBoard = {
-  strokes: DoodleStroke[];
-  updatedAt: string;
-  updatedBy: string | null;
-};
+export type { DoodleBoard, DoodlePoint, DoodleStroke } from "@/lib/doodle-game";
 
 export type CrosswordSave = {
   puzzleId: string;
@@ -640,7 +629,7 @@ export function emptyMiniState(): MiniState {
     photos: [],
     photoWeek: null,
     photoPrefs: defaultPhotoPrefs(),
-    doodle: { strokes: [], updatedAt: nowIso(), updatedBy: null },
+    doodle: emptyDoodleBoard(),
     crossword: [],
     story: null,
     capsules: [],
@@ -747,7 +736,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
       .filter((item): item is PhotoMemory => Boolean(item)),
     photoWeek: hydratePhotoWeek(row.photoWeek),
     photoPrefs: hydratePhotoPrefs(row.photoPrefs),
-    doodle: row.doodle ?? base.doodle,
+    doodle: hydrateDoodleBoard(row.doodle),
     crossword: asArray(row.crossword, base.crossword),
     story: row.story ?? null,
     capsules: asArray(row.capsules, base.capsules),

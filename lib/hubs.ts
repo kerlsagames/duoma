@@ -228,8 +228,8 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "doodle",
-        label: "Doodle / Canvas",
-        detail: "Shared digital canvas & games",
+        label: "Pictionary",
+        detail: "Three prompts. Draw. They guess.",
         icon: "brush",
         href: "/hub/doodle",
       },

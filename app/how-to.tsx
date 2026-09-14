@@ -32,7 +32,7 @@ const STEPS = [
   {
     kicker: "Fun",
     title: "Play without a plan",
-    body: "Coupons, LoveBetz, photo memory (one shot a week), trivia, doodles, and the rest of the games. Nothing here has to lead to bed.",
+    body: "Coupons, LoveBetz, photo memory (one shot a week), trivia, Pictionary, and the rest of the games. Nothing here has to lead to bed.",
   },
   {
     kicker: "Home Base",

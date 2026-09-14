@@ -36,7 +36,13 @@ export default function ScoreboardScreen() {
       { id: "grid", label: "INK", icon: "grid", earned: crosswordWon },
       { id: "story", label: "CO-AUTHOR", icon: "book", earned: (data.story?.chapters.length ?? 0) > 0 },
       { id: "time", label: "CAPSULE", icon: "hourglass", earned: data.capsules.length > 0 },
-      { id: "draw", label: "FRIDGE", icon: "brush", earned: data.doodle.strokes.length > 0 },
+      {
+        id: "draw",
+        label: "FRIDGE",
+        icon: "brush",
+        earned:
+          Object.values(data.doodle.scores).some((n) => n > 0) || data.doodle.history.length > 0,
+      },
       { id: "dinner", label: "KITCHEN", icon: "restaurant", earned: data.meals.some((m) => m.eliminated) },
       { id: "fair", label: "WHEEL", icon: "sync", earned: data.fairSpins.length > 0 },
     ],
