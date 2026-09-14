@@ -8,6 +8,7 @@ import {
 import { emptyWordle, hydrateWordle, type WordleState } from "@/lib/daily-word";
 import { emptyDoodleBoard, hydrateDoodleBoard, type DoodleBoard } from "@/lib/doodle-game";
 import { createId, nowIso } from "@/lib/ids";
+import { localDateKey } from "@/lib/dates";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 import {
   emptyMealPlan,
@@ -141,7 +142,16 @@ export type IntimacyKind =
   | "date"
   | "intimacy"
   | "cuddle"
-  | "adventure";
+  | "adventure"
+  | "dare"
+  | "spicy"
+  | "ping"
+  | "connect";
+
+export type ManualIntimacyKind = Exclude<
+  IntimacyKind,
+  "dare" | "spicy" | "ping" | "connect"
+>;
 
 export type IntimacyLog = {
   id: string;
@@ -150,7 +160,42 @@ export type IntimacyLog = {
   note: string;
   date: string;
   createdAt: string;
+  /** Set for auto-fuel (dares, spicy nights, pings, Connect). Manual logs stay null. */
+  sourceId?: string | null;
 };
+
+export function hydrateIntimacyLog(raw: unknown): IntimacyLog | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Partial<IntimacyLog>;
+  const valid: IntimacyKind[] = [
+    "kiss",
+    "talk",
+    "date",
+    "intimacy",
+    "cuddle",
+    "adventure",
+    "dare",
+    "spicy",
+    "ping",
+    "connect",
+  ];
+  const nextKind = valid.includes(row.kind as IntimacyKind)
+    ? (row.kind as IntimacyKind)
+    : "intimacy";
+  const date = typeof row.date === "string" && row.date ? row.date : localDateKey();
+  const createdAt =
+    typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso();
+  const id = typeof row.id === "string" && row.id ? row.id : `log:${date}:${createdAt}`;
+  return {
+    id,
+    userId: typeof row.userId === "string" && row.userId ? row.userId : "couple",
+    kind: nextKind,
+    note: typeof row.note === "string" ? row.note : "",
+    date,
+    createdAt,
+    sourceId: typeof row.sourceId === "string" && row.sourceId ? row.sourceId : null,
+  };
+}
 
 export type TriviaQuestion = {
   id: string;
@@ -522,8 +567,8 @@ export const AUDIO_WHISPERS: {
   },
 ];
 
-export const INTIMACY_KINDS: {
-  id: IntimacyKind;
+export const MANUAL_INTIMACY_KINDS: {
+  id: ManualIntimacyKind;
   label: string;
   color: string;
   icon: string;
@@ -535,6 +580,25 @@ export const INTIMACY_KINDS: {
   { id: "intimacy", label: "Intimacy", color: "#FF4D6A", icon: "flame" },
   { id: "adventure", label: "Adventure", color: "#3ECFBF", icon: "compass" },
 ];
+
+export const AUTO_INTIMACY_KINDS: {
+  id: IntimacyKind;
+  label: string;
+  color: string;
+  icon: string;
+}[] = [
+  { id: "dare", label: "Dare", color: "#FF5A3C", icon: "flash" },
+  { id: "spicy", label: "Get Spicy", color: "#FF6A3D", icon: "flame" },
+  { id: "ping", label: "Ping", color: "#FF8AB0", icon: "notifications" },
+  { id: "connect", label: "Connect", color: "#7EC8E3", icon: "heart" },
+];
+
+export const INTIMACY_KINDS: {
+  id: IntimacyKind;
+  label: string;
+  color: string;
+  icon: string;
+}[] = [...MANUAL_INTIMACY_KINDS, ...AUTO_INTIMACY_KINDS];
 
 export const TRIVIA_PROMPTS: {
   prompt: string;
@@ -799,7 +863,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
     audioNotes: asArray(row.audioNotes, base.audioNotes)
       .map(hydrateAudioNote)
       .filter((note): note is AudioNote => Boolean(note)),
-    intimacy: asArray(row.intimacy, base.intimacy),
+    intimacy: asArray(row.intimacy, base.intimacy)
+      .map(hydrateIntimacyLog)
+      .filter((item): item is IntimacyLog => Boolean(item)),
     triviaQuestions: asArray(row.triviaQuestions, base.triviaQuestions),
     triviaAttempts: asArray(row.triviaAttempts, base.triviaAttempts),
     knowMeSheets: asArray(row.knowMeSheets, base.knowMeSheets),

@@ -175,7 +175,7 @@ export const HUBS: HubDef[] = [
       {
         id: "intimacy-streak",
         label: "Intimacy Streak Tracker",
-        detail: "Track connection, date nights & deep talks over time",
+        detail: "Grows with dares, spicy nights, pings & Connect.",
         icon: "flame",
         href: "/hub/intimacy-streak",
       },
