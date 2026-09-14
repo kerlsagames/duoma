@@ -4,7 +4,7 @@ import {
 } from "@/lib/home-status";
 import {
   defaultNotificationPrefs,
-  prefsAllowStatusId,
+  prefsShowStatusId,
   readNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
@@ -59,7 +59,7 @@ export function CurrentStatus({
     listEntries,
     spicyDares,
     fantasyTonightAsks,
-  }).filter((item) => prefsAllowStatusId(prefs, item.id));
+  }).filter((item) => prefsShowStatusId(prefs, item.id));
 
   const openGame = () => {
     const href = gameResumeHref(game);

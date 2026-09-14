@@ -1,11 +1,14 @@
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   buildHomeNotifications,
   gameResumeHref,
 } from "@/lib/home-status";
 import {
   defaultNotificationPrefs,
-  prefsAllowStatusId,
+  dismissNotificationIds,
+  prefsShowStatusId,
   readNotificationPrefs,
+  writeNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
 import { useApp } from "@/lib/store";
@@ -38,6 +41,11 @@ export function HomeNotificationsBell({
   } = useApp();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
   const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState<
+    | { type: "one"; id: string; line: string }
+    | { type: "all" }
+    | null
+  >(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,7 +70,7 @@ export function HomeNotificationsBell({
         listEntries,
         spicyDares,
         fantasyTonightAsks,
-      }).filter((item) => prefsAllowStatusId(prefs, item.id)),
+      }).filter((item) => prefsShowStatusId(prefs, item.id)),
     [
       user,
       partner,
@@ -81,6 +89,11 @@ export function HomeNotificationsBell({
       prefs,
     ]
   );
+
+  const persist = (next: NotificationPrefs) => {
+    setPrefs(next);
+    void writeNotificationPrefs(next);
+  };
 
   const openGame = () => {
     const href = gameResumeHref(game);
@@ -194,6 +207,32 @@ export function HomeNotificationsBell({
                 Notifications
               </Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
+                {count > 0 ? (
+                  <Pressable
+                    onPress={() => setPending({ type: "all" })}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear all notifications"
+                    style={{
+                      height: 34,
+                      paddingHorizontal: 10,
+                      borderRadius: 17,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#F4F4F6",
+                        fontSize: 11,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Clear all
+                    </Text>
+                  </Pressable>
+                ) : null}
                 <Pressable
                   onPress={() => {
                     setOpen(false);
@@ -259,8 +298,8 @@ export function HomeNotificationsBell({
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 12,
-                      paddingHorizontal: 16,
+                      gap: 10,
+                      paddingHorizontal: 12,
                       paddingVertical: 14,
                       borderBottomWidth: index === rows.length - 1 ? 0 : 1,
                       borderBottomColor: "rgba(255,255,255,0.08)",
@@ -289,6 +328,33 @@ export function HomeNotificationsBell({
                     >
                       {item.when}
                     </Text>
+                    <Pressable
+                      onPress={(event) => {
+                        event.stopPropagation?.();
+                        setPending({
+                          type: "one",
+                          id: item.id,
+                          line: item.line,
+                        });
+                      }}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${item.line}`}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <Ionicons
+                        name="close"
+                        size={14}
+                        color="rgba(244,244,246,0.7)"
+                      />
+                    </Pressable>
                   </Pressable>
                 ))
               )}
@@ -296,6 +362,37 @@ export function HomeNotificationsBell({
           </Pressable>
         </Pressable>
       </Modal>
+
+      <ConfirmDialog
+        open={pending?.type === "one"}
+        title="Remove this?"
+        body={
+          pending?.type === "one"
+            ? `Take “${pending.line}” off the list. It stays gone until something new happens.`
+            : ""
+        }
+        confirmLabel="Remove"
+        cancelLabel="Keep it"
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          if (pending?.type === "one") {
+            persist(dismissNotificationIds(prefs, [pending.id]));
+          }
+          setPending(null);
+        }}
+      />
+      <ConfirmDialog
+        open={pending?.type === "all"}
+        title="Clear all?"
+        body="This clears every waiting line on the bell. New happenings still show up."
+        confirmLabel="Clear all"
+        cancelLabel="Keep them"
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          persist(dismissNotificationIds(prefs, rows.map((row) => row.id)));
+          setPending(null);
+        }}
+      />
     </>
   );
 }

@@ -87,15 +87,17 @@ function gameAlert(input: {
   const href = (gameResumeHref(game) ?? "/(tabs)") as Href;
   const sortAt = Date.parse(game.updatedAt || game.createdAt) || Date.now();
 
+  const gameId = `game-${game.status}${game.awaitingPrivate ? "-private" : ""}`;
+
   if (game.status === "inviting") {
-    return { id: "game", line: "Spicy Game · waiting on them", when: "Now", href: "/(tabs)", sortAt };
+    return { id: gameId, line: "Spicy Game · waiting on them", when: "Now", href: "/(tabs)", sortAt };
   }
   if (game.status === "setup") {
-    return { id: "game", line: "Spicy Game · finish setup", when: "Now", href, sortAt };
+    return { id: gameId, line: "Spicy Game · finish setup", when: "Now", href, sortAt };
   }
   if (game.status === "selecting") {
     return {
-      id: "game",
+      id: gameId,
       line: "Spicy Game · your deal",
       when: "Now",
       href,
@@ -103,17 +105,17 @@ function gameAlert(input: {
     };
   }
   if (game.status === "rating") {
-    return { id: "game", line: "Spicy Game · rate tonight", when: "Now", href, sortAt };
+    return { id: gameId, line: "Spicy Game · rate tonight", when: "Now", href, sortAt };
   }
   if (game.awaitingPrivate) {
-    return { id: "game", line: "Spicy Game · unlock private time", when: "Now", href, sortAt };
+    return { id: gameId, line: "Spicy Game · unlock private time", when: "Now", href, sortAt };
   }
 
   const turn = whoseTurn(game, input.user, input.partner);
   const stage = game.currentStage
     ? STAGE_META[game.currentStage].short
     : "in play";
-  return { id: "game", line: `${turn} · ${stage}`, when: "Now", href, sortAt };
+  return { id: gameId, line: `${turn} · ${stage}`, when: "Now", href, sortAt };
 }
 
 export function buildHomeNotifications(input: {
@@ -200,7 +202,7 @@ export function buildHomeNotifications(input: {
   if (sealed.length > 0) {
     const latest = [...sealed].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
-      id: "jar",
+      id: `jar-${latest.id}`,
       line: isSunday()
         ? "Sunday · open the jar"
         : sealed.length === 1
