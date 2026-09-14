@@ -318,9 +318,16 @@ export const HUBS: HubDef[] = [
         href: "/hub/travel",
       },
       {
+        id: "goals",
+        label: "Shared Goals",
+        detail: "Long-term on top. Nearer wants in a list. Track the pile.",
+        icon: "flag",
+        href: "/hub/goals",
+      },
+      {
         id: "budget",
-        label: "Shared Budget & Goals",
-        detail: "Visual savings progress",
+        label: "Shared Budget",
+        detail: "Weekly or fortnight pay, then bills and what you spent.",
         icon: "wallet",
         href: "/hub/budget",
       },

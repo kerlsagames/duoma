@@ -293,3 +293,32 @@ export const PERIOD_TONE = {
   border: "rgba(196,92,122,0.18)",
   today: "#2A1A22",
 } as const;
+
+/** Ledger paper for Shared Budget. */
+export const BUDGET_TONE = {
+  background: "#12160F",
+  surface: "#1A2016",
+  surfaceRaised: "#222A1C",
+  accent: "#C6E27A",
+  accentSoft: "rgba(198,226,122,0.16)",
+  gold: "#E4C37A",
+  ink: "#F4F0E4",
+  muted: "rgba(244,240,228,0.62)",
+  dim: "rgba(244,240,228,0.4)",
+  border: "rgba(198,226,122,0.22)",
+  danger: "#FF8A7A",
+  paid: "#7DCEA0",
+} as const;
+
+/** Quiet savings list for Shared Goals. */
+export const GOALS_TONE = {
+  background: "#14110C",
+  surface: "#1E1A14",
+  surfaceRaised: "#2A241C",
+  accent: "#E4C37A",
+  accentSoft: "rgba(228,195,122,0.16)",
+  ink: "#F6EFE2",
+  muted: "rgba(246,239,226,0.62)",
+  dim: "rgba(246,239,226,0.4)",
+  border: "rgba(228,195,122,0.22)",
+} as const;

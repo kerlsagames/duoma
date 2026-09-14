@@ -34,6 +34,16 @@ import {
   hydrateSexyVault,
   type SexyVaultItem,
 } from "@/lib/sexy-vault";
+import {
+  defaultGoals,
+  emptyBudget,
+  hydrateBudget,
+  hydrateMoneyGoal,
+  type BudgetState,
+  type MoneyGoal,
+} from "@/lib/money";
+
+export type { BudgetState, MoneyGoal } from "@/lib/money";
 
 export type { SexyVaultItem } from "@/lib/sexy-vault";
 
@@ -296,13 +306,6 @@ export type Trip = {
   packing: PackItem[];
 };
 
-export type MoneyGoal = {
-  id: string;
-  title: string;
-  target: number;
-  saved: number;
-  color: string;
-};
 
 export type MaintTask = {
   id: string;
@@ -357,6 +360,7 @@ export type MiniState = {
   fairSpins: FairSpin[];
   trips: Trip[];
   goals: MoneyGoal[];
+  budget: BudgetState;
   maintenance: MaintTask[];
   vault: VaultEntry[];
   vaultPin: string;
@@ -676,11 +680,6 @@ export const DEFAULT_VAULT: VaultEntry[] = [
   { id: "v-util", label: "Utilities login hint", value: "", icon: "flash" },
 ];
 
-export const DEFAULT_GOALS: { title: string; target: number; color: string }[] = [
-  { title: "Escape weekend", target: 800, color: "#FF6B9A" },
-  { title: "The nice couch", target: 2400, color: "#3ECFBF" },
-  { title: "Anniversary dinner that hurts a little", target: 350, color: "#F0C75E" },
-];
 
 function meal(label: string, tag: string): MealOption {
   return { id: createId(), label, tag, eliminated: false };
@@ -712,13 +711,8 @@ export function emptyMiniState(): MiniState {
     chores: DEFAULT_CHORES.map((row) => ({ ...row })),
     fairSpins: [],
     trips: [],
-    goals: DEFAULT_GOALS.map((row) => ({
-      id: createId(),
-      title: row.title,
-      target: row.target,
-      saved: Math.round(row.target * 0.18),
-      color: row.color,
-    })),
+    goals: defaultGoals(),
+    budget: emptyBudget(),
     maintenance: DEFAULT_MAINT.map((row) => ({
       id: createId(),
       label: row.label,
@@ -827,7 +821,10 @@ export function hydrateMiniState(raw: unknown): MiniState {
     chores: asArray(row.chores, base.chores),
     fairSpins: asArray(row.fairSpins, base.fairSpins),
     trips: asArray(row.trips, base.trips),
-    goals: asArray(row.goals, base.goals),
+    goals: asArray(row.goals, base.goals)
+      .map(hydrateMoneyGoal)
+      .filter((item): item is MoneyGoal => Boolean(item)),
+    budget: hydrateBudget(row.budget),
     maintenance: asArray(row.maintenance, base.maintenance),
     vault: asArray(row.vault, base.vault),
     vaultPin: typeof row.vaultPin === "string" ? row.vaultPin : "",

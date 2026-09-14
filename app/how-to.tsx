@@ -42,7 +42,7 @@ const STEPS = [
   {
     kicker: "Home Base",
     title: "The life admin, shared",
-    body: "Groceries, birthdays, the meal plan, travel, the budget jars, jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
+    body: "Groceries, birthdays, the meal plan, travel, shared goals, a detailed budget (pay, bills, spending), jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
   },
   {
     kicker: "Calendar",
