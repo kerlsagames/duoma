@@ -29,11 +29,9 @@ import {
   Animated,
   Easing,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
-  type LayoutChangeEvent,
 } from "react-native";
 import Svg, { Circle, Ellipse, Path } from "react-native-svg";
 
@@ -44,49 +42,54 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
   const heat = lit ? level : 0;
   const flicker = useRef(new Animated.Value(0)).current;
   const grow = useRef(new Animated.Value(fireScale(heat))).current;
+  const spark = !lit || level < 18;
+  const roaring = lit && level >= 40;
+  const blazing = lit && level >= 75;
 
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(flicker, {
           toValue: 1,
-          duration: 320,
+          duration: spark ? 420 : 320,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(flicker, {
           toValue: 0,
-          duration: 380,
+          duration: spark ? 520 : 380,
           useNativeDriver: true,
         }),
       ])
     );
     loop.start();
     return () => loop.stop();
-  }, [flicker]);
+  }, [flicker, spark]);
 
   useEffect(() => {
     Animated.spring(grow, {
       toValue: fireScale(heat),
-      friction: 7,
-      tension: 48,
+      friction: 8,
+      tension: 42,
       useNativeDriver: true,
     }).start();
   }, [grow, heat]);
 
   const scale = fireScale(heat);
-  const roaring = lit && level >= 40;
-  const blazing = lit && level >= 75;
   const wobble = flicker.interpolate({
     inputRange: [0, 1],
-    outputRange: roaring ? ["-6deg", "7deg"] : ["-3deg", "4deg"],
+    outputRange: roaring ? ["-5deg", "6deg"] : spark ? ["-2deg", "2deg"] : ["-3deg", "3deg"],
   });
   const glow = flicker.interpolate({
     inputRange: [0, 1],
-    outputRange: lit ? [0.28, 0.55] : [0.12, 0.2],
+    outputRange: lit ? (spark ? [0.18, 0.34] : [0.28, 0.55]) : [0.1, 0.16],
   });
-  const glowSize = 70 + Math.min(220, scale * 110);
-  const stageHeight = Math.round(150 + Math.min(210, scale * 120));
+  const glowSize = spark
+    ? 36 + scale * 40
+    : 70 + Math.min(200, scale * 100);
+  const stageHeight = spark
+    ? Math.round(110 + scale * 40)
+    : Math.round(140 + Math.min(180, scale * 100));
 
   return (
     <View
@@ -101,7 +104,7 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
         pointerEvents="none"
         style={{
           position: "absolute",
-          bottom: 28,
+          bottom: spark ? 34 : 28,
           width: glowSize,
           height: glowSize,
           borderRadius: glowSize,
@@ -110,24 +113,50 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
             : roaring
               ? "rgba(255,80,20,0.42)"
               : lit
-                ? "rgba(255,70,20,0.28)"
+                ? spark
+                  ? "rgba(255,120,40,0.35)"
+                  : "rgba(255,70,20,0.28)"
                 : "rgba(80,30,10,0.2)",
           opacity: glow,
         }}
       />
       <Animated.View style={{ transform: [{ scale: grow }, { rotate: wobble }] }}>
-        <Svg width={210} height={210}>
-          <Ellipse cx={105} cy={188} rx={58} ry={12} fill="#2A140C" />
-          <Path d="M48 184 L82 158 L94 188 Z" fill="#6B3A1A" />
-          <Path d="M162 184 L128 154 L116 188 Z" fill="#4A2812" />
-          {!lit || level <= 0.4 ? (
+        <Svg width={spark ? 120 : 200} height={spark ? 120 : 200}>
+          <Ellipse
+            cx={spark ? 60 : 100}
+            cy={spark ? 108 : 180}
+            rx={spark ? 28 : 52}
+            ry={spark ? 7 : 11}
+            fill="#2A140C"
+          />
+          <Path
+            d={spark ? "M28 106 L44 92 L50 108 Z" : "M42 176 L72 150 L82 178 Z"}
+            fill="#6B3A1A"
+          />
+          <Path
+            d={spark ? "M92 106 L76 90 L70 108 Z" : "M158 176 L128 148 L118 178 Z"}
+            fill="#4A2812"
+          />
+          {spark ? (
             <>
               <Path
-                d="M105 150 C118 168 120 178 105 186 C90 178 92 168 105 150 Z"
+                d="M60 78 C68 92 70 100 60 108 C50 100 52 92 60 78 Z"
+                fill="#FF5A1A"
+              />
+              <Path
+                d="M60 88 C65 96 65 102 60 106 C55 102 55 96 60 88 Z"
+                fill="#FFB347"
+              />
+              <Circle cx={60} cy={72} r={2.2} fill="#FFF3B0" />
+            </>
+          ) : !lit ? (
+            <>
+              <Path
+                d="M100 145 C112 160 114 170 100 178 C86 170 88 160 100 145 Z"
                 fill="#7A2A12"
               />
               <Path
-                d="M105 162 C112 172 112 178 105 184 C98 178 98 172 105 162 Z"
+                d="M100 156 C106 166 106 172 100 176 C94 172 94 166 100 156 Z"
                 fill="#E85A1A"
               />
             </>
@@ -136,11 +165,11 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
               {roaring ? (
                 <>
                   <Path
-                    d="M70 70 C55 110 48 150 78 186 C95 150 92 110 70 70 Z"
+                    d="M62 70 C48 108 42 145 72 178 C90 145 88 108 62 70 Z"
                     fill="#FF3B10"
                   />
                   <Path
-                    d="M140 62 C160 108 168 150 132 186 C118 150 118 108 140 62 Z"
+                    d="M138 62 C158 105 164 145 128 178 C114 145 114 105 138 62 Z"
                     fill="#FF4D1A"
                   />
                 </>
@@ -148,42 +177,27 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
               {blazing ? (
                 <>
                   <Path
-                    d="M88 28 C70 80 62 130 90 186 C108 130 112 80 88 28 Z"
+                    d="M82 28 C64 78 56 126 84 178 C102 126 106 78 82 28 Z"
                     fill="#FF2A00"
                   />
                   <Path
-                    d="M122 22 C148 78 158 130 120 186 C102 130 98 78 122 22 Z"
+                    d="M118 22 C144 76 154 126 116 178 C98 126 94 76 118 22 Z"
                     fill="#FF3B10"
                   />
                 </>
               ) : null}
               <Path
-                d="M105 36 C132 88 146 128 105 186 C64 128 78 88 105 36 Z"
+                d="M100 42 C126 90 138 128 100 178 C62 128 74 90 100 42 Z"
                 fill="#FF4D1A"
               />
               <Path
-                d="M105 58 C122 96 130 132 105 178 C80 132 88 96 105 58 Z"
+                d="M100 62 C116 98 122 132 100 170 C84 132 84 98 100 62 Z"
                 fill="#FFB347"
               />
               <Path
-                d="M105 84 C114 112 118 138 105 168 C92 138 96 112 105 84 Z"
+                d="M100 86 C110 112 112 138 100 160 C90 138 90 112 100 86 Z"
                 fill="#FFF3B0"
               />
-              {roaring ? (
-                <>
-                  <Circle cx={72} cy={78} r={3} fill="#FFD27A" />
-                  <Circle cx={148} cy={64} r={2.5} fill="#FFE8A0" />
-                  <Circle cx={96} cy={42} r={2} fill="#FFF3B0" />
-                  <Circle cx={128} cy={50} r={2.2} fill="#FFB347" />
-                </>
-              ) : null}
-              {blazing ? (
-                <>
-                  <Circle cx={60} cy={96} r={2} fill="#FF8A3D" />
-                  <Circle cx={160} cy={88} r={2.4} fill="#FFE08A" />
-                  <Circle cx={110} cy={24} r={2.6} fill="#FFF6C8" />
-                </>
-              ) : null}
             </>
           )}
         </Svg>
@@ -197,6 +211,7 @@ function dayLabel(date: string): string {
   return Number.isFinite(day) ? String(day) : date.slice(5);
 }
 
+/** Fixed-height bar window — no nested ScrollView, so it always paints on web. */
 function ActivityChart({
   bars,
   selected,
@@ -206,64 +221,79 @@ function ActivityChart({
   selected: string | null;
   onSelect: (date: string) => void;
 }) {
-  const scrollRef = useRef<ScrollView>(null);
-  const [viewport, setViewport] = useState(0);
-  const slot = viewport > 0 ? viewport / GRAPH_WINDOW_DAYS : 12;
-  const chartHeight = 120;
+  const chartHeight = 118;
+  const maxEnd = Math.max(GRAPH_WINDOW_DAYS, bars.length);
+  const [end, setEnd] = useState(maxEnd);
+  const windowEnd = Math.min(end, bars.length);
+  const windowStart = Math.max(0, windowEnd - GRAPH_WINDOW_DAYS);
+  const visible = bars.slice(windowStart, windowEnd);
   const maxTotal = Math.max(1, ...bars.map((row) => row.total));
-
-  const onLayout = (event: LayoutChangeEvent) => {
-    setViewport(event.nativeEvent.layout.width);
-  };
+  const canOlder = windowStart > 0;
+  const canNewer = windowEnd < bars.length;
 
   useEffect(() => {
-    if (!viewport) return;
-    const id = requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: false });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [viewport, bars.length]);
+    setEnd(bars.length);
+  }, [bars.length]);
 
   return (
-    <View>
-      <Text
+    <View style={{ minHeight: 190 }}>
+      <View
         style={{
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 1.4,
-          textTransform: "uppercase",
-          color: "rgba(255,210,180,0.45)",
-          textAlign: "center",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 10,
         }}
       >
-        Last {GRAPH_WINDOW_DAYS} days · swipe for older
-      </Text>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        onLayout={onLayout}
-        style={{ marginTop: 12 }}
-        contentContainerStyle={{
-          paddingHorizontal: 4,
+        <Pressable
+          onPress={() => canOlder && setEnd((value) => Math.max(GRAPH_WINDOW_DAYS, value - GRAPH_WINDOW_DAYS))}
+          disabled={!canOlder}
+          hitSlop={10}
+          style={{ opacity: canOlder ? 1 : 0.25, paddingHorizontal: 6 }}
+        >
+          <Text style={{ color: hot(), fontFamily: "SpaceMono", fontSize: 16 }}>‹</Text>
+        </Pressable>
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: "rgba(255,210,180,0.5)",
+          }}
+        >
+          {GRAPH_WINDOW_DAYS}-day graph
+        </Text>
+        <Pressable
+          onPress={() => canNewer && setEnd((value) => Math.min(bars.length, value + GRAPH_WINDOW_DAYS))}
+          disabled={!canNewer}
+          hitSlop={10}
+          style={{ opacity: canNewer ? 1 : 0.25, paddingHorizontal: 6 }}
+        >
+          <Text style={{ color: hot(), fontFamily: "SpaceMono", fontSize: 16 }}>›</Text>
+        </Pressable>
+      </View>
+
+      <View
+        style={{
+          height: chartHeight + 22,
+          flexDirection: "row",
           alignItems: "flex-end",
-          minWidth: viewport || undefined,
         }}
       >
-        {bars.map((bar) => {
+        {visible.map((bar) => {
           const active = selected === bar.date;
-          const barWidth = Math.max(5, slot - 5);
           const height =
             bar.total === 0
-              ? 2
-              : Math.max(12, Math.round((bar.total / maxTotal) * chartHeight));
+              ? 3
+              : Math.max(14, Math.round((bar.total / maxTotal) * chartHeight));
           return (
             <Pressable
               key={bar.date}
               onPress={() => onSelect(bar.date)}
               accessibilityLabel={`${bar.date}: ${bar.total} log${bar.total === 1 ? "" : "s"}`}
               style={{
-                width: slot,
+                flex: 1,
                 alignItems: "center",
                 justifyContent: "flex-end",
                 paddingHorizontal: 1,
@@ -271,11 +301,12 @@ function ActivityChart({
             >
               <View
                 style={{
-                  width: barWidth,
+                  width: "78%",
+                  maxWidth: 14,
                   height,
                   borderRadius: bar.total ? 3 : 1,
                   overflow: "hidden",
-                  backgroundColor: bar.total ? "transparent" : "rgba(255,106,61,0.18)",
+                  backgroundColor: bar.total ? "transparent" : "rgba(255,106,61,0.2)",
                   borderWidth: active ? 1 : 0,
                   borderColor: hot(),
                   justifyContent: "flex-end",
@@ -300,8 +331,8 @@ function ActivityChart({
               </View>
               <Text
                 style={{
-                  marginTop: 5,
-                  fontSize: 9,
+                  marginTop: 4,
+                  fontSize: 8,
                   color: active ? hot() : "rgba(255,210,180,0.35)",
                   fontFamily: "SpaceMono",
                 }}
@@ -311,17 +342,18 @@ function ActivityChart({
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
+
       <Text
         style={{
-          marginTop: 12,
+          marginTop: 10,
           textAlign: "center",
           fontSize: 12,
           color: "rgba(255,210,180,0.45)",
           lineHeight: 17,
         }}
       >
-        Taller = more that day. Color is the kind of fuel — tap a day for details.
+        Taller = more that day. Color is the kind of fuel — tap a bar for details.
       </Text>
     </View>
   );
@@ -334,7 +366,7 @@ export default function IntimacyStreakScreen() {
   const [kind, setKind] = useState<ManualIntimacyKind>("date");
   const [note, setNote] = useState("");
   const today = localDateKey();
-  const [selectedDay, setSelectedDay] = useState<string>(today);
+  const [selectedDay, setSelectedDay] = useState(today);
 
   const logs = useMemo(
     () =>
@@ -399,11 +431,13 @@ export default function IntimacyStreakScreen() {
     setSelectedDay(today);
   };
 
-  const levelLabel = !ready
+  const headline = !ready
     ? "—"
     : !fire.lit
       ? "out"
-      : `${Math.round(fire.level)}`;
+      : fire.day <= 1
+        ? "Day 1"
+        : `Day ${fire.day}`;
 
   return (
     <Screen scroll background={BG}>
@@ -420,7 +454,7 @@ export default function IntimacyStreakScreen() {
         </Text>
 
         <Campfire
-          level={ready ? fire.level : 5}
+          level={ready ? fire.level : 3}
           lit={ready ? fire.lit : true}
         />
 
@@ -428,12 +462,12 @@ export default function IntimacyStreakScreen() {
           style={{
             textAlign: "center",
             fontFamily: SERIF,
-            fontSize: 56,
+            fontSize: 44,
             color: hot(),
-            marginTop: -12,
+            marginTop: -8,
           }}
         >
-          {levelLabel}
+          {headline}
         </Text>
         <Text
           style={{
@@ -445,9 +479,7 @@ export default function IntimacyStreakScreen() {
             paddingHorizontal: 8,
           }}
         >
-          {ready
-            ? fireCaption(fire)
-            : "Lighting the grate…"}
+          {ready ? fireCaption(fire) : "Lighting the grate…"}
         </Text>
         {ready && fire.lit ? (
           <Text
@@ -460,8 +492,7 @@ export default function IntimacyStreakScreen() {
               letterSpacing: 0.6,
             }}
           >
-            Grows over months · {MISS_DAYS_TO_OUT} quiet nights puts it out
-            {fire.fedDays ? ` · ${fire.fedDays} fed days` : ""}
+            Tiny on day one · grows over months · {MISS_DAYS_TO_OUT} quiet nights puts it out
           </Text>
         ) : null}
         {ready && todayLogs.length > 0 ? (
@@ -482,12 +513,12 @@ export default function IntimacyStreakScreen() {
 
         <View
           style={{
-            marginTop: 22,
+            marginTop: 20,
             padding: 14,
             borderRadius: 20,
             backgroundColor: "#1C0C08",
             borderWidth: 1,
-            borderColor: "rgba(255,106,61,0.18)",
+            borderColor: "rgba(255,106,61,0.22)",
           }}
         >
           <ActivityChart
@@ -564,7 +595,7 @@ export default function IntimacyStreakScreen() {
           }}
         >
           Completed dares, Get Spicy nights, thought-of-you pings, and Connect
-          already feed this chart. Use a label below to throw on another log.
+          already feed this graph. Use a label below to throw on another log.
         </Text>
 
         <View
@@ -618,9 +649,7 @@ export default function IntimacyStreakScreen() {
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "#1A0806", fontWeight: "800" }}>
-            Feed the fire
-          </Text>
+          <Text style={{ color: "#1A0806", fontWeight: "800" }}>Feed the fire</Text>
         </Pressable>
       </Stage>
     </Screen>

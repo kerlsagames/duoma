@@ -39,22 +39,22 @@ const AUTO_KIND_META: Record<
 /** Five empty days in a row snuffs the fire. */
 export const MISS_DAYS_TO_OUT = 5;
 
-/** Days visible in the chart viewport. */
+/** Days shown in the chart window. */
 export const GRAPH_WINDOW_DAYS = 30;
 
-/** How far you can pan back. */
+/** How far you can page back. */
 export const GRAPH_HISTORY_DAYS = 120;
 
 /** Tiny spark when the first log of a stretch lands. */
-const SPARK_LEVEL = 5;
+const SPARK_LEVEL = 2.5;
 
 /**
  * Slow climb — about three months of near-daily care to fill the grate.
- * Extra logs on the same day help a little, not a leap.
+ * Extra logs the same day help a little, not a leap.
  */
-const GROWTH_BASE = 1.05;
-const GROWTH_EXTRA = 0.22;
-const GROWTH_EXTRA_CAP = 4;
+const GROWTH_BASE = 0.55;
+const GROWTH_EXTRA = 0.12;
+const GROWTH_EXTRA_CAP = 3;
 
 /** Shrink harder the longer the cold stretch — fifth miss goes to zero. */
 const MISS_DECAY = [0, 11, 16, 24, 34] as const;
@@ -301,6 +301,8 @@ export type FireState = {
   missStreak: number;
   /** Days that actually fed the fire since the earliest log. */
   fedDays: number;
+  /** Consecutive fed days in the current lit stretch (1 on first spark). */
+  day: number;
 };
 
 function growthForDay(count: number): number {
@@ -316,8 +318,8 @@ function decayForMiss(missStreak: number): number {
 }
 
 /**
- * Walk day-by-day from the first log (or today) so the fire has to earn size
- * over months, and five blank days snuff it.
+ * Walk day-by-day from the first log so the fire has to earn size over months,
+ * and five blank days snuff it.
  */
 export function computeFireState(
   logs: IntimacyLog[],
@@ -325,7 +327,7 @@ export function computeFireState(
 ): FireState {
   const byDate = groupLogsByDate(logs);
   if (byDate.size === 0) {
-    return { level: 0, lit: false, missStreak: 0, fedDays: 0 };
+    return { level: 0, lit: false, missStreak: 0, fedDays: 0, day: 0 };
   }
 
   const earliest = [...byDate.keys()].sort()[0]!;
@@ -334,6 +336,7 @@ export function computeFireState(
   let lit = false;
   let missStreak = 0;
   let fedDays = 0;
+  let day = 0;
 
   while (cursor <= today) {
     const count = byDate.get(cursor)?.length ?? 0;
@@ -343,10 +346,14 @@ export function computeFireState(
       if (!lit) {
         level = SPARK_LEVEL;
         lit = true;
+        day = 1;
+      } else {
+        day += 1;
       }
       level = Math.min(100, level + growthForDay(count));
     } else if (lit) {
       missStreak += 1;
+      day = 0;
       if (missStreak >= MISS_DAYS_TO_OUT) {
         level = 0;
         lit = false;
@@ -368,22 +375,32 @@ export function computeFireState(
     lit: lit && level > 0,
     missStreak,
     fedDays,
+    day: lit && level > 0 ? Math.max(1, day) : 0,
   };
 }
 
-/** Legacy heat used by the current campfire screen (streak + tonight). */
+/** Legacy heat used by older campfire math (streak + tonight). */
 export function fireHeat(streak: number, todayCount: number, totalCount: number): number {
   const tonight = Math.min(10, todayCount) * 1.15;
   const body = Math.min(6, Math.log2(1 + totalCount) * 0.9);
   return streak + tonight + body;
 }
 
-/** Map 0–100 fire level onto the campfire’s visual scale. */
+/**
+ * Map 0–100 fire level onto the campfire’s visual scale.
+ * Day one must read as a speck — not a campfire.
+ */
 export function fireScale(level: number): number {
-  if (level <= 0) return 0.34;
-  if (level < SPARK_LEVEL) return 0.42 + (level / SPARK_LEVEL) * 0.12;
-  // Slow visual climb — a month of care still looks like a modest fire.
-  return 0.55 + Math.min(1.35, (level / 100) * 1.35);
+  if (level <= 0) return 0.18;
+  if (level < 12) return 0.14 + (level / 12) * 0.12; // ~0.14–0.26 spark
+  if (level < 35) return 0.26 + ((level - 12) / 23) * 0.2;
+  if (level < 70) return 0.46 + ((level - 35) / 35) * 0.28;
+  return 0.74 + Math.min(0.4, ((level - 70) / 30) * 0.4);
+}
+
+/** Consecutive day count for “day 1” copy. */
+export function fireDayCount(state: FireState): number {
+  return state.day;
 }
 
 export function fireCaption(state: FireState): string {
@@ -397,8 +414,8 @@ export function fireCaption(state: FireState): string {
     const left = MISS_DAYS_TO_OUT - state.missStreak;
     return `Cooling — ${state.missStreak} quiet night${state.missStreak === 1 ? "" : "s"}. ${left} more and it goes out.`;
   }
-  if (state.level < 15) {
-    return "A tiny spark. It only grows if you keep feeding it — slowly, over months.";
+  if (state.day <= 1 || state.level < 15) {
+    return "Day 1 spark. It only grows if you keep feeding it — slowly, over months.";
   }
   if (state.level < 40) {
     return "Building. Daily care from Desire & Connect stacks up over weeks.";
