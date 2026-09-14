@@ -186,9 +186,7 @@ export default function HomeScreen() {
                 borderRadius: 18,
                 paddingVertical: 12,
                 paddingHorizontal: 10,
-                backgroundColor: `${hub.tile}3D`,
-                borderWidth: 1.5,
-                borderColor: hub.accent,
+                backgroundColor: hub.tile,
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
@@ -199,12 +197,12 @@ export default function HomeScreen() {
                   width: 48,
                   height: 48,
                   borderRadius: 14,
-                  backgroundColor: `${hub.tile}55`,
+                  backgroundColor: "rgba(255,255,255,0.22)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={hub.icon} size={28} color="#F4F4F6" />
+                <Ionicons name={hub.icon} size={28} color={hub.tileInk} />
               </View>
               <View style={{ width: "100%", alignItems: "center" }}>
                 <Text
@@ -212,7 +210,7 @@ export default function HomeScreen() {
                     fontFamily: SERIF,
                     fontSize: 18,
                     lineHeight: 22,
-                    color: "#F4F4F6",
+                    color: hub.tileInk,
                     textAlign: "center",
                   }}
                 >
@@ -221,7 +219,8 @@ export default function HomeScreen() {
                 <Text
                   style={{
                     marginTop: 2,
-                    color: "rgba(244,244,246,0.78)",
+                    color: hub.tileInk,
+                    opacity: 0.72,
                     fontSize: 11,
                     lineHeight: 14,
                     textAlign: "center",
@@ -347,7 +346,7 @@ export default function HomeScreen() {
             borderColor: "rgba(244,244,246,0.28)",
             borderRadius: 18,
             padding: 10,
-            backgroundColor: "rgba(255,255,255,0.02)",
+            backgroundColor: "#121218",
           }}
         >
           <View style={{ flexDirection: "row", gap: favoriteGap }}>
@@ -363,7 +362,7 @@ export default function HomeScreen() {
                       width: favoriteBox,
                       height: favoriteBox,
                       borderRadius: 14,
-                      backgroundColor: `${app.accent}22`,
+                      backgroundColor: "#1A1A22",
                       borderWidth: 1,
                       borderColor: `${app.accent}55`,
                       alignItems: "center",
@@ -398,7 +397,7 @@ export default function HomeScreen() {
                     borderWidth: 1.5,
                     borderStyle: "dashed",
                     borderColor: "rgba(244,244,246,0.28)",
-                    backgroundColor: "rgba(255,255,255,0.03)",
+                    backgroundColor: "#1A1A22",
                     alignItems: "center",
                     justifyContent: "center",
                   }}

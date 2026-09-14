@@ -156,9 +156,9 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                 paddingVertical: 14,
                 paddingHorizontal: 14,
                 borderRadius: 18,
-                backgroundColor: "rgba(20,20,26,0.55)",
+                backgroundColor: "#14141A",
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.14)",
+                borderColor: "rgba(255,255,255,0.08)",
               }}
             >
               <View
