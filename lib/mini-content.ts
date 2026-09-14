@@ -11,9 +11,12 @@ import {
   type MealPlanState,
 } from "@/lib/meal-plan";
 import {
+  defaultPhotoPrefs,
   hydratePhotoMemory,
+  hydratePhotoPrefs,
   hydratePhotoWeek,
   type PhotoMemory,
+  type PhotoPrefs,
   type PhotoWeek,
 } from "@/lib/photo-challenge";
 
@@ -131,6 +134,11 @@ export type Prediction = {
   /** Proposer's pick: yes/me or no/them. */
   side: "yes" | "no";
   kind?: "who" | "will";
+  /** Full “Craig bets that…” line. */
+  statement?: string;
+  /** Typed name for name-pick markets. */
+  subject?: string;
+  pickMode?: "us" | "name" | "yesno";
   yesVoters: string[];
   noVoters: string[];
   status: BetStatus;
@@ -290,6 +298,7 @@ export type MiniState = {
   twoTruths: TwoTruthsRound[];
   photos: PhotoMemory[];
   photoWeek: PhotoWeek | null;
+  photoPrefs: PhotoPrefs;
   doodle: DoodleBoard;
   crossword: CrosswordSave[];
   story: StoryState | null;
@@ -630,6 +639,7 @@ export function emptyMiniState(): MiniState {
     twoTruths: [],
     photos: [],
     photoWeek: null,
+    photoPrefs: defaultPhotoPrefs(),
     doodle: { strokes: [], updatedAt: nowIso(), updatedBy: null },
     crossword: [],
     story: null,
@@ -691,6 +701,12 @@ function hydratePrediction(raw: unknown): Prediction {
     toUserId: typeof row.toUserId === "string" ? row.toUserId : "",
     side: row.side === "no" ? "no" : "yes",
     kind: row.kind === "who" ? "who" : "will",
+    statement: typeof row.statement === "string" ? row.statement : undefined,
+    subject: typeof row.subject === "string" ? row.subject : undefined,
+    pickMode:
+      row.pickMode === "us" || row.pickMode === "name" || row.pickMode === "yesno"
+        ? row.pickMode
+        : undefined,
     yesVoters: Array.isArray(row.yesVoters)
       ? row.yesVoters.filter((id): id is string => typeof id === "string")
       : [],
@@ -730,6 +746,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
       .map(hydratePhotoMemory)
       .filter((item): item is PhotoMemory => Boolean(item)),
     photoWeek: hydratePhotoWeek(row.photoWeek),
+    photoPrefs: hydratePhotoPrefs(row.photoPrefs),
     doodle: row.doodle ?? base.doodle,
     crossword: asArray(row.crossword, base.crossword),
     story: row.story ?? null,

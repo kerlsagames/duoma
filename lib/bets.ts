@@ -1,12 +1,15 @@
 export type BetPromptCategory = "everyday" | "sports" | "screen" | "challenge";
 export type BetStakeCategory = "app" | "house" | "spicy" | "silly";
 export type BetKind = "who" | "will";
+export type BetPickMode = "us" | "name" | "yesno";
 
 export type BetPrompt = {
   id: string;
   text: string;
   category: BetPromptCategory;
   kind: BetKind;
+  /** who-bets: couple (Me/Partner) or a typed name. */
+  pick?: "us" | "name";
 };
 
 export type BetStake = {
@@ -64,14 +67,14 @@ export const BET_PROMPTS: BetPrompt[] = [
   p("everyday", "will", "ice-cream", "Will we finish the whole ice cream tonight?"),
   p("everyday", "who", "get-ready", "Who will take longer to get ready for the date?"),
 
-  p("sports", "who", "h2h", "Who will win the head-to-head this weekend?"),
+  p("sports", "who", "h2h", "Who will win the head-to-head this weekend?", "name"),
   p("sports", "will", "margin-15", "Will our team win by more than 15 points?"),
-  p("sports", "who", "first-goal", "Who will kick the first goal?"),
+  p("sports", "who", "first-goal", "Who will kick the first goal?", "name"),
   p("sports", "will", "over-160", "Will the total match score go over 160?"),
   p("sports", "who", "fantasy-round", "Who will score more fantasy points this round?"),
   p("sports", "will", "goal-2min", "Will a goal go in within the first 2 minutes?"),
   p("sports", "will", "win-100", "Will the winning team score over 100 points?"),
-  p("sports", "who", "disposals", "Who will record more disposals this round?"),
+  p("sports", "who", "disposals", "Who will record more disposals this round?", "name"),
   p("sports", "will", "four-goals", "Will any player kick 4 or more goals?"),
   p("sports", "will", "ht-10", "Will the half-time margin be under 10 points?"),
   p("sports", "will", "centre-bounce", "Will our team win the opening centre clearance?"),
@@ -253,9 +256,51 @@ function p(
   category: BetPromptCategory,
   kind: BetKind,
   id: string,
-  text: string
+  text: string,
+  pick?: "us" | "name"
 ): BetPrompt {
-  return { id: `bet-${id}`, category, kind, text };
+  return { id: `bet-${id}`, category, kind, text, pick };
+}
+
+export function promptPickMode(prompt: Pick<BetPrompt, "kind" | "pick">): BetPickMode {
+  if (prompt.kind === "will") return "yesno";
+  return prompt.pick === "name" ? "name" : "us";
+}
+
+export function whoClause(question: string): string {
+  return question.replace(/^who\s+/i, "").replace(/\?+$/, "").trim();
+}
+
+export function selfPronoun(gender: "male" | "female" | null | undefined, name: string) {
+  if (gender === "male") return "he";
+  if (gender === "female") return "she";
+  return name;
+}
+
+export function buildBetStatement(input: {
+  me: string;
+  them: string;
+  gender?: "male" | "female" | null;
+  question: string;
+  mode: BetPickMode;
+  side: "yes" | "no";
+  subject?: string;
+}): string {
+  const q = input.question.trim();
+  const marked = /\?$/.test(q) ? q : `${q}?`;
+  if (input.mode === "yesno") {
+    return input.side === "yes"
+      ? `${input.me} bets YES — ${marked}`
+      : `${input.me} bets NO — ${marked}`;
+  }
+  const clause = whoClause(marked);
+  if (input.mode === "name") {
+    const who = (input.subject || "them").trim();
+    return `${input.me} bets that ${who} ${clause}.`;
+  }
+  const who =
+    input.side === "yes" ? selfPronoun(input.gender, input.me) : input.them;
+  return `${input.me} bets that ${who} ${clause}.`;
 }
 
 function s(category: BetStakeCategory, id: string, text: string): BetStake {

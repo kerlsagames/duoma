@@ -13,9 +13,12 @@ import {
   BET_STAKES,
   betPromptsIn,
   betStakesIn,
+  buildBetStatement,
   pickRandomPrompt,
   pickRandomStake,
+  promptPickMode,
   type BetKind,
+  type BetPickMode,
   type BetPrompt,
   type BetPromptCategory,
   type BetStakeCategory,
@@ -33,10 +36,14 @@ type ViewMode =
   | "home"
   | "prompts"
   | "prompt-list"
+  | "pick"
   | "stakes"
   | "stake-list"
   | "slip"
   | "custom";
+
+const TAPE_COPY =
+  "LOVEBETZ   ·   PLACE A SLIP   ·   THEY DISAGREE OR PASS   ·   WINNER TAKES THE PRIZE   ·   ";
 
 export default function PredictionScreen() {
   const { user, partner } = useApp();
@@ -48,25 +55,29 @@ export default function PredictionScreen() {
   const [title, setTitle] = useState("");
   const [stake, setStake] = useState("");
   const [kind, setKind] = useState<BetKind>("will");
+  const [pickMode, setPickMode] = useState<BetPickMode>("yesno");
   const [side, setSide] = useState<"yes" | "no">("yes");
+  const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const them = partner?.displayName || "them";
   const me = user?.displayName || "You";
   const tape = useRef(new Animated.Value(0)).current;
+  const [tapeWidth, setTapeWidth] = useState(0);
 
   useEffect(() => {
+    tape.setValue(0);
     const loop = Animated.loop(
       Animated.timing(tape, {
         toValue: 1,
-        duration: 16000,
+        duration: Math.max(14000, tapeWidth * 18),
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
     loop.start();
     return () => loop.stop();
-  }, [tape]);
+  }, [tape, tapeWidth]);
 
   const incoming = data.predictions.filter(
     (row) => row.status === "offered" && user && row.toUserId === user.id
@@ -78,11 +89,6 @@ export default function PredictionScreen() {
   const closed = data.predictions.filter(
     (row) => row.status === "settled" || row.status === "declined"
   );
-  const ticker =
-    [...incoming, ...outgoing, ...live, ...closed]
-      .map((row) => `${row.title} — winner gets ${row.stake}`)
-      .join("   ·   ") || "SEND A SLIP   ·   THEY TAKE THE OTHER SIDE   ·   WINNER GETS THE STAKE";
-
   const promptRows = useMemo(
     () => (promptCat ? betPromptsIn(promptCat) : []),
     [promptCat]
@@ -125,6 +131,7 @@ export default function PredictionScreen() {
     setPromptCat(null);
     setStakeCat(null);
     setPickedPrompt(null);
+    setSubject("");
     setError(null);
   };
 
@@ -132,12 +139,24 @@ export default function PredictionScreen() {
     setPickedPrompt(prompt);
     setTitle(prompt.text);
     setKind(prompt.kind);
+    setPickMode(promptPickMode(prompt));
     setStake("");
     setStakeCat(null);
     setSide("yes");
-    setView("stakes");
+    setSubject("");
+    setView("pick");
     setError(null);
   };
+
+  const statement = buildBetStatement({
+    me,
+    them,
+    gender: user?.gender,
+    question: title,
+    mode: pickMode,
+    side,
+    subject,
+  });
 
   const openSlip = (nextTitle: string, nextStake: string, nextKind: BetKind) => {
     setTitle(nextTitle);
@@ -168,6 +187,15 @@ export default function PredictionScreen() {
       return;
     }
     setError(null);
+    const line = buildBetStatement({
+      me,
+      them,
+      gender: user.gender,
+      question: nextTitle,
+      mode: pickMode,
+      side: nextSide,
+      subject,
+    });
     await patch((state) => ({
       ...state,
       predictions: [
@@ -180,6 +208,9 @@ export default function PredictionScreen() {
           fromUserId: user.id,
           toUserId: partner.id,
           side: nextSide,
+          statement: line,
+          subject: pickMode === "name" ? subject.trim() : undefined,
+          pickMode,
           yesVoters: [],
           noVoters: [],
           status: "offered",
@@ -193,7 +224,8 @@ export default function PredictionScreen() {
     setTitle("");
     setStake("");
     setPickedPrompt(null);
-    setFlash(`Slip sent to ${them}. Waiting for them to take the other side.`);
+    setSubject("");
+    setFlash(`Slip sent to ${them}. Waiting for them to disagree and accept.`);
     goHome();
   };
 
@@ -208,7 +240,11 @@ export default function PredictionScreen() {
         return acceptSlip(row);
       }),
     }));
-    setFlash(accept ? "You're on. If you're right, you collect the stake." : "Passed. Slip is void.");
+    setFlash(
+      accept
+        ? "You're on. You disagree — if their pick is wrong, you collect."
+        : "Passed. Slip is void."
+    );
   };
 
   const voidSlip = async (id: string) => {
@@ -236,8 +272,9 @@ export default function PredictionScreen() {
 
   const goBack = () => {
     if (view === "prompt-list") setView("prompts");
+    else if (view === "pick") setView("prompt-list");
     else if (view === "stake-list") setView("stakes");
-    else if (view === "stakes") setView("prompts");
+    else if (view === "stakes") setView("pick");
     else if (view === "slip") {
       if (pickedPrompt && stakeCat) setView("stake-list");
       else if (pickedPrompt) setView("stakes");
@@ -255,26 +292,45 @@ export default function PredictionScreen() {
             overflow: "hidden",
           }}
         >
-          <Animated.Text
+          <Animated.View
             style={{
-              color: T.onPink,
-              fontFamily: SANS,
-              fontSize: 12,
-              fontWeight: "700",
-              letterSpacing: 0.4,
-              width: 1400,
+              flexDirection: "row",
               transform: [
                 {
                   translateX: tape.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [20, -560],
+                    outputRange: [0, tapeWidth ? -tapeWidth : -280],
                   }),
                 },
               ],
             }}
           >
-            {ticker}   ·   {ticker}
-          </Animated.Text>
+            {[0, 1].map((copy) => (
+              <Text
+                key={copy}
+                onLayout={
+                  copy === 0
+                    ? (event) => {
+                        const next = event.nativeEvent.layout.width;
+                        if (next > 0 && Math.abs(next - tapeWidth) > 2) {
+                          setTapeWidth(next);
+                        }
+                      }
+                    : undefined
+                }
+                style={{
+                  color: T.onPink,
+                  fontFamily: SANS,
+                  fontSize: 12,
+                  fontWeight: "700",
+                  letterSpacing: 0.4,
+                  paddingRight: 8,
+                }}
+              >
+                {TAPE_COPY}
+              </Text>
+            ))}
+          </Animated.View>
         </View>
 
         {view !== "home" ? (
@@ -360,8 +416,8 @@ export default function PredictionScreen() {
                     lineHeight: 22,
                   }}
                 >
-                  Send {them} a slip. They take the other side, or pass. Whoever is
-                  right collects the stake.
+                  You pick a side and a prize. {them} can disagree and accept, or
+                  pass. Winner collects.
                 </Text>
                 <View
                   style={{
@@ -410,6 +466,7 @@ export default function PredictionScreen() {
                     key={row.id}
                     row={row}
                     them={them}
+                    me={me}
                     onAccept={() => void answerSlip(row.id, true)}
                     onDecline={() => void answerSlip(row.id, false)}
                   />
@@ -432,24 +489,23 @@ export default function PredictionScreen() {
                   setTitle("");
                   setStake("");
                   setKind("will");
+                  setPickMode("yesno");
                   setSide("yes");
+                  setSubject("");
                   setPickedPrompt(null);
                   setView("custom");
                 }}
               />
               <Pressable
                 onPress={() => {
-                  const prompt = pickRandomPrompt();
-                  const prize = pickRandomStake();
-                  setPickedPrompt(prompt);
-                  openSlip(prompt.text, prize.text, prompt.kind);
+                  startFromPrompt(pickRandomPrompt());
                 }}
                 style={tile}
               >
                 <Text style={[kicker, { color: T.pink }]}>LUCKY DIP</Text>
                 <Text style={titleMd}>Surprise slip</Text>
                 <Text style={detail}>
-                  Random market. Random stake. You still pick a side.
+                  Random market. You still pick a side, then the prize.
                 </Text>
               </Pressable>
             </View>
@@ -534,6 +590,29 @@ export default function PredictionScreen() {
           />
         ) : null}
 
+        {view === "pick" && pickedPrompt ? (
+          <PickPane
+            prompt={pickedPrompt}
+            mode={pickMode}
+            side={side}
+            subject={subject}
+            me={me}
+            them={them}
+            statement={statement}
+            onSide={setSide}
+            onSubject={setSubject}
+            onNext={() => {
+              if (pickMode === "name" && !subject.trim()) {
+                setError("Type who you are backing.");
+                return;
+              }
+              setError(null);
+              setView("stakes");
+            }}
+            error={error}
+          />
+        ) : null}
+
         {view === "stakes" && pickedPrompt ? (
           <View>
             <Text style={{ marginTop: 12, ...kicker, color: T.pink }}>THE STAKE</Text>
@@ -587,12 +666,10 @@ export default function PredictionScreen() {
         {view === "slip" ? (
           <SlipBuilder
             title={title}
+            statement={statement}
             stake={stake}
-            kind={kind}
-            side={side}
             them={them}
             error={error}
-            onSide={setSide}
             onSend={() => void sendSlip(title, stake, kind, side)}
           />
         ) : null}
@@ -622,18 +699,45 @@ export default function PredictionScreen() {
               placeholderTextColor={T.dim}
               style={term}
             />
-            <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
-              <Chip label="WILL IT" active={kind === "will"} onPress={() => setKind("will")} />
-              <Chip label="WHO WILL" active={kind === "who"} onPress={() => setKind("who")} />
+            <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <Chip
+                label="WILL IT"
+                active={pickMode === "yesno"}
+                onPress={() => {
+                  setKind("will");
+                  setPickMode("yesno");
+                }}
+              />
+              <Chip
+                label="ME OR THEM"
+                active={pickMode === "us"}
+                onPress={() => {
+                  setKind("who");
+                  setPickMode("us");
+                }}
+              />
+              <Chip
+                label="NAME A PICK"
+                active={pickMode === "name"}
+                onPress={() => {
+                  setKind("who");
+                  setPickMode("name");
+                }}
+              />
             </View>
             <Text style={{ marginTop: 16, ...kicker, color: T.pink }}>YOUR SIDE</Text>
-            <SidePicker
-              kind={kind}
-              side={side}
-              them={them}
-              stake={stake || "the stake"}
-              onSide={setSide}
-            />
+            {pickMode === "name" ? (
+              <TextInput
+                value={subject}
+                onChangeText={setSubject}
+                placeholder="Who are you backing?"
+                placeholderTextColor={T.dim}
+                style={term}
+              />
+            ) : (
+              <SidePicker mode={pickMode} side={side} them={them} onSide={setSide} />
+            )}
+            <Text style={{ marginTop: 12, ...detail }}>{statement}</Text>
             <Pressable
               onPress={() => void sendSlip(title, stake || "Bragging rights", kind, side)}
               style={pinkBtn}
@@ -702,18 +806,19 @@ function winnerName(row: Prediction, me: string, them: string, userId?: string) 
 function IncomingSlip({
   row,
   them,
+  me,
   onAccept,
   onDecline,
 }: {
   row: Prediction;
   them: string;
+  me: string;
   onAccept: () => void;
   onDecline: () => void;
 }) {
-  const theirSide =
-    row.kind === "who" ? (row.side === "yes" ? them : "you") : row.side === "yes" ? "Yes" : "No";
-  const yourSide =
-    row.kind === "who" ? (row.side === "yes" ? "you" : them) : row.side === "yes" ? "No" : "Yes";
+  const line =
+    row.statement ||
+    `${them} bets on “${row.title}”.`;
   return (
     <View
       style={{
@@ -724,11 +829,11 @@ function IncomingSlip({
       }}
     >
       <Text style={[kicker, { color: T.pink }]}>SLIP FROM {them.toUpperCase()}</Text>
-      <Text style={{ marginTop: 8, ...titleLg }}>{row.title}</Text>
-      <PrizeStrip stake={row.stake} />
-      <Text style={{ marginTop: 8, ...detail }}>
-        They took {theirSide}. Accept and you are on {yourSide}.
+      <Text style={{ marginTop: 8, ...titleLg }}>{line}</Text>
+      <Text style={{ marginTop: 10, ...detail }}>
+        Do you disagree and accept the bet, {me}?
       </Text>
+      <PrizeStrip stake={row.stake} />
       <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
         <Pressable
           onPress={onDecline}
@@ -753,7 +858,7 @@ function IncomingSlip({
           </Text>
         </Pressable>
         <Pressable onPress={onAccept} style={[pinkBtn, { flex: 1, marginTop: 0 }]}>
-          <Text style={pinkBtnText}>TAKE {yourSide.toUpperCase()}</Text>
+          <Text style={pinkBtnText}>DISAGREE & ACCEPT</Text>
         </Pressable>
       </View>
     </View>
@@ -776,11 +881,10 @@ function PendingCard({
   return (
     <View style={card}>
       <Text style={kicker}>WAITING ON {them.toUpperCase()}</Text>
-      <Text style={{ marginTop: 6, ...titleMd }}>{row.title}</Text>
+      <Text style={{ marginTop: 6, ...titleMd }}>{row.statement || row.title}</Text>
       <PrizeStrip stake={row.stake} />
       <Text style={{ marginTop: 8, ...detail }}>
-        You took {myPick(row, row.fromUserId, me, them)}. They still have to take the
-        other side.
+        Waiting for {them} to disagree and accept.
       </Text>
       {mine && onVoid ? (
         <Pressable onPress={onVoid} style={{ marginTop: 10 }}>
@@ -812,10 +916,10 @@ function LiveCard({
   return (
     <View style={card}>
       <Text style={kicker}>LIVE</Text>
-      <Text style={{ marginTop: 6, ...titleLg }}>{row.title}</Text>
+      <Text style={{ marginTop: 6, ...titleLg }}>{row.statement || row.title}</Text>
       <PrizeStrip stake={row.stake} />
       <Text style={{ marginTop: 8, ...detail }}>
-        You are on {myPick(row, userId, me, them)}. If you are right, you collect.
+        You are on {myPick(row, userId, me, them)}. If their pick is wrong, you collect.
       </Text>
       <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
         <Pressable onPress={() => onSettle("yes")} style={settleBtn(T.gold)}>
@@ -859,23 +963,83 @@ function ResultCard({
   );
 }
 
+function PickPane({
+  prompt,
+  mode,
+  side,
+  subject,
+  me,
+  them,
+  statement,
+  onSide,
+  onSubject,
+  onNext,
+  error,
+}: {
+  prompt: BetPrompt;
+  mode: BetPickMode;
+  side: "yes" | "no";
+  subject: string;
+  me: string;
+  them: string;
+  statement: string;
+  onSide: (side: "yes" | "no") => void;
+  onSubject: (value: string) => void;
+  onNext: () => void;
+  error: string | null;
+}) {
+  return (
+    <View
+      style={{
+        marginTop: 16,
+        borderWidth: 1,
+        borderColor: T.border,
+        backgroundColor: T.surface,
+        padding: 14,
+      }}
+    >
+      <Text style={[kicker, { color: T.pink }]}>YOUR PICK</Text>
+      <Text style={{ marginTop: 8, ...titleLg }}>{prompt.text}</Text>
+      {mode === "name" ? (
+        <>
+          <Text style={{ marginTop: 14, ...detail }}>
+            Type who you are backing — a player, a team, a name.
+          </Text>
+          <TextInput
+            value={subject}
+            onChangeText={onSubject}
+            placeholder="e.g. Nick Daicos"
+            placeholderTextColor={T.dim}
+            style={term}
+          />
+        </>
+      ) : (
+        <SidePicker mode={mode} side={side} them={them} onSide={onSide} />
+      )}
+      <Text style={{ marginTop: 14, ...detail }}>
+        {statement} {them} can disagree. This is {me}’s side.
+      </Text>
+      <Pressable onPress={onNext} style={pinkBtn}>
+        <Text style={pinkBtnText}>NEXT — PICK THE PRIZE</Text>
+      </Pressable>
+      {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
+    </View>
+  );
+}
+
 function SlipBuilder({
   title,
+  statement,
   stake,
-  kind,
-  side,
   them,
   error,
-  onSide,
   onSend,
 }: {
   title: string;
+  statement: string;
   stake: string;
-  kind: BetKind;
-  side: "yes" | "no";
   them: string;
   error: string | null;
-  onSide: (side: "yes" | "no") => void;
   onSend: () => void;
 }) {
   return (
@@ -894,13 +1058,10 @@ function SlipBuilder({
           <Text style={kicker}>BETTING SLIP</Text>
           <Text style={[kicker, { color: T.pink }]}>LOVEBETZ</Text>
         </View>
-        <Text style={{ marginTop: 10, ...titleLg }}>{title}</Text>
+        <Text style={{ marginTop: 10, ...titleLg }}>{statement || title}</Text>
         <PrizeStrip stake={stake} />
-        <Text style={{ marginTop: 16, ...kicker, color: T.pink }}>PICK YOUR SIDE</Text>
-        <SidePicker kind={kind} side={side} them={them} stake={stake} onSide={onSide} />
         <Text style={{ marginTop: 10, ...detail, lineHeight: 20 }}>
-          {them} is offered the other side. Same stake either way. If they pass, nothing
-          is owed.
+          {them} will see this and can disagree and accept, or pass.
         </Text>
         <Pressable onPress={onSend} style={pinkBtn}>
           <Text style={pinkBtnText}>SEND SLIP TO {them.toUpperCase()}</Text>
@@ -912,33 +1073,31 @@ function SlipBuilder({
 }
 
 function SidePicker({
-  kind,
+  mode,
   side,
   them,
-  stake,
   onSide,
 }: {
-  kind: BetKind;
+  mode: BetPickMode;
   side: "yes" | "no";
   them: string;
-  stake: string;
   onSide: (side: "yes" | "no") => void;
 }) {
-  const left = kind === "who" ? "Me" : "Yes";
-  const right = kind === "who" ? them : "No";
+  const left = mode === "us" ? "Me" : "Yes";
+  const right = mode === "us" ? "Partner" : "No";
   return (
     <View style={{ marginTop: 10, flexDirection: "row", gap: 8 }}>
       <SideTile
         label={left}
-        stake={stake}
+        stake={mode === "us" ? `I think it will be me` : "I think yes"}
         active={side === "yes"}
         onPress={() => onSide("yes")}
       />
       <SideTile
         label={right}
-        stake={stake}
-        active={side === "no"}
+        stake={mode === "us" ? `I think it will be ${them}` : "I think no"}
         onPress={() => onSide("no")}
+        active={side === "no"}
       />
     </View>
   );

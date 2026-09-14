@@ -41,7 +41,7 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   { id: "kitchen-bench", label: "Whatever is on the kitchen bench right now" },
   { id: "shoes-door", label: "The shoes by the door" },
   { id: "dinner-before", label: "Tonight's dinner, before anyone eats" },
-  { id: "couch-seat", label: "The view from your usual seat on the couch" },
+  { id: "couch-seat", label: "The view from our usual seat on the couch" },
   { id: "honest-sink", label: "A sink that tells the truth" },
   { id: "hallway-7", label: "The hallway light at 7pm" },
   { id: "their-bathroom", label: "Their side of the bathroom" },
@@ -62,26 +62,26 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   { id: "breakfast-scene", label: "Breakfast evidence" },
   { id: "no-smile", label: "Both of you in one frame. No smiling on purpose" },
   { id: "unposed-kiss", label: "A kiss that isn't for the camera" },
-  { id: "hands-together", label: "Your hands together" },
-  { id: "oldest-pose", label: "The same pose as your oldest photo of you two" },
-  { id: "first-date-fit", label: "Recreate your first-date outfits, badly" },
+  { id: "hands-together", label: "Our hands together" },
+  { id: "oldest-pose", label: "The same pose as our oldest photo of us" },
+  { id: "first-date-fit", label: "Recreate our first-date outfits, badly" },
   { id: "mid-laugh", label: "Them laughing, mid-sentence" },
   { id: "their-pov", label: "You, from their point of view" },
   { id: "foreheads", label: "Foreheads together" },
   { id: "photo-of-photo", label: "A photo of them taking a photo of you" },
   { id: "match-or-not", label: "Matching — or aggressively not" },
   { id: "leaving-house", label: "The two of you leaving the house" },
-  { id: "two-shadows", label: "Both of your shadows" },
+  { id: "two-shadows", label: "Both of our shadows" },
   { id: "half-asleep", label: "One face, half-asleep" },
   { id: "not-looking", label: "The look they give you when they think you're not looking" },
-  { id: "favourite-chair", label: "Your favourite chair, with them in it" },
+  { id: "favourite-chair", label: "Our favourite chair, with them in it" },
   { id: "hug-behind", label: "A hug from behind" },
   { id: "two-pairs-feet", label: "Two pairs of feet on the same couch" },
   { id: "two-brushes", label: "The two toothbrushes" },
   { id: "car-profile", label: "Their profile in a car window" },
   { id: "kitchen-dance", label: "A kitchen dance, even a bad one" },
   { id: "two-plates", label: "The same meal, two plates" },
-  { id: "in-your-jumper", label: "Them in your jumper" },
+  { id: "in-your-jumper", label: "Them in the other's jumper" },
   { id: "almost-deleted", label: "A selfie you almost deleted" },
   { id: "pinkies", label: "Pinkies hooked" },
   { id: "doorway-two", label: "The two of you in a doorway" },
@@ -89,14 +89,14 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   { id: "sunset-now", label: "Tonight's sunset. No filter debate" },
   { id: "their-doorway", label: "A doorway you still picture them in" },
   { id: "usual-carpark", label: "The car park you always end up in" },
-  { id: "your-street", label: "Streetlight, your street" },
+  { id: "your-street", label: "Streetlight, our street" },
   { id: "linger-aisle", label: "The aisle you linger in" },
   { id: "ticket-stub", label: "A ticket stub or receipt that matters" },
   { id: "usual-walk", label: "The walk you always take" },
   { id: "window-seat", label: "A window seat" },
   { id: "apology-place", label: "The place you argued, then apologised" },
   { id: "neon", label: "Neon, somewhere" },
-  { id: "usual-order", label: "Your usual coffee order, in the wild" },
+  { id: "usual-order", label: "Our usual coffee order, in the wild" },
   { id: "a-bench", label: "A bench you sat on this week" },
   { id: "passenger", label: "The view from the passenger seat" },
   { id: "rain-glass", label: "Rain on the windscreen" },
@@ -104,11 +104,11 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   { id: "long-way", label: "The long way home" },
   { id: "joke-sign", label: "A sign that feels like an inside joke" },
   { id: "boring-gold", label: "Golden hour on a boring street" },
-  { id: "your-corner", label: "Your booth, bar stool, or corner" },
+  { id: "your-corner", label: "Our booth, bar stool, or corner" },
   { id: "night-fluorescent", label: "Night market or fluorescent shop" },
   { id: "a-crossing", label: "A bridge or crossing" },
   { id: "sky-colour", label: "The sky the colour of the day you met. Close enough" },
-  { id: "front-door", label: "Your front door from the street" },
+  { id: "front-door", label: "Our front door from the street" },
   { id: "somewhere-new", label: "Somewhere new this week, even tiny" },
   { id: "bad-good-night", label: "A bad photo of a good night" },
   { id: "inside-joke", label: "Evidence of an inside joke" },
@@ -199,8 +199,39 @@ export function dealPhotoWeek(
 
 export function photoWeekIsLive(week: PhotoWeek | null, from = new Date()): boolean {
   if (!week) return false;
-  if (week.weekKey !== currentPhotoWeekKey(from)) return false;
   return new Date(week.expiresAt).getTime() > from.getTime();
+}
+
+export type PhotoPrefs = {
+  /** New shot can deal as soon as this one is pegged. Default waits the week. */
+  dealAfterComplete: boolean;
+};
+
+export function defaultPhotoPrefs(): PhotoPrefs {
+  return { dealAfterComplete: false };
+}
+
+export function hydratePhotoPrefs(raw: unknown): PhotoPrefs {
+  const base = defaultPhotoPrefs();
+  if (!raw || typeof raw !== "object") return base;
+  const row = raw as Partial<PhotoPrefs>;
+  return {
+    dealAfterComplete: Boolean(row.dealAfterComplete),
+  };
+}
+
+export function startNextPhotoWeek(
+  week: PhotoWeek | null,
+  from = new Date()
+): PhotoWeek {
+  const next = dealPhotoWeek(from, week?.usedPromptIds ?? []);
+  const ends = new Date(from);
+  ends.setDate(ends.getDate() + 7);
+  return {
+    ...next,
+    weekKey: `${localDateKey(from)}-${from.getTime()}`,
+    expiresAt: ends.toISOString(),
+  };
 }
 
 export function ensurePhotoWeek(

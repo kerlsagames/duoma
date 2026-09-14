@@ -15,6 +15,7 @@ import {
   pickImageFromDevice,
   prependPhoto,
   shufflePhotoWeek,
+  startNextPhotoWeek,
   type PhotoMemory,
 } from "@/lib/photo-challenge";
 import { useApp } from "@/lib/store";
@@ -45,6 +46,7 @@ export default function PhotoChallengesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [looking, setLooking] = useState<PhotoMemory | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), 1000);
@@ -155,32 +157,66 @@ export default function PhotoChallengesScreen() {
     }
   };
 
+  const dealNext = async () => {
+    setError(null);
+    setDraftImage(null);
+    setCaption("");
+    await patch((state) => ({
+      ...state,
+      photoWeek: startNextPhotoWeek(state.photoWeek),
+    }));
+  };
+
   const shownImage = thisWeekShot?.imageData ?? draftImage;
 
   return (
     <Screen scroll background={BG}>
       <Stage background={BG} fallback={"/hub/play" as Href} accent={RED}>
-        <Text
+        <View
           style={{
-            textAlign: "center",
-            color: RED,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 3,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
           }}
         >
-          DARKROOM · ONE SHOT THIS WEEK
-        </Text>
-        <Text
-          style={{
-            textAlign: "center",
-            fontFamily: SERIF,
-            fontSize: 34,
-            color: PINK,
-          }}
-        >
-          Clothesline
-        </Text>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text
+              style={{
+                color: RED,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 3,
+              }}
+            >
+              DARKROOM · ONE SHOT THIS WEEK
+            </Text>
+            <Text
+              style={{
+                marginTop: 6,
+                fontFamily: SERIF,
+                fontSize: 34,
+                color: PINK,
+              }}
+            >
+              Clothesline
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => setSettingsOpen(true)}
+            accessibilityLabel="Clothesline settings"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(194,59,59,0.4)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={20} color={PINK} />
+          </Pressable>
+        </View>
         <Text
           style={{
             textAlign: "center",
@@ -191,6 +227,96 @@ export default function PhotoChallengesScreen() {
         >
           Take one photo. You get seven days.
         </Text>
+
+        {settingsOpen ? (
+          <View
+            style={{
+              marginTop: 16,
+              borderWidth: 1,
+              borderColor: "rgba(194,59,59,0.4)",
+              backgroundColor: "rgba(10,4,4,0.55)",
+              padding: 14,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  color: RED,
+                }}
+              >
+                SETTINGS
+              </Text>
+              <Pressable onPress={() => setSettingsOpen(false)} hitSlop={10}>
+                <Ionicons name="close" size={20} color={PINK} />
+              </Pressable>
+            </View>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: CREAM,
+              }}
+            >
+              After a shot is pegged
+            </Text>
+            {(
+              [
+                {
+                  on: false,
+                  label: "Wait the week",
+                  hint: "Next challenge deals when the timer hits zero.",
+                },
+                {
+                  on: true,
+                  label: "Deal another now",
+                  hint: "You can start a new challenge as soon as this one is done.",
+                },
+              ] as const
+            ).map((row) => {
+              const selected = data.photoPrefs.dealAfterComplete === row.on;
+              return (
+                <Pressable
+                  key={row.label}
+                  onPress={() =>
+                    void patch((state) => ({
+                      ...state,
+                      photoPrefs: { dealAfterComplete: row.on },
+                    }))
+                  }
+                  style={{
+                    marginTop: 10,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: selected ? RED : "rgba(246,214,214,0.18)",
+                    backgroundColor: selected ? "rgba(194,59,59,0.18)" : "transparent",
+                  }}
+                >
+                  <Text style={{ color: CREAM, fontWeight: "800" }}>{row.label}</Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      fontFamily: SERIF,
+                      fontSize: 14,
+                      color: "rgba(246,214,214,0.65)",
+                    }}
+                  >
+                    {row.hint}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
 
         <View
           style={{
@@ -419,6 +545,32 @@ export default function PhotoChallengesScreen() {
                 </Pressable>
               </>
             )}
+          </View>
+        ) : data.photoPrefs.dealAfterComplete ? (
+          <View style={{ marginTop: 18, gap: 10 }}>
+            <Text
+              style={{
+                textAlign: "center",
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: "rgba(246,214,214,0.7)",
+              }}
+            >
+              Pegged. Deal the next shot whenever you want.
+            </Text>
+            <Pressable
+              onPress={() => void dealNext()}
+              style={{
+                height: 48,
+                backgroundColor: RED,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: CREAM, fontWeight: "800" }}>
+                Deal the next shot
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <Text
