@@ -323,12 +323,27 @@ export const SEX_POSITIONS: SexPosition[] = [
   },
 ];
 
+export const POSITION_COUNT = SEX_POSITIONS.length;
+
 export function positionsInCategories(
   enabled: PositionCategoryId[] | "all"
 ): SexPosition[] {
   if (enabled === "all" || enabled.length === 0) return SEX_POSITIONS;
   const set = new Set(enabled);
   return SEX_POSITIONS.filter((row) => set.has(row.category));
+}
+
+export function searchPositions(
+  enabled: PositionCategoryId[] | "all",
+  query: string
+): SexPosition[] {
+  const pool = positionsInCategories(enabled);
+  const needle = query.trim().toLowerCase();
+  if (!needle) return pool;
+  return pool.filter((row) => {
+    const cat = categoryMeta(row.category)?.label ?? "";
+    return `${row.name} ${row.blurb} ${cat}`.toLowerCase().includes(needle);
+  });
 }
 
 export function positionById(id: string): SexPosition | null {

@@ -161,7 +161,7 @@ export const HUBS: HubDef[] = [
       {
         id: "positions",
         label: "Positions Guide",
-        detail: "Pose guide. Pick one together.",
+        detail: "Pose guide. Spin one, or search the list.",
         icon: "body",
         href: "/hub/positions",
       },

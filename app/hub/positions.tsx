@@ -1,4 +1,5 @@
 import { BackButton } from "@/components/ui/BackButton";
+import { PositionArt } from "@/components/hub/PositionArt";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
@@ -6,8 +7,9 @@ import {
   categoryMeta,
   pickRandomPosition,
   positionById,
-  positionsInCategories,
   POSITION_CATEGORIES,
+  POSITION_COUNT,
+  searchPositions,
   type PositionCategoryId,
   type SexPosition,
 } from "@/lib/sex-positions";
@@ -15,7 +17,7 @@ import { useApp } from "@/lib/store";
 import type { PositionInvite } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = POSITIONS_TONE;
 
@@ -37,11 +39,11 @@ export default function PositionsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
+  const [query, setQuery] = useState("");
 
-  const poolSize = useMemo(
-    () => positionsInCategories(enabled).length,
-    [enabled]
-  );
+  const poolSize = useMemo(() => searchPositions(enabled, "").length, [enabled]);
+  const browse = useMemo(() => searchPositions(enabled, query), [enabled, query]);
 
   const incoming = useMemo(
     () =>
@@ -154,7 +156,7 @@ export default function PositionsScreen() {
             color: T.muted,
           }}
         >
-          Toggle categories, spin one up, skip or send it to {partnerName}.
+          Toggle categories, spin one up, or search the list and send it to {partnerName}.
         </Text>
 
         <View style={{ marginTop: 20 }}>
@@ -162,6 +164,13 @@ export default function PositionsScreen() {
             label="Pick me a Position"
             tone="crimson"
             onPress={pick}
+          />
+        </View>
+        <View style={{ marginTop: 10 }}>
+          <PrimaryButton
+            label={showBrowse ? "Hide the list" : `Search all ${POSITION_COUNT}`}
+            tone="ghost"
+            onPress={() => setShowBrowse((value) => !value)}
           />
         </View>
 
@@ -200,6 +209,9 @@ export default function PositionsScreen() {
             >
               {current.name}
             </Text>
+            <View style={{ marginTop: 14 }}>
+              <PositionArt position={current} size={220} />
+            </View>
             <Text
               style={{
                 marginTop: 6,
@@ -342,6 +354,98 @@ export default function PositionsScreen() {
             );
           })}
         </View>
+
+        {showBrowse ? (
+          <View style={{ marginTop: 22 }}>
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search names and notes"
+              placeholderTextColor="rgba(246,238,242,0.35)"
+              style={{
+                height: 48,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.14)",
+                backgroundColor: T.surface,
+                paddingHorizontal: 16,
+                color: T.ink,
+                fontSize: 16,
+              }}
+            />
+            <Text
+              style={{
+                marginTop: 10,
+                marginBottom: 8,
+                fontSize: 13,
+                color: T.muted,
+              }}
+            >
+              {browse.length} match{browse.length === 1 ? "" : "es"}
+            </Text>
+            {browse.length === 0 ? (
+              <Text style={{ color: T.muted, fontSize: 14, lineHeight: 20 }}>
+                Nothing matches. Try a different word or turn a category back on.
+              </Text>
+            ) : (
+              <View style={{ gap: 8 }}>
+                {browse.map((pose) => {
+                  const on = current?.id === pose.id;
+                  return (
+                    <Pressable
+                      key={pose.id}
+                      onPress={() => {
+                        setSentFlash(false);
+                        setError(null);
+                        setCurrent(pose);
+                      }}
+                      style={{
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        borderColor: on ? T.border : "rgba(255,255,255,0.1)",
+                        backgroundColor: on ? T.accentSoft : T.surface,
+                        padding: 14,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: SERIF,
+                          fontSize: 18,
+                          color: T.ink,
+                        }}
+                      >
+                        {pose.name}
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 4,
+                          fontSize: 13,
+                          lineHeight: 18,
+                          color: T.muted,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {pose.blurb}
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 8,
+                          fontSize: 11,
+                          letterSpacing: 0.6,
+                          textTransform: "uppercase",
+                          color: T.accent,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {categoryMeta(pose.category)?.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        ) : null}
 
         {incoming.length ? (
           <InviteSection
