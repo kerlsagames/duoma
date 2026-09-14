@@ -37,7 +37,7 @@ const STEPS = [
   {
     kicker: "Fun",
     title: "Play without a plan",
-    body: "Coupons, LoveBetz, photo memory (100 ideas, one shot a week), trivia, Draw It, Daily Word (same five letters, who lands it first), and the rest of the games. Nothing here has to lead to bed.",
+    body: "Coupons, LoveBetz, photo memory (one shot a week — shuffle until you lock it), trivia, Draw It, Daily Word (same five letters, who lands it first), and the rest of the games. Nothing here has to lead to bed.",
   },
   {
     kicker: "Home Base",
