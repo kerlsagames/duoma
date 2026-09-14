@@ -487,7 +487,7 @@ type AppContextValue = {
     dareId: string | null;
     text: string;
     categories?: string[];
-    direction: DareDirection;
+    direction: DareDirection | null;
     timeframe: DareTimeframe;
     customWhen?: string | null;
   }) => Promise<void>;
@@ -2799,7 +2799,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dareId: string | null;
       text: string;
       categories?: string[];
-      direction: DareDirection;
+      direction: DareDirection | null;
       timeframe: DareTimeframe;
       customWhen?: string | null;
     }) => {
@@ -2873,12 +2873,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         talkDecks,
       };
       await persist();
+      const body =
+        input.direction === "i-do-you"
+          ? `${user.displayName} wants to do this to you.`
+          : input.direction === "you-do-me"
+            ? `${user.displayName} dared you — if you're up for it.`
+            : `${user.displayName} sent you a dare.`;
       pingPartner(couple, user, partner, {
         title: "Up for it",
-        body:
-          input.direction === "i-do-you"
-            ? `${user.displayName} wants to do this to you.`
-            : `${user.displayName} dared you — if you're up for it.`,
+        body,
         url: "/hub/up-for-it",
       });
     },

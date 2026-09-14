@@ -479,7 +479,8 @@ export type SpicyDarePlay = {
   dareId: string | null;
   text: string;
   categories: string[];
-  direction: DareDirection;
+  /** Null when the dare isn’t a clear you↔me act. */
+  direction: DareDirection | null;
   timeframe: DareTimeframe;
   customWhen: string | null;
   dueAt: string | null;

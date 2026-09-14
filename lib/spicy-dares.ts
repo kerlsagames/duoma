@@ -1250,6 +1250,8 @@ export function timeframeLabel(
   return timingSummary(timeframe, dueAt, customWhen);
 }
 
-export function directionLabel(direction: DareDirection): string {
-  return direction === "i-do-you" ? "I'll do this to you" : "You do this to me";
+export function directionLabel(direction: DareDirection | null | undefined): string {
+  if (direction === "i-do-you") return "I'll do this to you";
+  if (direction === "you-do-me") return "You do this to me";
+  return "No direction";
 }

@@ -295,7 +295,9 @@ export function buildHomeNotifications(input: {
         play.status === "offered" && incoming
           ? play.direction === "you-do-me"
             ? "Up for it · dare for you"
-            : "Up for it · they want to do this"
+            : play.direction === "i-do-you"
+              ? "Up for it · they want to do this"
+              : "Up for it · dare for you"
           : play.status === "offered"
             ? `Up for it sent · ${when}`
             : `Up for it on · ${when}`;

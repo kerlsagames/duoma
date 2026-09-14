@@ -285,6 +285,7 @@ function hydrateSpicyDare(row: AppDB["spicyDares"][number]): AppDB["spicyDares"]
     ...row,
     dareId: row.dareId ?? null,
     categories: row.categories ?? [],
+    direction: row.direction ?? null,
     customWhen: row.customWhen ?? null,
     dueAt: row.dueAt ?? null,
     answeredAt: row.answeredAt ?? null,

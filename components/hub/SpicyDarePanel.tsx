@@ -215,10 +215,6 @@ export function SpicyDarePanel({
 
   const send = async () => {
     if (!compose) return;
-    if (!direction) {
-      setError("Pick who does this.");
-      return;
-    }
     if (timeframe === "custom") {
       const picked = parseLocalDateTime(customWhen);
       if (!picked) {
@@ -434,7 +430,10 @@ export function SpicyDarePanel({
             color: T.accent,
           }}
         >
-          Who
+          Who · optional
+        </Text>
+        <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 18, color: T.muted }}>
+          Skip if it doesn’t apply — not every dare is you-to-me or me-to-you.
         </Text>
         <View className="mt-3" style={{ gap: 8 }}>
           {(["i-do-you", "you-do-me"] as DareDirection[]).map((id) => {
@@ -442,7 +441,7 @@ export function SpicyDarePanel({
             return (
               <Pressable
                 key={id}
-                onPress={() => setDirection(id)}
+                onPress={() => setDirection((prev) => (prev === id ? null : id))}
                 style={{
                   borderRadius: 18,
                   paddingVertical: 14,
@@ -1098,7 +1097,12 @@ function LiveDareCard({
   const accepted = play.status === "accepted";
   const declined = play.status === "declined";
   const done = play.status === "done";
-  const heading = play.direction === "i-do-you" ? "I'll do this to you" : "You do this to me";
+  const heading =
+    play.direction === "i-do-you"
+      ? "I'll do this to you"
+      : play.direction === "you-do-me"
+        ? "You do this to me"
+        : null;
   const live = play.status === "offered" || play.status === "accepted";
 
   return (
@@ -1121,7 +1125,7 @@ function LiveDareCard({
           color: live ? T.hot : T.muted,
         }}
       >
-        {heading} · {dareWhen(play)}
+        {heading ? `${heading} · ${dareWhen(play)}` : dareWhen(play)}
       </Text>
       <Text
         style={{
