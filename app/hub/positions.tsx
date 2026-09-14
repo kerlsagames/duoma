@@ -1,5 +1,4 @@
 import { BackButton } from "@/components/ui/BackButton";
-import { PositionArt } from "@/components/hub/PositionArt";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
@@ -9,6 +8,7 @@ import {
   positionById,
   POSITION_CATEGORIES,
   POSITION_COUNT,
+  positionsInCategory,
   searchPositions,
   type PositionCategoryId,
   type SexPosition,
@@ -88,7 +88,7 @@ export default function PositionsScreen() {
     setCurrent(next);
   };
 
-  // Show a pose immediately so the flat art is visible on open.
+  // Show a pose immediately so the card isn't empty on open.
   useEffect(() => {
     if (current) return;
     const next = pickRandomPosition(enabled, null);
@@ -200,21 +200,6 @@ export default function PositionsScreen() {
           >
             <Text
               style={{
-                fontFamily: SERIF,
-                fontSize: 26,
-                lineHeight: 32,
-                color: T.ink,
-                textAlign: "center",
-              }}
-            >
-              {current.name}
-            </Text>
-            <View style={{ marginTop: 14 }}>
-              <PositionArt position={current} size={220} />
-            </View>
-            <Text
-              style={{
-                marginTop: 6,
                 fontSize: 12,
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
@@ -224,6 +209,18 @@ export default function PositionsScreen() {
               }}
             >
               {categoryMeta(current.category)?.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 8,
+                fontFamily: SERIF,
+                fontSize: 26,
+                lineHeight: 32,
+                color: T.ink,
+                textAlign: "center",
+              }}
+            >
+              {current.name}
             </Text>
             <Text
               style={{
@@ -288,7 +285,7 @@ export default function PositionsScreen() {
                 lineHeight: 22,
               }}
             >
-              Your next position lands here — flat pink / blue pose guide.
+              Your next position lands here. Spin one, or search the list.
             </Text>
           </View>
         )}
@@ -337,7 +334,7 @@ export default function PositionsScreen() {
                     fontSize: 14,
                   }}
                 >
-                  {cat.label}
+                  {cat.label} · {positionsInCategory(cat.id).length}
                 </Text>
                 <Text
                   style={{

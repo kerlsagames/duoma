@@ -24,7 +24,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
 
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
-- **Positions** — Category toggles, Pick me a Position, and search the whole list. Flat editorial pink/blue pose art.
+- **Positions** — Category toggles, Pick me a Position, and search the whole list.
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 

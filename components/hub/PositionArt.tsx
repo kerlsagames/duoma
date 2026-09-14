@@ -51,7 +51,7 @@ export function PositionArt({
   position: SexPosition;
   size?: number;
 }) {
-  const source = IMAGES[position.art];
+  const source = IMAGES[position.id];
   return (
     <View
       style={{
