@@ -1,3 +1,4 @@
+import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { Screen } from "@/components/ui/Screen";
@@ -14,7 +15,6 @@ import {
   type HubAppOption,
 } from "@/lib/home-favorites";
 import {
-  HOME_WALLPAPERS,
   loadHomeWallpaper,
   nextHomeWallpaper,
   saveHomeWallpaper,
@@ -26,7 +26,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -48,7 +47,6 @@ export default function HomeScreen() {
   );
   const [pickerSlot, setPickerSlot] = useState<number | null>(null);
   const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
-  const wallpaper = HOME_WALLPAPERS[wallpaperId];
 
   // Screen horizontal padding (~20) + gap between tiles.
   const tileWidth = Math.max(140, (width - 40 - 12) / 2);
@@ -127,33 +125,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
-      {wallpaper.source ? (
-        <Image
-          source={wallpaper.source}
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-          }}
-          resizeMode="cover"
-        />
-      ) : null}
-      {wallpaper.source ? (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            backgroundColor: wallpaper.scrim,
-          }}
-        />
-      ) : null}
+    <HomeBackdrop wallpaperId={wallpaperId}>
     <Screen scroll background="transparent">
       <View className="pt-1 pb-10">
         <View
@@ -214,7 +186,9 @@ export default function HomeScreen() {
                 borderRadius: 18,
                 paddingVertical: 12,
                 paddingHorizontal: 10,
-                backgroundColor: hub.tile,
+                backgroundColor: `${hub.tile}3D`,
+                borderWidth: 1.5,
+                borderColor: hub.accent,
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
@@ -225,12 +199,12 @@ export default function HomeScreen() {
                   width: 48,
                   height: 48,
                   borderRadius: 14,
-                  backgroundColor: "rgba(255,255,255,0.22)",
+                  backgroundColor: `${hub.tile}55`,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={hub.icon} size={28} color={hub.tileInk} />
+                <Ionicons name={hub.icon} size={28} color="#F4F4F6" />
               </View>
               <View style={{ width: "100%", alignItems: "center" }}>
                 <Text
@@ -238,7 +212,7 @@ export default function HomeScreen() {
                     fontFamily: SERIF,
                     fontSize: 18,
                     lineHeight: 22,
-                    color: hub.tileInk,
+                    color: "#F4F4F6",
                     textAlign: "center",
                   }}
                 >
@@ -247,8 +221,7 @@ export default function HomeScreen() {
                 <Text
                   style={{
                     marginTop: 2,
-                    color: hub.tileInk,
-                    opacity: 0.72,
+                    color: "rgba(244,244,246,0.78)",
                     fontSize: 11,
                     lineHeight: 14,
                     textAlign: "center",
@@ -631,6 +604,6 @@ export default function HomeScreen() {
       >
         <Ionicons name="refresh" size={20} color="#F4F4F6" />
       </Pressable>
-    </View>
+    </HomeBackdrop>
   );
 }

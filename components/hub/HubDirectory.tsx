@@ -1,3 +1,4 @@
+import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
@@ -19,9 +20,11 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
 
   if (!hub) {
     return (
-      <Screen>
-        <Text className="text-mist">Hub not found.</Text>
-      </Screen>
+      <HomeBackdrop>
+        <Screen background="transparent">
+          <Text className="text-mist">Hub not found.</Text>
+        </Screen>
+      </HomeBackdrop>
     );
   }
 
@@ -49,7 +52,8 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
   };
 
   return (
-    <Screen scroll background="#0B0B0E">
+    <HomeBackdrop>
+    <Screen scroll background="transparent">
       <View className="pt-4 pb-10">
         <BackButton
           color={hub.accent}
@@ -152,9 +156,9 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                 paddingVertical: 14,
                 paddingHorizontal: 14,
                 borderRadius: 18,
-                backgroundColor: "#14141A",
+                backgroundColor: "rgba(20,20,26,0.55)",
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.08)",
+                borderColor: "rgba(255,255,255,0.14)",
               }}
             >
               <View
@@ -200,5 +204,6 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
         </View>
       </View>
     </Screen>
+    </HomeBackdrop>
   );
 }
