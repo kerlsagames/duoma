@@ -1,18 +1,14 @@
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { ERRANDS_TONE, HANDWRITING, SERIF } from "@/lib/app-themes";
+import { noteHeading, type MealPlanNote } from "@/lib/meal-plan";
+import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { ErrandItem, ErrandKind } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
-import type { Href } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useMemo, useState, type ReactNode } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = ERRANDS_TONE;
 const LINE = 36;
@@ -23,21 +19,58 @@ const QUICK_GROCERIES = [
   { emoji: "🥚", label: "Eggs" },
   { emoji: "🧈", label: "Butter" },
   { emoji: "🧀", label: "Cheese" },
+  { emoji: "🥛", label: "Yoghurt" },
+  { emoji: "🥛", label: "Cream" },
   { emoji: "🍎", label: "Apples" },
   { emoji: "🍌", label: "Bananas" },
+  { emoji: "🍓", label: "Berries" },
+  { emoji: "🍋", label: "Lemons" },
+  { emoji: "🥑", label: "Avocado" },
   { emoji: "🍅", label: "Tomatoes" },
   { emoji: "🧅", label: "Onions" },
+  { emoji: "🧄", label: "Garlic" },
   { emoji: "🥔", label: "Potatoes" },
   { emoji: "🥕", label: "Carrots" },
   { emoji: "🥬", label: "Greens" },
+  { emoji: "🥦", label: "Broccoli" },
+  { emoji: "🥒", label: "Cucumber" },
+  { emoji: "🫑", label: "Capsicum" },
+  { emoji: "🍄", label: "Mushrooms" },
+  { emoji: "🌽", label: "Corn" },
+  { emoji: "🫚", label: "Ginger" },
   { emoji: "🍗", label: "Chicken" },
   { emoji: "🥩", label: "Beef" },
+  { emoji: "🥩", label: "Mince" },
+  { emoji: "🥓", label: "Bacon" },
+  { emoji: "🌭", label: "Sausages" },
+  { emoji: "🐟", label: "Salmon" },
+  { emoji: "🐟", label: "Tuna" },
+  { emoji: "🦐", label: "Prawns" },
   { emoji: "🍝", label: "Pasta" },
+  { emoji: "🍜", label: "Noodles" },
   { emoji: "🍚", label: "Rice" },
-  { emoji: "☕", label: "Coffee" },
-  { emoji: "🧃", label: "Juice" },
+  { emoji: "🌮", label: "Tortillas" },
+  { emoji: "🫘", label: "Beans" },
+  { emoji: "🥫", label: "Tinned tomatoes" },
+  { emoji: "🥥", label: "Coconut milk" },
+  { emoji: "🥣", label: "Stock" },
+  { emoji: "🫘", label: "Chickpeas" },
+  { emoji: "🌾", label: "Flour" },
+  { emoji: "🍯", label: "Honey" },
+  { emoji: "🥜", label: "Peanut butter" },
   { emoji: "🫒", label: "Oil" },
   { emoji: "🧂", label: "Salt" },
+  { emoji: "🌶️", label: "Chilli" },
+  { emoji: "☕", label: "Coffee" },
+  { emoji: "🍵", label: "Tea" },
+  { emoji: "🧃", label: "Juice" },
+  { emoji: "🍷", label: "Wine" },
+  { emoji: "🧊", label: "Frozen veg" },
+  { emoji: "🍦", label: "Ice cream" },
+  { emoji: "🥣", label: "Oats" },
+  { emoji: "🥣", label: "Cereal" },
+  { emoji: "🍫", label: "Chocolate" },
+  { emoji: "🍪", label: "Crackers" },
 ] as const;
 
 function itemLabel(item: ErrandItem) {
@@ -52,8 +85,9 @@ export default function GroceriesErrandsScreen() {
     removeErrandItem,
     clearDoneErrands,
   } = useApp();
-  const { width } = useWindowDimensions();
-  const sideBySide = width >= 720;
+  const { data } = useMiniApps();
+  const router = useRouter();
+  const [pad, setPad] = useState<ErrandKind>("grocery");
 
   const groceries = useMemo(
     () => errandItems.filter((row) => row.kind === "grocery"),
@@ -63,6 +97,12 @@ export default function GroceriesErrandsScreen() {
     () => errandItems.filter((row) => row.kind === "errand"),
     [errandItems]
   );
+  const plannedMeals = useMemo(
+    () => data.mealPlan.notes.filter((row) => row.title.trim()),
+    [data.mealPlan.notes]
+  );
+
+  const onGroceries = pad === "grocery";
 
   return (
     <Screen scroll background={T.background}>
@@ -93,29 +133,57 @@ export default function GroceriesErrandsScreen() {
             color: "#F6EFE2",
           }}
         >
-          The lists
-        </Text>
-        <Text
-          style={{
-            marginTop: 6,
-            fontFamily: SERIF,
-            fontSize: 15,
-            lineHeight: 22,
-            color: "rgba(246,239,226,0.7)",
-          }}
-        >
-          Two notepads. Tick things off as you go.
+          {onGroceries ? "Groceries" : "Errands"}
         </Text>
 
         <View
           style={{
-            marginTop: 22,
-            flexDirection: sideBySide ? "row" : "column",
-            alignItems: "flex-start",
-            gap: 18,
+            marginTop: 16,
+            flexDirection: "row",
+            padding: 4,
+            borderRadius: 16,
+            backgroundColor: T.desk,
+            borderWidth: 1,
+            borderColor: "rgba(232,217,196,0.18)",
           }}
         >
-          <View style={{ flex: 1, width: "100%" }}>
+          {(
+            [
+              { id: "grocery" as const, label: "Groceries", count: groceries.filter((row) => !row.doneAt).length },
+              { id: "errand" as const, label: "Errands", count: errands.filter((row) => !row.doneAt).length },
+            ] as const
+          ).map((item) => {
+            const on = pad === item.id;
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => setPad(item.id)}
+                style={{
+                  flex: 1,
+                  height: 42,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: on ? T.paper : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "SpaceMono",
+                    fontSize: 12,
+                    color: on ? T.ink : "#E8D9C4",
+                  }}
+                >
+                  {item.label}
+                  {item.count ? ` · ${item.count}` : ""}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={{ marginTop: 18 }}>
+          {onGroceries ? (
             <Notepad
               title="Groceries"
               kind="grocery"
@@ -127,9 +195,10 @@ export default function GroceriesErrandsScreen() {
               onRemove={(id) => removeErrandItem(id)}
               onClearDone={() => clearDoneErrands("grocery")}
               quickAdd
+              meals={plannedMeals}
+              onOpenMeals={() => router.push("/hub/meal-plan" as Href)}
             />
-          </View>
-          <View style={{ flex: 1, width: "100%" }}>
+          ) : (
             <Notepad
               title="Errands"
               kind="errand"
@@ -141,7 +210,7 @@ export default function GroceriesErrandsScreen() {
               onRemove={(id) => removeErrandItem(id)}
               onClearDone={() => clearDoneErrands("errand")}
             />
-          </View>
+          )}
         </View>
       </View>
     </Screen>
@@ -159,6 +228,8 @@ function Notepad({
   onRemove,
   onClearDone,
   quickAdd,
+  meals,
+  onOpenMeals,
 }: {
   title: string;
   kind: ErrandKind;
@@ -170,6 +241,8 @@ function Notepad({
   onRemove: (id: string) => Promise<unknown>;
   onClearDone: () => Promise<unknown>;
   quickAdd?: boolean;
+  meals?: MealPlanNote[];
+  onOpenMeals?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -360,18 +433,29 @@ function Notepad({
                 disabled={busy || onList}
                 onPress={() => void submit(`${item.emoji} ${item.label}`)}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
+                  height: 32,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
                   alignItems: "center",
                   justifyContent: "center",
+                  flexDirection: "row",
+                  gap: 4,
                   backgroundColor: onList ? T.accentSoft : "rgba(44,36,22,0.04)",
                   borderWidth: 1,
                   borderColor: onList ? T.accent : "rgba(44,36,22,0.1)",
                   opacity: onList ? 0.55 : 1,
                 }}
               >
-                <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
+                <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 13,
+                    color: T.ink,
+                  }}
+                >
+                  {item.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -409,6 +493,97 @@ function Notepad({
           />
         ))
       )}
+
+      {meals ? (
+        <View
+          style={{
+            paddingLeft: 40,
+            paddingRight: 12,
+            paddingTop: 12,
+            paddingBottom: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: T.rule,
+          }}
+        >
+          <Pressable
+            onPress={onOpenMeals}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: HANDWRITING,
+                fontSize: 20,
+                color: T.ink,
+              }}
+            >
+              Meal Plan
+            </Text>
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 12,
+                color: T.accent,
+              }}
+            >
+              Open
+            </Text>
+          </Pressable>
+          {meals.length === 0 ? (
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 14,
+                color: T.muted,
+                fontStyle: "italic",
+              }}
+            >
+              No dinners on the meal plan yet. Add some, then shop from here.
+            </Text>
+          ) : (
+            <View style={{ gap: 6 }}>
+              {meals.map((meal) => {
+                const line = `${noteHeading(meal)} · ${meal.title.trim()}`;
+                const onList = alreadyOpen(meal.title) || alreadyOpen(line);
+                return (
+                  <Pressable
+                    key={meal.id}
+                    disabled={busy || onList}
+                    onPress={() => void submit(line)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                      opacity: meal.eaten || onList ? 0.5 : 1,
+                    }}
+                  >
+                    <Ionicons
+                      name={onList ? "checkmark" : "add"}
+                      size={16}
+                      color={onList ? T.check : T.accent}
+                    />
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontFamily: SERIF,
+                        fontSize: 15,
+                        color: T.ink,
+                        textDecorationLine: meal.eaten ? "line-through" : "none",
+                      }}
+                    >
+                      {line}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      ) : null}
 
       {Array.from({ length: blankLines }).map((_, index) => (
         <LinedRow key={`${kind}-blank-${index}`} />
