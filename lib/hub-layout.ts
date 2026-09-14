@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
 
-export const HUB_LAYOUT_KEY = "duoma:hubLayout:v1";
+export const HUB_LAYOUT_KEY = "duoma:hubLayout:v2";
 
 export type HubView = "list" | "grid" | "compact";
 
@@ -42,7 +42,7 @@ export function defaultHubLayout(): HubLayout {
   return {
     order: [],
     hidden: [],
-    view: "list",
+    view: "grid",
     showDetails: true,
   };
 }

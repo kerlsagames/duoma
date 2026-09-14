@@ -4,6 +4,7 @@ import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import {
   catalogOrder,
+  defaultHubLayout,
   HUB_VIEW_OPTIONS,
   moveFeature,
   toggleHidden,
@@ -582,12 +583,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               </View>
 
               <Pressable
-                onPress={() => void save(() => ({
-                  order: [],
-                  hidden: [],
-                  view: "list",
-                  showDetails: true,
-                }))}
+                onPress={() => void save(() => defaultHubLayout())}
                 style={{
                   height: 46,
                   borderRadius: 14,
