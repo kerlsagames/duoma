@@ -1,27 +1,24 @@
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { Gender } from "@/lib/types";
-import { afterPairHref } from "@/lib/worlds";
 import * as Clipboard from "expo-clipboard";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Share, Text, View } from "react-native";
 
 export default function WaitingScreen() {
   const router = useRouter();
   const { couple, partner, addDemoPartner, signOut } = useApp();
-  const { data, ready } = useMiniApps();
   const [copied, setCopied] = useState(false);
   const [demoGender, setDemoGender] = useState<Gender>("female");
 
   useEffect(() => {
-    if (couple?.partnerB && partner && ready) {
-      router.replace(afterPairHref(data.worldChoice) as Href);
+    if (couple?.partnerB && partner) {
+      router.replace("/(tabs)");
     }
-  }, [couple?.partnerB, partner, ready, data.worldChoice, router]);
+  }, [couple?.partnerB, partner, router]);
 
   const share = async () => {
     if (!couple) return;

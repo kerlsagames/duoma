@@ -84,7 +84,7 @@ export default function WelcomeScreen() {
           ))}
         </View>
         <Text className="mt-3 text-[13px] leading-5 text-mist/50">
-          Plus a shared calendar, a daily check-in, and a world you grow together.
+          Plus a shared calendar and a daily check-in on the home screen.
         </Text>
 
         <View className="mt-8 gap-3">

@@ -9,6 +9,8 @@ export type HomeLayout = {
   showHubTaglines: boolean;
   showDaily: boolean;
   showFavorites: boolean;
+  /** Shared world tile on Daily rhythm. Off until they add it in Home settings. */
+  showWorld: boolean;
 };
 
 export const HOME_HUB_VIEW_OPTIONS: {
@@ -39,6 +41,7 @@ export function defaultHomeLayout(): HomeLayout {
     showHubTaglines: true,
     showDaily: true,
     showFavorites: true,
+    showWorld: false,
   };
 }
 
@@ -56,6 +59,7 @@ export function hydrateHomeLayout(raw: unknown): HomeLayout {
     showDaily: typeof row.showDaily === "boolean" ? row.showDaily : base.showDaily,
     showFavorites:
       typeof row.showFavorites === "boolean" ? row.showFavorites : base.showFavorites,
+    showWorld: typeof row.showWorld === "boolean" ? row.showWorld : base.showWorld,
   };
 }
 

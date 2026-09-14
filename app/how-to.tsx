@@ -17,12 +17,12 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open a room of apps. The cog on each hub lets you hide apps, reorder them, or switch to two columns. Daily Check-In, the shared calendar, and your shared world sit at the top. Couple settings is on Home — card bank, notifications, and sign-out live there.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open a room of apps. The cog on each hub lets you hide apps, reorder them, or switch to two columns. Daily Check-In and the shared calendar sit at the top. Couple settings is on Home — card bank, notifications, and sign-out live there.",
   },
   {
     kicker: "Shared world",
-    title: "Five ways the story takes shape",
-    body: "Pick a world after you pair: Shared Sanctuary, Pocket Ecosystem, Time Capsule Town, Odyssey, or Constellation. Activity you already do — photos, dates, bets, voice notes — unlocks rooms, biomes, buildings, waypoints, or stars. Change it anytime from Home settings or the Worlds button. Both phones follow the same choice on this pair.",
+    title: "Optional. Off until you add it",
+    body: "Home settings has a Shared world toggle. Leave it off if you just want Check-In and Calendar. Turn it on to pick Sanctuary, Pocket Ecosystem, Town, Odyssey, or Constellation. Activity you already do feeds whichever one you lock in.",
   },
   {
     kicker: "Connect",

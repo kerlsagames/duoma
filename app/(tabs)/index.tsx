@@ -49,9 +49,20 @@ export default function HomeScreen() {
   const router = useRouter();
   const { game, partner, sendSpicyInvite } = useApp();
   const { data: mini } = useMiniApps();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
+    emptyFavoriteSlots()
+  );
+  const [pickerSlot, setPickerSlot] = useState<number | null>(null);
+  const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
+  const [layout, setLayout] = useState<HomeLayout>(defaultHomeLayout());
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const dailyWidgets = useMemo(() => {
     const world = homeWorldWidget(mini.worldChoice);
-    return HOME_HEADER_WIDGETS.map((widget) =>
+    return HOME_HEADER_WIDGETS.filter(
+      (widget) => widget.id !== "world" || layout.showWorld
+    ).map((widget) =>
       widget.id === "world"
         ? {
             ...widget,
@@ -63,16 +74,7 @@ export default function HomeScreen() {
           }
         : widget
     );
-  }, [mini.worldChoice]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
-    emptyFavoriteSlots()
-  );
-  const [pickerSlot, setPickerSlot] = useState<number | null>(null);
-  const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
-  const [layout, setLayout] = useState<HomeLayout>(defaultHomeLayout());
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  }, [mini.worldChoice, layout.showWorld]);
   const favoriteGap = 8;
   const favoriteBox = 72;
 
@@ -674,6 +676,7 @@ export default function HomeScreen() {
         layout={layout}
         wallpaperId={wallpaperId}
         worldLabel={homeWorldWidget(mini.worldChoice).label}
+        hasWorld={Boolean(mini.worldChoice.worldId)}
         onClose={() => setSettingsOpen(false)}
         onLayout={(next) => void persistLayout(next)}
         onWallpaper={(id) => void persistWallpaper(id)}
@@ -691,6 +694,7 @@ function HomeSettingsSheet({
   layout,
   wallpaperId,
   worldLabel,
+  hasWorld,
   onClose,
   onLayout,
   onWallpaper,
@@ -698,6 +702,7 @@ function HomeSettingsSheet({
 }: {
   layout: HomeLayout;
   worldLabel: string;
+  hasWorld: boolean;
   wallpaperId: HomeWallpaperId;
   onClose: () => void;
   onLayout: (next: HomeLayout) => void;
@@ -821,28 +826,42 @@ function HomeSettingsSheet({
             on={layout.showDaily}
             onPress={() => onLayout({ ...layout, showDaily: !layout.showDaily })}
           />
-          <Pressable
+          <ToggleRow
+            label="Shared world"
+            on={layout.showWorld}
             onPress={() => {
-              onClose();
-              router.push("/hub/worlds" as Href);
+              const next = !layout.showWorld;
+              onLayout({ ...layout, showWorld: next });
+              if (next && !hasWorld) {
+                onClose();
+                router.push("/hub/worlds" as Href);
+              }
             }}
-            style={{
-              marginTop: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: "rgba(124,255,178,0.28)",
-              backgroundColor: "#1A1A22",
-            }}
-          >
-            <Text style={{ color: "#F4F4F6", fontSize: 16, fontWeight: "700" }}>
-              Shared world
-            </Text>
-            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
-              {worldLabel} — change anytime
-            </Text>
-          </Pressable>
+          />
+          {layout.showWorld ? (
+            <Pressable
+              onPress={() => {
+                onClose();
+                router.push("/hub/worlds" as Href);
+              }}
+              style={{
+                marginBottom: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: "rgba(124,255,178,0.28)",
+                backgroundColor: "#1A1A22",
+              }}
+            >
+              <Text style={{ color: "#F4F4F6", fontSize: 16, fontWeight: "700" }}>
+                {hasWorld ? "Change world" : "Choose a world"}
+              </Text>
+              <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
+                {hasWorld ? worldLabel : "Five styles. Lock one in together."}
+              </Text>
+            </Pressable>
+          ) : null}
           <ToggleRow
             label="Favorites strip"
             on={layout.showFavorites}

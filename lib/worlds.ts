@@ -121,10 +121,6 @@ export function hydrateWorldChoice(raw: unknown): WorldChoice {
   };
 }
 
-export function afterPairHref(choice: WorldChoice): string {
-  return choice.worldId ? "/(tabs)" : "/hub/worlds";
-}
-
 export function homeWorldWidget(choice: WorldChoice): {
   label: string;
   detail: string;

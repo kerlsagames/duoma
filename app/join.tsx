@@ -22,7 +22,7 @@ export default function JoinScreen() {
     setLoading(true);
     try {
       await joinWithCode({ displayName: name, gender, code });
-      router.replace("/hub/worlds");
+      router.replace("/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join");
     } finally {
