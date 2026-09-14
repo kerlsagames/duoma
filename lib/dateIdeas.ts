@@ -3677,6 +3677,19 @@ export function filterDateIdeas(filters: DateIdeaFilters): DateIdea[] {
   });
 }
 
+export function searchDateIdeas(
+  filters: DateIdeaFilters,
+  query: string
+): DateIdea[] {
+  const pool = filterDateIdeas(filters);
+  const needle = query.trim().toLowerCase();
+  if (!needle) return pool;
+  return pool.filter((idea) => {
+    const hay = `${idea.title} ${idea.blurb}`.toLowerCase();
+    return hay.includes(needle);
+  });
+}
+
 export function pickRandomDateIdea(
   filters: DateIdeaFilters,
   excludeId?: string | null

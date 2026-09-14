@@ -8,6 +8,7 @@ import {
   DEFAULT_DATE_FILTERS,
   filterDateIdeas,
   pickRandomDateIdea,
+  searchDateIdeas,
   type DateCostTag,
   type DateIdea,
   type DateIdeaFilters,
@@ -117,8 +118,14 @@ export default function PlannerScreen() {
   const [spunId, setSpunId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showBucket, setShowBucket] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
+  const [query, setQuery] = useState("");
 
   const pool = useMemo(() => filterDateIdeas(filters), [filters]);
+  const browse = useMemo(
+    () => searchDateIdeas(filters, query),
+    [filters, query]
+  );
   const open = bucketItems.filter((row) => !row.doneAt);
 
   const spinIdea = () => {
@@ -167,7 +174,7 @@ export default function PlannerScreen() {
     <HubScreen
       kicker="Connect · Date night"
       title="Date Night Generator"
-      body="Spin a date, then narrow the pot with filters."
+      body="400 ideas. Spin one, or search the whole list."
     >
       <Text
         style={{
@@ -184,6 +191,13 @@ export default function PlannerScreen() {
         onPress={spinIdea}
         disabled={pool.length === 0}
       />
+      <View style={{ marginTop: 10 }}>
+        <PrimaryButton
+          label={showBrowse ? "Hide the list" : "Search all 400"}
+          tone="ghost"
+          onPress={() => setShowBrowse((value) => !value)}
+        />
+      </View>
 
       {pool.length === 0 ? (
         <Text
@@ -331,6 +345,88 @@ export default function PlannerScreen() {
         value={filters.vibe}
         onChange={(vibe) => setFilters((f) => ({ ...f, vibe }))}
       />
+
+      {showBrowse ? (
+        <View style={{ marginTop: 8, marginBottom: 8 }}>
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search titles and notes"
+            placeholderTextColor="rgba(244,244,246,0.35)"
+            className="h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+          />
+          <Text
+            style={{
+              marginTop: 10,
+              marginBottom: 8,
+              fontSize: 13,
+              color: "rgba(244,244,246,0.5)",
+            }}
+          >
+            {browse.length} match{browse.length === 1 ? "" : "es"}
+          </Text>
+          {browse.length === 0 ? (
+            <Text style={{ color: "rgba(244,244,246,0.5)", fontSize: 14 }}>
+              Nothing matches. Try a different word or loosen a filter.
+            </Text>
+          ) : (
+            <View style={{ gap: 8 }}>
+              {browse.map((idea) => {
+                const on = picked?.id === idea.id;
+                return (
+                  <Pressable
+                    key={idea.id}
+                    onPress={() => setPicked(idea)}
+                    style={{
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      borderColor: on
+                        ? "rgba(255,107,154,0.45)"
+                        : "rgba(255,255,255,0.1)",
+                      backgroundColor: on
+                        ? "rgba(255,107,154,0.12)"
+                        : "rgba(255,255,255,0.04)",
+                      padding: 14,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "700",
+                        color: "#F4F4F6",
+                      }}
+                    >
+                      {idea.title}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        fontSize: 13,
+                        lineHeight: 18,
+                        color: "rgba(244,244,246,0.58)",
+                      }}
+                      numberOfLines={2}
+                    >
+                      {idea.blurb}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 8,
+                        fontSize: 11,
+                        letterSpacing: 0.4,
+                        color: "rgba(255,107,154,0.8)",
+                      }}
+                    >
+                      {LOC_LABEL[idea.location]} · {COST_LABEL[idea.cost]} ·{" "}
+                      {VIBE_LABEL[idea.vibe]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      ) : null}
 
       <Pressable
         onPress={() => setShowBucket((v) => !v)}
