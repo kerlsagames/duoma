@@ -291,7 +291,7 @@ export const HUBS: HubDef[] = [
       {
         id: "maintenance",
         label: "Household Maintenance",
-        detail: "Recurring home & car tasks",
+        detail: "What’s due. Tick it off.",
         icon: "construct",
         href: "/hub/maintenance",
       },

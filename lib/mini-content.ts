@@ -11,6 +11,7 @@ import {
   hydrateMealPlan,
   type MealPlanState,
 } from "@/lib/meal-plan";
+import { DEFAULT_MAINT_PREFS, hydrateMaintPrefs, type MaintPrefs } from "@/lib/maintenance";
 import {
   defaultPhotoPrefs,
   hydratePhotoMemory,
@@ -309,6 +310,7 @@ export type MiniState = {
   period: PeriodState;
   birthdays: Birthday[];
   mealPlan: MealPlanState;
+  maintPrefs: MaintPrefs;
 };
 
 export const PING_KINDS: {
@@ -661,6 +663,7 @@ export function emptyMiniState(): MiniState {
     period: emptyPeriodState(),
     birthdays: emptyBirthdays(),
     mealPlan: emptyMealPlan(),
+    maintPrefs: { ...DEFAULT_MAINT_PREFS },
   };
 }
 
@@ -758,6 +761,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     period: hydratePeriodState(row.period),
     birthdays: hydrateBirthdays(row.birthdays),
     mealPlan: hydrateMealPlan(row.mealPlan),
+    maintPrefs: hydrateMaintPrefs(row.maintPrefs),
   };
 }
 
