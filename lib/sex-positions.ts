@@ -142,6 +142,84 @@ export const SEX_POSITIONS: SexPosition[] = [
     "face-to-face",
     "He on his back with legs together; she squats or kneels over him facing him. She owns the depth."
   ),
+  pose(
+    "pillow-missionary",
+    "Pillow Missionary",
+    "face-to-face",
+    "Same as missionary, with a firm pillow under her hips. Tilts her pelvis so the grind is easier to aim."
+  ),
+  pose(
+    "wrap-missionary",
+    "Wrapped Missionary",
+    "face-to-face",
+    "Her legs high around his back, ankles crossed. Pulls him in and keeps chests together."
+  ),
+  pose(
+    "split-missionary",
+    "Split Missionary",
+    "face-to-face",
+    "One of her legs up along his side or over a shoulder, the other down. Asymmetric, still face-to-face."
+  ),
+  pose(
+    "irish-garden",
+    "Irish Garden",
+    "face-to-face",
+    "She on her back; he kneels and draws her hips into his lap. Deep without him putting his weight on her."
+  ),
+  pose(
+    "waterfall",
+    "Waterfall",
+    "face-to-face",
+    "Her head and shoulders off the edge of the bed; he kneels between her legs. Blood-to-the-head intensity — keep it short."
+  ),
+  pose(
+    "laid-back-cowgirl",
+    "Laid-Back Cowgirl",
+    "face-to-face",
+    "She stays on top but lies down on his chest. Cowgirl depth, missionary closeness."
+  ),
+  pose(
+    "kneeling-together",
+    "Kneeling Together",
+    "face-to-face",
+    "Both kneeling on the bed, her settling into his lap facing him. Upright, kissable, easy to hold."
+  ),
+  pose(
+    "edge-face",
+    "Edge, Face to Face",
+    "face-to-face",
+    "She sits or lies at the bed edge; he stands between her legs, leaning in. Eye contact at a standing height."
+  ),
+  pose(
+    "half-lotus-bed",
+    "Half Lotus",
+    "face-to-face",
+    "One of her legs folded, the other extended past his hip. A milder lotus if full wrap is too much."
+  ),
+  pose(
+    "seated-bed-edge",
+    "Seated Bed Edge",
+    "face-to-face",
+    "He sits on the edge of the mattress; she straddles facing him, feet on the floor. Easy to stand up after."
+  ),
+  pose(
+    "crab",
+    "The Crab",
+    "face-to-face",
+    "She on her back, propped on elbows or hands; he kneeling. She can watch and still push back."
+  ),
+  pose(
+    "deck-chair",
+    "Deck Chair",
+    "face-to-face",
+    "Her legs up along his chest, almost folded; he kneeling over. Open, deep, keep a check on her lower back."
+  ),
+  pose(
+    "slow-grind",
+    "Slow Grind",
+    "face-to-face",
+    "Missionary or cowgirl with almost no thrust — just a circular grind. Built for clit contact and a long kiss."
+  ),
 
   // From Behind
   pose(
@@ -216,6 +294,84 @@ export const SEX_POSITIONS: SexPosition[] = [
     "from-behind",
     "She on the bed, knees tucked under her, chest down; he stands on the floor behind. Height does the work."
   ),
+  pose(
+    "wide-doggy",
+    "Wide Doggy",
+    "from-behind",
+    "Hands and knees, knees extra wide. Lower, more open, easier for him to reach around."
+  ),
+  pose(
+    "closed-doggy",
+    "Closed Doggy",
+    "from-behind",
+    "Knees together, chest down. Tighter than classic doggy — a different kind of deep."
+  ),
+  pose(
+    "pillow-hug",
+    "Pillow Hug",
+    "from-behind",
+    "She hugs a pillow or the duvet, hips up; he behind. Soft for her chest, still a strong angle."
+  ),
+  pose(
+    "one-knee-doggy",
+    "One Knee Up",
+    "from-behind",
+    "Doggy, but one of her knees is drawn up. Twists the angle without leaving all fours."
+  ),
+  pose(
+    "sofa-arm",
+    "Sofa Arm",
+    "from-behind",
+    "She bent over the arm of the sofa; he standing behind. Living-room height, nowhere to slip."
+  ),
+  pose(
+    "chair-back",
+    "Over the Chair",
+    "from-behind",
+    "She folded over the back of a sturdy chair, feet on the floor; he behind. Hold the chair, not her weight."
+  ),
+  pose(
+    "window-lean",
+    "Window Lean",
+    "from-behind",
+    "Hands on the windowsill, him behind. Close the curtains unless that is the point."
+  ),
+  pose(
+    "stairs-rear",
+    "Stairs",
+    "from-behind",
+    "She a step or two above, hands on a higher stair; he behind. Use the staircase as a brace, go slow."
+  ),
+  pose(
+    "lazy-rear",
+    "Lazy Rear",
+    "from-behind",
+    "Both more reclined than doggy — her on forearms, him sitting back on his heels. Unhurried."
+  ),
+  pose(
+    "kitchen-rear",
+    "Kitchen Rear",
+    "from-behind",
+    "She braced on the sink or fridge; he behind. The room you walk through a hundred times a day."
+  ),
+  pose(
+    "wheelbarrow-lite",
+    "Wheelbarrow Lite",
+    "from-behind",
+    "Her chest on the bed, he standing and lifting her thighs a little. Not a full lift — just enough tilt."
+  ),
+  pose(
+    "side-rear-kneel",
+    "Kneeling Side Rear",
+    "from-behind",
+    "She on her side, he kneeling behind rather than lying down. Spooning energy with more drive."
+  ),
+  pose(
+    "mirror-rear",
+    "Mirror Rear",
+    "from-behind",
+    "Doggy or standing behind, facing a mirror. You both get the view."
+  ),
 
   // Sitting
   pose(
@@ -278,6 +434,84 @@ export const SEX_POSITIONS: SexPosition[] = [
     "sitting",
     "Both on the couch, him sitting, her in his lap facing away, leaning back into his chest."
   ),
+  pose(
+    "armchair",
+    "Armchair",
+    "sitting",
+    "He in a deep armchair; she straddles facing him, knees in the seat. Enclosed, hard to fall out of."
+  ),
+  pose(
+    "ottoman",
+    "Ottoman",
+    "sitting",
+    "She sits on a low ottoman or pouffe; he kneels or sits on the floor in front. Height swap."
+  ),
+  pose(
+    "floor-lap",
+    "Floor Lap",
+    "sitting",
+    "He sits on the floor, back to the sofa; she in his lap. Picnic energy, bedroom intent."
+  ),
+  pose(
+    "windowsill-sit",
+    "Windowsill Sit",
+    "sitting",
+    "She on a wide sill, legs around him; he standing. Check the window is shut and the sill is sound."
+  ),
+  pose(
+    "dining-chair",
+    "Dining Chair",
+    "sitting",
+    "Straight-backed chair, no arms. She faces him or away — the back is something to hold."
+  ),
+  pose(
+    "stool",
+    "Bar Stool",
+    "sitting",
+    "He on a high stool; she stands or perches. Kitchen-island height, watch the wobble."
+  ),
+  pose(
+    "bathtub-sit",
+    "Bath Sit",
+    "sitting",
+    "He in the tub; she in his lap, water low so you do not flood the floor. Slow, slippery, warm."
+  ),
+  pose(
+    "washer",
+    "On the Washer",
+    "sitting",
+    "She sits on a running machine; he stands between her legs. The spin is the extra hand."
+  ),
+  pose(
+    "stairs-sit",
+    "Stair Sit",
+    "sitting",
+    "He sits on a stair; she in his lap facing him. Compact, a little illicit even at home."
+  ),
+  pose(
+    "beanbag",
+    "Beanbag",
+    "sitting",
+    "He sunk in a beanbag; she kneeling over him. Soft, unstable, funny until it is not."
+  ),
+  pose(
+    "car-lap",
+    "Car Lap",
+    "sitting",
+    "Parked. He in the passenger seat reclined; she in his lap. Seat all the way back, doors locked."
+  ),
+  pose(
+    "desk-perch",
+    "Desk Perch",
+    "sitting",
+    "She perched on the desk, him in the office chair rolled in. Clear the mug first."
+  ),
+  pose(
+    "sofa-kneel-face",
+    "Sofa Kneel, Facing",
+    "sitting",
+    "He sits; she kneels on the cushions facing him rather than sitting down fully. More bounce, more height."
+  ),
 
   // Standing
   pose(
@@ -327,6 +561,90 @@ export const SEX_POSITIONS: SexPosition[] = [
     "Counter Brace",
     "standing",
     "She faces the kitchen counter, hands on it, feet apart; he behind. Everyday room, not-everyday night."
+  ),
+  pose(
+    "pinned-corner",
+    "Pinned in the Corner",
+    "standing",
+    "Two walls, her back in the corner; he close. Nowhere to go, easy to kiss."
+  ),
+  pose(
+    "one-leg-wrap",
+    "One Leg Wrap",
+    "standing",
+    "She standing, one leg hooked high around him, the other on the floor. A wall at her back helps."
+  ),
+  pose(
+    "wall-behind",
+    "Wall, From Behind",
+    "standing",
+    "Both standing, her hands on the wall, him behind, bodies almost upright. Quiet and close."
+  ),
+  pose(
+    "against-the-door",
+    "Against the Door",
+    "standing",
+    "Her back to the door, one leg up; he pressing in. The lock is part of the pose."
+  ),
+  pose(
+    "hallway",
+    "Hallway",
+    "standing",
+    "Narrow hall, her back or hands on one wall. You barely fit, which is the point."
+  ),
+  pose(
+    "fridge-press",
+    "Fridge Press",
+    "standing",
+    "Cold door at her back, him in close. Kitchen standing, faces together."
+  ),
+  pose(
+    "sink-stand",
+    "At the Sink",
+    "standing",
+    "She facing the basin, him behind, both standing. Turn the tap off first."
+  ),
+  pose(
+    "stair-landing",
+    "Stair Landing",
+    "standing",
+    "On the landing: her back to the wall or the banister for a hand. Between floors."
+  ),
+  pose(
+    "shower-behind",
+    "Shower, From Behind",
+    "standing",
+    "In the stall, both standing, him behind, her hands on the tiles. Water off the faces."
+  ),
+  pose(
+    "closet",
+    "Closet",
+    "standing",
+    "Door almost shut, coats against her back. Standing, cramped, quick."
+  ),
+  pose(
+    "balcony-rail",
+    "Balcony Rail",
+    "standing",
+    "Hands on the rail, him behind — or face to face if the rail is low. Privacy first."
+  ),
+  pose(
+    "table-press-stand",
+    "Table Press",
+    "standing",
+    "She sitting back against a table edge, not fully sitting, feet on the floor; he standing between. Half sit, half stand."
+  ),
+  pose(
+    "lift-with-wall",
+    "Lift Against the Wall",
+    "standing",
+    "Full wrap, her back to the wall so he is not holding all of her. Strength pose with backup."
+  ),
+  pose(
+    "tiptoe",
+    "On Tiptoe",
+    "standing",
+    "Both standing, no wall, her on tiptoe to match height. Hands on each other, slow so you do not topple."
   ),
 
   // Oral — 24 poses
@@ -547,6 +865,84 @@ export const SEX_POSITIONS: SexPosition[] = [
     "Crossed Ankles",
     "side-creative",
     "She on her back, ankles crossed at the small of his back. Changes the tightness without changing the rest of missionary."
+  ),
+  pose(
+    "t-bone",
+    "T-Bone",
+    "side-creative",
+    "She on her back; he on his side at a right angle, her legs over him. A hard T — deep and a bit odd until it clicks."
+  ),
+  pose(
+    "figure-four",
+    "Figure Four",
+    "side-creative",
+    "One of her legs bent, ankle on the other thigh, making a 4. Opens one hip without a full split."
+  ),
+  pose(
+    "rolled-side",
+    "Rolled to Her Side",
+    "side-creative",
+    "Start missionary, then roll together onto her side without pulling out. Same connection, new gravity."
+  ),
+  pose(
+    "edge-side",
+    "Side on the Edge",
+    "side-creative",
+    "She on her side at the bed edge; he standing or kneeling on the floor. Height plus a side angle."
+  ),
+  pose(
+    "chair-side",
+    "Chair, Sideways",
+    "side-creative",
+    "He sits; she sits across him sideways and leans back on one hand. Not a full straddle — a lounge pose that turns."
+  ),
+  pose(
+    "hammock",
+    "Hammock",
+    "side-creative",
+    "Her legs over his shoulders, him kneeling, her back on the bed. Like a sling — go easy on her neck."
+  ),
+  pose(
+    "tangle",
+    "The Tangle",
+    "side-creative",
+    "Both on your sides, legs mixed, not quite scissors. Grind more than thrust. Fine if you laugh."
+  ),
+  pose(
+    "lifted-hips-side",
+    "Lifted Hips, Side",
+    "side-creative",
+    "She on her side, bottom hip stacked on a pillow so the angle opens. Lazy, but aimed."
+  ),
+  pose(
+    "knees-together-back",
+    "Knees Together, On Her Back",
+    "side-creative",
+    "She on her back, knees together and drawn toward her chest; he kneeling. Tight, visual, a bit folded."
+  ),
+  pose(
+    "one-leg-floor",
+    "One Leg on the Floor",
+    "side-creative",
+    "She on the bed, one foot dropped to the floor; he between. Half in, half out of the mattress."
+  ),
+  pose(
+    "sofa-side-lie",
+    "Sofa Side-Lie",
+    "side-creative",
+    "Both on the sofa on your sides, her back to the cushions. Cramped on purpose."
+  ),
+  pose(
+    "over-the-ottoman",
+    "Over the Ottoman",
+    "side-creative",
+    "Her hips on a low ottoman, chest on the floor or a cushion; he kneeling. A portable edge-of-bed."
+  ),
+  pose(
+    "magic-mountain",
+    "Magic Mountain",
+    "side-creative",
+    "Pillows stacked under her hips so she is on a slope, him kneeling. The furniture is the pose."
   ),
 ];
 
