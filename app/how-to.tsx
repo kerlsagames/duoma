@@ -32,12 +32,12 @@ const STEPS = [
   {
     kicker: "Desire",
     title: "Spice when you both want it",
-    body: "Get Spicy, Dare Me, roleplays, positions, and Fantasy Matcher. Swipe fantasies separately — you only see a match when you both said yes.",
+    body: "Get Spicy, Dare Me, roleplays, positions, Fantasy Matcher, and The Sexy Vault. The vault uses a shared pin. You can hide a photo or clip until a time you set — they still get told something is waiting.",
   },
   {
     kicker: "Fun",
     title: "Play without a plan",
-    body: "Coupons, LoveBetz, photo memory (one shot a week — shuffle until you lock it), trivia, Draw It, Daily Word (same five letters, who lands it first), and the rest of the games. Nothing here has to lead to bed.",
+    body: "Coupons, LoveBetz, photo memory (one shot a week — shuffle until you lock it), trivia, Draw It, Daily Word (same five letters, who lands it first), Fair-Share, Who Did It Last, and the rest of the games. Nothing here has to lead to bed.",
   },
   {
     kicker: "Home Base",

@@ -29,6 +29,13 @@ import {
   hydrateWorldChoice,
   type WorldChoice,
 } from "@/lib/worlds";
+import {
+  emptySexyVault,
+  hydrateSexyVault,
+  type SexyVaultItem,
+} from "@/lib/sexy-vault";
+
+export type { SexyVaultItem } from "@/lib/sexy-vault";
 
 export type { PhotoMemory, PhotoWeek } from "@/lib/photo-challenge";
 export {
@@ -353,6 +360,8 @@ export type MiniState = {
   maintenance: MaintTask[];
   vault: VaultEntry[];
   vaultPin: string;
+  sexyVault: SexyVaultItem[];
+  sexyVaultPin: string;
   whoLast: WhoLast[];
   whoTasks: { id: string; label: string }[];
   cheers: Cheer[];
@@ -718,6 +727,8 @@ export function emptyMiniState(): MiniState {
     })),
     vault: DEFAULT_VAULT.map((row) => ({ ...row })),
     vaultPin: "",
+    sexyVault: emptySexyVault(),
+    sexyVaultPin: "",
     whoLast: [],
     whoTasks: DEFAULT_WHO_TASKS.map((row) => ({ ...row })),
     cheers: [],
@@ -820,6 +831,8 @@ export function hydrateMiniState(raw: unknown): MiniState {
     maintenance: asArray(row.maintenance, base.maintenance),
     vault: asArray(row.vault, base.vault),
     vaultPin: typeof row.vaultPin === "string" ? row.vaultPin : "",
+    sexyVault: hydrateSexyVault(row.sexyVault),
+    sexyVaultPin: typeof row.sexyVaultPin === "string" ? row.sexyVaultPin : "",
     whoLast: asArray(row.whoLast, base.whoLast),
     whoTasks: asArray(row.whoTasks, base.whoTasks),
     cheers: asArray(row.cheers, base.cheers),

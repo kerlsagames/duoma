@@ -34,7 +34,7 @@ export default function WhoDidItScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={YOU_C}>
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={YOU_C}>
         <View style={{ flexDirection: "row", height: 120 }}>
           <View
             style={{

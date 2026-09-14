@@ -35,7 +35,7 @@ export const NOTIFICATION_SECTION_OPTIONS: {
     kind: "desire",
     group: "hubs",
     label: "Desire",
-    detail: "Spicy Game, dares, and tonight asks",
+    detail: "Spicy Game, dares, tonight asks, and the vault",
   },
   {
     kind: "play",
@@ -160,6 +160,7 @@ export function kindFromStatusId(id: string): NotificationSection | null {
   if (id === "game" || id.startsWith("game")) return "desire";
   if (id.startsWith("dare")) return "desire";
   if (id.startsWith("fantasy")) return "desire";
+  if (id.startsWith("sexy")) return "desire";
   if (id.startsWith("checkin")) return "check_in";
   if (id.startsWith("curiosity")) return "connect";
   if (id.startsWith("talk")) return "connect";

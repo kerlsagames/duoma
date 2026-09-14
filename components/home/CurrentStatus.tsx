@@ -8,6 +8,7 @@ import {
   readNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
+import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter, type Href } from "expo-router";
@@ -36,6 +37,7 @@ export function CurrentStatus({
     spicyDares,
     fantasyTonightAsks,
   } = useApp();
+  const { data: mini } = useMiniApps();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
 
   useFocusEffect(
@@ -59,6 +61,7 @@ export function CurrentStatus({
     listEntries,
     spicyDares,
     fantasyTonightAsks,
+    sexyVault: mini.sexyVault,
   }).filter((item) => prefsShowStatusId(prefs, item.id));
 
   const openGame = () => {

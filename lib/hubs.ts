@@ -179,6 +179,13 @@ export const HUBS: HubDef[] = [
         icon: "flame",
         href: "/hub/intimacy-streak",
       },
+      {
+        id: "sexy-vault",
+        label: "The Sexy Vault",
+        detail: "Private pics and clips. Shared pin. Hide until a time you set.",
+        icon: "lock-closed",
+        href: "/hub/sexy-vault",
+      },
     ],
   },
   {
@@ -248,6 +255,20 @@ export const HUBS: HubDef[] = [
         icon: "book",
         href: "/hub/story",
       },
+      {
+        id: "fair-share",
+        label: "Fair-Share Task Wheel",
+        detail: "Spin it. One of you gets the chore.",
+        icon: "sync",
+        href: "/hub/fair-share",
+      },
+      {
+        id: "who-did-it",
+        label: "Who Did It Last?",
+        detail: "Lighthearted chore tally. Claim the last turn.",
+        icon: "people",
+        href: "/hub/who-did-it",
+      },
     ],
   },
   {
@@ -290,13 +311,6 @@ export const HUBS: HubDef[] = [
         href: "/hub/maintenance",
       },
       {
-        id: "fair-share",
-        label: "Fair-Share Task Wheel",
-        detail: "Gamified chore splitting",
-        icon: "sync",
-        href: "/hub/fair-share",
-      },
-      {
         id: "travel",
         label: "Travel / Date Itinerary",
         detail: "Collaborative trip boards, packing & reservations",
@@ -316,13 +330,6 @@ export const HUBS: HubDef[] = [
         detail: "Encrypted household essentials",
         icon: "lock-closed",
         href: "/hub/emergency-vault",
-      },
-      {
-        id: "who-did-it",
-        label: "Who Did It Last?",
-        detail: "Lighthearted chore tally",
-        icon: "people",
-        href: "/hub/who-did-it",
       },
       {
         id: "period",

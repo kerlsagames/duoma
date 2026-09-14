@@ -92,7 +92,7 @@ export default function FairShareScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={PINK}>
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={PINK}>
         <Text
           style={{
             textAlign: "center",

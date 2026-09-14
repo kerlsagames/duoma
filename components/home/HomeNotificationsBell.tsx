@@ -11,6 +11,7 @@ import {
   writeNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
+import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter, type Href } from "expo-router";
@@ -39,6 +40,7 @@ export function HomeNotificationsBell({
     spicyDares,
     fantasyTonightAsks,
   } = useApp();
+  const { data: mini } = useMiniApps();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<
@@ -70,6 +72,7 @@ export function HomeNotificationsBell({
         listEntries,
         spicyDares,
         fantasyTonightAsks,
+        sexyVault: mini.sexyVault,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
     [
       user,
@@ -86,6 +89,7 @@ export function HomeNotificationsBell({
       listEntries,
       spicyDares,
       fantasyTonightAsks,
+      mini.sexyVault,
       prefs,
     ]
   );

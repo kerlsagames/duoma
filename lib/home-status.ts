@@ -1,5 +1,6 @@
 import { isCuriosityComplete } from "@/lib/curiosity";
 import { fantasyById } from "@/lib/fantasy-matcher";
+import { isSexyVaultLocked, sexyVaultUnlockLabel, type SexyVaultItem } from "@/lib/sexy-vault";
 import { STAGE_META } from "@/games/get-spicy/engine";
 import { daysUntil, formatLongDate, isSunday, localDateKey, parseDateKey } from "@/lib/dates";
 import { moodMeta } from "@/lib/hub";
@@ -134,6 +135,7 @@ export function buildHomeNotifications(input: {
   listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
   fantasyTonightAsks?: FantasyTonightAsk[];
+  sexyVault?: SexyVaultItem[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -384,6 +386,23 @@ export function buildHomeNotifications(input: {
       });
     }
   });
+
+  (input.sexyVault ?? [])
+    .filter((item) => item.fromId === input.partner?.id && !item.seenAt)
+    .forEach((item) => {
+      const locked = isSexyVaultLocked(item, input.user?.id);
+      items.push({
+        id: `sexy-${item.id}`,
+        line: locked
+          ? `Sexy Vault · hidden until ${sexyVaultUnlockLabel(item)}`
+          : item.kind === "video"
+            ? "Sexy Vault · they left a clip"
+            : "Sexy Vault · they left a photo",
+        when: locked ? "Later" : recentWhen(item.createdAt),
+        href: "/hub/sexy-vault",
+        sortAt: Date.parse(item.createdAt) || now,
+      });
+    });
 
   (input.bucketItems ?? [])
     .filter(

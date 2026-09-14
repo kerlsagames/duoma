@@ -593,6 +593,7 @@ type AppContextValue = {
   toggleRitual: (ritualId: string) => Promise<void>;
   enablePush: () => Promise<void>;
   sendTestPush: () => Promise<void>;
+  notifyPartner: (payload: { title: string; body: string; url: string }) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -4202,6 +4203,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await upsertCloudSubscription(row);
   }, [couple, user]);
 
+  const notifyPartner = useCallback(
+    (payload: { title: string; body: string; url: string }) => {
+      pingPartner(couple, user, partner, payload);
+    },
+    [couple, user, partner]
+  );
+
   const sendTestPush = useCallback(async () => {
     if (!user) throw new Error("Sign in first.");
     const mine = db.pushSubscriptions.filter((row) => row.userId === user.id);
@@ -4346,6 +4354,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleRitual,
     enablePush,
     sendTestPush,
+    notifyPartner,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
