@@ -52,6 +52,14 @@ export type PeriodState = {
 
 export type DayMark = "period" | "predicted" | "fertile" | "ovulation" | "none";
 
+export type PredictedCycle = {
+  start: string;
+  end: string;
+  ovulation: string;
+  fertileStart: string;
+  fertileEnd: string;
+};
+
 export type CycleSnapshot = {
   averageLength: number;
   last: PeriodCycle | null;
@@ -60,6 +68,7 @@ export type CycleSnapshot = {
   fertileStart: string | null;
   fertileEnd: string | null;
   predictedEnd: string | null;
+  forecast: PredictedCycle[];
   todayKey: string;
   cycleDay: number | null;
   periodDay: number | null;
@@ -181,6 +190,36 @@ export function lastCycle(cycles: PeriodCycle[]): PeriodCycle | null {
   return sorted[sorted.length - 1] ?? null;
 }
 
+export const FORECAST_COUNT = 12;
+
+export function forecastCycles(
+  state: PeriodState,
+  count = FORECAST_COUNT
+): PredictedCycle[] {
+  const last = lastCycle(state.cycles);
+  if (!last) return [];
+  const length = averageCycleLength(state);
+  const bleed = state.settings.typicalPeriod;
+  const luteal = state.settings.lutealDays;
+  const out: PredictedCycle[] = [];
+  for (let n = 1; n <= count; n += 1) {
+    const start = addDays(last.start, n * length);
+    const ovulation = addDays(start, -luteal);
+    out.push({
+      start,
+      end: addDays(start, bleed - 1),
+      ovulation,
+      fertileStart: addDays(ovulation, -5),
+      fertileEnd: addDays(ovulation, 1),
+    });
+  }
+  return out;
+}
+
+function inRange(date: string, start: string, end: string): boolean {
+  return start <= date && date <= end;
+}
+
 export function cycleForDate(
   cycles: PeriodCycle[],
   date: string,
@@ -211,22 +250,28 @@ export function dateRange(start: string, end: string): string[] {
 export function snapshot(state: PeriodState, today = localDateKey()): CycleSnapshot {
   const averageLength = averageCycleLength(state);
   const last = lastCycle(state.cycles);
-  const nextStart = last ? addDays(last.start, averageLength) : null;
-  const predictedEnd = nextStart
-    ? addDays(nextStart, state.settings.typicalPeriod - 1)
-    : null;
-  const ovulation = nextStart ? addDays(nextStart, -state.settings.lutealDays) : null;
-  const fertileStart = ovulation ? addDays(ovulation, -5) : null;
-  const fertileEnd = ovulation ? addDays(ovulation, 1) : null;
+  const forecast = forecastCycles(state);
+  const upcoming = forecast.find((row) => row.start >= today) ?? forecast[0] ?? null;
+  const covering =
+    forecast.find((row) => inRange(today, row.fertileStart, row.end)) ?? upcoming;
+  const nextStart = upcoming?.start ?? null;
+  const predictedEnd = upcoming?.end ?? null;
+  const ovulation = covering?.ovulation ?? upcoming?.ovulation ?? null;
+  const fertileStart = covering?.fertileStart ?? upcoming?.fertileStart ?? null;
+  const fertileEnd = covering?.fertileEnd ?? upcoming?.fertileEnd ?? null;
   const openEnd = last
     ? last.end ?? addDays(last.start, state.settings.typicalPeriod - 1)
     : null;
   const inPeriod = Boolean(last && last.start <= today && today <= (openEnd ?? last.start));
   const inPredicted = Boolean(
-    !inPeriod && nextStart && predictedEnd && nextStart <= today && today <= predictedEnd
+    !inPeriod && forecast.some((row) => inRange(today, row.start, row.end))
   );
   const inFertile = Boolean(
-    fertileStart && fertileEnd && fertileStart <= today && today <= fertileEnd
+    !inPeriod &&
+      forecast.some((row) => inRange(today, row.fertileStart, row.fertileEnd))
+  );
+  const isOvulation = Boolean(
+    !inPeriod && forecast.some((row) => row.ovulation === today)
   );
   const periodDay =
     inPeriod && last ? daysBetween(last.start, today) + 1 : null;
@@ -240,35 +285,24 @@ export function snapshot(state: PeriodState, today = localDateKey()): CycleSnaps
     fertileStart,
     fertileEnd,
     predictedEnd,
+    forecast,
     todayKey: today,
     cycleDay,
     periodDay,
     inPeriod,
     inPredicted,
     inFertile,
-    isOvulation: ovulation === today,
+    isOvulation,
   };
 }
 
 export function markForDate(state: PeriodState, date: string, snap: CycleSnapshot): DayMark {
   const logged = cycleForDate(state.cycles, date, state.settings.typicalPeriod);
   if (logged) return "period";
-  if (snap.ovulation === date) return "ovulation";
-  if (
-    snap.fertileStart &&
-    snap.fertileEnd &&
-    snap.fertileStart <= date &&
-    date <= snap.fertileEnd
-  ) {
-    return "fertile";
-  }
-  if (
-    snap.nextStart &&
-    snap.predictedEnd &&
-    snap.nextStart <= date &&
-    date <= snap.predictedEnd
-  ) {
-    return "predicted";
+  for (const row of snap.forecast) {
+    if (row.ovulation === date) return "ovulation";
+    if (inRange(date, row.fertileStart, row.fertileEnd)) return "fertile";
+    if (inRange(date, row.start, row.end)) return "predicted";
   }
   return "none";
 }

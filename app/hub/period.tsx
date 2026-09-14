@@ -61,6 +61,9 @@ export default function PeriodScreen() {
     selected,
     period.settings.typicalPeriod
   );
+  const selectedPredicted = snap.forecast.find(
+    (row) => row.start <= selected && selected <= row.end
+  );
   const history = historyRows(period).slice(0, 6);
 
   const save = async (next: typeof period) => {
@@ -100,6 +103,11 @@ export default function PeriodScreen() {
               ? `Next period in ${daysUntil(snap.nextStart)} day${daysUntil(snap.nextStart) === 1 ? "" : "s"}.`
               : `Period was due ${Math.abs(daysUntil(snap.nextStart))} day${Math.abs(daysUntil(snap.nextStart)) === 1 ? "" : "s"} ago.`
         : "Keep logging starts and the prediction tightens.";
+
+  const upcomingStarts = snap.forecast
+    .filter((row) => row.start >= today)
+    .map((row) => row.start);
+  const laterStarts = upcomingStarts.slice(1, 4);
 
   return (
     <Screen scroll background={T.background}>
@@ -145,9 +153,17 @@ export default function PeriodScreen() {
             {sub}
           </Text>
           {snap.last && snap.nextStart ? (
-            <Text style={{ marginTop: 10, fontSize: 13, color: T.rose }}>
-              Average cycle ~{snap.averageLength} days · next start {formatLongDate(snap.nextStart)}
-            </Text>
+            <>
+              <Text style={{ marginTop: 10, fontSize: 13, color: T.rose }}>
+                Average cycle ~{snap.averageLength} days · next start{" "}
+                {formatLongDate(snap.nextStart)}
+              </Text>
+              {laterStarts.length ? (
+                <Text style={{ marginTop: 4, fontSize: 13, color: T.muted }}>
+                  Then {laterStarts.map((key) => formatLongDate(key)).join(" · ")}
+                </Text>
+              ) : null}
+            </>
           ) : null}
           {!snap.inPeriod ? (
             <Pressable
@@ -286,6 +302,7 @@ export default function PeriodScreen() {
         <DayEditor
           date={selected}
           cycle={selectedCycle}
+          predicted={Boolean(selectedPredicted)}
           flow={selectedLog?.flow ?? null}
           mood={selectedLog?.mood ?? null}
           symptoms={selectedLog?.symptoms ?? []}
@@ -336,8 +353,8 @@ export default function PeriodScreen() {
               }
             />
             <Text style={{ fontSize: 13, lineHeight: 18, color: T.dim }}>
-              Predictions use your logged starts when we have them, then these defaults.
-              Shared with {them}.
+              Predictions repeat from your last start, twelve cycles ahead. Logged starts
+              beat the average when we have them. Shared with {them}.
             </Text>
           </View>
         </View>
@@ -387,7 +404,7 @@ export default function PeriodScreen() {
       <ConfirmDialog
         open={Boolean(removeId)}
         title="Remove this cycle?"
-        body="The start date and its predicted follow-on come off the calendar. Daily notes stay."
+        body="The start date and its predicted follow-ons come off the calendar. Daily notes stay."
         confirmLabel="Remove"
         cancelLabel="Keep it"
         onCancel={() => setRemoveId(null)}
@@ -403,6 +420,7 @@ export default function PeriodScreen() {
 function DayEditor({
   date,
   cycle,
+  predicted,
   flow,
   mood,
   symptoms,
@@ -417,6 +435,7 @@ function DayEditor({
 }: {
   date: string;
   cycle: ReturnType<typeof cycleForDate>;
+  predicted: boolean;
   flow: PeriodFlow | null;
   mood: PeriodMood | null;
   symptoms: PeriodSymptom[];
@@ -451,7 +470,9 @@ function DayEditor({
           ? cycle.start === date
             ? "Period started this day."
             : "This day is in a logged period."
-          : "Not marked as a period day."}
+          : predicted
+            ? "Predicted period day — from your last start."
+            : "Not marked as a period day."}
       </Text>
       <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {!cycle || cycle.start !== date ? (
