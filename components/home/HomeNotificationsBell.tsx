@@ -34,6 +34,7 @@ export function HomeNotificationsBell({
     talkDraws,
     listEntries,
     spicyDares,
+    fantasyTonightAsks,
   } = useApp();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
   const [open, setOpen] = useState(false);
@@ -60,6 +61,7 @@ export function HomeNotificationsBell({
         talkDraws,
         listEntries,
         spicyDares,
+        fantasyTonightAsks,
       }).filter((item) => prefsAllowStatusId(prefs, item.id)),
     [
       user,
@@ -75,6 +77,7 @@ export function HomeNotificationsBell({
       talkDraws,
       listEntries,
       spicyDares,
+      fantasyTonightAsks,
       prefs,
     ]
   );

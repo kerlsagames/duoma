@@ -8,10 +8,13 @@ import {
   fantasyCategoryMeta,
   groupFantasiesByCategory,
   leftoverFantasies,
+  incomingTonightAsks,
   personalizeFantasyTitle,
+  tonightAskForFantasy,
   type FantasyCategoryId,
   type FantasyIdea,
 } from "@/lib/fantasy-matcher";
+import type { FantasyTonightAsk } from "@/lib/types";
 import { roleplayCastNames } from "@/lib/roleplays";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,7 +35,16 @@ const SCREEN_W = Dimensions.get("window").width;
 type Tab = "deck" | "matches";
 
 export default function FantasyMatcherScreen() {
-  const { user, partner, couple, fantasySwipes, swipeFantasy } = useApp();
+  const {
+    user,
+    partner,
+    couple,
+    fantasySwipes,
+    fantasyTonightAsks,
+    swipeFantasy,
+    askFantasyTonight,
+    respondFantasyTonight,
+  } = useApp();
   const cast = useMemo(
     () => roleplayCastNames(user, partner),
     [user, partner]
@@ -44,6 +56,7 @@ export default function FantasyMatcherScreen() {
   );
   const [busy, setBusy] = useState(false);
   const [matchFlash, setMatchFlash] = useState<FantasyIdea | null>(null);
+  const [pickedMatch, setPickedMatch] = useState<FantasyIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -88,6 +101,40 @@ export default function FantasyMatcherScreen() {
     () => groupFantasiesByCategory(matches),
     [matches]
   );
+  const incomingAsks = useMemo(
+    () => (user ? incomingTonightAsks(fantasyTonightAsks, user.id) : []),
+    [fantasyTonightAsks, user]
+  );
+  const pickedAsk = pickedMatch
+    ? tonightAskForFantasy(fantasyTonightAsks, pickedMatch.id)
+    : null;
+
+  const sendTonight = async (idea: FantasyIdea) => {
+    setError(null);
+    setBusy(true);
+    try {
+      await askFantasyTonight(idea.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send that.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const answerTonight = async (
+    ask: FantasyTonightAsk,
+    status: "accepted" | "declined"
+  ) => {
+    setError(null);
+    setBusy(true);
+    try {
+      await respondFantasyTonight(ask.id, status);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not answer.");
+    } finally {
+      setBusy(false);
+    }
+  };
   const openMatchGroup = matchCategory
     ? matchGroups.find((row) => row.category.id === matchCategory) ?? null
     : null;
@@ -265,6 +312,63 @@ export default function FantasyMatcherScreen() {
             );
           })}
         </View>
+
+        {incomingAsks.length ? (
+          <View style={{ marginTop: 16, gap: 10 }}>
+            {incomingAsks.map((ask) => {
+              const idea = fantasyById(ask.fantasyId);
+              if (!idea) return null;
+              return (
+                <View
+                  key={ask.id}
+                  style={{
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: T.accent,
+                    backgroundColor: T.surface,
+                    padding: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                      letterSpacing: 1.6,
+                      textTransform: "uppercase",
+                      color: T.accent,
+                    }}
+                  >
+                    {partnerLabel} · try this tonight?
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontFamily: SERIF,
+                      fontSize: 22,
+                      lineHeight: 28,
+                      color: T.ink,
+                    }}
+                  >
+                    {nameTitle(idea)}
+                  </Text>
+                  <View style={{ marginTop: 14, gap: 8 }}>
+                    <PrimaryButton
+                      label="Yes — tonight"
+                      disabled={busy}
+                      onPress={() => void answerTonight(ask, "accepted")}
+                    />
+                    <PrimaryButton
+                      label="Not tonight"
+                      tone="ghost"
+                      disabled={busy}
+                      onPress={() => void answerTonight(ask, "declined")}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
 
         {tab === "deck" ? (
           <View style={{ marginTop: 22 }}>
@@ -662,7 +766,14 @@ export default function FantasyMatcherScreen() {
                   </View>
                 </View>
                 {openMatchGroup.items.map((idea) => (
-                  <MatchCard key={idea.id} idea={idea} title={nameTitle(idea)} />
+                  <MatchCard
+                    key={idea.id}
+                    idea={idea}
+                    title={nameTitle(idea)}
+                    ask={tonightAskForFantasy(fantasyTonightAsks, idea.id)}
+                    userId={user?.id ?? ""}
+                    onPress={() => setPickedMatch(idea)}
+                  />
                 ))}
               </View>
             ) : (
@@ -676,7 +787,7 @@ export default function FantasyMatcherScreen() {
                     marginBottom: 14,
                   }}
                 >
-                  Tap a category to look through the yeses you share.
+                  Tap a category, then a match, and send Try this tonight?
                 </Text>
                 <View
                   style={{
@@ -743,6 +854,100 @@ export default function FantasyMatcherScreen() {
           </View>
         )}
       </View>
+
+      {pickedMatch ? (
+        <Pressable
+          onPress={() => setPickedMatch(null)}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            backgroundColor: "rgba(8,4,10,0.88)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 28,
+          }}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation?.()}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              borderRadius: 24,
+              backgroundColor: T.surface,
+              borderWidth: 1,
+              borderColor: T.border,
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: fantasyCategoryMeta(pickedMatch.category).tint,
+              }}
+            >
+              {fantasyCategoryMeta(pickedMatch.category).label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 28,
+                lineHeight: 34,
+                color: T.ink,
+              }}
+            >
+              {nameTitle(pickedMatch)}
+            </Text>
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 15,
+                lineHeight: 22,
+                color: T.muted,
+              }}
+            >
+              {tonightAskCopy(pickedAsk, user?.id ?? "", partnerLabel)}
+            </Text>
+            {pickedAsk?.status === "offered" &&
+            pickedAsk.toUserId === user?.id ? (
+              <View style={{ marginTop: 18, gap: 8 }}>
+                <PrimaryButton
+                  label="Yes — tonight"
+                  disabled={busy}
+                  onPress={() => void answerTonight(pickedAsk, "accepted")}
+                />
+                <PrimaryButton
+                  label="Not tonight"
+                  tone="ghost"
+                  disabled={busy}
+                  onPress={() => void answerTonight(pickedAsk, "declined")}
+                />
+              </View>
+            ) : !pickedAsk || pickedAsk.status === "declined" ? (
+              <View style={{ marginTop: 18 }}>
+                <PrimaryButton
+                  label="Try this tonight?"
+                  disabled={busy || !partner}
+                  onPress={() => void sendTonight(pickedMatch)}
+                />
+              </View>
+            ) : null}
+            <PrimaryButton
+              label="Close"
+              tone="ghost"
+              onPress={() => setPickedMatch(null)}
+              style={{ marginTop: 8 }}
+            />
+          </Pressable>
+        </Pressable>
+      ) : null}
 
       {matchFlash ? (
         <Pressable
@@ -824,20 +1029,64 @@ export default function FantasyMatcherScreen() {
   );
 }
 
+function tonightAskCopy(
+  ask: FantasyTonightAsk | null,
+  userId: string,
+  partnerLabel: string
+): string {
+  if (!ask) {
+    return `Send ${partnerLabel} “Try this tonight?” They answer yes or no when they open the app.`;
+  }
+  if (ask.status === "offered" && ask.fromUserId === userId) {
+    return `Sent. Waiting on ${partnerLabel} to say yes or not tonight.`;
+  }
+  if (ask.status === "offered") {
+    return `${partnerLabel} asked. Yes means it’s on tonight. No means not tonight.`;
+  }
+  if (ask.status === "accepted") {
+    return `It’s a go. ${partnerLabel} said yes — tonight’s on.`;
+  }
+  return ask.fromUserId === userId
+    ? `${partnerLabel} said not tonight.`
+    : `You said not tonight.`;
+}
+
 function MatchCard({
   idea,
   title,
+  ask,
+  userId,
+  onPress,
 }: {
   idea: FantasyIdea;
   title: string;
+  ask: FantasyTonightAsk | null;
+  userId: string;
+  onPress: () => void;
 }) {
   const cat = fantasyCategoryMeta(idea.category);
+  const chip =
+    ask?.status === "accepted"
+      ? "Tonight's on"
+      : ask?.status === "declined"
+        ? "Not tonight"
+        : ask?.status === "offered" && ask.fromUserId === userId
+          ? "Waiting"
+          : ask?.status === "offered"
+            ? "They asked"
+            : "Ask";
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       style={{
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: T.border,
+        borderColor:
+          ask?.status === "accepted"
+            ? T.accent
+            : ask?.status === "offered"
+              ? "rgba(255,255,255,0.22)"
+              : T.border,
         backgroundColor: T.surface,
         padding: 18,
       }}
@@ -876,7 +1125,17 @@ function MatchCard({
             gap: 4,
           }}
         >
-          <Ionicons name="heart" size={14} color={T.accent} />
+          <Ionicons
+            name={
+              ask?.status === "accepted"
+                ? "moon"
+                : ask?.status === "offered"
+                  ? "time-outline"
+                  : "heart"
+            }
+            size={14}
+            color={T.accent}
+          />
           <Text
             style={{
               color: T.accent,
@@ -884,7 +1143,7 @@ function MatchCard({
               fontWeight: "700",
             }}
           >
-            Match
+            {chip}
           </Text>
         </View>
       </View>
@@ -898,9 +1157,6 @@ function MatchCard({
       >
         {title}
       </Text>
-    </View>
+    </Pressable>
   );
 }
-
-// silence unused helper if tree-shaken oddly in some bundlers
-void fantasyById;

@@ -241,6 +241,21 @@ export type FantasySwipe = {
   createdAt: string;
 };
 
+export type FantasyTonightAskStatus = "offered" | "accepted" | "declined";
+
+/** Pitch a mutual match for tonight. Partner answers yes or no. */
+export type FantasyTonightAsk = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  fantasyId: string;
+  nightKey: string;
+  status: FantasyTonightAskStatus;
+  createdAt: string;
+  answeredAt: string | null;
+};
+
 export type CouponStatus = "offered" | "accepted" | "redeemed" | "expired";
 
 export type Coupon = {
@@ -565,6 +580,7 @@ export type AppDB = {
   milestones: Milestone[];
   desireToggles: DesireToggle[];
   fantasySwipes: FantasySwipe[];
+  fantasyTonightAsks: FantasyTonightAsk[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];

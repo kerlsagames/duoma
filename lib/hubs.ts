@@ -168,7 +168,7 @@ export const HUBS: HubDef[] = [
       {
         id: "fantasy-matcher",
         label: "Fantasy Matcher",
-        detail: "500 short fantasies. Swipe. Match only on yes.",
+        detail: "500 short fantasies. Swipe, match, ask to try tonight.",
         icon: "heart-circle",
         href: "/hub/fantasy-matcher",
       },

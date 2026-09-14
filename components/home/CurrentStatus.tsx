@@ -34,6 +34,7 @@ export function CurrentStatus({
     talkDraws,
     listEntries,
     spicyDares,
+    fantasyTonightAsks,
   } = useApp();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
 
@@ -57,6 +58,7 @@ export function CurrentStatus({
     talkDraws,
     listEntries,
     spicyDares,
+    fantasyTonightAsks,
   }).filter((item) => prefsAllowStatusId(prefs, item.id));
 
   const openGame = () => {

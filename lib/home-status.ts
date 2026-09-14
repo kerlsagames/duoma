@@ -1,4 +1,5 @@
 import { isCuriosityComplete } from "@/lib/curiosity";
+import { fantasyById } from "@/lib/fantasy-matcher";
 import { STAGE_META } from "@/games/get-spicy/engine";
 import { daysUntil, formatLongDate, isSunday, localDateKey, parseDateKey } from "@/lib/dates";
 import { moodMeta } from "@/lib/hub";
@@ -18,6 +19,7 @@ import type {
   ScratchReveal,
   SpicyDarePlay,
   TalkDraw,
+  FantasyTonightAsk,
 } from "@/lib/types";
 import type { Href } from "expo-router";
 
@@ -129,6 +131,7 @@ export function buildHomeNotifications(input: {
   scratches?: ScratchReveal[];
   listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
+  fantasyTonightAsks?: FantasyTonightAsk[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -333,6 +336,52 @@ export function buildHomeNotifications(input: {
         sortAt: midday(item.date),
       });
     });
+
+  (input.fantasyTonightAsks ?? []).forEach((ask) => {
+    if (ask.nightKey !== today) return;
+    const incoming = ask.toUserId === myId;
+    const outgoing = ask.fromUserId === myId;
+    if (!incoming && !outgoing) return;
+    const title = fantasyById(ask.fantasyId)?.title ?? "a match";
+    if (ask.status === "offered" && incoming) {
+      items.push({
+        id: `fantasy-ask-${ask.id}`,
+        line: `Try this tonight? · ${title}`,
+        when: recentWhen(ask.createdAt),
+        href: "/hub/fantasy-matcher",
+        sortAt: Date.parse(ask.createdAt) || now,
+      });
+      return;
+    }
+    if (ask.status === "offered" && outgoing) {
+      items.push({
+        id: `fantasy-wait-${ask.id}`,
+        line: `Waiting on them · ${title}`,
+        when: recentWhen(ask.createdAt),
+        href: "/hub/fantasy-matcher",
+        sortAt: Date.parse(ask.createdAt) || now,
+      });
+      return;
+    }
+    if (ask.status === "accepted" && (incoming || outgoing)) {
+      items.push({
+        id: `fantasy-yes-${ask.id}`,
+        line: `Tonight's on · ${title}`,
+        when: recentWhen(ask.answeredAt ?? ask.createdAt),
+        href: "/hub/fantasy-matcher",
+        sortAt: Date.parse(ask.answeredAt ?? ask.createdAt) || now,
+      });
+    }
+    if (ask.status === "declined" && outgoing) {
+      items.push({
+        id: `fantasy-no-${ask.id}`,
+        line: `Not tonight · ${title}`,
+        when: recentWhen(ask.answeredAt ?? ask.createdAt),
+        href: "/hub/fantasy-matcher",
+        sortAt: Date.parse(ask.answeredAt ?? ask.createdAt) || now,
+      });
+    }
+  });
 
   (input.bucketItems ?? [])
     .filter(

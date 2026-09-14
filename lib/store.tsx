@@ -69,6 +69,7 @@ import type {
   DeckCard,
   DesireToggle,
   FantasySwipe,
+  FantasyTonightAsk,
   DesireGauge,
   TonightSex,
   GameMode,
@@ -130,6 +131,7 @@ import {
 import {
   demoLikedFantasyIds,
   FANTASY_IDEAS,
+  fantasyById,
 } from "@/lib/fantasy-matcher";
 import {
   createContext,
@@ -394,6 +396,7 @@ type AppContextValue = {
   milestones: Milestone[];
   desireToggles: DesireToggle[];
   fantasySwipes: FantasySwipe[];
+  fantasyTonightAsks: FantasyTonightAsk[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];
@@ -541,6 +544,11 @@ type AppContextValue = {
     fantasyId: string,
     liked: boolean
   ) => Promise<{ matched: boolean }>;
+  askFantasyTonight: (fantasyId: string) => Promise<void>;
+  respondFantasyTonight: (
+    id: string,
+    status: "accepted" | "declined"
+  ) => Promise<void>;
   createCoupon: (input: {
     title: string;
     body?: string;
@@ -961,6 +969,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const fantasySwipes = useMemo(
     () => db.fantasySwipes.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const fantasyTonightAsks = useMemo(
+    () =>
+      (db.fantasyTonightAsks ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3606,6 +3620,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, partner, user]
   );
 
+  const askFantasyTonight = useCallback(
+    async (fantasyId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair up before asking for tonight.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before asking for tonight.");
+      }
+      const idea = fantasyById(fantasyId);
+      if (!idea) throw new Error("That fantasy is gone.");
+      const nightKey = localDateKey();
+      const already = (db.fantasyTonightAsks ?? []).find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.fantasyId === fantasyId &&
+          row.nightKey === nightKey &&
+          (row.status === "offered" || row.status === "accepted")
+      );
+      if (already?.status === "accepted") {
+        throw new Error("Tonight's already a yes on this one.");
+      }
+      if (already?.status === "offered") {
+        if (already.fromUserId === user.id) {
+          throw new Error("They're still answering this one.");
+        }
+        throw new Error("They already asked you this one. Answer that first.");
+      }
+      const row: FantasyTonightAsk = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        fantasyId,
+        nightKey,
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+      };
+      db = {
+        ...db,
+        fantasyTonightAsks: [...(db.fantasyTonightAsks ?? []), row],
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Try this tonight?",
+        body: `${user.displayName} wants to try: ${idea.title}`,
+        url: "/hub/fantasy-matcher",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondFantasyTonight = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = (db.fantasyTonightAsks ?? []).find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      if (existing.toUserId !== user.id) return;
+      const idea = fantasyById(existing.fantasyId);
+      db = {
+        ...db,
+        fantasyTonightAsks: (db.fantasyTonightAsks ?? []).map((row) =>
+          row.id === id ? { ...row, status, answeredAt: nowIso() } : row
+        ),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: status === "accepted" ? "Tonight's on" : "Not tonight",
+        body:
+          status === "accepted"
+            ? `${user.displayName} said yes — ${idea?.title ?? "that fantasy"} is on tonight.`
+            : `${user.displayName} said not tonight for ${idea?.title ?? "that one"}.`,
+        url: "/hub/fantasy-matcher",
+      });
+    },
+    [couple, partner, user]
+  );
+
   const createCoupon = useCallback(
     async (input: {
       title: string;
@@ -4161,6 +4254,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     milestones,
     desireToggles,
     fantasySwipes,
+    fantasyTonightAsks,
     coupons,
     scratches,
     coupleLists,
@@ -4230,6 +4324,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     removeMealFromMenu,
     toggleDesire,
     swipeFantasy,
+    askFantasyTonight,
+    respondFantasyTonight,
     createCoupon,
     acceptCoupon,
     redeemCoupon,

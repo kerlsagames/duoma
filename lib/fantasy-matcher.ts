@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 import type { Ionicons } from "@expo/vector-icons";
+import { localDateKey } from "@/lib/dates";
+import type { FantasyTonightAsk } from "@/lib/types";
 
 export type FantasyIcon = ComponentProps<typeof Ionicons>["name"];
 
@@ -641,5 +643,41 @@ export function groupFantasiesByCategory(ideas: FantasyIdea[]): {
 export function demoLikedFantasyIds(): string[] {
   return FANTASY_IDEAS.filter((_, index) => index % 3 === 0).map(
     (item) => item.id
+  );
+}
+
+export function isTonightAskLive(
+  ask: FantasyTonightAsk,
+  nightKey = localDateKey()
+): boolean {
+  return ask.nightKey === nightKey;
+}
+
+export function tonightAskForFantasy(
+  asks: FantasyTonightAsk[],
+  fantasyId: string,
+  nightKey = localDateKey()
+): FantasyTonightAsk | null {
+  const live = asks.filter(
+    (row) => row.fantasyId === fantasyId && isTonightAskLive(row, nightKey)
+  );
+  return (
+    live.find((row) => row.status === "offered") ??
+    live.find((row) => row.status === "accepted") ??
+    live[0] ??
+    null
+  );
+}
+
+export function incomingTonightAsks(
+  asks: FantasyTonightAsk[],
+  userId: string,
+  nightKey = localDateKey()
+): FantasyTonightAsk[] {
+  return asks.filter(
+    (row) =>
+      row.toUserId === userId &&
+      row.status === "offered" &&
+      isTonightAskLive(row, nightKey)
   );
 }
