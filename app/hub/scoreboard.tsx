@@ -31,7 +31,6 @@ export default function ScoreboardScreen() {
       { id: "quiz", label: "BOOTH ACE", icon: "help-circle", earned: data.triviaAttempts.length > 0 || data.knowMeGuesses.length > 0 },
       { id: "bet", label: "MARKET", icon: "trending-up", earned: data.predictions.some((p) => p.resolved) },
       { id: "grid", label: "WORD", icon: "text", earned: crosswordWon },
-      { id: "story", label: "CO-AUTHOR", icon: "book", earned: (data.story?.chapters.length ?? 0) > 0 },
       { id: "time", label: "CAPSULE", icon: "hourglass", earned: data.capsules.length > 0 },
       {
         id: "draw",
@@ -41,7 +40,7 @@ export default function ScoreboardScreen() {
           Object.values(data.doodle.scores).some((n) => n > 0) || data.doodle.history.length > 0,
       },
       { id: "dinner", label: "KITCHEN", icon: "restaurant", earned: data.meals.some((m) => m.eliminated) },
-      { id: "fair", label: "WHEEL", icon: "sync", earned: data.fairSpins.length > 0 },
+      { id: "fair", label: "CHORES", icon: "sync", earned: data.fairSpins.length > 0 || data.whoLast.length > 0 },
     ],
     [crosswordWon, data]
   );

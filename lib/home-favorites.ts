@@ -38,7 +38,8 @@ export function hydrateFavoriteSlots(
   if (!Array.isArray(raw)) return slots;
   const known = new Set(allHubApps().map((app) => app.id));
   for (let i = 0; i < HOME_FAVORITE_SLOTS; i += 1) {
-    const value = raw[i];
+    const rawValue = raw[i];
+    const value = rawValue === "who-did-it" ? "fair-share" : rawValue;
     if (typeof value === "string" && known.has(value)) slots[i] = value;
   }
   return slots;
