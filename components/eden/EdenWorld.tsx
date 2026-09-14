@@ -292,6 +292,7 @@ function MemoryFrame({
   tilt: number;
 }) {
   const texture = useMemo(() => {
+    if (!url.startsWith("data:image") && !url.startsWith("http")) return null;
     const tex = new THREE.TextureLoader().load(url);
     tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
@@ -305,7 +306,15 @@ function MemoryFrame({
         </mesh>
         <mesh position={[0, 0.02, 0.032]}>
           <planeGeometry args={[0.58, 0.72]} />
-          <meshBasicMaterial map={texture} />
+          {texture ? (
+            <meshBasicMaterial map={texture} />
+          ) : (
+            <meshStandardMaterial
+              color="#8EC8FF"
+              emissive="#5AA0E8"
+              emissiveIntensity={0.55}
+            />
+          )}
         </mesh>
       </group>
     </Float>
@@ -355,6 +364,82 @@ function Rainbow({ visible }: { visible: boolean }) {
       <torusGeometry args={[3.4, 0.05, 8, 40, Math.PI]} />
       <meshStandardMaterial color="#F2A0C8" emissive="#C080FF" emissiveIntensity={0.55} />
     </mesh>
+  );
+}
+
+function Lagoon({ visible, sleep }: { visible: boolean; sleep: boolean }) {
+  if (!visible) return null;
+  return (
+    <group position={[3.1, 0.02, 3.15]}>
+      <mesh rotation-x={-Math.PI / 2}>
+        <circleGeometry args={[1.35, 28]} />
+        <meshPhysicalMaterial
+          color={sleep ? "#2A4050" : "#3ECFBF"}
+          roughness={0.12}
+          transparent
+          opacity={0.82}
+          emissive={sleep ? "#1A3038" : "#2BB4A8"}
+          emissiveIntensity={0.25}
+        />
+      </mesh>
+      {[0, 1, 2, 3].map((i) => (
+        <mesh
+          key={i}
+          position={[Math.cos(i * 1.4) * 0.55, 0.04, Math.sin(i * 1.4) * 0.55]}
+          rotation-x={-Math.PI / 2}
+        >
+          <circleGeometry args={[0.16, 8]} />
+          <meshStandardMaterial color={sleep ? "#4A6058" : "#7CB86A"} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Runes({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <group>
+      {Array.from({ length: count }).map((_, i) => {
+        const t = i / Math.max(1, count - 1);
+        return (
+          <mesh
+            key={i}
+            position={[-2.2 + t * 1.8, 0.08, 0.4 + Math.sin(i) * 0.25]}
+            rotation-x={-Math.PI / 2}
+          >
+            <ringGeometry args={[0.08, 0.13, 6]} />
+            <meshStandardMaterial
+              color="#FF8A4A"
+              emissive="#FF4D6A"
+              emissiveIntensity={0.9}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+function ShootingStars({ count, night }: { count: number; night: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    ref.current.children.forEach((child, i) => {
+      const t = (clock.elapsedTime * 0.15 + i * 0.18) % 1;
+      child.position.set(-6 + t * 14, 4.2 + Math.sin(i) * 0.8, -5 + i * 0.4);
+    });
+  });
+  if (!night || count <= 0) return null;
+  return (
+    <group ref={ref}>
+      {Array.from({ length: Math.min(count, 8) }).map((_, i) => (
+        <mesh key={i} rotation={[0, 0, -0.4]}>
+          <boxGeometry args={[0.55, 0.02, 0.02]} />
+          <meshStandardMaterial color="#FFF6D8" emissive="#FFF6D8" emissiveIntensity={2} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -452,14 +537,31 @@ function Scene({
             />
           ))
         : null}
-      {snapshot.visuals.frames.map((url, i) => (
-        <MemoryFrame
-          key={url.slice(0, 24) + i}
-          url={url}
-          position={[3.2, 1.1 + i * 0.08, 0.8 - i * 0.55]}
-          tilt={-0.5 + i * 0.18}
-        />
-      ))}
+      {snapshot.visuals.frames.length
+        ? snapshot.visuals.frames.map((url, i) => (
+            <MemoryFrame
+              key={`${i}-${url.slice(0, 18)}`}
+              url={url}
+              position={[3.2, 1.1 + i * 0.08, 0.8 - i * 0.55]}
+              tilt={-0.5 + i * 0.18}
+            />
+          ))
+        : snapshot.biomes.canopy
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <MemoryFrame
+                key={`crystal-${i}`}
+                url=""
+                position={[3.2, 1.1 + i * 0.08, 0.8 - i * 0.55]}
+                tilt={-0.5 + i * 0.18}
+              />
+            ))
+          : null}
+      <Lagoon visible={snapshot.biomes.lagoon} sleep={snapshot.dormancy} />
+      <Runes count={snapshot.visuals.runes} />
+      <ShootingStars
+        count={snapshot.visuals.shootingStars}
+        night={snapshot.phase === "night" || snapshot.dormancy}
+      />
       <Fireflies
         count={snapshot.visuals.fireflies}
         color={snapshot.dormancy ? "#8A9AAA" : "#F0C75E"}

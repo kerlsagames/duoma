@@ -260,6 +260,111 @@ export function buildEdenSnapshot(input: EdenInputs, now = new Date()): EdenSnap
   };
 }
 
+export type EdenStageId =
+  | "live"
+  | "hearth"
+  | "meadow"
+  | "canopy"
+  | "crimson"
+  | "lagoon"
+  | "full";
+
+export type EdenCreator = {
+  enabled: boolean;
+  stage: EdenStageId;
+  phase: EdenPhase | "auto";
+  dormancy: "auto" | "awake" | "sleep";
+};
+
+export const EDEN_STAGES: { id: EdenStageId; label: string; hint: string; level: number | null }[] =
+  [
+    { id: "live", label: "Live couple", hint: "Whatever you have actually earned", level: null },
+    { id: "hearth", label: "Hearth", hint: "Levels 1–5 · first terrace", level: 1 },
+    { id: "meadow", label: "Meadow", hint: "Level 6 · curiosity vines", level: 6 },
+    { id: "canopy", label: "Canopy", hint: "Level 16 · gazebo & frames", level: 16 },
+    { id: "crimson", label: "Crimson", hint: "Level 31 · grove & pavilion", level: 31 },
+    { id: "lagoon", label: "Lagoon", hint: "Level 51 · still water", level: 51 },
+    { id: "full", label: "Everything", hint: "All biomes, landmarks, flora", level: 100 },
+  ];
+
+export const EDEN_PHASES: { id: EdenPhase | "auto"; label: string }[] = [
+  { id: "auto", label: "Clock" },
+  { id: "dawn", label: "Dawn" },
+  { id: "day", label: "Day" },
+  { id: "golden", label: "Golden" },
+  { id: "night", label: "Night" },
+];
+
+export function emptyEdenCreator(): EdenCreator {
+  return { enabled: false, stage: "live", phase: "auto", dormancy: "auto" };
+}
+
+export function biomesAtLevel(level: number): EdenSnapshot["biomes"] {
+  return {
+    hearth: true,
+    meadow: level >= 6,
+    canopy: level >= 16,
+    crimson: level >= 31,
+    lagoon: level >= 51,
+  };
+}
+
+function showcaseVisuals(
+  level: number,
+  frames: string[]
+): EdenSnapshot["visuals"] {
+  const biomes = biomesAtLevel(level);
+  const full = level >= 100;
+  return {
+    shootingStars: full || biomes.meadow ? 6 : 3,
+    echoBlossoms: biomes.meadow || full ? 10 : 0,
+    pebbles: 14,
+    vineBlooms: biomes.meadow || full ? 6 : 0,
+    frames: biomes.canopy || full ? frames.slice(0, 5) : [],
+    emberLilies: biomes.crimson || full ? 8 : 0,
+    fireflies: full ? 36 : biomes.crimson ? 28 : 16,
+    runes: biomes.crimson || full ? 8 : 0,
+    pavilion: biomes.crimson || full,
+    gazebo: biomes.canopy || full,
+    rainbow: biomes.lagoon || full,
+  };
+}
+
+export function applyEdenCreator(
+  live: EdenSnapshot,
+  creator: EdenCreator
+): EdenSnapshot {
+  if (!creator.enabled || creator.stage === "live") {
+    return {
+      ...live,
+      phase: creator.enabled && creator.phase !== "auto" ? creator.phase : live.phase,
+      dormancy:
+        creator.enabled && creator.dormancy !== "auto"
+          ? creator.dormancy === "sleep"
+          : live.dormancy,
+    };
+  }
+  const stage = EDEN_STAGES.find((row) => row.id === creator.stage);
+  const level = stage?.level ?? 1;
+  const full = creator.stage === "full";
+  const biomes = full
+    ? { hearth: true as const, meadow: true, canopy: true, crimson: true, lagoon: true }
+    : biomesAtLevel(level);
+  const next = epForLevel(Math.min(100, level + 1));
+  return {
+    ...live,
+    level,
+    totalEP: epForLevel(level),
+    epIntoLevel: 0,
+    epForNext: next,
+    progress: full ? 1 : 0.65,
+    dormancy: creator.dormancy === "sleep",
+    phase: creator.phase === "auto" ? live.phase : creator.phase,
+    biomes,
+    visuals: showcaseVisuals(full ? 100 : level, live.visuals.frames),
+  };
+}
+
 export function biomeLabel(snapshot: EdenSnapshot): string {
   if (snapshot.biomes.lagoon) return "Serene Lagoon";
   if (snapshot.biomes.crimson) return "Crimson Grove";

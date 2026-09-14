@@ -2,13 +2,24 @@ import { EdenWorld } from "@/components/eden/EdenWorld";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
-import { biomeLabel, buildEdenSnapshot, type EdenSnapshot } from "@/lib/eden";
+import { loadEdenCreator, saveEdenCreator } from "@/lib/eden-creator";
+import {
+  applyEdenCreator,
+  biomeLabel,
+  buildEdenSnapshot,
+  EDEN_PHASES,
+  EDEN_STAGES,
+  emptyEdenCreator,
+  type EdenCreator,
+  type EdenSnapshot,
+} from "@/lib/eden";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { listWhiteFlags } from "@/lib/white-flag";
+import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 const INK = "#F4F0E8";
 
@@ -28,18 +39,28 @@ export default function EdenScreen() {
   const { data, ready } = useMiniApps();
   const [flags, setFlags] = useState<{ createdAt: string }[]>([]);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [creatorOpen, setCreatorOpen] = useState(false);
+  const [creator, setCreator] = useState<EdenCreator>(emptyEdenCreator());
 
   useEffect(() => {
     let alive = true;
     listWhiteFlags().then((rows) => {
       if (alive) setFlags(rows);
     });
+    loadEdenCreator().then((row) => {
+      if (alive) setCreator(row);
+    });
     return () => {
       alive = false;
     };
   }, []);
 
-  const snapshot = useMemo(
+  const persistCreator = (next: EdenCreator) => {
+    setCreator(next);
+    void saveEdenCreator(next);
+  };
+
+  const live = useMemo(
     () =>
       buildEdenSnapshot({
         pings: data.pings,
@@ -74,12 +95,52 @@ export default function EdenScreen() {
       calendarEvents,
     ]
   );
+  const snapshot = useMemo(() => applyEdenCreator(live, creator), [live, creator]);
+
+  const openCreator = () => {
+    setStatsOpen(false);
+    setCreatorOpen(true);
+    if (!creator.enabled) {
+      persistCreator({ enabled: true, stage: "full", phase: "auto", dormancy: "awake" });
+    }
+  };
 
   return (
     <Screen background="#0B1020">
       <View style={{ flex: 1 }}>
-        <View style={{ paddingHorizontal: 4, paddingTop: 4, zIndex: 4 }}>
+        <View
+          style={{
+            paddingHorizontal: 4,
+            paddingTop: 4,
+            zIndex: 4,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <BackButton color="#9FE8C4" fallback={"/(tabs)" as Href} />
+          <Pressable
+            onPress={() => (creatorOpen ? setCreatorOpen(false) : openCreator())}
+            accessibilityLabel="Eden creator"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: creator.enabled
+                ? "rgba(124,255,178,0.55)"
+                : "rgba(159,232,196,0.28)",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: creator.enabled ? "rgba(124,255,178,0.12)" : "transparent",
+            }}
+          >
+            <Ionicons
+              name={creatorOpen ? "close" : "color-wand-outline"}
+              size={20}
+              color="#9FE8C4"
+            />
+          </Pressable>
         </View>
         <View style={{ flex: 1, marginTop: -8 }}>
           {ready ? (
@@ -92,9 +153,29 @@ export default function EdenScreen() {
             </View>
           )}
         </View>
-        <Hud snapshot={snapshot} onOpen={() => setStatsOpen(true)} />
+        {!creatorOpen && !statsOpen ? (
+          <Hud
+            snapshot={snapshot}
+            creator={creator}
+            onOpen={() => setStatsOpen(true)}
+          />
+        ) : null}
         {statsOpen ? (
-          <StatsSheet snapshot={snapshot} onClose={() => setStatsOpen(false)} />
+          <StatsSheet
+            snapshot={snapshot}
+            live={live}
+            creator={creator}
+            onClose={() => setStatsOpen(false)}
+            onCreator={openCreator}
+          />
+        ) : null}
+        {creatorOpen ? (
+          <CreatorSheet
+            live={live}
+            creator={creator}
+            onChange={persistCreator}
+            onClose={() => setCreatorOpen(false)}
+          />
         ) : null}
       </View>
     </Screen>
@@ -103,11 +184,14 @@ export default function EdenScreen() {
 
 function Hud({
   snapshot,
+  creator,
   onOpen,
 }: {
   snapshot: EdenSnapshot;
+  creator: EdenCreator;
   onOpen: () => void;
 }) {
+  const previewing = creator.enabled && creator.stage !== "live";
   return (
     <Pressable
       onPress={onOpen}
@@ -131,10 +215,10 @@ function Hud({
           color: "rgba(159,232,196,0.7)",
         }}
       >
-        {snapshot.dormancy ? "DORMANT" : biomeLabel(snapshot).toUpperCase()}
+        {previewing ? "CREATOR" : snapshot.dormancy ? "DORMANT" : biomeLabel(snapshot).toUpperCase()}
       </Text>
       <Text style={{ marginTop: 4, color: INK, fontFamily: SERIF, fontSize: 22 }}>
-        Level {snapshot.level}
+        {previewing ? EDEN_STAGES.find((row) => row.id === creator.stage)?.label : `Level ${snapshot.level}`}
       </Text>
       <View
         style={{
@@ -154,9 +238,11 @@ function Hud({
         />
       </View>
       <Text style={{ marginTop: 6, color: "rgba(244,240,232,0.55)", fontSize: 12 }}>
-        {snapshot.dormancy
-          ? "Twilight fog. Any ping, note, or night wakes it."
-          : `${snapshot.totalEP} EP · drag to orbit · tap the hearth`}
+        {previewing
+          ? "Preview only — your live couple is unchanged. Wand to edit."
+          : snapshot.dormancy
+            ? "Twilight fog. Any ping, note, or night wakes it."
+            : `${snapshot.totalEP} EP · drag to orbit · tap the hearth`}
       </Text>
     </Pressable>
   );
@@ -164,11 +250,18 @@ function Hud({
 
 function StatsSheet({
   snapshot,
+  live,
+  creator,
   onClose,
+  onCreator,
 }: {
   snapshot: EdenSnapshot;
+  live: EdenSnapshot;
+  creator: EdenCreator;
   onClose: () => void;
+  onCreator: () => void;
 }) {
+  const previewing = creator.enabled && creator.stage !== "live";
   return (
     <View
       pointerEvents="box-none"
@@ -218,10 +311,12 @@ function StatsSheet({
           {biomeLabel(snapshot)}
         </Text>
         <Text style={{ marginTop: 4, color: "rgba(244,240,232,0.55)" }}>
-          Level {snapshot.level} · {snapshot.totalEP} ecosystem points
+          {previewing
+            ? `Creator view · live couple is still level ${live.level} / ${live.totalEP} EP`
+            : `Level ${snapshot.level} · ${snapshot.totalEP} ecosystem points`}
         </Text>
         <View style={{ marginTop: 14, gap: 10 }}>
-          {snapshot.essences.map((row) => (
+          {live.essences.map((row) => (
             <View
               key={row.id}
               style={{
@@ -242,21 +337,24 @@ function StatsSheet({
             </View>
           ))}
         </View>
-        <Text
+        <Pressable
+          onPress={onCreator}
           style={{
-            marginTop: 14,
-            color: "rgba(244,240,232,0.45)",
-            fontSize: 12,
-            lineHeight: 18,
+            marginTop: 16,
+            height: 46,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: "rgba(124,255,178,0.4)",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          Nothing dies here. If you go quiet the island only sleeps. Voice notes,
-          gratitude, dates, photos, and spicy nights all feed a different biome.
-        </Text>
+          <Text style={{ color: "#7CFFB2", fontWeight: "800" }}>Open creator</Text>
+        </Pressable>
         <Pressable
           onPress={onClose}
           style={{
-            marginTop: 16,
+            marginTop: 10,
             height: 46,
             borderRadius: 12,
             backgroundColor: "#7CFFB2",
@@ -266,6 +364,208 @@ function StatsSheet({
         >
           <Text style={{ color: "#102018", fontWeight: "800" }}>Back to the island</Text>
         </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function CreatorSheet({
+  live,
+  creator,
+  onChange,
+  onClose,
+}: {
+  live: EdenSnapshot;
+  creator: EdenCreator;
+  onChange: (next: EdenCreator) => void;
+  onClose: () => void;
+}) {
+  return (
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 24,
+        justifyContent: "flex-end",
+      }}
+    >
+      <Pressable
+        onPress={onClose}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          backgroundColor: "rgba(6,8,14,0.45)",
+        }}
+      />
+      <View
+        style={{
+          maxHeight: "78%",
+          borderTopLeftRadius: 22,
+          borderTopRightRadius: 22,
+          backgroundColor: "#121820",
+          borderTopWidth: 1,
+          borderColor: "rgba(159,232,196,0.25)",
+        }}
+      >
+        <View
+          style={{
+            paddingHorizontal: 18,
+            paddingTop: 16,
+            paddingBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 2,
+                color: "rgba(159,232,196,0.7)",
+              }}
+            >
+              CREATOR
+            </Text>
+            <Text style={{ marginTop: 4, color: INK, fontFamily: SERIF, fontSize: 24 }}>
+              See the whole island
+            </Text>
+          </View>
+          <Pressable onPress={onClose} hitSlop={10}>
+            <Ionicons name="close" size={22} color={INK} />
+          </Pressable>
+        </View>
+        <ScrollView
+          style={{ maxHeight: 460 }}
+          contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 28 }}
+        >
+          <Text style={{ color: "rgba(244,240,232,0.55)", fontSize: 13, lineHeight: 19 }}>
+            This is only on this phone. Live couple stays at level {live.level}. Use it to
+            judge biomes and lighting before you change the real world.
+          </Text>
+
+          <ChipRow
+            label="Stage"
+            options={EDEN_STAGES.map((row) => ({
+              id: row.id,
+              label: row.label,
+              hint: row.hint,
+            }))}
+            value={creator.stage}
+            onPick={(stage) =>
+              onChange({
+                ...creator,
+                enabled: true,
+                stage,
+                dormancy: stage === "live" ? creator.dormancy : "awake",
+              })
+            }
+          />
+          <ChipRow
+            label="Light"
+            options={EDEN_PHASES.map((row) => ({ id: row.id, label: row.label }))}
+            value={creator.phase}
+            onPick={(phase) => onChange({ ...creator, enabled: true, phase })}
+          />
+          <ChipRow
+            label="Sleep"
+            options={[
+              { id: "auto", label: "From usage" },
+              { id: "awake", label: "Awake" },
+              { id: "sleep", label: "Dormant fog" },
+            ]}
+            value={creator.dormancy}
+            onPick={(dormancy) => onChange({ ...creator, enabled: true, dormancy })}
+          />
+
+          <Pressable
+            onPress={() =>
+              onChange({ enabled: true, stage: "full", phase: "day", dormancy: "awake" })
+            }
+            style={{
+              marginTop: 16,
+              height: 46,
+              borderRadius: 12,
+              backgroundColor: "#7CFFB2",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#102018", fontWeight: "800" }}>
+              Show everything, daytime
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => onChange(emptyEdenCreator())}
+            style={{
+              marginTop: 10,
+              height: 46,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "rgba(244,240,232,0.2)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: INK, fontWeight: "700" }}>Back to live couple</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+function ChipRow<T extends string>({
+  label,
+  options,
+  value,
+  onPick,
+}: {
+  label: string;
+  options: { id: T; label: string; hint?: string }[];
+  value: T;
+  onPick: (id: T) => void;
+}) {
+  return (
+    <View style={{ marginTop: 16 }}>
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 10,
+          letterSpacing: 2,
+          color: "rgba(159,232,196,0.65)",
+        }}
+      >
+        {label.toUpperCase()}
+      </Text>
+      <View style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {options.map((row) => {
+          const on = value === row.id;
+          return (
+            <Pressable
+              key={row.id}
+              onPress={() => onPick(row.id)}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 8,
+                borderWidth: 1,
+                borderColor: on ? "#7CFFB2" : "rgba(244,240,232,0.16)",
+                backgroundColor: on ? "rgba(124,255,178,0.14)" : "transparent",
+              }}
+            >
+              <Text style={{ color: on ? "#7CFFB2" : INK, fontWeight: "700", fontSize: 13 }}>
+                {row.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
