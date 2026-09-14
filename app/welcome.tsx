@@ -1,51 +1,93 @@
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { LinearGradient } from "expo-linear-gradient";
+import { HUBS } from "@/lib/hubs";
+import { useApp } from "@/lib/store";
 import { useRouter, type Href } from "expo-router";
 import { Text, View } from "react-native";
-import { useApp } from "@/lib/store";
+
+const LANES = HUBS.map((hub) => ({
+  label: hub.label,
+  hint:
+    hub.id === "connect"
+      ? "Talks, dates, the jar"
+      : hub.id === "desire"
+        ? "Spice, dares, fantasies"
+        : hub.id === "play"
+          ? "Bets, photos, games"
+          : "Bills, birthdays, trips",
+  tile: hub.tile,
+  ink: hub.tileInk,
+}));
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { savedPair, continueAsSaved } = useApp();
 
   return (
-    <Screen>
-      <View className="flex-1 justify-between py-8">
-        <View className="pt-10">
-          <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
-            Couples
-          </Text>
-          <View className="mt-4">
-            <View className="items-start">
-              <DuomaLogo size={52} />
+    <Screen scroll>
+      <View className="pt-10 pb-8">
+        <Text className="text-[12px] font-semibold uppercase tracking-[4px] text-neon">
+          Couples app
+        </Text>
+        <View className="mt-4 items-start">
+          <DuomaLogo size={52} />
+        </View>
+        <Text className="mt-3 max-w-[320px] text-[22px] font-bold leading-7 text-mist">
+          Two phones. One home.
+        </Text>
+        <Text className="mt-2 max-w-[340px] text-[16px] leading-6 text-mist/70">
+          Pair once. Then the calendar, the talks, the games, and the spice all
+          live in the same place.
+        </Text>
+
+        <View
+          style={{
+            marginTop: 22,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 10,
+          }}
+        >
+          {LANES.map((lane) => (
+            <View
+              key={lane.label}
+              style={{
+                width: "47.5%",
+                flexGrow: 1,
+                backgroundColor: lane.tile,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "800",
+                  color: lane.ink,
+                }}
+              >
+                {lane.label}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  lineHeight: 16,
+                  color: lane.ink,
+                  opacity: 0.78,
+                }}
+              >
+                {lane.hint}
+              </Text>
             </View>
-          </View>
-          <Text className="mt-3 max-w-[300px] text-[18px] leading-7 text-mist/80">
-            Two phones. One heat. Pair once — stay paired.
-          </Text>
+          ))}
         </View>
+        <Text className="mt-3 text-[13px] leading-5 text-mist/50">
+          Plus a shared calendar and a daily check-in on the home screen.
+        </Text>
 
-        <View className="mb-4 overflow-hidden rounded-[28px] border border-white/10">
-          <LinearGradient
-            colors={["#1A0810", "#0B0B0E"]}
-            style={{ padding: 22 }}
-          >
-            <Text className="text-[13px] font-semibold uppercase tracking-[2px] text-neon">
-              The Spicy Game
-            </Text>
-            <Text className="mt-2 text-[24px] font-bold text-mist">
-              A whole day. A steamy close.
-            </Text>
-            <Text className="mt-2 text-[15px] leading-6 text-mist/70">
-              Tease through daylight. Unlock private time together. Finish loud.
-              Afterglow after.
-            </Text>
-          </LinearGradient>
-        </View>
-
-        <View className="gap-3 pb-4">
+        <View className="mt-8 gap-3">
           {savedPair ? (
             <>
               <Text className="text-center text-[14px] leading-5 text-mist/60">
@@ -74,7 +116,7 @@ export default function WelcomeScreen() {
             onPress={() => router.push("/join")}
           />
           <PrimaryButton
-            label="How to play"
+            label="How it works"
             tone="ghost"
             onPress={() => router.push("/how-to" as Href)}
           />

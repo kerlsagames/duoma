@@ -38,8 +38,8 @@ export default function JoinScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Six characters. No zeros, no ones. Your name and Male/Female land on
-          the pair so cards can speak to both of you.
+          Six characters. No zeros, no ones. Name and Male/Female land on the
+          pair so the spicy rooms can speak to both of you.
         </Text>
 
         <TextInput

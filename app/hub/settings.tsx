@@ -126,8 +126,8 @@ export default function SettingsScreen() {
             onPress={() => router.push("/(tabs)/cards" as Href)}
           />
           <SettingsRow
-            label="How to play"
-            hint="Deal three, pick one, passes, shuffles, daytime pause."
+            label="How it works"
+            hint="Pairing, the four hubs, calendar, and Get Spicy if you open it."
             icon="book"
             onPress={() => router.push("/how-to" as Href)}
           />

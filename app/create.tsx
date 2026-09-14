@@ -37,8 +37,9 @@ export default function CreateAccountScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Your name</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Name plus Male or Female so Get Spicy cards can use the right body
-          language for both of you.
+          Your name, plus Male or Female so spicy cards, positions, and
+          roleplays speak to the right body. Everything else in Duoma is shared
+          either way.
         </Text>
 
         <TextInput

@@ -5,49 +5,54 @@ import { Text, View } from "react-native";
 
 const STEPS = [
   {
-    kicker: "Stay paired",
-    title: "One code, every night",
-    body: "Create a pair once. The invite code is yours forever. Sign out if you want — you are still linked. Do not make a new code just to play again.",
+    kicker: "Pair once",
+    title: "One code, then you stay linked",
+    body: "Create a pair and send the six-character code. After they join, you are linked on this phone. Sign out does not unpair you. Do not make a new code just to come back.",
   },
   {
-    kicker: "Male / Female",
-    title: "Set once at the start",
-    body: "When you create or join Duoma, pick Male or Female so cards use the right anatomy. Fix a mistake anytime in Settings — not inside the spicy game.",
-  },
-  {
-    kicker: "Deal three",
-    title: "Pick one card to play",
-    body: "On your turn the app deals three cards with a little animation. Tap the one you want. Play then moves to your partner.",
-  },
-  {
-    kicker: "Shuffle",
-    title: "Redraw your hand",
-    body: "Do not like the three you got? Shuffle for a fresh hand. Setup sets how many shuffles each of you gets — or unlimited.",
-  },
-  {
-    kicker: "Pass",
-    title: "Pass means you sit this one out",
-    body: "You cannot pass your own card. If your partner just played something you do not want to do, Pass — I don't participate. They deal again.",
-  },
-  {
-    kicker: "Stage 1",
-    title: "Pre-foreplay is daytime",
-    body: "Texts, looks, light touch throughout the day. When those cards are done, Duoma pauses. Tap We are ready to move on when you both want foreplay. Your partner will not see your daytime cards until then.",
-  },
-  {
-    kicker: "Finish Off",
-    title: "A suspense toss chooses who picks",
-    body: "Before Finish Off and Afterglow, a reveal picks who chooses the Finish Off card. The other person chooses Afterglow. Defaults are one card each.",
+    kicker: "Names",
+    title: "Male or Female, set at the start",
+    body: "Pick Male or Female so spicy cards, positions, and roleplays use the right wording. Fix a mistake anytime in Settings.",
   },
   {
     kicker: "Home",
-    title: "It's a home screen of apps",
-    body: "The top of Home is Now — their mood, whose spicy-game turn it is, and what's next. Twelve app icons sit under that, including Spicy Game, Talk to me, and Settings in the bottom right. Card Bank, notifications, and sign-out live in Settings. The only tab is Home.",
+    title: "Four hubs, not one game",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open a room of apps. Daily Check-In and the shared calendar sit at the top. Settings is on Home — card bank, notifications, and sign-out live there.",
+  },
+  {
+    kicker: "Connect",
+    title: "Talk, plan, leave a note",
+    body: "Lists, date nights, Curiosity, Talk to Me, the gratitude jar, apology, and thought pings. Use it when you want a conversation, not a dare.",
+  },
+  {
+    kicker: "Desire",
+    title: "Spice when you both want it",
+    body: "Get Spicy, Dare Me, roleplays, positions, and Fantasy Matcher. Swipe fantasies separately — you only see a match when you both said yes.",
+  },
+  {
+    kicker: "Fun",
+    title: "Play without a plan",
+    body: "Coupons, LoveBetz, photo memory (one shot a week), trivia, doodles, and the rest of the games. Nothing here has to lead to bed.",
+  },
+  {
+    kicker: "Home Base",
+    title: "The life admin, shared",
+    body: "Groceries, birthdays, meals, travel, the budget jars, jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
+  },
+  {
+    kicker: "Calendar",
+    title: "Two tabs, one month",
+    body: "Desire & Connect shows nights, talks, and dares you already did. General shows birthdays, trips, and jobs. The cog switches stacked, split, or agenda.",
+  },
+  {
+    kicker: "Get Spicy",
+    title: "If you open that game",
+    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Daytime cards stay private until you both tap that you are ready to move on.",
   },
   {
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
-    body: "Web push is free — no Apple Developer account. iOS 16.4+: Safari Share → Add to Home Screen. Open the icon (not the Safari tab), then grant notifications in Settings. Push does not work inside a regular Safari tab.",
+    body: "Safari Share → Add to Home Screen, then open the icon — not the Safari tab. Notifications only work from that icon on iOS 16.4+.",
   },
 ];
 
@@ -58,11 +63,12 @@ export default function HowToScreen() {
     <Screen scroll>
       <View className="pt-6 pb-10">
         <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
-          Get Spicy
+          Duoma
         </Text>
-        <Text className="mt-3 text-[34px] font-bold text-mist">How to play</Text>
+        <Text className="mt-3 text-[34px] font-bold text-mist">How it works</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Two phones. One pair. Games and a shared life record.
+          A shared home for the two of you — talks, spice, games, and the boring
+          stuff that still has to get done.
         </Text>
 
         <View className="mt-7 gap-3">
