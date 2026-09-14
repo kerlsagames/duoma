@@ -74,18 +74,19 @@ export function CarnivalWheel({
 
   return (
     <View style={{ alignItems: "center" }}>
-      <View
-        style={{
-          width: 22,
-          height: 28,
-          backgroundColor: "#F4E7C5",
-          borderRadius: 3,
-          zIndex: 3,
-          marginBottom: -14,
-          borderWidth: 2,
-          borderColor: "#C9A24A",
-        }}
-      />
+      <Svg
+        width={34}
+        height={22}
+        style={{ zIndex: 3, marginBottom: -10 }}
+      >
+        <Path
+          d="M17 20 L3 3 L31 3 Z"
+          fill="#F4E7C5"
+          stroke="#C9A24A"
+          strokeWidth={2}
+          strokeLinejoin="round"
+        />
+      </Svg>
       <View
         style={{
           padding: 8,

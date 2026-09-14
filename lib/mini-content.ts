@@ -701,26 +701,50 @@ export const DEFAULT_SPOTS: Spot[] = [
 ];
 
 export const DEFAULT_CHORES: Chore[] = [
-  { id: "chore-dishes", label: "Dishes" },
-  { id: "chore-trash", label: "Trash & recycling" },
-  { id: "chore-laundry", label: "Laundry mountain" },
   { id: "chore-bath", label: "Bathroom reset" },
   { id: "chore-floors", label: "Floors" },
-  { id: "chore-cook", label: "Cook tonight" },
   { id: "chore-cat", label: "Creature duties" },
-  { id: "chore-admin", label: "The boring emails" },
 ];
 
-export const DEFAULT_WHO_TASKS = [
-  { id: "who-dishes", label: "Did the dishes" },
-  { id: "who-trash", label: "Took the trash" },
-  { id: "who-laundry", label: "Started laundry" },
-  { id: "who-cook", label: "Made dinner" },
-  { id: "who-shop", label: "Did the shop" },
-  { id: "who-bed", label: "Made the bed" },
-  { id: "who-bills", label: "Paid a bill" },
-  { id: "who-car", label: "Filled the tank" },
-];
+/** Retired defaults — stripped on hydrate so old saves lose the boring list. */
+const RETIRED_FAIR_SHARE_IDS = new Set([
+  "chore-dishes",
+  "chore-trash",
+  "chore-laundry",
+  "chore-cook",
+  "chore-admin",
+  "who-dishes",
+  "who-trash",
+  "who-laundry",
+  "who-cook",
+  "who-shop",
+  "who-bed",
+  "who-bills",
+  "who-car",
+]);
+
+const RETIRED_FAIR_SHARE_LABELS = new Set([
+  "dishes",
+  "trash & recycling",
+  "laundry mountain",
+  "cook tonight",
+  "the boring emails",
+  "did the dishes",
+  "took the trash",
+  "started laundry",
+  "made dinner",
+  "did the shop",
+  "made the bed",
+  "paid a bill",
+  "filled the tank",
+]);
+
+export const DEFAULT_WHO_TASKS: { id: string; label: string }[] = [];
+
+function keepFairShareItem(row: { id: string; label: string }) {
+  if (RETIRED_FAIR_SHARE_IDS.has(row.id)) return false;
+  return !RETIRED_FAIR_SHARE_LABELS.has(row.label.trim().toLowerCase());
+}
 
 export const DEFAULT_MAINT: { label: string; everyDays: number }[] = [
   { label: "Change HVAC filter", everyDays: 90 },
@@ -884,7 +908,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     capsules: asArray(row.capsules, base.capsules),
     meals: asArray(row.meals, base.meals),
     spots: asArray(row.spots, base.spots),
-    chores: asArray(row.chores, base.chores),
+    chores: asArray(row.chores, base.chores).filter(keepFairShareItem),
     fairSpins: asArray(row.fairSpins, base.fairSpins),
     trips: asArray(row.trips, base.trips),
     goals: asArray(row.goals, base.goals)
@@ -897,7 +921,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     sexyVault: hydrateSexyVault(row.sexyVault),
     sexyVaultPin: typeof row.sexyVaultPin === "string" ? row.sexyVaultPin : "",
     whoLast: asArray(row.whoLast, base.whoLast),
-    whoTasks: asArray(row.whoTasks, base.whoTasks),
+    whoTasks: asArray(row.whoTasks, base.whoTasks).filter(keepFairShareItem),
     cheers: asArray(row.cheers, base.cheers),
     period: hydratePeriodState(row.period),
     birthdays: hydrateBirthdays(row.birthdays),
