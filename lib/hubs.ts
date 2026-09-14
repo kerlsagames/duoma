@@ -46,6 +46,14 @@ export const HOME_HEADER_WIDGETS = [
     href: "/hub/calendar",
     accent: "#F0A46A",
   },
+  {
+    id: "eden",
+    label: "Eden",
+    detail: "Your island grows when you connect",
+    icon: "planet" as IconName,
+    href: "/hub/eden",
+    accent: "#7CFFB2",
+  },
 ] as const;
 
 export const HUBS: HubDef[] = [

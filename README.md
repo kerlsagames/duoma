@@ -10,7 +10,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
-- **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip.
+- **Home** — Daily Check-In, Calendar, Eden (3D island that grows from your real activity), four hubs, and a dotted favorites strip.
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Intimacy Streak.
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (100 ideas in four packs, one weekly shot, clothesline gallery), Draw It, Scoreboard, Daily Word, Choose-Your-Own Adventure.
