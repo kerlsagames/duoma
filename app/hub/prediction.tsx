@@ -32,7 +32,9 @@ import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
+import { Animated, Easing, Platform, Pressable, Text, TextInput, View } from "react-native";
+
+type HubTab = "make" | "live" | "finalised";
 
 type ViewMode =
   | "home"
@@ -46,11 +48,13 @@ type ViewMode =
   | "custom";
 
 const TAPE_COPY = "LOVEBETZ   ·   PLACE A SLIP   ·   WINNER TAKES THE PRIZE   ·   ";
+const TAPE_HEIGHT = 22;
 
 export default function PredictionScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [view, setView] = useState<ViewMode>("home");
+  const [hub, setHub] = useState<HubTab>("make");
   const [promptCat, setPromptCat] = useState<BetPromptCategory | null>(null);
   const [stakeCat, setStakeCat] = useState<BetStakeCategory | null>(null);
   const [pickedPrompt, setPickedPrompt] = useState<BetPrompt | null>(null);
@@ -229,6 +233,7 @@ export default function PredictionScreen() {
     setSubject("");
     setFlash(`Slip sent to ${them}. Waiting for them to disagree and accept.`);
     goHome();
+    setHub("live");
   };
 
   const answerSlip = async (id: string, accept: boolean) => {
@@ -279,6 +284,7 @@ export default function PredictionScreen() {
         setFlash(
           `${personName(loser, user?.id, me, them)} owes ${personName(winner, user?.id, me, them)}: ${row.stake}`
         );
+        setHub("finalised");
       }
     }
   };
@@ -311,14 +317,19 @@ export default function PredictionScreen() {
       <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.pink}>
         <View
           style={{
+            marginHorizontal: -20,
+            height: TAPE_HEIGHT,
             backgroundColor: T.pink,
-            paddingVertical: 9,
             overflow: "hidden",
+            justifyContent: "center",
           }}
         >
           <Animated.View
             style={{
               flexDirection: "row",
+              flexWrap: "nowrap",
+              height: TAPE_HEIGHT,
+              alignItems: "center",
               transform: [
                 {
                   translateX: tape.interpolate({
@@ -332,6 +343,7 @@ export default function PredictionScreen() {
             {[0, 1].map((copy) => (
               <Text
                 key={copy}
+                numberOfLines={1}
                 onLayout={
                   copy === 0
                     ? (event) => {
@@ -346,9 +358,12 @@ export default function PredictionScreen() {
                   color: T.onPink,
                   fontFamily: SANS,
                   fontSize: 12,
+                  lineHeight: TAPE_HEIGHT,
                   fontWeight: "700",
                   letterSpacing: 0.4,
                   paddingRight: 8,
+                  flexShrink: 0,
+                  ...(Platform.OS === "web" ? { whiteSpace: "nowrap" as const } : null),
                 }}
               >
                 {TAPE_COPY}
@@ -357,7 +372,55 @@ export default function PredictionScreen() {
           </Animated.View>
         </View>
 
-        {view !== "home" ? (
+        <View
+          style={{
+            marginTop: 12,
+            flexDirection: "row",
+            gap: 6,
+          }}
+        >
+          {(
+            [
+              ["make", "Make a bet"],
+              ["live", "Live bets"],
+              ["finalised", "Finalised bets"],
+            ] as const
+          ).map(([id, label]) => {
+            const on = hub === id;
+            return (
+              <Pressable
+                key={id}
+                onPress={() => setHub(id)}
+                style={{
+                  flex: 1,
+                  minHeight: 52,
+                  paddingHorizontal: 6,
+                  paddingVertical: 8,
+                  borderWidth: 1.5,
+                  borderColor: T.pink,
+                  backgroundColor: on ? T.pink : T.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontFamily: DISPLAY,
+                    fontSize: 13,
+                    lineHeight: 16,
+                    letterSpacing: 0.3,
+                    color: on ? T.onPink : T.pink,
+                  }}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {hub === "make" && view !== "home" ? (
           <Pressable
             onPress={goBack}
             style={{ marginTop: 14, flexDirection: "row", alignItems: "center" }}
@@ -377,7 +440,24 @@ export default function PredictionScreen() {
           </Pressable>
         ) : null}
 
-        {view === "home" ? (
+        {flash ? (
+          <View
+            style={{
+              marginTop: 12,
+              borderWidth: 1,
+              borderColor: T.gold,
+              backgroundColor: T.goldSoft,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+            }}
+          >
+            <Text style={{ color: T.ink, fontFamily: SANS, fontSize: 14 }}>
+              {flash}
+            </Text>
+          </View>
+        ) : null}
+
+        {hub === "make" && view === "home" ? (
           <View>
             <View
               style={{
@@ -393,17 +473,6 @@ export default function PredictionScreen() {
                 <View
                   style={{
                     flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={kicker}>COUPLES BOOK</Text>
-                  <Text style={[kicker, { color: T.gold }]}>WINNER TAKES THE STAKE</Text>
-                </View>
-                <View
-                  style={{
-                    marginTop: 4,
-                    flexDirection: "row",
                     alignItems: "flex-end",
                     gap: 6,
                   }}
@@ -411,8 +480,8 @@ export default function PredictionScreen() {
                   <Text
                     style={{
                       fontFamily: SCRIPT,
-                      fontSize: 52,
-                      lineHeight: 60,
+                      fontSize: 44,
+                      lineHeight: 50,
                       color: T.pink,
                     }}
                   >
@@ -421,11 +490,11 @@ export default function PredictionScreen() {
                   <Text
                     style={{
                       fontFamily: DISPLAY,
-                      fontSize: 36,
-                      lineHeight: 44,
+                      fontSize: 30,
+                      lineHeight: 38,
                       color: T.ink,
                       letterSpacing: 1,
-                      paddingBottom: 6,
+                      paddingBottom: 4,
                     }}
                   >
                     BETZ
@@ -436,78 +505,15 @@ export default function PredictionScreen() {
                     marginTop: 2,
                     color: T.ink,
                     fontFamily: SANS,
-                    fontSize: 16,
-                    lineHeight: 22,
+                    fontSize: 15,
+                    lineHeight: 21,
                   }}
                 >
-                  You pick a side and a prize. {them} can disagree and accept, or
+                  Pick a side and a prize. {them} can disagree and accept, or
                   pass. Winner collects.
                 </Text>
-                <View
-                  style={{
-                    marginTop: 14,
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: 8,
-                  }}
-                >
-                  <Badge label={`${BET_PROMPTS.length} markets`} />
-                  <Badge label={`${BET_STAKES.length} stakes`} tone="gold" />
-                  <Badge
-                    label={
-                      owed.length
-                        ? `${owed.length} to pay`
-                        : incoming.length
-                          ? `${incoming.length} to accept`
-                          : live.length
-                            ? `${live.length} live`
-                            : "book open"
-                    }
-                  />
-                </View>
               </View>
             </View>
-
-            {flash ? (
-              <View
-                style={{
-                  marginTop: 12,
-                  borderWidth: 1,
-                  borderColor: T.gold,
-                  backgroundColor: T.goldSoft,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                }}
-              >
-                <Text style={{ color: T.ink, fontFamily: SANS, fontSize: 14 }}>
-                  {flash}
-                </Text>
-              </View>
-            ) : null}
-
-            <PayoutBoard
-              owed={owed}
-              paid={paidOut}
-              userId={user?.id}
-              me={me}
-              them={them}
-              onPaid={(id, paid) => void markPaid(id, paid)}
-            />
-
-            {incoming.length > 0 ? (
-              <Section label={`${them} wants a piece`}>
-                {incoming.map((row) => (
-                  <IncomingSlip
-                    key={row.id}
-                    row={row}
-                    them={them}
-                    me={me}
-                    onAccept={() => void answerSlip(row.id, true)}
-                    onDecline={() => void answerSlip(row.id, false)}
-                  />
-                ))}
-              </Section>
-            ) : null}
 
             <View style={{ marginTop: 16, gap: 10 }}>
               <Door
@@ -544,6 +550,25 @@ export default function PredictionScreen() {
                 </Text>
               </Pressable>
             </View>
+          </View>
+        ) : null}
+
+        {hub === "live" ? (
+          <View>
+            {incoming.length > 0 ? (
+              <Section label={`${them} wants a piece`}>
+                {incoming.map((row) => (
+                  <IncomingSlip
+                    key={row.id}
+                    row={row}
+                    them={them}
+                    me={me}
+                    onAccept={() => void answerSlip(row.id, true)}
+                    onDecline={() => void answerSlip(row.id, false)}
+                  />
+                ))}
+              </Section>
+            ) : null}
 
             <Section label={`Waiting on ${them}`}>
               {!ready || outgoing.length === 0 ? (
@@ -562,7 +587,7 @@ export default function PredictionScreen() {
               )}
             </Section>
 
-            <Section label="Live">
+            <Section label="On">
               {live.length === 0 ? (
                 <Empty line="Nothing live until they take the other side." />
               ) : (
@@ -578,10 +603,22 @@ export default function PredictionScreen() {
                 ))
               )}
             </Section>
+          </View>
+        ) : null}
 
+        {hub === "finalised" ? (
+          <View>
+            <PayoutBoard
+              owed={owed}
+              paid={paidOut}
+              userId={user?.id}
+              me={me}
+              them={them}
+              onPaid={(id, paid) => void markPaid(id, paid)}
+            />
             {voided.length > 0 ? (
               <Section label="Voided">
-                {voided.slice(0, 6).map((row) => (
+                {voided.slice(0, 12).map((row) => (
                   <ResultCard
                     key={row.id}
                     row={row}
@@ -595,7 +632,7 @@ export default function PredictionScreen() {
           </View>
         ) : null}
 
-        {view === "prompts" ? (
+        {hub === "make" && view === "prompts" ? (
           <Catalog
             heading="Markets"
             sub={`${BET_PROMPTS.length} lines. Then you pick the stake the winner collects.`}
@@ -611,7 +648,7 @@ export default function PredictionScreen() {
           />
         ) : null}
 
-        {view === "prompt-list" && promptCat ? (
+        {hub === "make" && view === "prompt-list" && promptCat ? (
           <ListPane
             heading={
               BET_PROMPT_CATEGORIES.find((row) => row.id === promptCat)?.label ??
@@ -625,7 +662,7 @@ export default function PredictionScreen() {
           />
         ) : null}
 
-        {view === "pick" && pickedPrompt ? (
+        {hub === "make" && view === "pick" && pickedPrompt ? (
           <PickPane
             prompt={pickedPrompt}
             mode={pickMode}
@@ -648,7 +685,7 @@ export default function PredictionScreen() {
           />
         ) : null}
 
-        {view === "stakes" && title ? (
+        {hub === "make" && view === "stakes" && title ? (
           <View>
             <Text style={{ marginTop: 12, ...kicker, color: T.pink }}>WINNER COLLECTS</Text>
             <Text style={{ marginTop: 6, ...titleLg }}>{title}</Text>
@@ -695,7 +732,7 @@ export default function PredictionScreen() {
           </View>
         ) : null}
 
-        {view === "stake-list" && stakeCat && title ? (
+        {hub === "make" && view === "stake-list" && stakeCat && title ? (
           <View>
             <ListPane
               heading={
@@ -722,7 +759,7 @@ export default function PredictionScreen() {
           </View>
         ) : null}
 
-        {view === "stake-write" ? (
+        {hub === "make" && view === "stake-write" ? (
           <View
             style={{
               marginTop: 16,
@@ -763,7 +800,7 @@ export default function PredictionScreen() {
           </View>
         ) : null}
 
-        {view === "slip" ? (
+        {hub === "make" && view === "slip" ? (
           <SlipBuilder
             title={title}
             statement={statement}
@@ -774,7 +811,7 @@ export default function PredictionScreen() {
           />
         ) : null}
 
-        {view === "custom" ? (
+        {hub === "make" && view === "custom" ? (
           <View
             style={{
               marginTop: 16,
@@ -857,7 +894,7 @@ export default function PredictionScreen() {
           </View>
         ) : null}
 
-        {error && view !== "custom" && view !== "slip" && view !== "stake-write" ? (
+        {hub === "make" && error && view !== "custom" && view !== "slip" && view !== "stake-write" ? (
           <Text style={{ marginTop: 12, color: T.pink, fontFamily: SANS }}>{error}</Text>
         ) : null}
       </Stage>
