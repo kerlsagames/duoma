@@ -10,108 +10,39 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
 import { useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
-import Svg, { Ellipse, Path } from "react-native-svg";
+import {
+  Animated,
+  Easing,
+  Image,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  type TextStyle,
+  type ViewStyle,
+} from "react-native";
 
 const BG = "#05020C";
-const PAD = "#F3E4EA";
+const FINGERPRINT = require("../../assets/images/fingerprint-ping.jpg");
 
-function FingerprintMark({ color, size = 92 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 80 96">
-      <Ellipse
-        cx="40"
-        cy="50"
-        rx="10"
-        ry="13"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.6"
-      />
-      <Ellipse
-        cx="40"
-        cy="50"
-        rx="16"
-        ry="20"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-      />
-      <Ellipse
-        cx="40"
-        cy="50"
-        rx="22"
-        ry="27"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-      />
-      <Path
-        d="M18 44c2-16 12-28 22-28s20 12 22 28"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M14 52c3-22 14-38 26-38s23 16 26 38"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M12 62c4-26 16-46 28-46s24 20 28 46"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M20 78c4-8 10-12 20-12s16 4 20 12"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M16 84c6-12 14-18 24-18s18 6 24 18"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M24 36c6 4 8 14 6 24"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M56 38c-5 5-6 14-4 24"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M32 22c-8 10-10 24-8 36"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-      <Path
-        d="M48 22c8 10 10 24 8 36"
-        fill="none"
-        stroke={color}
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
+const noSelectText: TextStyle = {
+  userSelect: "none",
+  ...(Platform.OS === "web"
+    ? ({
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+      } as TextStyle)
+    : null),
+};
+
+const noSelectView: ViewStyle =
+  Platform.OS === "web"
+    ? ({
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+      } as ViewStyle)
+    : {};
 
 export default function ThoughtPingsScreen() {
   const { user, partner } = useApp();
@@ -173,6 +104,7 @@ export default function ThoughtPingsScreen() {
             borderRadius: 28,
             overflow: "hidden",
             backgroundColor: "#0A0614",
+            ...noSelectView,
           }}
         >
           <LinearGradient
@@ -181,13 +113,17 @@ export default function ThoughtPingsScreen() {
           >
             <TwinkleSky count={36} />
             <Text
-              style={{
-                position: "absolute",
-                top: 22,
-                fontFamily: HANDWRITING,
-                fontSize: 22,
-                color: "rgba(255,214,230,0.7)",
-              }}
+              selectable={false}
+              style={[
+                {
+                  position: "absolute",
+                  top: 22,
+                  fontFamily: HANDWRITING,
+                  fontSize: 22,
+                  color: "rgba(255,214,230,0.7)",
+                },
+                noSelectText,
+              ]}
             >
               a fingerprint, not a lecture
             </Text>
@@ -220,14 +156,18 @@ export default function ThoughtPingsScreen() {
               onPressIn={() => setPressed(true)}
               onPressOut={() => setPressed(false)}
               onPress={() => void send()}
-              style={{ alignItems: "center" }}
+              delayLongPress={10_000}
+              // @ts-expect-error web-only: block native long-press menus / selection
+              onContextMenu={(e: { preventDefault?: () => void }) => e.preventDefault?.()}
+              style={[{ alignItems: "center" }, noSelectView]}
             >
               <View
+                pointerEvents="box-none"
                 style={{
                   width: 168,
                   height: 168,
                   borderRadius: 84,
-                  backgroundColor: PAD,
+                  overflow: "hidden",
                   borderWidth: 3,
                   borderColor: meta.color,
                   alignItems: "center",
@@ -236,19 +176,39 @@ export default function ThoughtPingsScreen() {
                   shadowColor: meta.color,
                   shadowOpacity: 0.45,
                   shadowRadius: 18,
+                  backgroundColor: "#D8D8D8",
                 }}
               >
-                <FingerprintMark color={meta.color} />
+                <Image
+                  source={FINGERPRINT}
+                  accessibilityLabel="Fingerprint send"
+                  style={{
+                    width: 168,
+                    height: 168,
+                    ...(Platform.OS === "web"
+                      ? ({
+                          userSelect: "none",
+                          WebkitUserSelect: "none",
+                          WebkitTouchCallout: "none",
+                        } as object)
+                      : null),
+                  }}
+                  resizeMode="cover"
+                />
               </View>
               <Text
-                style={{
-                  marginTop: 14,
-                  fontFamily: "SpaceMono",
-                  fontSize: 11,
-                  letterSpacing: 1.6,
-                  textTransform: "uppercase",
-                  color: PAD,
-                }}
+                selectable={false}
+                style={[
+                  {
+                    marginTop: 14,
+                    fontFamily: "SpaceMono",
+                    fontSize: 11,
+                    letterSpacing: 1.6,
+                    textTransform: "uppercase",
+                    color: "#F3E4EA",
+                  },
+                  noSelectText,
+                ]}
               >
                 press here to send
               </Text>
@@ -262,21 +222,29 @@ export default function ThoughtPingsScreen() {
               >
                 <Ionicons name={meta.icon} size={18} color={meta.color} />
                 <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 22,
-                    color: meta.color,
-                  }}
+                  selectable={false}
+                  style={[
+                    {
+                      fontFamily: SERIF,
+                      fontSize: 22,
+                      color: meta.color,
+                    },
+                    noSelectText,
+                  ]}
                 >
                   {meta.label}
                 </Text>
               </View>
               <Text
-                style={{
-                  marginTop: 4,
-                  color: "rgba(255,230,240,0.55)",
-                  fontSize: 13,
-                }}
+                selectable={false}
+                style={[
+                  {
+                    marginTop: 4,
+                    color: "rgba(255,230,240,0.55)",
+                    fontSize: 13,
+                  },
+                  noSelectText,
+                ]}
               >
                 {pressed ? "sending…" : `to ${them}`}
               </Text>
@@ -322,13 +290,17 @@ export default function ThoughtPingsScreen() {
           })}
         </View>
         <Text
-          style={{
-            marginTop: 10,
-            textAlign: "center",
-            color: "rgba(255,230,240,0.5)",
-            fontFamily: HANDWRITING,
-            fontSize: 18,
-          }}
+          selectable={false}
+          style={[
+            {
+              marginTop: 10,
+              textAlign: "center",
+              color: "rgba(255,230,240,0.5)",
+              fontFamily: HANDWRITING,
+              fontSize: 18,
+            },
+            noSelectText,
+          ]}
         >
           {meta.blurb}
         </Text>
@@ -341,12 +313,16 @@ export default function ThoughtPingsScreen() {
         <View style={{ marginTop: 22, gap: 10 }}>
           {!ready || data.pings.length === 0 ? (
             <Text
-              style={{
-                textAlign: "center",
-                color: "rgba(255,230,240,0.35)",
-                fontFamily: SERIF,
-                fontSize: 16,
-              }}
+              selectable={false}
+              style={[
+                {
+                  textAlign: "center",
+                  color: "rgba(255,230,240,0.35)",
+                  fontFamily: SERIF,
+                  fontSize: 16,
+                },
+                noSelectText,
+              ]}
             >
               The sky is empty. First ping is always a little shy.
             </Text>
@@ -371,7 +347,13 @@ export default function ThoughtPingsScreen() {
                     size={18}
                     color={row?.color ?? "#FF6B9A"}
                   />
-                  <Text style={{ color: row?.color ?? "#FF6B9A", fontFamily: SERIF }}>
+                  <Text
+                    selectable={false}
+                    style={[
+                      { color: row?.color ?? "#FF6B9A", fontFamily: SERIF },
+                      noSelectText,
+                    ]}
+                  >
                     {mine ? "you" : them} · {row?.label.toLowerCase()}
                   </Text>
                 </View>
