@@ -3,6 +3,7 @@ import {
   hydrateBirthdays,
   type Birthday,
 } from "@/lib/birthdays";
+import { emptyWordle, hydrateWordle, type WordleState } from "@/lib/daily-word";
 import { emptyDoodleBoard, hydrateDoodleBoard, type DoodleBoard } from "@/lib/doodle-game";
 import { createId, nowIso } from "@/lib/ids";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
@@ -333,6 +334,7 @@ export type MiniState = {
   photoPrefs: PhotoPrefs;
   doodle: DoodleBoard;
   crossword: CrosswordSave[];
+  wordle: WordleState;
   story: StoryState | null;
   capsules: Capsule[];
   meals: MealOption[];
@@ -675,6 +677,7 @@ export function emptyMiniState(): MiniState {
     photoPrefs: defaultPhotoPrefs(),
     doodle: emptyDoodleBoard(),
     crossword: [],
+    wordle: emptyWordle(),
     story: null,
     capsules: [],
     meals: DEFAULT_MEALS.map((row) => meal(row.label, row.tag)),
@@ -786,6 +789,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     photoPrefs: hydratePhotoPrefs(row.photoPrefs),
     doodle: hydrateDoodleBoard(row.doodle),
     crossword: asArray(row.crossword, base.crossword),
+    wordle: hydrateWordle(row.wordle),
     story: row.story ?? null,
     capsules: asArray(row.capsules, base.capsules),
     meals: asArray(row.meals, base.meals),

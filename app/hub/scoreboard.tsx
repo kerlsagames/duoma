@@ -1,7 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
-import { CROSSWORD_PUZZLES, isPuzzleComplete } from "@/lib/couple-crossword";
+import { everSolved } from "@/lib/daily-word";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -22,10 +22,7 @@ export default function ScoreboardScreen() {
   const you = user?.displayName || "YOU";
   const them = partner?.displayName || "THEM";
   const [cheer, setCheer] = useState<string | null>(null);
-  const crosswordWon = data.crossword.some((save) => {
-    const puzzle = CROSSWORD_PUZZLES.find((p) => p.id === save.puzzleId);
-    return puzzle ? isPuzzleComplete(puzzle, save.letters) : false;
-  });
+  const crosswordWon = everSolved(data.wordle);
 
   const badges: { id: string; label: string; icon: Icon; earned: boolean }[] = useMemo(
     () => [
@@ -33,7 +30,7 @@ export default function ScoreboardScreen() {
       { id: "fire", label: "KINDLING", icon: "flame", earned: data.intimacy.length > 0 },
       { id: "quiz", label: "BOOTH ACE", icon: "help-circle", earned: data.triviaAttempts.length > 0 || data.knowMeGuesses.length > 0 },
       { id: "bet", label: "MARKET", icon: "trending-up", earned: data.predictions.some((p) => p.resolved) },
-      { id: "grid", label: "INK", icon: "grid", earned: crosswordWon },
+      { id: "grid", label: "WORD", icon: "text", earned: crosswordWon },
       { id: "story", label: "CO-AUTHOR", icon: "book", earned: (data.story?.chapters.length ?? 0) > 0 },
       { id: "time", label: "CAPSULE", icon: "hourglass", earned: data.capsules.length > 0 },
       {

@@ -228,8 +228,8 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "crossword",
-        label: "Couple Crossword",
-        detail: "Daily mini-puzzle from your relationship history",
+        label: "Daily Word",
+        detail: "Same five letters. Who lands it first.",
         icon: "grid",
         href: "/hub/crossword",
       },
