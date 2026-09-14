@@ -206,13 +206,6 @@ export const HUBS: HubDef[] = [
         href: "/hub/prediction",
       },
       {
-        id: "two-truths",
-        label: "Two Truths & A Wish",
-        detail: "Confessions & hidden desire games",
-        icon: "shuffle",
-        href: "/hub/two-truths",
-      },
-      {
         id: "photo-challenges",
         label: "Photo Memory Challenges",
         detail: "One photo a week. Three shuffles. Then it's yours.",
