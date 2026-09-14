@@ -158,13 +158,6 @@ export const HUBS: HubDef[] = [
         href: "/hub/fantasy-matcher",
       },
       {
-        id: "secret-signals",
-        label: "Secret Signal Codes",
-        detail: "Custom emojis & private phrases",
-        icon: "key",
-        href: "/hub/secret-signals",
-      },
-      {
         id: "audio-vault",
         label: "Audio Voice Notes",
         detail: "Protected folder for private audio & bedtime stories",
