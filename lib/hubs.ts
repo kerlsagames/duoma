@@ -289,11 +289,11 @@ export const HUBS: HubDef[] = [
         href: "/hub/birthdays",
       },
       {
-        id: "meal-picker",
-        label: "Meal Decisions",
-        detail: "Spin dinner, thumbs up or spin again",
+        id: "meal-plan",
+        label: "Meal Plan",
+        detail: "Seven post-its. What’s for dinner?",
         icon: "restaurant",
-        href: "/hub/meal-picker",
+        href: "/hub/meal-plan",
       },
       {
         id: "fair-share",

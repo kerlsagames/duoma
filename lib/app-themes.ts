@@ -209,6 +209,23 @@ export const TALK_DECK_TINT: Record<string, string> = {
   appreciation: "#E0B48A",
 };
 
+/** Corkboard and post-its for the weekly Meal Plan. */
+export const MEAL_PLAN_TONE = {
+  background: "#5C3D24",
+  cork: "#7A5230",
+  corkLight: "#8F643C",
+  pin: "#C45C4A",
+  accent: "#F4D35E",
+  accentSoft: "rgba(244,211,94,0.2)",
+  ink: "#F6EFE2",
+  muted: "rgba(246,239,226,0.68)",
+  surface: "#4A311C",
+  surfaceRaised: "#6A4528",
+  border: "rgba(246,239,226,0.18)",
+  paperInk: "#2A2116",
+  paperMuted: "rgba(42,33,22,0.55)",
+} as const;
+
 /** Diner ticket for Meal Decisions. */
 export const MEALS_TONE = {
   background: "#1C1410",

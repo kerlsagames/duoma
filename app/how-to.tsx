@@ -17,7 +17,7 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open a room of apps. Daily Check-In and the shared calendar sit at the top. Settings is on Home — card bank, notifications, and sign-out live there.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open a room of apps. The cog on each hub lets you hide apps, reorder them, or switch to two columns. Daily Check-In and the shared calendar sit at the top. Couple settings is on Home — card bank, notifications, and sign-out live there.",
   },
   {
     kicker: "Connect",
@@ -37,7 +37,7 @@ const STEPS = [
   {
     kicker: "Home Base",
     title: "The life admin, shared",
-    body: "Groceries, birthdays, meals, travel, the budget jars, jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
+    body: "Groceries, birthdays, the meal plan, travel, the budget jars, jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
   },
   {
     kicker: "Calendar",

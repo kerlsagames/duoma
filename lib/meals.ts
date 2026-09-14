@@ -5,6 +5,7 @@ export type MealCategoryId =
   | "asian"
   | "comfort"
   | "grill"
+  | "butcher"
   | "fresh"
   | "takeout"
   | "breakfast";
@@ -30,8 +31,9 @@ export const MEAL_CATEGORIES: MealCategory[] = [
   { id: "asian", label: "Asian-ish", detail: "Noodles, rice, curry" },
   { id: "comfort", label: "Comfort", detail: "Roasts, pies, mash" },
   { id: "grill", label: "Grill & BBQ", detail: "Flame, steak, skewers" },
+  { id: "butcher", label: "Butcher", detail: "Cuts, sausages, a proper roast" },
   { id: "fresh", label: "Fresh & light", detail: "Bowls, salads, soup" },
-  { id: "takeout", label: "Takeout", detail: "Order in, no dishes" },
+  { id: "takeout", label: "Take away", detail: "Order in, no dishes" },
   { id: "breakfast", label: "Breakfast for dinner", detail: "Eggs, pancakes, fry-up" },
 ];
 
@@ -125,6 +127,30 @@ export const MEAL_IDEAS: MealIdea[] = [
   meal("fry-up", "Full fry-up", "Eggs, beans, something fried, tea.", "breakfast"),
   meal("huevos", "Huevos rancheros", "Eggs, salsa, tortillas.", "breakfast"),
   meal("smoothie-bowls", "Smoothie bowls", "When dinner wants to be cold and sweet.", "breakfast"),
+
+  meal("rump-steak", "Rump steak and chips", "From the butcher, hot pan, oven chips.", "butcher", true),
+  meal("butcher-sausages", "Butcher sausages", "The good ones, mash or bread.", "butcher", true),
+  meal("mince-night", "Beef mince night", "Tacos, nachos, or mince on toast.", "butcher", true),
+  meal("roast-lamb", "Roast lamb", "Sunday energy, leftover sandwiches.", "butcher"),
+  meal("pork-belly", "Pork belly", "Crispy skin if you start it early.", "butcher"),
+  meal("chicken-marylands", "Chicken marylands", "Tray bake, potatoes, one pan.", "butcher", true),
+  meal("osso-buco", "Osso buco", "Slow, sticky, mash or polenta.", "butcher"),
+  meal("beef-cheeks", "Beef cheeks", "All-day cook, worth it.", "butcher"),
+  meal("pork-chops", "Pork chops", "Apple sauce optional, veg required.", "butcher"),
+  meal("scotch-fillet", "Scotch fillet", "Treat night. Salad on the side.", "butcher"),
+
+  meal("pho", "Pho", "Broth, noodles, herbs, lime.", "asian"),
+  meal("laksa", "Laksa", "Coconut, chilli, a soft egg.", "asian"),
+  meal("korean-fried-chicken", "Korean fried chicken", "Sticky, spicy, pickles.", "asian"),
+  meal("singapore-noodles", "Singapore noodles", "Curry powder, prawns, leftover veg.", "asian"),
+
+  meal("pub-schnitty", "Pub schnitzel", "Out, no dishes, gravy argument.", "takeout"),
+  meal("local-burgers", "Local burger joint", "The place with the good chips.", "takeout"),
+  meal("vietnamese-takeaway", "Vietnamese takeaway", "Pho or rice paper rolls.", "takeout"),
+
+  meal("chicken-casserole", "Chicken casserole", "One pot, bread for the sauce.", "comfort"),
+  meal("mushroom-risotto", "Mushroom risotto", "Stir, wine, parmesan, patience.", "comfort"),
+  meal("sausage-casserole", "Sausage casserole", "Onion, tomato, oven, done.", "comfort"),
 ];
 
 function meal(

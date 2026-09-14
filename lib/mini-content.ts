@@ -6,6 +6,11 @@ import {
 import { createId, nowIso } from "@/lib/ids";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 import {
+  emptyMealPlan,
+  hydrateMealPlan,
+  type MealPlanState,
+} from "@/lib/meal-plan";
+import {
   hydratePhotoMemory,
   hydratePhotoWeek,
   type PhotoMemory,
@@ -303,6 +308,7 @@ export type MiniState = {
   cheers: Cheer[];
   period: PeriodState;
   birthdays: Birthday[];
+  mealPlan: MealPlanState;
 };
 
 export const PING_KINDS: {
@@ -653,6 +659,7 @@ export function emptyMiniState(): MiniState {
     cheers: [],
     period: emptyPeriodState(),
     birthdays: emptyBirthdays(),
+    mealPlan: emptyMealPlan(),
   };
 }
 
@@ -741,6 +748,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     cheers: asArray(row.cheers, base.cheers),
     period: hydratePeriodState(row.period),
     birthdays: hydrateBirthdays(row.birthdays),
+    mealPlan: hydrateMealPlan(row.mealPlan),
   };
 }
 
