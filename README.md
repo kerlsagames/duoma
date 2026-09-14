@@ -11,8 +11,8 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
 - **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip.
-- **Connect** — Lists, Date Night Generator, Curiosity, Talk, Gratitude Jar, Apology & Reset, Thought-of-You Pings.
-- **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Audio Voice Notes, Intimacy Streak.
+- **Connect** — Lists, Date Night Generator, Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
+- **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (300 short swipe cards), Intimacy Streak.
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (one weekly shot, three shuffles, upload, clothesline gallery), Draw It, Scoreboard, Couple Crossword, Choose-Your-Own Adventure.
 - **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Fair-Share wheel, Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Who Did It Last, Period Tracker, Settings. Each hub has a cog to hide, reorder, or switch to two columns.
 - **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.

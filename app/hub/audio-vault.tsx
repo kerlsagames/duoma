@@ -1,4 +1,5 @@
 import { Stage } from "@/components/hub/Stage";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
@@ -10,6 +11,19 @@ import {
   type AudioNote,
 } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
+import {
+  abandonRecorder,
+  canRecordAudio,
+  defaultVoiceTitle,
+  deleteVoiceClip,
+  explainMicError,
+  formatTapeTime,
+  MAX_VOICE_SECONDS,
+  persistVoiceClip,
+  resolveVoiceSrc,
+  startVoiceRecorder,
+  stopVoiceRecorder,
+} from "@/lib/voice-notes";
 import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
@@ -27,7 +41,10 @@ const FOLDERS: { id: AudioFolder; label: string; tape: string }[] = [
 function Reel({ spinning, x }: { spinning: boolean; x: number }) {
   const rot = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!spinning) return;
+    if (!spinning) {
+      rot.setValue(0);
+      return;
+    }
     const loop = Animated.loop(
       Animated.timing(rot, {
         toValue: 1,
@@ -70,24 +87,73 @@ export default function AudioVaultScreen() {
   const { data, ready, patch } = useMiniApps();
   const [folder, setFolder] = useState<AudioFolder>("sweet");
   const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
   const [playing, setPlaying] = useState<AudioNote | null>(null);
   const [progress, setProgress] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removeId, setRemoveId] = useState<string | null>(null);
   const them = partner?.displayName || "them";
   const notes = useMemo(
     () => data.audioNotes.filter((row) => row.folder === folder),
     [data.audioNotes, folder]
   );
   const tape = FOLDERS.find((row) => row.id === folder)?.tape ?? ROSE;
+  const recRef = useRef<{
+    stream: MediaStream;
+    recorder: MediaRecorder;
+    chunks: Blob[];
+    startedAt: number;
+  } | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
+  const recTick = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPlayback = () => {
+    const node = audioRef.current;
+    if (node) {
+      node.pause();
+      node.removeAttribute("src");
+      node.load();
+      audioRef.current = null;
+    }
+    if (objectUrlRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    setPlaying(null);
+    setProgress(0);
+    setElapsed(0);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (recTick.current) clearInterval(recTick.current);
+      const live = recRef.current;
+      if (live) abandonRecorder(live.stream, live.recorder);
+      recRef.current = null;
+      const node = audioRef.current;
+      if (node) {
+        node.pause();
+        audioRef.current = null;
+      }
+      if (objectUrlRef.current?.startsWith("blob:")) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!playing) return;
+    if (playing.hasAudio) return;
     setProgress(0);
+    setElapsed(0);
     const start = Date.now();
     const tick = setInterval(() => {
       const pct = Math.min(1, (Date.now() - start) / (playing.seconds * 1000));
       setProgress(pct);
+      setElapsed(pct * playing.seconds);
       if (pct >= 1) {
         clearInterval(tick);
         setPlaying(null);
@@ -96,15 +162,140 @@ export default function AudioVaultScreen() {
     return () => clearInterval(tick);
   }, [playing]);
 
-  const save = async (preset?: { title: string; body: string; folder: AudioFolder }) => {
-    if (!user) return;
-    const nextTitle = (preset?.title ?? title).trim();
-    const nextBody = (preset?.body ?? body).trim();
-    const nextFolder = preset?.folder ?? folder;
-    if (!nextTitle || !nextBody) {
-      setError("A tape needs a title and something to hear.");
+  const playNote = async (note: AudioNote) => {
+    if (playing?.id === note.id) {
+      stopPlayback();
       return;
     }
+    stopPlayback();
+    setError(null);
+    if (!note.hasAudio) {
+      setPlaying(note);
+      return;
+    }
+    try {
+      const src = await resolveVoiceSrc(note.id, note.uri);
+      if (!src) {
+        setError("That take is missing its audio. Record it again.");
+        return;
+      }
+      objectUrlRef.current = src.startsWith("blob:") ? src : null;
+      const AudioCtor = typeof window !== "undefined" ? window.Audio : null;
+      if (!AudioCtor) {
+        setError("This browser cannot play audio.");
+        return;
+      }
+      const node = new AudioCtor(src);
+      audioRef.current = node;
+      node.onended = () => stopPlayback();
+      node.onerror = () => {
+        setError("Could not play that take.");
+        stopPlayback();
+      };
+      node.ontimeupdate = () => {
+        const duration = node.duration && Number.isFinite(node.duration) ? node.duration : note.seconds;
+        setElapsed(node.currentTime);
+        setProgress(duration > 0 ? Math.min(1, node.currentTime / duration) : 0);
+      };
+      setPlaying(note);
+      await node.play();
+    } catch (err) {
+      setError(explainMicError(err));
+      stopPlayback();
+    }
+  };
+
+  const finishRecording = async () => {
+    const live = recRef.current;
+    recRef.current = null;
+    if (recTick.current) {
+      clearInterval(recTick.current);
+      recTick.current = null;
+    }
+    setRecording(false);
+    if (!live || !user) return;
+    setBusy(true);
+    try {
+      const blob = await stopVoiceRecorder(live.stream, live.recorder, live.chunks);
+      const seconds = Math.max(
+        1,
+        Math.round((Date.now() - live.startedAt) / 1000)
+      );
+      const id = createId();
+      const stored = await persistVoiceClip(id, blob);
+      const nextTitle = title.trim() || defaultVoiceTitle();
+      await patch((state) => ({
+        ...state,
+        audioNotes: [
+          {
+            id,
+            fromId: user.id,
+            folder,
+            title: nextTitle,
+            body: "",
+            seconds,
+            createdAt: nowIso(),
+            hasAudio: true,
+            mimeType: stored.mimeType,
+            uri: stored.uri,
+          },
+          ...state.audioNotes,
+        ],
+      }));
+      setTitle("");
+      setError(null);
+    } catch (err) {
+      abandonRecorder(live.stream, live.recorder);
+      setError(explainMicError(err));
+    } finally {
+      setBusy(false);
+      setElapsed(0);
+      setProgress(0);
+    }
+  };
+
+  const toggleRecord = async () => {
+    if (busy) return;
+    if (recording) {
+      await finishRecording();
+      return;
+    }
+    if (!user) {
+      setError("Sign in first, then record.");
+      return;
+    }
+    if (!canRecordAudio()) {
+      setError("This browser cannot record audio. Try Chrome or Safari on a phone or laptop.");
+      return;
+    }
+    stopPlayback();
+    setError(null);
+    setBusy(true);
+    try {
+      const session = await startVoiceRecorder();
+      recRef.current = { ...session, startedAt: Date.now() };
+      setRecording(true);
+      setElapsed(0);
+      setProgress(0);
+      recTick.current = setInterval(() => {
+        const live = recRef.current;
+        if (!live) return;
+        const seconds = (Date.now() - live.startedAt) / 1000;
+        setElapsed(seconds);
+        setProgress(Math.min(1, seconds / MAX_VOICE_SECONDS));
+        if (seconds >= MAX_VOICE_SECONDS) {
+          void finishRecording();
+        }
+      }, 80);
+    } catch (err) {
+      setError(explainMicError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveWritten = async (preset: { title: string; body: string; folder: AudioFolder }) => {
+    if (!user) return;
     setError(null);
     await patch((state) => ({
       ...state,
@@ -112,28 +303,43 @@ export default function AudioVaultScreen() {
         {
           id: createId(),
           fromId: user.id,
-          folder: nextFolder,
-          title: nextTitle,
-          body: nextBody,
-          seconds: secondsForText(nextBody),
+          folder: preset.folder,
+          title: preset.title,
+          body: preset.body,
+          seconds: secondsForText(preset.body),
           createdAt: nowIso(),
+          hasAudio: false,
         },
         ...state.audioNotes,
       ],
     }));
-    if (!preset) {
-      setTitle("");
-      setBody("");
-    }
   };
 
-  const visible = playing
-    ? playing.body.slice(0, Math.max(8, Math.floor(playing.body.length * progress)))
-    : "";
+  const confirmRemove = async () => {
+    const id = removeId;
+    setRemoveId(null);
+    if (!id) return;
+    if (playing?.id === id) stopPlayback();
+    await deleteVoiceClip(id);
+    await patch((state) => ({
+      ...state,
+      audioNotes: state.audioNotes.filter((row) => row.id !== id),
+    }));
+  };
+
+  const spinning = recording || Boolean(playing);
+  const deckCopy = recording
+    ? "Recording — say it like they are in the next room."
+    : playing?.hasAudio
+      ? `Playing ${playing.title}`
+      : playing
+        ? playing.body.slice(0, Math.max(8, Math.floor(playing.body.length * progress)))
+        : "Press record. This captures your microphone — not typed text.";
+  const clock = recording || playing ? formatTapeTime(elapsed) : "0:00";
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/desire" as Href} accent={ROSE}>
+      <Stage background={BG} fallback={"/hub/connect" as Href} accent={ROSE}>
         <Text
           style={{
             fontFamily: HANDWRITING,
@@ -158,28 +364,36 @@ export default function AudioVaultScreen() {
           <Svg width="100%" height="168">
             <Rect x={0} y={0} width={400} height={168} fill="#2A1614" />
             <Rect x={24} y={118} width={280} height={18} rx={4} fill="#1A0C0C" />
-            <Rect x={24} y={118} width={280 * (playing ? progress : 0.12)} height={18} rx={4} fill={tape} />
+            <Rect
+              x={24}
+              y={118}
+              width={280 * (spinning ? Math.max(0.08, progress) : 0.12)}
+              height={18}
+              rx={4}
+              fill={tape}
+            />
           </Svg>
-          <Reel spinning={Boolean(playing)} x={36} />
-          <Reel spinning={Boolean(playing)} x={168} />
+          <Reel spinning={spinning} x={36} />
+          <Reel spinning={spinning} x={168} />
           <Text
             style={{
               position: "absolute",
               right: 16,
               top: 18,
               fontFamily: "SpaceMono",
-              color: "#7CFFB2",
+              color: recording ? "#FF6B7A" : "#7CFFB2",
               fontSize: 12,
             }}
           >
-            {playing ? String(Math.floor(progress * playing.seconds)).padStart(3, "0") : "000"}
+            {recording ? "REC " : ""}
+            {clock}
           </Text>
         </View>
 
         <View
           style={{
             marginTop: 14,
-            minHeight: 110,
+            minHeight: 88,
             backgroundColor: "#1A1012",
             borderRadius: 12,
             padding: 14,
@@ -187,14 +401,20 @@ export default function AudioVaultScreen() {
             borderLeftColor: tape,
           }}
         >
-          {playing ? (
+          {playing && !playing.hasAudio ? (
             <Text style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 26, color: "#F8E8EE" }}>
-              {visible}
+              {deckCopy}
               <Text style={{ color: tape }}>▍</Text>
             </Text>
           ) : (
-            <Text style={{ fontFamily: HANDWRITING, fontSize: 20, color: "rgba(248,232,238,0.45)" }}>
-              Press a track. The deck reads it in your voice — slowly, like a late-night radio.
+            <Text
+              style={{
+                fontFamily: HANDWRITING,
+                fontSize: 20,
+                color: recording ? ROSE : "rgba(248,232,238,0.7)",
+              }}
+            >
+              {deckCopy}
             </Text>
           )}
         </View>
@@ -203,12 +423,15 @@ export default function AudioVaultScreen() {
           {FOLDERS.map((row) => (
             <Pressable
               key={row.id}
-              onPress={() => setFolder(row.id)}
+              onPress={() => {
+                if (!recording) setFolder(row.id);
+              }}
               style={{
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 backgroundColor: folder === row.id ? row.tape : "#1A1012",
                 borderRadius: 4,
+                opacity: recording && folder !== row.id ? 0.45 : 1,
                 transform: [{ rotate: folder === row.id ? "-2deg" : "0deg" }],
               }}
             >
@@ -225,16 +448,59 @@ export default function AudioVaultScreen() {
           ))}
         </View>
 
-        <View style={{ marginTop: 12, gap: 8 }}>
-          {!ready || notes.length === 0 ? (
+        <Text style={{ marginTop: 20, fontFamily: HANDWRITING, fontSize: 22, color: ROSE }}>
+          Record onto the tape
+        </Text>
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Track title (optional)"
+          placeholderTextColor="rgba(248,232,238,0.3)"
+          editable={!recording}
+          style={inputStyle}
+        />
+        <Pressable
+          onPress={() => void toggleRecord()}
+          disabled={busy}
+          style={{
+            marginTop: 10,
+            height: 52,
+            backgroundColor: recording ? "#FF4D6A" : ROSE,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 4,
+            opacity: busy ? 0.7 : 1,
+          }}
+        >
+          <Text style={{ color: "#1A0810", fontWeight: "800" }}>
+            {recording ? "Stop & save" : busy ? "Starting mic…" : "Press record"}
+          </Text>
+        </Pressable>
+        <Text
+          style={{
+            marginTop: 8,
+            color: "rgba(248,232,238,0.4)",
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+          }}
+        >
+          Up to {MAX_VOICE_SECONDS}s. The browser will ask for the microphone once.
+        </Text>
+        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+
+        <View style={{ marginTop: 18, gap: 8 }}>
+          {!ready ? (
             <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF }}>
-              This side of the tape is blank. Record a whisper, or drop a library story in.
+              Loading the tape…
+            </Text>
+          ) : notes.length === 0 ? (
+            <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF }}>
+              This side of the tape is blank. Record a note they can actually hear.
             </Text>
           ) : (
             notes.map((note, i) => (
-              <Pressable
+              <View
                 key={note.id}
-                onPress={() => setPlaying(note)}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -244,61 +510,46 @@ export default function AudioVaultScreen() {
                   borderBottomColor: "rgba(255,255,255,0.06)",
                 }}
               >
-                <Text style={{ color: tape, fontFamily: "SpaceMono", width: 28 }}>
-                  {String(i + 1).padStart(2, "0")}
-                </Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: "#F8E8EE", fontFamily: SERIF, fontSize: 18 }}>
-                    {note.title}
+                <Pressable
+                  onPress={() => void playNote(note)}
+                  style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10 }}
+                >
+                  <Text style={{ color: tape, fontFamily: "SpaceMono", width: 28 }}>
+                    {String(i + 1).padStart(2, "0")}
                   </Text>
-                  <Text style={{ color: "rgba(248,232,238,0.4)", fontSize: 12 }}>
-                    {note.seconds}s
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: "#F8E8EE", fontFamily: SERIF, fontSize: 18 }}>
+                      {note.title}
+                    </Text>
+                    <Text style={{ color: "rgba(248,232,238,0.4)", fontSize: 12 }}>
+                      {note.hasAudio ? "your voice · " : "written · "}
+                      {formatTapeTime(note.seconds)}
+                      {note.fromId === user?.id ? " · you" : partner ? ` · ${them}` : ""}
+                    </Text>
+                  </View>
+                  <Text style={{ color: tape }}>{playing?.id === note.id ? "■" : "▶"}</Text>
+                </Pressable>
+                <Pressable onPress={() => setRemoveId(note.id)} hitSlop={8}>
+                  <Text style={{ color: "rgba(248,232,238,0.35)", fontFamily: "SpaceMono", fontSize: 11 }}>
+                    del
                   </Text>
-                </View>
-                <Text style={{ color: tape }}>{playing?.id === note.id ? "■" : "▶"}</Text>
-              </Pressable>
+                </Pressable>
+              </View>
             ))
           )}
         </View>
 
-        <Text style={{ marginTop: 20, fontFamily: HANDWRITING, fontSize: 22, color: ROSE }}>
-          Record onto the tape
+        <Text style={{ marginTop: 22, fontFamily: HANDWRITING, fontSize: 20, color: ROSE }}>
+          Written library
         </Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Track title"
-          placeholderTextColor="rgba(248,232,238,0.3)"
-          style={inputStyle}
-        />
-        <TextInput
-          value={body}
-          onChangeText={setBody}
-          placeholder="What should they hear in the dark?"
-          placeholderTextColor="rgba(248,232,238,0.3)"
-          multiline
-          style={[inputStyle, { minHeight: 80 }]}
-        />
-        <Pressable
-          onPress={() => void save()}
-          style={{
-            marginTop: 8,
-            height: 48,
-            backgroundColor: ROSE,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 4,
-          }}
-        >
-          <Text style={{ color: "#1A0810", fontWeight: "800" }}>Press record</Text>
-        </Pressable>
-        {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-
-        <View style={{ marginTop: 20, gap: 8 }}>
+        <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF, marginBottom: 6 }}>
+          These are bedtime notes to read aloud — they are not microphone recordings.
+        </Text>
+        <View style={{ gap: 8 }}>
           {AUDIO_WHISPERS.map((row) => (
             <Pressable
               key={row.title}
-              onPress={() => void save(row)}
+              onPress={() => void saveWritten(row)}
               style={{
                 padding: 12,
                 backgroundColor: "#1A1012",
@@ -313,6 +564,14 @@ export default function AudioVaultScreen() {
           ))}
         </View>
       </Stage>
+      <ConfirmDialog
+        open={Boolean(removeId)}
+        title="Erase this track?"
+        body="The recording is removed from this phone. You cannot undo it."
+        confirmLabel="Erase track"
+        onConfirm={() => void confirmRemove()}
+        onCancel={() => setRemoveId(null)}
+      />
     </Screen>
   );
 }

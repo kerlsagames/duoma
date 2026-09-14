@@ -60,6 +60,8 @@ export type SignalFlash = {
 
 export type AudioFolder = "sweet" | "bedtime" | "spicy" | "voice";
 
+export const AUDIO_FOLDER_IDS: AudioFolder[] = ["sweet", "bedtime", "spicy", "voice"];
+
 export type AudioNote = {
   id: string;
   fromId: string;
@@ -68,7 +70,45 @@ export type AudioNote = {
   body: string;
   seconds: number;
   createdAt: string;
+  /** True when a real microphone take was stored (IndexedDB or `uri`). */
+  hasAudio?: boolean;
+  mimeType?: string;
+  /** Fallback data URL used only when IndexedDB is unavailable. */
+  uri?: string;
 };
+
+export function hydrateAudioNote(raw: unknown): AudioNote | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Partial<AudioNote>;
+  if (typeof row.id !== "string" || !row.id) return null;
+  if (typeof row.fromId !== "string" || !row.fromId) return null;
+  const folder = AUDIO_FOLDER_IDS.includes(row.folder as AudioFolder)
+    ? (row.folder as AudioFolder)
+    : "voice";
+  const title =
+    typeof row.title === "string" && row.title.trim() ? row.title.trim() : "Voice note";
+  const body = typeof row.body === "string" ? row.body : "";
+  const seconds =
+    typeof row.seconds === "number" && Number.isFinite(row.seconds)
+      ? Math.max(1, Math.round(row.seconds))
+      : 1;
+  const createdAt = typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso();
+  const mimeType = typeof row.mimeType === "string" && row.mimeType ? row.mimeType : undefined;
+  const uri =
+    typeof row.uri === "string" && row.uri.startsWith("data:audio") ? row.uri : undefined;
+  return {
+    id: row.id,
+    fromId: row.fromId,
+    folder,
+    title,
+    body,
+    seconds,
+    createdAt,
+    hasAudio: Boolean(row.hasAudio) || Boolean(uri),
+    mimeType,
+    uri,
+  };
+}
 
 export type IntimacyKind =
   | "kiss"
@@ -729,7 +769,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
     pings: asArray(row.pings, base.pings),
     signals: asArray(row.signals, base.signals),
     flashes: asArray(row.flashes, base.flashes),
-    audioNotes: asArray(row.audioNotes, base.audioNotes),
+    audioNotes: asArray(row.audioNotes, base.audioNotes)
+      .map(hydrateAudioNote)
+      .filter((note): note is AudioNote => Boolean(note)),
     intimacy: asArray(row.intimacy, base.intimacy),
     triviaQuestions: asArray(row.triviaQuestions, base.triviaQuestions),
     triviaAttempts: asArray(row.triviaAttempts, base.triviaAttempts),

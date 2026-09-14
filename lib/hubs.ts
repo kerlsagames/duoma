@@ -89,6 +89,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/talk",
       },
       {
+        id: "audio-vault",
+        label: "Audio Voice Notes",
+        detail: "Record a real voice note. They press play and hear you.",
+        icon: "mic",
+        href: "/hub/audio-vault",
+      },
+      {
         id: "jar",
         label: "Gratitude Jar",
         detail: "1-sentence appreciations → memory timeline",
@@ -156,13 +163,6 @@ export const HUBS: HubDef[] = [
         detail: "300 short fantasies. Swipe. Match only on yes.",
         icon: "heart-circle",
         href: "/hub/fantasy-matcher",
-      },
-      {
-        id: "audio-vault",
-        label: "Audio Voice Notes",
-        detail: "Protected folder for private audio & bedtime stories",
-        icon: "mic",
-        href: "/hub/audio-vault",
       },
       {
         id: "intimacy-streak",
