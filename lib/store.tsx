@@ -618,6 +618,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db = await readDb();
       sessionUserId = await readSessionUserId();
       lastUserId = await readLastUserId();
+      const known = (id: string | null) =>
+        Boolean(id && db.profiles.some((profile) => profile.id === id));
+      if (!known(sessionUserId) && known(lastUserId)) {
+        sessionUserId = lastUserId;
+        await writeSessionUserId(lastUserId);
+      }
+      if (!known(sessionUserId)) {
+        const demoCouple = db.couples.find((row) => {
+          const other = db.profiles.find((profile) => profile.id === row.partnerB);
+          return Boolean(other?.isDemo && row.partnerA);
+        });
+        const resume =
+          demoCouple?.partnerA ??
+          db.profiles.find((profile) => !profile.isDemo)?.id ??
+          null;
+        if (resume) {
+          sessionUserId = resume;
+          lastUserId = resume;
+          await writeSessionUserId(resume);
+          await writeLastUserId(resume);
+        }
+      }
       if (syncDefaultCards()) {
         await persist();
       } else {

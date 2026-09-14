@@ -13,12 +13,20 @@ import {
   type HomeFavoriteSlot,
   type HubAppOption,
 } from "@/lib/home-favorites";
+import {
+  HOME_WALLPAPERS,
+  loadHomeWallpaper,
+  nextHomeWallpaper,
+  saveHomeWallpaper,
+  type HomeWallpaperId,
+} from "@/lib/home-wallpaper";
 import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -26,10 +34,12 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { game, partner, sendSpicyInvite } = useApp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,6 +47,8 @@ export default function HomeScreen() {
     emptyFavoriteSlots()
   );
   const [pickerSlot, setPickerSlot] = useState<number | null>(null);
+  const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
+  const wallpaper = HOME_WALLPAPERS[wallpaperId];
 
   // Screen horizontal padding (~20) + gap between tiles.
   const tileWidth = Math.max(140, (width - 40 - 12) / 2);
@@ -57,13 +69,24 @@ export default function HomeScreen() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const slots = await loadHomeFavorites();
-      if (alive) setFavorites(slots);
+      const [slots, paper] = await Promise.all([
+        loadHomeFavorites(),
+        loadHomeWallpaper(),
+      ]);
+      if (!alive) return;
+      setFavorites(slots);
+      setWallpaperId(paper);
     })();
     return () => {
       alive = false;
     };
   }, []);
+
+  const cycleWallpaper = async () => {
+    const next = nextHomeWallpaper(wallpaperId);
+    setWallpaperId(next);
+    await saveHomeWallpaper(next);
+  };
 
   const persistFavorites = async (next: HomeFavoriteSlot[]) => {
     setFavorites(next);
@@ -104,7 +127,34 @@ export default function HomeScreen() {
   };
 
   return (
-    <Screen scroll>
+    <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
+      {wallpaper.source ? (
+        <Image
+          source={wallpaper.source}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+          }}
+          resizeMode="cover"
+        />
+      ) : null}
+      {wallpaper.source ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: wallpaper.scrim,
+          }}
+        />
+      ) : null}
+    <Screen scroll background="transparent">
       <View className="pt-1 pb-10">
         <View
           style={{
@@ -562,5 +612,25 @@ export default function HomeScreen() {
         </Pressable>
       </Modal>
     </Screen>
+      <Pressable
+        onPress={() => void cycleWallpaper()}
+        accessibilityLabel="Change home background"
+        style={{
+          position: "absolute",
+          right: 16,
+          bottom: Math.max(18, insets.bottom + 10),
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: "rgba(11,11,14,0.72)",
+          borderWidth: 1,
+          borderColor: "rgba(244,244,246,0.22)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name="refresh" size={20} color="#F4F4F6" />
+      </Pressable>
+    </View>
   );
 }

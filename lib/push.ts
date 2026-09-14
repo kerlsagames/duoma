@@ -91,8 +91,8 @@ function ensurePwaHead() {
   add("meta", { name: "mobile-web-app-capable", content: "yes" });
   add("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" });
   add("meta", { name: "apple-mobile-web-app-title", content: "Duoma" });
-  add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2" });
-  add("link", { rel: "icon", href: "/favicon.png?v=2" });
+  add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" });
+  add("link", { rel: "icon", href: "/favicon.png?v=3" });
 }
 
 export async function subscribeToPush() {
