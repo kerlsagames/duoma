@@ -16,7 +16,7 @@ import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 /** Feature directory for one of the four top-level hubs. */
 export function HubDirectory({ hubId }: { hubId: HubId }) {
@@ -255,46 +255,53 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
         </View>
       </Screen>
 
-      <Modal
-        visible={settingsOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSettingsOpen(false)}
-      >
+      {settingsOpen ? (
         <View
+          pointerEvents="box-none"
           style={{
-            flex: 1,
-            backgroundColor: "rgba(8,8,12,0.72)",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            zIndex: 30,
             justifyContent: "flex-end",
           }}
         >
           <Pressable
-            style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
             onPress={() => setSettingsOpen(false)}
             accessibilityLabel={`Close ${hub.label} settings`}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              backgroundColor: "rgba(8,8,12,0.72)",
+            }}
           />
           <View
             style={{
+              width: "100%",
+              maxHeight: "88%",
               backgroundColor: "#14141A",
-              paddingHorizontal: 20,
-              paddingTop: 18,
-              paddingBottom: 28,
+              paddingHorizontal: 16,
+              paddingTop: 16,
+              paddingBottom: 22,
               borderTopLeftRadius: 22,
               borderTopRightRadius: 22,
               borderTopWidth: 1,
               borderColor: "rgba(255,255,255,0.1)",
-              maxHeight: "88%",
             }}
           >
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 16,
+                marginBottom: 14,
               }}
             >
-              <View style={{ flex: 1, paddingRight: 12 }}>
+              <View style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
                 <Text
                   style={{
                     fontFamily: "SpaceMono",
@@ -326,11 +333,18 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator
+              showsHorizontalScrollIndicator={false}
               style={{ flexGrow: 0 }}
-              contentContainerStyle={{ paddingBottom: 12 }}
+              contentContainerStyle={{ paddingBottom: 8 }}
             >
               <SectionLabel>View</SectionLabel>
-              <View style={{ gap: 8, marginBottom: 20 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  marginBottom: 8,
+                }}
+              >
                 {HUB_VIEW_OPTIONS.map((row) => {
                   const on = layout.view === row.id;
                   return (
@@ -343,69 +357,72 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                         }))
                       }
                       style={{
-                        paddingVertical: 12,
-                        paddingHorizontal: 14,
-                        borderRadius: 14,
+                        flex: 1,
+                        minWidth: 0,
+                        minHeight: 44,
+                        paddingHorizontal: 6,
+                        borderRadius: 12,
                         borderWidth: 1,
                         borderColor: on ? hub.accent : "rgba(255,255,255,0.08)",
                         backgroundColor: on ? hub.accentSoft : "#1A1A22",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 12,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            flex: 1,
-                            fontSize: 15,
-                            fontWeight: "700",
-                            color: "#F4F4F6",
-                          }}
-                        >
-                          {row.label}
-                        </Text>
-                        <Ionicons
-                          name={on ? "radio-button-on" : "radio-button-off"}
-                          size={20}
-                          color={on ? hub.accent : "rgba(244,244,246,0.35)"}
-                        />
-                      </View>
                       <Text
                         style={{
-                          marginTop: 4,
                           fontSize: 13,
-                          color: "rgba(244,244,246,0.5)",
-                          paddingRight: 28,
+                          fontWeight: "700",
+                          color: "#F4F4F6",
+                          textAlign: "center",
                         }}
                       >
-                        {row.hint}
+                        {row.label}
                       </Text>
                     </Pressable>
                   );
                 })}
               </View>
+              <Text
+                style={{
+                  marginBottom: 16,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  color: "rgba(244,244,246,0.5)",
+                }}
+              >
+                {HUB_VIEW_OPTIONS.find((row) => row.id === layout.view)?.hint}
+              </Text>
 
               {layout.view !== "compact" ? (
-                <View
+                <Pressable
+                  onPress={() =>
+                    void save((current) => ({
+                      ...current,
+                      showDetails: !current.showDetails,
+                    }))
+                  }
                   style={{
                     marginBottom: 20,
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    gap: 10,
                     paddingVertical: 12,
-                    paddingHorizontal: 14,
+                    paddingHorizontal: 12,
                     borderRadius: 14,
                     backgroundColor: "#1A1A22",
                     borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.08)",
+                    borderColor: layout.showDetails
+                      ? hub.accent
+                      : "rgba(255,255,255,0.08)",
                   }}
                 >
-                  <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Ionicons
+                    name={layout.showDetails ? "checkmark-circle" : "ellipse-outline"}
+                    size={22}
+                    color={layout.showDetails ? hub.accent : "rgba(244,244,246,0.35)"}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={{ fontSize: 15, fontWeight: "700", color: "#F4F4F6" }}>
                       Show blurbs
                     </Text>
@@ -419,15 +436,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                       Turn off if you already know what each app does.
                     </Text>
                   </View>
-                  <Switch
-                    value={layout.showDetails}
-                    onValueChange={(value) =>
-                      void save((current) => ({ ...current, showDetails: value }))
-                    }
-                    trackColor={{ false: "#2A2A32", true: hub.accent }}
-                    thumbColor="#F4F4F6"
-                  />
-                </View>
+                </Pressable>
               ) : null}
 
               <SectionLabel>Apps</SectionLabel>
@@ -448,11 +457,8 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                     <View
                       key={feature.id}
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
                         paddingVertical: 10,
-                        paddingHorizontal: 10,
+                        paddingHorizontal: 12,
                         borderRadius: 14,
                         backgroundColor: "#1A1A22",
                         borderWidth: 1,
@@ -460,91 +466,115 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                         opacity: hidden ? 0.55 : 1,
                       }}
                     >
-                      <Pressable
-                        onPress={() =>
-                          void save((current) => ({
-                            ...current,
-                            hidden: toggleHidden(current.hidden, feature.id),
-                          }))
-                        }
-                        accessibilityLabel={
-                          hidden ? `Show ${feature.label}` : `Hide ${feature.label}`
-                        }
+                      <Text
                         style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 12,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: hidden ? "rgba(255,255,255,0.04)" : hub.accentSoft,
+                          fontSize: 15,
+                          fontWeight: "700",
+                          color: "#F4F4F6",
                         }}
                       >
-                        <Ionicons
-                          name={hidden ? "eye-off-outline" : "eye-outline"}
-                          size={18}
-                          color={hidden ? "rgba(244,244,246,0.55)" : hub.accent}
-                        />
-                      </Pressable>
-                      <View style={{ flex: 1 }}>
+                        {feature.label}
+                      </Text>
+                      {hidden ? (
                         <Text
                           style={{
-                            fontSize: 15,
-                            fontWeight: "700",
-                            color: "#F4F4F6",
+                            marginTop: 2,
+                            fontSize: 12,
+                            color: "rgba(244,244,246,0.45)",
                           }}
                         >
-                          {feature.label}
+                          Hidden
                         </Text>
-                        {hidden ? (
+                      ) : null}
+                      <View
+                        style={{
+                          marginTop: 10,
+                          flexDirection: "row",
+                          gap: 8,
+                        }}
+                      >
+                        <Pressable
+                          onPress={() =>
+                            void save((current) => ({
+                              ...current,
+                              hidden: toggleHidden(current.hidden, feature.id),
+                            }))
+                          }
+                          accessibilityLabel={
+                            hidden ? `Show ${feature.label}` : `Hide ${feature.label}`
+                          }
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            height: 40,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexDirection: "row",
+                            gap: 6,
+                            backgroundColor: hidden
+                              ? "rgba(255,255,255,0.04)"
+                              : hub.accentSoft,
+                          }}
+                        >
+                          <Ionicons
+                            name={hidden ? "eye-off-outline" : "eye-outline"}
+                            size={16}
+                            color={hidden ? "rgba(244,244,246,0.55)" : hub.accent}
+                          />
                           <Text
                             style={{
-                              marginTop: 2,
-                              fontSize: 12,
-                              color: "rgba(244,244,246,0.45)",
+                              fontSize: 13,
+                              fontWeight: "700",
+                              color: hidden ? "rgba(244,244,246,0.7)" : hub.accent,
                             }}
                           >
-                            Hidden
+                            {hidden ? "Hidden" : "Visible"}
                           </Text>
-                        ) : null}
+                        </Pressable>
+                        <Pressable
+                          onPress={() =>
+                            void save((current) => ({
+                              ...current,
+                              order: moveFeature(current.order, catalog, feature.id, -1),
+                            }))
+                          }
+                          disabled={index === 0}
+                          accessibilityLabel={`Move ${feature.label} up`}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "rgba(255,255,255,0.06)",
+                            opacity: index === 0 ? 0.25 : 1,
+                          }}
+                        >
+                          <Ionicons name="chevron-up" size={18} color="#F4F4F6" />
+                        </Pressable>
+                        <Pressable
+                          onPress={() =>
+                            void save((current) => ({
+                              ...current,
+                              order: moveFeature(current.order, catalog, feature.id, 1),
+                            }))
+                          }
+                          disabled={index === apps.length - 1}
+                          accessibilityLabel={`Move ${feature.label} down`}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "rgba(255,255,255,0.06)",
+                            opacity: index === apps.length - 1 ? 0.25 : 1,
+                          }}
+                        >
+                          <Ionicons name="chevron-down" size={18} color="#F4F4F6" />
+                        </Pressable>
                       </View>
-                      <Pressable
-                        onPress={() =>
-                          void save((current) => ({
-                            ...current,
-                            order: moveFeature(current.order, catalog, feature.id, -1),
-                          }))
-                        }
-                        disabled={index === 0}
-                        accessibilityLabel={`Move ${feature.label} up`}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          opacity: index === 0 ? 0.25 : 1,
-                        }}
-                      >
-                        <Ionicons name="chevron-up" size={18} color="#F4F4F6" />
-                      </Pressable>
-                      <Pressable
-                        onPress={() =>
-                          void save((current) => ({
-                            ...current,
-                            order: moveFeature(current.order, catalog, feature.id, 1),
-                          }))
-                        }
-                        disabled={index === apps.length - 1}
-                        accessibilityLabel={`Move ${feature.label} down`}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          opacity: index === apps.length - 1 ? 0.25 : 1,
-                        }}
-                      >
-                        <Ionicons name="chevron-down" size={18} color="#F4F4F6" />
-                      </Pressable>
                     </View>
                   );
                 })}
@@ -573,7 +603,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      ) : null}
     </HomeBackdrop>
   );
 }
