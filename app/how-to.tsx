@@ -47,7 +47,7 @@ const STEPS = [
   {
     kicker: "Calendar",
     title: "Two tabs, one month",
-    body: "Desire & Connect shows nights, talks, and dares you already did. General shows birthdays, trips, and jobs. The cog switches stacked, split, or agenda.",
+    body: "Desire & Connect shows nights, talks, and dares you already did. General shows birthdays, trips, jobs, and notes you add. The cog switches stacked, split, or agenda, and lets you set reminders (15 minutes before, a day before, and so on) for birthdays and the rest of General.",
   },
   {
     kicker: "Get Spicy",

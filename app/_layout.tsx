@@ -3,6 +3,7 @@ import "@/lib/nativewind-boot";
 import { GameInvitationModal } from "@/components/GameInvitationModal";
 import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
+import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
 import { AppProvider } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
@@ -82,6 +83,7 @@ export default function RootLayout() {
               </View>
               <HomeBar />
               <GameInvitationModal />
+              <CalendarReminderWatch />
             </View>
           </PhoneShell>
           </HubThemeProvider>

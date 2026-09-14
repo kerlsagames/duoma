@@ -508,10 +508,17 @@ type AppContextValue = {
     notes?: string;
     date: string;
     happenedAt?: string;
+    allDay?: boolean;
   }) => Promise<CalendarCustomEvent>;
   updateCalendarEvent: (
     id: string,
-    input: { title: string; notes?: string; date: string; happenedAt?: string }
+    input: {
+      title: string;
+      notes?: string;
+      date: string;
+      happenedAt?: string;
+      allDay?: boolean;
+    }
   ) => Promise<void>;
   removeCalendarEvent: (id: string) => Promise<void>;
   addErrandItem: (input: {
@@ -3093,6 +3100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       notes?: string;
       date: string;
       happenedAt?: string;
+      allDay?: boolean;
     }) => {
       if (!user || !couple) throw new Error("Pair up first.");
       const title = input.title.trim();
@@ -3101,6 +3109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Use a date like 2026-09-10.");
       }
       const stamp = nowIso();
+      const allDay = input.allDay !== false;
       const row: CalendarCustomEvent = {
         id: createId(),
         coupleId: couple.id,
@@ -3108,6 +3117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         notes: (input.notes ?? "").trim(),
         date: input.date,
         happenedAt: input.happenedAt ?? stamp,
+        allDay,
         createdBy: user.id,
         createdAt: stamp,
         updatedAt: stamp,
@@ -3127,6 +3137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         notes?: string;
         date: string;
         happenedAt?: string;
+        allDay?: boolean;
       }
     ) => {
       const title = input.title.trim();
@@ -3144,6 +3155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 notes: (input.notes ?? "").trim(),
                 date: input.date,
                 happenedAt: input.happenedAt ?? row.happenedAt,
+                allDay: input.allDay ?? row.allDay,
                 updatedAt: nowIso(),
               }
             : row

@@ -6,7 +6,6 @@ import {
 } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
-import { RITUALS } from "@/lib/hub";
 import type { MaintTask, Trip } from "@/lib/mini-content";
 import { categoryById, questionById } from "@/lib/talk";
 import type {
@@ -23,8 +22,6 @@ import type {
   ListEntry,
   Milestone,
   Profile,
-  RitualCheck,
-  ScratchReveal,
   SpicyDarePlay,
   TalkDraw,
 } from "@/lib/types";
@@ -34,7 +31,6 @@ export type CalendarMark =
   | "checkin"
   | "milestone"
   | "date"
-  | "ritual"
   | "talk"
   | "list"
   | "dare"
@@ -42,7 +38,6 @@ export type CalendarMark =
   | "jar"
   | "curiosity"
   | "custom"
-  | "scratch"
   | "birthday"
   | "trip"
   | "job";
@@ -52,7 +47,6 @@ export type CalendarActivityKind =
   | "check_in"
   | "milestone"
   | "bucket"
-  | "ritual"
   | "talk"
   | "list"
   | "dare"
@@ -60,7 +54,6 @@ export type CalendarActivityKind =
   | "jar"
   | "curiosity"
   | "custom"
-  | "scratch"
   | "birthday"
   | "trip"
   | "job";
@@ -76,6 +69,7 @@ export type CalendarActivity = {
   subtitle?: string;
   mark: CalendarMark;
   href: string;
+  allDay?: boolean;
 };
 
 export type CalendarActivityInput = {
@@ -83,7 +77,6 @@ export type CalendarActivityInput = {
   checkIns: CheckIn[];
   milestones: Milestone[];
   bucketItems: BucketItem[];
-  ritualChecks: RitualCheck[];
   talkDraws: TalkDraw[];
   listEntries: ListEntry[];
   coupleLists: CoupleList[];
@@ -91,7 +84,6 @@ export type CalendarActivityInput = {
   coupons: Coupon[];
   jarNotes: JarNote[];
   curiosityAnswers: CuriosityAnswer[];
-  scratches: ScratchReveal[];
   calendarEvents: CalendarCustomEvent[];
   birthdays?: Birthday[];
   trips?: Trip[];
@@ -105,14 +97,12 @@ const TOGETHER_KINDS = new Set<CalendarActivityKind>([
   "check_in",
   "milestone",
   "bucket",
-  "ritual",
   "talk",
   "list",
   "dare",
   "coupon",
   "jar",
   "curiosity",
-  "scratch",
 ]);
 
 const LIFE_KINDS = new Set<CalendarActivityKind>([
@@ -294,20 +284,6 @@ export function buildCalendarActivities(
     }
   }
 
-  for (const row of input.ritualChecks) {
-    const ritual = RITUALS.find((item) => item.id === row.ritualId);
-    items.push({
-      id: `ritual:${row.id}`,
-      kind: "ritual",
-      dateKey: row.date,
-      at: row.createdAt,
-      title: ritual?.title ?? "Ritual",
-      subtitle: `Checked by ${nameFor(row.userId, user, partner)}`,
-      mark: "ritual",
-      href: `/hub/calendar-item?kind=ritual&id=${encodeURIComponent(row.id)}`,
-    });
-  }
-
   for (const row of input.talkDraws) {
     if (!row.answeredAt && !row.date) continue;
     const dateKey = row.answeredAt
@@ -434,29 +410,22 @@ export function buildCalendarActivities(
     });
   }
 
-  for (const row of input.scratches) {
-    items.push({
-      id: `scratch:${row.id}`,
-      kind: "scratch",
-      dateKey: dateKeyFromIso(row.createdAt),
-      at: row.createdAt,
-      title: row.title,
-      subtitle: `Scratch · ${row.kind}`,
-      mark: "scratch",
-      href: `/hub/calendar-item?kind=scratch&id=${encodeURIComponent(row.id)}`,
-    });
-  }
-
   for (const row of input.calendarEvents) {
+    const allDay = row.allDay !== false;
     items.push({
       id: `custom:${row.id}`,
       kind: "custom",
       dateKey: row.date,
       at: row.happenedAt,
       title: row.title,
-      subtitle: row.notes.trim() ? row.notes.slice(0, 80) : "Your note",
+      subtitle: row.notes.trim()
+        ? row.notes.slice(0, 80)
+        : allDay
+          ? "All day"
+          : "Your note",
       mark: "custom",
       href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
+      allDay,
     });
   }
 
@@ -473,6 +442,7 @@ export function buildCalendarActivities(
         subtitle: birthdaySubtitle(row, year),
         mark: "birthday",
         href: `/hub/calendar-item?kind=birthday&id=${encodeURIComponent(row.id)}`,
+        allDay: true,
       });
     }
   }
@@ -490,6 +460,7 @@ export function buildCalendarActivities(
         subtitle: end && end !== start ? `${row.where} · until ${end}` : row.where,
         mark: "trip",
         href: `/hub/calendar-item?kind=trip&id=${encodeURIComponent(row.id)}`,
+        allDay: true,
       });
     }
     if (end && end !== start) {
@@ -502,6 +473,7 @@ export function buildCalendarActivities(
         subtitle: row.where,
         mark: "trip",
         href: `/hub/calendar-item?kind=trip&id=${encodeURIComponent(row.id)}`,
+        allDay: true,
       });
     }
   }
@@ -520,6 +492,7 @@ export function buildCalendarActivities(
           : `Job due · every ${row.everyDays} days`,
       mark: "job",
       href: `/hub/calendar-item?kind=job&id=${encodeURIComponent(row.id)}`,
+      allDay: true,
     });
   }
 

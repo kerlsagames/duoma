@@ -8,15 +8,18 @@ import {
   turningAge,
   type BirthdayCircle,
 } from "@/lib/birthdays";
-import { formatLongDate } from "@/lib/dates";
+import { ReminderLeads } from "@/components/hub/ReminderLeads";
+import { isoFromDateAndTime, formatLongDate } from "@/lib/dates";
+import { reminderItemKey, type ReminderLead } from "@/lib/calendar-reminders";
+import { useCalendarPrefs } from "@/lib/useCalendarPrefs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Screen } from "@/components/ui/Screen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { createElement, useMemo, useState } from "react";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 
 const T = HUB_TONES.calendar;
 
@@ -31,12 +34,16 @@ export default function CalendarAddScreen() {
       : null;
   const { addCalendarEvent } = useApp();
   const { patch } = useMiniApps();
+  const { prefs, save: savePrefs } = useCalendarPrefs();
   const [kind, setKind] = useState<AddKind>("note");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [name, setName] = useState("");
   const [circle, setCircle] = useState<BirthdayCircle>("family");
   const [yearText, setYearText] = useState("");
+  const [allDay, setAllDay] = useState(true);
+  const [time, setTime] = useState("09:00");
+  const [leads, setLeads] = useState<ReminderLead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +57,18 @@ export default function CalendarAddScreen() {
     yearText.trim() ? Number(yearText.trim()) : null
   );
   const previewTurns = turningAge(parsedYear, new Date().getFullYear());
+  const targetKind = kind === "birthday" ? "birthday" : "custom";
+  const reminderLeads = leads ?? prefs.defaultLeads[targetKind];
+
+  const persistLeads = (id: string, next: ReminderLead[]) => {
+    savePrefs({
+      ...prefs,
+      itemLeads: {
+        ...prefs.itemLeads,
+        [reminderItemKey(targetKind, id)]: next,
+      },
+    });
+  };
 
   const saveNote = async () => {
     if (!date) {
@@ -63,8 +82,12 @@ export default function CalendarAddScreen() {
         title,
         notes,
         date,
-        happenedAt: defaultHappenedAt(date),
+        allDay,
+        happenedAt: allDay
+          ? defaultHappenedAt(date)
+          : isoFromDateAndTime(date, time),
       });
+      persistLeads(row.id, reminderLeads);
       router.replace(
         `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}` as Href
       );
@@ -102,6 +125,7 @@ export default function CalendarAddScreen() {
         ...state,
         birthdays: sortBirthdaysList([...state.birthdays, row]),
       }));
+      persistLeads(row.id, reminderLeads);
       router.replace(
         `/hub/calendar-item?kind=birthday&id=${encodeURIComponent(row.id)}` as Href
       );
@@ -178,6 +202,7 @@ export default function CalendarAddScreen() {
                 key={tab.id}
                 onPress={() => {
                   setKind(tab.id);
+                  setLeads(null);
                   setError(null);
                 }}
                 style={{
@@ -221,6 +246,43 @@ export default function CalendarAddScreen() {
               multiline
               style={{ ...inputStyle, minHeight: 110, paddingTop: 12, textAlignVertical: "top" }}
             />
+
+            <FieldLabel>When</FieldLabel>
+            <View style={{ marginTop: 8, flexDirection: "row", gap: 8 }}>
+              {(
+                [
+                  { id: true, label: "All day" },
+                  { id: false, label: "Set a time" },
+                ] as const
+              ).map((row) => {
+                const on = allDay === row.id;
+                return (
+                  <Pressable
+                    key={String(row.id)}
+                    onPress={() => setAllDay(row.id)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: on ? "#C23B55" : "rgba(22,24,29,0.12)",
+                      backgroundColor: on ? "rgba(194,59,85,0.08)" : "#FFFFFF",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "600",
+                        color: on ? "#C23B55" : "#16181D",
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {allDay ? null : <TimeField value={time} onChange={setTime} />}
           </>
         ) : (
           <>
@@ -290,6 +352,18 @@ export default function CalendarAddScreen() {
           </>
         )}
 
+        <FieldLabel>Remind me</FieldLabel>
+        <Text style={{ marginTop: 6, fontSize: 13, color: T.muted, lineHeight: 18 }}>
+          {kind === "birthday"
+            ? "We’ll ping this phone before their day. 1 day before is on by default."
+            : "Optional. 15 minutes before needs a time on the note."}
+        </Text>
+        <ReminderLeads
+          value={reminderLeads}
+          allDay={kind === "birthday" ? true : allDay}
+          onChange={setLeads}
+        />
+
         {error ? (
           <Text style={{ marginTop: 12, fontSize: 14, color: T.accent }}>
             {error}
@@ -343,3 +417,36 @@ const inputStyle = {
   fontSize: 16,
   color: T.ink,
 } as const;
+
+function TimeField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  if (Platform.OS === "web") {
+    return createElement("input", {
+      type: "time",
+      value,
+      onChange: (event: { target: { value: string } }) =>
+        onChange(event.target.value || "09:00"),
+      style: {
+        ...inputStyle,
+        width: "100%",
+        boxSizing: "border-box",
+        outline: "none",
+        colorScheme: "light",
+      },
+    });
+  }
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChange}
+      placeholder="09:00"
+      placeholderTextColor="rgba(22,24,29,0.35)"
+      style={inputStyle}
+    />
+  );
+}

@@ -22,6 +22,8 @@ import type {
   TalkDraw,
   FantasyTonightAsk,
 } from "@/lib/types";
+import type { CalendarReminder } from "@/lib/calendar-reminders";
+import { dueCalendarReminders } from "@/lib/calendar-reminders";
 import type { Href } from "expo-router";
 
 export type StatusItem = {
@@ -136,6 +138,7 @@ export function buildHomeNotifications(input: {
   spicyDares?: SpicyDarePlay[];
   fantasyTonightAsks?: FantasyTonightAsk[];
   sexyVault?: SexyVaultItem[];
+  calendarReminders?: CalendarReminder[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -417,6 +420,16 @@ export function buildHomeNotifications(input: {
         sortAt: midday(item.scheduledOn as string),
       });
     });
+
+  dueCalendarReminders(input.calendarReminders ?? []).forEach((row) => {
+    items.push({
+      id: row.id,
+      line: row.body,
+      when: upcomingWhen(row.dateKey),
+      href: row.href,
+      sortAt: row.fireAt,
+    });
+  });
 
   return items.sort((a, b) => Math.abs(a.sortAt - now) - Math.abs(b.sortAt - now));
 }

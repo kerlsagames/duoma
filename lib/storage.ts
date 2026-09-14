@@ -246,6 +246,7 @@ function hydrateCalendarEvent(
     ...row,
     notes: row.notes ?? "",
     happenedAt: row.happenedAt ?? row.createdAt,
+    allDay: row.allDay !== false,
     updatedAt: row.updatedAt ?? row.createdAt,
   };
 }

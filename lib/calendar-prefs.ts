@@ -1,4 +1,10 @@
 import type { CalendarActivityKind } from "@/lib/calendar-activity";
+import {
+  DEFAULT_REMINDER_LEADS,
+  hydrateReminderLeads,
+  type ReminderLead,
+  type ReminderTargetKind,
+} from "@/lib/calendar-reminders";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
@@ -12,6 +18,8 @@ export type CalendarPrefs = {
   enabledKinds: Record<CalendarActivityKind, boolean>;
   listMode: CalendarListMode;
   layout: CalendarLayout;
+  defaultLeads: Record<ReminderTargetKind, ReminderLead[]>;
+  itemLeads: Record<string, ReminderLead[]>;
 };
 
 export const CALENDAR_LAYOUT_OPTIONS: {
@@ -39,23 +47,29 @@ export const CALENDAR_LAYOUT_OPTIONS: {
 export const CALENDAR_KIND_OPTIONS: {
   kind: CalendarActivityKind;
   label: string;
+  hint?: string;
 }[] = [
-  { kind: "spicy_night", label: "Spicy nights" },
-  { kind: "check_in", label: "Check-ins" },
-  { kind: "talk", label: "Talk to Me" },
-  { kind: "list", label: "Lists" },
-  { kind: "dare", label: "Dares" },
+  { kind: "check_in", label: "Daily Check-In" },
+  { kind: "talk", label: "Talk To Me" },
+  { kind: "list", label: "Lists & Wishlist" },
+  { kind: "curiosity", label: "Curiosity Deck" },
+  { kind: "jar", label: "Gratitude Jar" },
+  { kind: "bucket", label: "Date Night" },
+  { kind: "spicy_night", label: "Spicy Game" },
+  { kind: "dare", label: "Dare Me" },
   { kind: "coupon", label: "Coupons" },
-  { kind: "jar", label: "Jar notes" },
-  { kind: "curiosity", label: "Curiosity" },
-  { kind: "ritual", label: "Rituals" },
-  { kind: "bucket", label: "Date nights" },
   { kind: "milestone", label: "Milestones" },
-  { kind: "scratch", label: "Scratch cards" },
-  { kind: "custom", label: "Your entries" },
+  { kind: "custom", label: "Your notes" },
   { kind: "birthday", label: "Birthdays" },
   { kind: "trip", label: "Trips" },
-  { kind: "job", label: "Jobs to do" },
+  { kind: "job", label: "Household jobs" },
+];
+
+const TARGET_KINDS: ReminderTargetKind[] = [
+  "birthday",
+  "custom",
+  "trip",
+  "job",
 ];
 
 export function defaultCalendarPrefs(): CalendarPrefs {
@@ -63,7 +77,23 @@ export function defaultCalendarPrefs(): CalendarPrefs {
   for (const row of CALENDAR_KIND_OPTIONS) {
     enabledKinds[row.kind] = true;
   }
-  return { enabledKinds, listMode: "preview", layout: "stack" };
+  return {
+    enabledKinds,
+    listMode: "preview",
+    layout: "stack",
+    defaultLeads: {
+      birthday: [...DEFAULT_REMINDER_LEADS.birthday],
+      custom: [...DEFAULT_REMINDER_LEADS.custom],
+      trip: [...DEFAULT_REMINDER_LEADS.trip],
+      job: [...DEFAULT_REMINDER_LEADS.job],
+    },
+    itemLeads: {},
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
 }
 
 export function hydrateCalendarPrefs(
@@ -79,11 +109,29 @@ export function hydrateCalendarPrefs(
       }
     }
   }
+
+  const defaultLeads = { ...base.defaultLeads };
+  const incomingDefaults = asRecord(raw.defaultLeads);
+  for (const kind of TARGET_KINDS) {
+    if (kind in incomingDefaults) {
+      defaultLeads[kind] = hydrateReminderLeads(incomingDefaults[kind]);
+    }
+  }
+
+  const itemLeads: Record<string, ReminderLead[]> = {};
+  const incomingItems = asRecord(raw.itemLeads);
+  for (const [key, value] of Object.entries(incomingItems)) {
+    if (typeof key !== "string" || !key.includes(":")) continue;
+    itemLeads[key] = hydrateReminderLeads(value);
+  }
+
   return {
     enabledKinds,
     listMode: raw.listMode === "all" ? "all" : "preview",
     layout:
       raw.layout === "split" || raw.layout === "agenda" ? raw.layout : "stack",
+    defaultLeads,
+    itemLeads,
   };
 }
 
@@ -104,6 +152,7 @@ export async function writeCalendarPrefs(prefs: CalendarPrefs): Promise<void> {
   const raw = JSON.stringify(prefs);
   if (Platform.OS === "web" && typeof localStorage !== "undefined") {
     localStorage.setItem(CALENDAR_PREFS_KEY, raw);
+    window.dispatchEvent(new Event("duoma:calendar-prefs"));
     return;
   }
   await AsyncStorage.setItem(CALENDAR_PREFS_KEY, raw);

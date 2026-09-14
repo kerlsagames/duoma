@@ -21,7 +21,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
   - **Time Capsule Town** — Memory Cinema, Grand Arena, Love Bakery, Velvet Lounge. Tap an open building to jump into that feature.
   - **The Odyssey** — fuel kilometres from the same activity; waypoints at Whispering Forest, Crystal Bay, Sunset Peaks, Uncharted Reach.
   - **The Constellation** — stars from actions, named clusters from dates, photos, and Desire.
-- **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
+- **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs, your notes). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Set reminders on General — 15 minutes before, 1 hour, 1 day, or 1 week — including for birthdays. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
 
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles, Pick me a Position, and search the whole list.

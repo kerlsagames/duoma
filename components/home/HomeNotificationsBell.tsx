@@ -11,6 +11,7 @@ import {
   writeNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
+import { useCalendarReminderItems } from "@/lib/useCalendarPrefs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,6 +42,7 @@ export function HomeNotificationsBell({
     fantasyTonightAsks,
   } = useApp();
   const { data: mini } = useMiniApps();
+  const calendarReminders = useCalendarReminderItems();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<
@@ -73,6 +75,7 @@ export function HomeNotificationsBell({
         spicyDares,
         fantasyTonightAsks,
         sexyVault: mini.sexyVault,
+        calendarReminders,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
     [
       user,
@@ -90,6 +93,7 @@ export function HomeNotificationsBell({
       spicyDares,
       fantasyTonightAsks,
       mini.sexyVault,
+      calendarReminders,
       prefs,
     ]
   );

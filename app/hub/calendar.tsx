@@ -14,12 +14,13 @@ import {
 import {
   CALENDAR_KIND_OPTIONS,
   CALENDAR_LAYOUT_OPTIONS,
-  defaultCalendarPrefs,
-  readCalendarPrefs,
-  writeCalendarPrefs,
   type CalendarLayout,
-  type CalendarPrefs,
 } from "@/lib/calendar-prefs";
+import {
+  REMINDER_TARGET_OPTIONS,
+} from "@/lib/calendar-reminders";
+import { ReminderLeads } from "@/components/hub/ReminderLeads";
+import { useCalendarPrefs } from "@/lib/useCalendarPrefs";
 import {
   formatClockTime,
   formatLongDate,
@@ -63,23 +64,14 @@ export default function CalendarScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [prefs, setPrefs] = useState<CalendarPrefs>(defaultCalendarPrefs);
+  const { prefs, save: savePrefs } = useCalendarPrefs();
   const [expanded, setExpanded] = useState(false);
   const [lane, setLane] = useState<CalendarLane>("together");
   const allActivities = useCalendarActivities();
 
   useEffect(() => {
-    void readCalendarPrefs().then(setPrefs);
-  }, []);
-
-  useEffect(() => {
     setExpanded(false);
   }, [selected, prefs.listMode, lane, prefs.layout]);
-
-  const savePrefs = (next: CalendarPrefs) => {
-    setPrefs(next);
-    void writeCalendarPrefs(next);
-  };
 
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
@@ -137,7 +129,7 @@ export default function CalendarScreen() {
   const emptyCopy =
     lane === "together"
       ? "Nothing recorded this day."
-      : "No birthdays, trips, or jobs this day. Tap + for your own note.";
+      : "No birthdays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
 
   return (
     <HubScreen
@@ -551,7 +543,24 @@ export default function CalendarScreen() {
                 })}
               </View>
 
-              <SectionLabel>Show on calendar</SectionLabel>
+              <SectionLabel>
+                {lane === "together"
+                  ? "Show on Desire & Connect"
+                  : "Show on General"}
+              </SectionLabel>
+              <Text
+                style={{
+                  marginTop: -4,
+                  marginBottom: 10,
+                  fontSize: 13,
+                  color: "rgba(22,24,29,0.5)",
+                  lineHeight: 18,
+                }}
+              >
+                {lane === "together"
+                  ? "Play, talks, and nights you already logged."
+                  : "Birthdays, trips, jobs, and notes you add yourself."}
+              </Text>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_KIND_OPTIONS.filter(
                   (row) => laneForKind(row.kind) === lane
@@ -591,6 +600,59 @@ export default function CalendarScreen() {
                     </Pressable>
                   );
                 })}
+              </View>
+
+              <SectionLabel>Reminders</SectionLabel>
+              <Text
+                style={{
+                  marginTop: -4,
+                  marginBottom: 12,
+                  fontSize: 13,
+                  color: "rgba(22,24,29,0.5)",
+                  lineHeight: 18,
+                }}
+              >
+                Pings this phone before something on General — a birthday
+                tomorrow, a trip, a job due. Open a day to change that one
+                item. If notifications are on, you also get a lock-screen ping
+                when Duoma is open.
+              </Text>
+              <View style={{ gap: 18, marginBottom: 22 }}>
+                {REMINDER_TARGET_OPTIONS.map((row) => (
+                  <View key={row.kind}>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "700",
+                        color: "#16181D",
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 2,
+                        fontSize: 13,
+                        color: "rgba(22,24,29,0.5)",
+                      }}
+                    >
+                      {row.hint}
+                    </Text>
+                    <ReminderLeads
+                      value={prefs.defaultLeads[row.kind]}
+                      allDay
+                      onChange={(next) =>
+                        savePrefs({
+                          ...prefs,
+                          defaultLeads: {
+                            ...prefs.defaultLeads,
+                            [row.kind]: next,
+                          },
+                        })
+                      }
+                    />
+                  </View>
+                ))}
               </View>
 
               {prefs.layout === "stack" ? (
@@ -890,7 +952,8 @@ function DayActivityCard({
       }}
     >
       <Text style={{ fontSize: 12, fontWeight: "600", color: "#C23B55" }}>
-        {item.kind === "birthday" ||
+        {item.allDay ||
+        item.kind === "birthday" ||
         item.kind === "trip" ||
         item.kind === "job"
           ? "All day"

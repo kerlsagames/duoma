@@ -1,8 +1,13 @@
 import { ageLabel, birthdayById, formatBirthdayDate } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
-import { formatClockTime, formatLongDate } from "@/lib/dates";
+import {
+  clockTimeValue,
+  formatClockTime,
+  formatLongDate,
+  isoFromDateAndTime,
+} from "@/lib/dates";
 import { HUB_TONES } from "@/lib/app-themes";
-import { RITUALS } from "@/lib/hub";
+import { ItemReminders } from "@/components/hub/ReminderLeads";
 import { useMiniApps } from "@/lib/mini-apps";
 import { categoryById, questionById } from "@/lib/talk";
 import { useApp } from "@/lib/store";
@@ -10,8 +15,8 @@ import { Screen } from "@/components/ui/Screen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useState, type ReactNode } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { createElement, useState, type ReactNode } from "react";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 
 const T = HUB_TONES.calendar;
 
@@ -112,7 +117,6 @@ export default function CalendarItemScreen() {
     checkIns,
     milestones,
     bucketItems,
-    ritualChecks,
     talkDraws,
     listEntries,
     coupleLists,
@@ -120,7 +124,6 @@ export default function CalendarItemScreen() {
     coupons,
     jarNotes,
     curiosityAnswers,
-    scratches,
     calendarEvents,
     listEntryRatings,
     partner,
@@ -200,30 +203,6 @@ export default function CalendarItemScreen() {
           {row.notes ? (
             <Panel>
               <Text style={{ fontSize: 15, color: T.ink, lineHeight: 22 }}>{row.notes}</Text>
-            </Panel>
-          ) : null}
-        </Block>
-      </Screen>
-    );
-  }
-
-  if (kind === "ritual") {
-    const row = ritualChecks.find((item) => item.id === id);
-    const ritual = RITUALS.find((item) => item.id === row?.ritualId);
-    if (!row) {
-      return (
-        <Screen scroll background={T.background}>
-          <Block kicker="Ritual" title="Not found" />
-        </Screen>
-      );
-    }
-    return (
-      <Screen scroll background={T.background}>
-        <Block kicker="Ritual" title={ritual?.title ?? "Ritual"}>
-          <Meta>{`${formatLongDate(row.date)} · checked by ${nameFor(row.userId)} · ${formatClockTime(row.createdAt)}`}</Meta>
-          {ritual?.detail ? (
-            <Panel>
-              <Text style={{ fontSize: 15, color: T.muted, lineHeight: 22 }}>{ritual.detail}</Text>
             </Panel>
           ) : null}
         </Block>
@@ -403,27 +382,6 @@ export default function CalendarItemScreen() {
     );
   }
 
-  if (kind === "scratch") {
-    const row = scratches.find((item) => item.id === id);
-    if (!row) {
-      return (
-        <Screen scroll background={T.background}>
-          <Block kicker="Scratch" title="Not found" />
-        </Screen>
-      );
-    }
-    return (
-      <Screen scroll background={T.background}>
-        <Block kicker={`Scratch · ${row.kind}`} title={row.title}>
-          <Meta>{formatClockTime(row.createdAt)}</Meta>
-          <Panel>
-            <Text style={{ fontSize: 15, lineHeight: 22, color: T.ink }}>{row.body}</Text>
-          </Panel>
-        </Block>
-      </Screen>
-    );
-  }
-
   if (kind === "birthday") {
     const row = birthdayById(mini.birthdays, id);
     if (!row) {
@@ -444,6 +402,7 @@ export default function CalendarItemScreen() {
             {formatBirthdayDate(row.month, row.day, row.year)}
             {age ? ` · ${age}` : " · every year"}
           </Meta>
+          <ItemReminders kind="birthday" id={row.id} allDay />
           <View style={{ marginTop: 22 }}>
             <PrimaryButton
               label="Open Birthdays"
@@ -470,6 +429,7 @@ export default function CalendarItemScreen() {
           <Meta>{row.where}</Meta>
           {row.start ? <Meta>{`Departs ${row.start}`}</Meta> : null}
           {row.end ? <Meta>{`Returns ${row.end}`}</Meta> : null}
+          <ItemReminders kind="trip" id={row.id} allDay />
           <View style={{ marginTop: 22 }}>
             <PrimaryButton
               label="Open Travel"
@@ -495,6 +455,7 @@ export default function CalendarItemScreen() {
         <Block kicker="Job to do" title={row.label}>
           <Meta>{`Every ${row.everyDays} days`}</Meta>
           {row.lastDone ? <Meta>{`Last done ${row.lastDone}`}</Meta> : <Meta>Not done yet</Meta>}
+          <ItemReminders kind="job" id={row.id} allDay />
           <View style={{ marginTop: 22 }}>
             <PrimaryButton
               label="Open Household Maintenance"
@@ -549,17 +510,23 @@ function CustomEventEditor({
     notes: string;
     date: string;
     happenedAt: string;
+    allDay: boolean;
   };
   onSave: (input: {
     title: string;
     notes?: string;
     date: string;
     happenedAt?: string;
+    allDay?: boolean;
   }) => Promise<void>;
   onDelete: () => Promise<void>;
 }) {
   const [title, setTitle] = useState(event.title);
   const [notes, setNotes] = useState(event.notes);
+  const [allDay, setAllDay] = useState(event.allDay !== false);
+  const [time, setTime] = useState(
+    clockTimeValue(event.happenedAt) || "09:00"
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -571,7 +538,10 @@ function CustomEventEditor({
         title,
         notes,
         date: event.date,
-        happenedAt: event.happenedAt,
+        allDay,
+        happenedAt: allDay
+          ? event.happenedAt
+          : isoFromDateAndTime(event.date, time),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -597,7 +567,8 @@ function CustomEventEditor({
           Your entry
         </Text>
         <Text style={{ marginTop: 8, fontSize: 15, color: T.muted }}>
-          {formatLongDate(event.date)} · {formatClockTime(event.happenedAt)}
+          {formatLongDate(event.date)}
+          {allDay ? " · all day" : ` · ${time}`}
         </Text>
 
         <Text
@@ -656,6 +627,97 @@ function CustomEventEditor({
             textAlignVertical: "top",
           }}
         />
+
+        <Text
+          style={{
+            marginTop: 18,
+            fontSize: 12,
+            fontWeight: "700",
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(22,24,29,0.4)",
+          }}
+        >
+          When
+        </Text>
+        <View style={{ marginTop: 8, flexDirection: "row", gap: 8 }}>
+          {(
+            [
+              { id: true, label: "All day" },
+              { id: false, label: "Set a time" },
+            ] as const
+          ).map((row) => {
+            const on = allDay === row.id;
+            return (
+              <Pressable
+                key={String(row.id)}
+                onPress={() => setAllDay(row.id)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: on ? "#C23B55" : "rgba(22,24,29,0.12)",
+                  backgroundColor: on ? "rgba(194,59,85,0.08)" : "#FFFFFF",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: on ? "#C23B55" : "#16181D",
+                  }}
+                >
+                  {row.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {allDay ? null : (
+          Platform.OS === "web" ? (
+            createElement("input", {
+              type: "time",
+              value: time,
+              onChange: (event: { target: { value: string } }) =>
+                setTime(event.target.value || "09:00"),
+              style: {
+                marginTop: 8,
+                height: 48,
+                width: "100%",
+                boxSizing: "border-box",
+                borderWidth: 1,
+                border: "1px solid rgba(22,24,29,0.14)",
+                background: "#FFFFFF",
+                paddingLeft: 14,
+                paddingRight: 14,
+                fontSize: 16,
+                color: T.ink,
+                outline: "none",
+                colorScheme: "light",
+              },
+            })
+          ) : (
+            <TextInput
+              value={time}
+              onChangeText={setTime}
+              placeholder="09:00"
+              placeholderTextColor="rgba(22,24,29,0.35)"
+              style={{
+                marginTop: 8,
+                height: 48,
+                borderWidth: 1,
+                borderColor: "rgba(22,24,29,0.14)",
+                backgroundColor: "#FFFFFF",
+                paddingHorizontal: 14,
+                fontSize: 16,
+                color: T.ink,
+              }}
+            />
+          )
+        )}
+
+        <ItemReminders kind="custom" id={event.id} allDay={allDay} />
 
         {error ? (
           <Text style={{ marginTop: 12, fontSize: 14, color: T.accent }}>{error}</Text>

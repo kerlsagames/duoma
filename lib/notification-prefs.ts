@@ -269,7 +269,7 @@ export function featureFromStatusId(id: string): string | null {
   if (id === "jar" || id.startsWith("jar")) return "jar";
   if (id.startsWith("list")) return "lists";
   if (id.startsWith("coupon") || id.startsWith("scratch")) return "coupons";
-  if (id.startsWith("milestone")) return "calendar";
+  if (id.startsWith("milestone") || id.startsWith("cal-remind")) return "calendar";
   if (id.startsWith("date") || id.startsWith("bucket")) return "date-night";
   if (id.startsWith("position")) return "positions";
   if (id.startsWith("roleplay")) return "roleplays";
@@ -303,7 +303,7 @@ export function kindFromStatusId(id: string): NotificationSection | null {
     return "connect";
   }
   if (id.startsWith("coupon") || id.startsWith("scratch")) return "play";
-  if (id.startsWith("milestone") || id.startsWith("date") || id.startsWith("bucket")) {
+  if (id.startsWith("milestone") || id.startsWith("date") || id.startsWith("bucket") || id.startsWith("cal-remind")) {
     return "calendar";
   }
   return null;

@@ -56,6 +56,43 @@ export function daysUntil(key: string, from = new Date()): number {
   return Math.round((target.getTime() - start.getTime()) / 86400000);
 }
 
+export function addDaysToDateKey(key: string, days: number): string {
+  const date = parseDateKey(key);
+  date.setDate(date.getDate() + days);
+  return localDateKey(date);
+}
+
+/** Local clock on a date key. */
+export function dateAtLocalHours(
+  key: string,
+  hours: number,
+  minutes = 0
+): Date {
+  const date = parseDateKey(key);
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+
+export function endOfLocalDay(key: string): Date {
+  const date = parseDateKey(key);
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
+/** `HH:mm` from an ISO stamp, local. */
+export function clockTimeValue(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+export function isoFromDateAndTime(dateKey: string, time: string): string {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
+  const hours = match ? Number(match[1]) : 9;
+  const minutes = match ? Number(match[2]) : 0;
+  return dateAtLocalHours(dateKey, hours, minutes).toISOString();
+}
+
 export function isSunday(date = new Date()): boolean {
   return date.getDay() === 0;
 }

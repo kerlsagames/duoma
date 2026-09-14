@@ -561,6 +561,8 @@ export type CalendarCustomEvent = {
   date: string;
   /** ISO timestamp for sorting / clock display on that day. */
   happenedAt: string;
+  /** True when there is no clock time — reminders use 9:00 that morning. */
+  allDay: boolean;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

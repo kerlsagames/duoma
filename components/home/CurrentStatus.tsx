@@ -8,6 +8,7 @@ import {
   readNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/notification-prefs";
+import { useCalendarReminderItems } from "@/lib/useCalendarPrefs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +39,7 @@ export function CurrentStatus({
     fantasyTonightAsks,
   } = useApp();
   const { data: mini } = useMiniApps();
+  const calendarReminders = useCalendarReminderItems();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
 
   useFocusEffect(
@@ -62,6 +64,7 @@ export function CurrentStatus({
     spicyDares,
     fantasyTonightAsks,
     sexyVault: mini.sexyVault,
+    calendarReminders,
   }).filter((item) => prefsShowStatusId(prefs, item.id));
 
   const openGame = () => {
