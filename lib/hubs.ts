@@ -299,7 +299,7 @@ export const HUBS: HubDef[] = [
       {
         id: "travel",
         label: "Travel / Date Itinerary",
-        detail: "Collaborative trip boards, packing & reservations",
+        detail: "Day-by-day trip plans, stays, tickets & costs",
         icon: "airplane",
         href: "/hub/travel",
       },

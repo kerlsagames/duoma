@@ -1,234 +1,307 @@
 import { Stage } from "@/components/hub/Stage";
+import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { sectionAccent } from "@/lib/hub-theme";
-import { createId } from "@/lib/ids";
+import { money } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
-import type { PackItem, Trip, TripStop } from "@/lib/mini-content";
-import type { Href } from "expo-router";
-import { useState } from "react";
+import { createTrip, tripPlanCost, tripSummary } from "@/lib/trips";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, type Href } from "expo-router";
+import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const BG = "#101820";
-const PAPER = "#F3EFE4";
-const blue = () => sectionAccent("home-base", "#1E4D8C");
-const paperInk = () => sectionAccent("home-base", "#D7E4F2");
+const BG = "#0C1218";
+const PAPER = "#E8EEF4";
+const MUTED = "rgba(232,238,244,0.55)";
+const CARD = "#15202B";
+const accent = () => sectionAccent("home-base", "#3D8BDB");
 
 export default function TravelScreen() {
+  const router = useRouter();
   const { data, ready, patch } = useMiniApps();
-  const [title, setTitle] = useState("Weekend escape");
+  const [compose, setCompose] = useState(false);
+  const [title, setTitle] = useState("");
   const [where, setWhere] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [stop, setStop] = useState("");
-  const [pack, setPack] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const trip = data.trips[0] ?? null;
+
+  const trips = useMemo(
+    () =>
+      [...data.trips].sort((a, b) =>
+        (b.createdAt || b.start || "").localeCompare(a.createdAt || a.start || "")
+      ),
+    [data.trips]
+  );
 
   const create = async () => {
-    if (!title.trim() || !where.trim()) {
-      setError("A ticket needs a name and a destination.");
+    if (!title.trim()) {
+      setError("Give the trip a name.");
       return;
     }
     setError(null);
+    const trip = createTrip({
+      title,
+      where,
+      start,
+      end,
+    });
     await patch((state) => ({
       ...state,
-      trips: [
-        {
-          id: createId(),
-          title: title.trim(),
-          where: where.trim(),
-          start: start.trim() || "TBD",
-          end: end.trim() || "TBD",
-          stops: [],
-          packing: [
-            { id: createId(), label: "Chargers", packed: false },
-            { id: createId(), label: "The good snacks", packed: false },
-            { id: createId(), label: "Whatever they forget", packed: false },
-          ],
-        },
-        ...state.trips,
-      ],
+      trips: [trip, ...state.trips],
     }));
-  };
-
-  const mutateTrip = async (fn: (current: Trip) => Trip) => {
-    if (!trip) return;
-    await patch((state) => ({
-      ...state,
-      trips: state.trips.map((row) => (row.id === trip.id ? fn(row) : row)),
-    }));
+    setCompose(false);
+    setTitle("");
+    setWhere("");
+    setStart("");
+    setEnd("");
+    router.push(`/hub/travel/${trip.id}` as Href);
   };
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={paperInk()}>
-        {!trip ? (
-          <View>
-            <Text style={{ fontFamily: SERIF, fontSize: 32, color: paperInk() }}>
-              Issue a ticket
-            </Text>
-            <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(215,228,242,0.6)" }}>
-              even a Tuesday can have a gate
-            </Text>
-            {[
-              [title, setTitle, "flight name"],
-              [where, setWhere, "destination"],
-              [start, setStart, "departs"],
-              [end, setEnd, "returns"],
-            ].map(([val, set, ph], i) => (
-              <TextInput
-                key={i}
-                value={val as string}
-                onChangeText={set as (t: string) => void}
-                placeholder={ph as string}
-                placeholderTextColor="rgba(215,228,242,0.3)"
-                style={field}
-              />
-            ))}
-            <Pressable
-              onPress={() => void create()}
-              style={{ marginTop: 14, height: 50, backgroundColor: blue(), justifyContent: "center" }}
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={accent()}>
+        <Text
+          style={{
+            fontFamily: SERIF,
+            fontSize: 34,
+            color: PAPER,
+            letterSpacing: -0.5,
+          }}
+        >
+          Trip plans
+        </Text>
+        <Text
+          style={{
+            marginTop: 6,
+            fontFamily: HANDWRITING,
+            fontSize: 20,
+            color: MUTED,
+          }}
+        >
+          day by day, bookings, tickets, costs
+        </Text>
+
+        <Pressable
+          onPress={() => {
+            setError(null);
+            setCompose(true);
+          }}
+          style={{
+            marginTop: 22,
+            height: 56,
+            borderRadius: 18,
+            borderWidth: 1.5,
+            borderStyle: "dashed",
+            borderColor: accent(),
+            backgroundColor: "rgba(61,139,219,0.12)",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "row",
+            gap: 8,
+          }}
+        >
+          <Ionicons name="add" size={22} color={accent()} />
+          <Text style={{ color: accent(), fontWeight: "800", fontSize: 16 }}>
+            Add trip plan
+          </Text>
+        </Pressable>
+
+        <View style={{ marginTop: 18, gap: 10 }}>
+          {!ready ? (
+            <Text style={{ color: MUTED }}>Loading trips…</Text>
+          ) : trips.length === 0 ? (
+            <Text
+              style={{
+                marginTop: 12,
+                textAlign: "center",
+                color: MUTED,
+                fontFamily: HANDWRITING,
+                fontSize: 18,
+              }}
             >
-              <Text style={{ textAlign: "center", color: PAPER, fontWeight: "800" }}>
-                Print boarding pass
-              </Text>
-            </Pressable>
-            {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-          </View>
-        ) : (
-          <View>
-            <View style={{ backgroundColor: PAPER, overflow: "hidden" }}>
-              <View style={{ backgroundColor: blue(), padding: 14 }}>
-                <Text style={{ color: PAPER, fontFamily: "SpaceMono", fontSize: 10 }}>
-                  BOARDING PASS · DUOMA AIR
-                </Text>
-                <Text style={{ fontFamily: SERIF, fontSize: 28, color: PAPER }}>{trip.title}</Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  padding: 14,
-                  borderStyle: "dashed",
-                  borderBottomWidth: 2,
-                  borderColor: blue(),
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>TO</Text>
-                  <Text style={{ fontFamily: SERIF, fontSize: 22, color: "#1A2430" }}>
-                    {trip.where}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>
-                    {trip.start} → {trip.end}
-                  </Text>
-                  <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "#1A2430" }}>
-                    gate whenever
-                  </Text>
-                </View>
-              </View>
-              <View style={{ padding: 14 }}>
-                <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>ITINERARY</Text>
-                {trip.stops.map((row) => (
-                  <Pressable key={row.id} onPress={() => void mutateTrip((t) => ({
-                    ...t,
-                    stops: t.stops.map((s: TripStop) =>
-                      s.id === row.id ? { ...s, done: !s.done } : s
-                    ),
-                  }))}>
-                    <Text
+              No trips yet. Start one and keep everything inside it.
+            </Text>
+          ) : (
+            trips.map((trip) => {
+              const cost = tripPlanCost(trip);
+              return (
+                <Pressable
+                  key={trip.id}
+                  onPress={() => router.push(`/hub/travel/${trip.id}` as Href)}
+                  style={{
+                    backgroundColor: CARD,
+                    borderRadius: 18,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: "rgba(61,139,219,0.25)",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <View
                       style={{
-                        fontFamily: HANDWRITING,
-                        fontSize: 18,
-                        color: "#1A2430",
-                        textDecorationLine: row.done ? "line-through" : "none",
+                        width: 42,
+                        height: 42,
+                        borderRadius: 14,
+                        backgroundColor: "rgba(61,139,219,0.18)",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      {row.done ? "☑" : "☐"} {row.title}
+                      <Ionicons name="airplane" size={20} color={accent()} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontFamily: SERIF,
+                          fontSize: 22,
+                          color: PAPER,
+                        }}
+                      >
+                        {trip.title}
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 2,
+                          color: MUTED,
+                          fontSize: 13,
+                          lineHeight: 18,
+                        }}
+                      >
+                        {tripSummary(trip)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={MUTED} />
+                  </View>
+                  {cost > 0 ? (
+                    <Text
+                      style={{
+                        marginTop: 10,
+                        fontFamily: "SpaceMono",
+                        fontSize: 12,
+                        color: accent(),
+                      }}
+                    >
+                      Est. {money(cost)}
                     </Text>
-                  </Pressable>
-                ))}
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                  <TextInput
-                    value={stop}
-                    onChangeText={setStop}
-                    placeholder="add a stop"
-                    style={{ flex: 1, fontFamily: HANDWRITING, fontSize: 16, color: "#1A2430" }}
-                  />
-                  <Pressable
-                    onPress={() => {
-                      if (!stop.trim()) return;
-                      void mutateTrip((t) => ({
-                        ...t,
-                        stops: [
-                          ...t.stops,
-                          { id: createId(), title: stop.trim(), detail: "", when: "", done: false },
-                        ],
-                      }));
-                      setStop("");
-                    }}
-                  >
-                    <Text style={{ color: blue() }}>add</Text>
-                  </Pressable>
-                </View>
-                <Text style={{ marginTop: 14, fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>
-                  PACKING
-                </Text>
-                {trip.packing.map((row) => (
-                  <Pressable
-                    key={row.id}
-                    onPress={() =>
-                      void mutateTrip((t) => ({
-                        ...t,
-                        packing: t.packing.map((p: PackItem) =>
-                          p.id === row.id ? { ...p, packed: !p.packed } : p
-                        ),
-                      }))
-                    }
-                  >
-                    <Text style={{ color: row.packed ? blue() : "#1A2430" }}>
-                      {row.packed ? "▣" : "□"} {row.label}
-                    </Text>
-                  </Pressable>
-                ))}
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                  <TextInput
-                    value={pack}
-                    onChangeText={setPack}
-                    placeholder="don’t forget"
-                    style={{ flex: 1, fontFamily: HANDWRITING, fontSize: 16, color: "#1A2430" }}
-                  />
-                  <Pressable
-                    onPress={() => {
-                      if (!pack.trim()) return;
-                      void mutateTrip((t) => ({
-                        ...t,
-                        packing: [...t.packing, { id: createId(), label: pack.trim(), packed: false }],
-                      }));
-                      setPack("");
-                    }}
-                  >
-                    <Text style={{ color: blue() }}>add</Text>
-                  </Pressable>
-                </View>
-              </View>
+                  ) : null}
+                </Pressable>
+              );
+            })
+          )}
+        </View>
+      </Stage>
+
+      {compose ? (
+        <SheetOverlay
+          kicker="NEW TRIP"
+          title="Add trip plan"
+          onClose={() => setCompose(false)}
+          background={CARD}
+          ink={PAPER}
+          muted={MUTED}
+        >
+          <Field
+            label="Trip name"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Anniversary in Kyoto"
+          />
+          <Field
+            label="Where"
+            value={where}
+            onChangeText={setWhere}
+            placeholder="City, region, or road trip"
+          />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Field
+                label="Starts (YYYY-MM-DD)"
+                value={start}
+                onChangeText={setStart}
+                placeholder="2026-10-03"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Field
+                label="Ends"
+                value={end}
+                onChangeText={setEnd}
+                placeholder="2026-10-10"
+              />
             </View>
           </View>
-        )}
-        {!ready ? <Text style={{ color: paperInk() }}>Stamping passports…</Text> : null}
-      </Stage>
+          <Text style={{ marginTop: 6, color: MUTED, fontSize: 12, lineHeight: 17 }}>
+            Dates are optional. If you add them, day pages are created for each
+            night of the trip. You can always add more days later.
+          </Text>
+          {error ? (
+            <Text style={{ marginTop: 10, color: "#FF8A8A" }}>{error}</Text>
+          ) : null}
+          <Pressable
+            onPress={() => void create()}
+            style={{
+              marginTop: 16,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: accent(),
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#071018", fontWeight: "800" }}>Create trip</Text>
+          </Pressable>
+        </SheetOverlay>
+      ) : null}
     </Screen>
   );
 }
 
-const field = {
-  marginTop: 10,
-  borderBottomWidth: 1,
-  borderBottomColor: "rgba(215,228,242,0.3)",
-  color: paperInk(),
-  fontFamily: HANDWRITING,
-  fontSize: 20,
-  paddingVertical: 6,
-} as const;
+function Field({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <View style={{ marginTop: 12 }}>
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 10,
+          letterSpacing: 1.2,
+          color: MUTED,
+          marginBottom: 6,
+        }}
+      >
+        {label.toUpperCase()}
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="rgba(232,238,244,0.28)"
+        style={{
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          paddingVertical: 12,
+          backgroundColor: "#0F1822",
+          color: PAPER,
+          fontSize: 16,
+        }}
+      />
+    </View>
+  );
+}

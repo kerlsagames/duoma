@@ -432,8 +432,8 @@ export default function CalendarItemScreen() {
           <ItemReminders kind="trip" id={row.id} allDay />
           <View style={{ marginTop: 22 }}>
             <PrimaryButton
-              label="Open Travel"
-              onPress={() => router.push("/hub/travel" as Href)}
+              label="Open trip plan"
+              onPress={() => router.push(`/hub/travel/${row.id}` as Href)}
             />
           </View>
         </Block>

@@ -9,6 +9,7 @@ import { emptyWordle, hydrateWordle, type WordleState } from "@/lib/daily-word";
 import { emptyDoodleBoard, hydrateDoodleBoard, type DoodleBoard } from "@/lib/doodle-game";
 import { createId, nowIso } from "@/lib/ids";
 import { localDateKey } from "@/lib/dates";
+import { hydrateTrip } from "@/lib/trips";
 import { emptyPeriodState, hydratePeriodState, type PeriodState } from "@/lib/period";
 import {
   emptyMealPlan,
@@ -327,12 +328,46 @@ export type FairSpin = {
   createdAt: string;
 };
 
-export type TripStop = {
+export type TripBookingKind =
+  | "stay"
+  | "flight"
+  | "train"
+  | "ticket"
+  | "car"
+  | "other";
+
+export type TripBooking = {
+  id: string;
+  kind: TripBookingKind;
+  title: string;
+  /** Booking / confirmation link */
+  url: string;
+  note: string;
+  /** Estimated cost in dollars */
+  cost: number;
+  /** Optional day this booking belongs to (YYYY-MM-DD) */
+  dayDate: string;
+  /** Local data URI or remote URL for a ticket/photo */
+  fileUri: string;
+  fileName: string;
+};
+
+export type TripPlanItem = {
   id: string;
   title: string;
   detail: string;
-  when: string;
+  time: string;
+  cost: number;
   done: boolean;
+  url: string;
+};
+
+export type TripDay = {
+  id: string;
+  /** YYYY-MM-DD when known, else "" */
+  date: string;
+  title: string;
+  items: TripPlanItem[];
 };
 
 export type PackItem = {
@@ -341,14 +376,26 @@ export type PackItem = {
   packed: boolean;
 };
 
+/** @deprecated Kept so older trip saves with stops still parse. */
+export type TripStop = {
+  id: string;
+  title: string;
+  detail: string;
+  when: string;
+  done: boolean;
+};
+
 export type Trip = {
   id: string;
   title: string;
   where: string;
   start: string;
   end: string;
-  stops: TripStop[];
+  notes: string;
+  days: TripDay[];
+  bookings: TripBooking[];
   packing: PackItem[];
+  createdAt: string;
 };
 
 
@@ -910,7 +957,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     spots: asArray(row.spots, base.spots),
     chores: asArray(row.chores, base.chores).filter(keepFairShareItem),
     fairSpins: asArray(row.fairSpins, base.fairSpins),
-    trips: asArray(row.trips, base.trips),
+    trips: asArray(row.trips, base.trips).map(hydrateTrip).filter((row): row is Trip => Boolean(row)),
     goals: asArray(row.goals, base.goals)
       .map(hydrateMoneyGoal)
       .filter((item): item is MoneyGoal => Boolean(item)),
