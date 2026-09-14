@@ -208,7 +208,7 @@ export const HUBS: HubDef[] = [
       {
         id: "photo-challenges",
         label: "Photo Memory Challenges",
-        detail: "One photo a week. Three shuffles. Then it's yours.",
+        detail: "100 photo ideas in four packs. Pick one or shuffle.",
         icon: "camera",
         href: "/hub/photo-challenges",
       },

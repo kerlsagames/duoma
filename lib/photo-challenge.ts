@@ -1,13 +1,35 @@
 import { localDateKey } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
+import {
+  PHOTO_CATEGORIES,
+  PHOTO_PROMPTS,
+  type PhotoPrompt,
+  type PhotoPromptCategory,
+} from "@/lib/photo-prompts";
+
+export function refreshUnknownPrompt(
+  week: PhotoWeek,
+  enabled?: PhotoPromptCategory[]
+): PhotoWeek {
+  if (week.locked || week.completedAt) return week;
+  if (photoPromptById(week.promptId)) return week;
+  const next = pickPhotoPrompt(week.usedPromptIds, enabled);
+  return {
+    ...week,
+    promptId: next.id,
+    usedPromptIds: [...week.usedPromptIds, next.id].slice(-120),
+  };
+}
+
+export {
+  PHOTO_CATEGORIES,
+  PHOTO_PROMPTS,
+  photoPromptsIn,
+} from "@/lib/photo-prompts";
+export type { PhotoPrompt, PhotoPromptCategory } from "@/lib/photo-prompts";
 
 export const PHOTO_SHUFFLES = 3;
 export const PHOTO_GALLERY_CAP = 36;
-
-export type PhotoPrompt = {
-  id: string;
-  label: string;
-};
 
 export type PhotoMemory = {
   id: string;
@@ -34,7 +56,8 @@ export type PhotoWeek = {
   completedBy: string | null;
 };
 
-export const PHOTO_PROMPTS: PhotoPrompt[] = [
+/** Older weekly shots keep their caption if they used the previous bank. */
+const PHOTO_PROMPT_ARCHIVE: { id: string; label: string }[] = [
   { id: "first-coffee", label: "The first coffee of the day, still steaming" },
   { id: "their-hands", label: "Their hands, doing something ordinary" },
   { id: "unmade-bed", label: "The unmade bed from this morning" },
@@ -150,8 +173,16 @@ export function photoPromptById(id: string): PhotoPrompt | null {
   return PHOTO_PROMPTS.find((row) => row.id === id) ?? null;
 }
 
+export function photoPromptTitle(id: string): string {
+  const live = photoPromptById(id);
+  if (live) return live.title;
+  return PHOTO_PROMPT_ARCHIVE.find((row) => row.id === id)?.label ?? "This week's shot";
+}
+
 export function photoPromptLabel(id: string): string {
-  return photoPromptById(id)?.label ?? "This week's shot";
+  const live = photoPromptById(id);
+  if (live) return live.label;
+  return PHOTO_PROMPT_ARCHIVE.find((row) => row.id === id)?.label ?? "This week's shot";
 }
 
 /** Monday of the local week as YYYY-MM-DD. */
@@ -170,19 +201,25 @@ export function photoWeekExpiresAt(weekKey: string): string {
   return end.toISOString();
 }
 
-export function pickPhotoPrompt(avoidIds: string[] = []): PhotoPrompt {
+export function pickPhotoPrompt(
+  avoidIds: string[] = [],
+  enabled: PhotoPromptCategory[] = PHOTO_CATEGORIES.map((row) => row.id)
+): PhotoPrompt {
   const avoid = new Set(avoidIds);
-  const pool = PHOTO_PROMPTS.filter((row) => !avoid.has(row.id));
-  const source = pool.length ? pool : PHOTO_PROMPTS;
+  const allowed = new Set(enabled.length ? enabled : PHOTO_CATEGORIES.map((row) => row.id));
+  const inCats = PHOTO_PROMPTS.filter((row) => allowed.has(row.category));
+  const pool = inCats.filter((row) => !avoid.has(row.id));
+  const source = pool.length ? pool : inCats.length ? inCats : PHOTO_PROMPTS;
   return source[Math.floor(Math.random() * source.length)]!;
 }
 
 export function dealPhotoWeek(
   from = new Date(),
-  avoidIds: string[] = []
+  avoidIds: string[] = [],
+  enabled?: PhotoPromptCategory[]
 ): PhotoWeek {
   const weekKey = currentPhotoWeekKey(from);
-  const prompt = pickPhotoPrompt(avoidIds);
+  const prompt = pickPhotoPrompt(avoidIds, enabled);
   return {
     weekKey,
     promptId: prompt.id,
@@ -205,10 +242,23 @@ export function photoWeekIsLive(week: PhotoWeek | null, from = new Date()): bool
 export type PhotoPrefs = {
   /** New shot can deal as soon as this one is pegged. Default waits the week. */
   dealAfterComplete: boolean;
+  categories: PhotoPromptCategory[];
 };
 
 export function defaultPhotoPrefs(): PhotoPrefs {
-  return { dealAfterComplete: false };
+  return {
+    dealAfterComplete: false,
+    categories: PHOTO_CATEGORIES.map((row) => row.id),
+  };
+}
+
+export function normalizePhotoCategories(raw: unknown): PhotoPromptCategory[] {
+  const all = PHOTO_CATEGORIES.map((row) => row.id);
+  if (!Array.isArray(raw)) return all;
+  const next = raw.filter((id): id is PhotoPromptCategory =>
+    all.includes(id as PhotoPromptCategory)
+  );
+  return next.length ? next : all;
 }
 
 export function hydratePhotoPrefs(raw: unknown): PhotoPrefs {
@@ -217,14 +267,16 @@ export function hydratePhotoPrefs(raw: unknown): PhotoPrefs {
   const row = raw as Partial<PhotoPrefs>;
   return {
     dealAfterComplete: Boolean(row.dealAfterComplete),
+    categories: normalizePhotoCategories(row.categories),
   };
 }
 
 export function startNextPhotoWeek(
   week: PhotoWeek | null,
-  from = new Date()
+  from = new Date(),
+  enabled?: PhotoPromptCategory[]
 ): PhotoWeek {
-  const next = dealPhotoWeek(from, week?.usedPromptIds ?? []);
+  const next = dealPhotoWeek(from, week?.usedPromptIds ?? [], enabled);
   const ends = new Date(from);
   ends.setDate(ends.getDate() + 7);
   return {
@@ -236,15 +288,29 @@ export function startNextPhotoWeek(
 
 export function ensurePhotoWeek(
   week: PhotoWeek | null,
-  from = new Date()
+  from = new Date(),
+  enabled?: PhotoPromptCategory[]
 ): PhotoWeek {
   if (photoWeekIsLive(week, from) && week) return week;
-  return dealPhotoWeek(from, week?.usedPromptIds ?? []);
+  return dealPhotoWeek(from, week?.usedPromptIds ?? [], enabled);
 }
 
-export function shufflePhotoWeek(week: PhotoWeek): PhotoWeek {
+export function choosePhotoPrompt(week: PhotoWeek, promptId: string): PhotoWeek {
+  if (week.locked || week.completedAt) return week;
+  if (!photoPromptById(promptId)) return week;
+  return {
+    ...week,
+    promptId,
+    usedPromptIds: [...week.usedPromptIds, promptId].slice(-120),
+  };
+}
+
+export function shufflePhotoWeek(
+  week: PhotoWeek,
+  enabled?: PhotoPromptCategory[]
+): PhotoWeek {
   if (week.locked || week.completedAt || week.shufflesLeft <= 0) return week;
-  const next = pickPhotoPrompt(week.usedPromptIds);
+  const next = pickPhotoPrompt(week.usedPromptIds, enabled);
   const left = week.shufflesLeft - 1;
   return {
     ...week,

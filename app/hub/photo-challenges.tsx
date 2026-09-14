@@ -4,19 +4,25 @@ import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { formatLongDate } from "@/lib/dates";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
+  PHOTO_CATEGORIES,
+  PHOTO_SHUFFLES,
   agreePhotoWeek,
+  choosePhotoPrompt,
   completePhotoWeek,
   createPhotoMemory,
   ensurePhotoWeek,
   formatCountdown,
-  photoWeekIsLive,
-  PHOTO_SHUFFLES,
   photoPromptLabel,
+  photoPromptTitle,
+  photoPromptsIn,
+  photoWeekIsLive,
   pickImageFromDevice,
   prependPhoto,
+  refreshUnknownPrompt,
   shufflePhotoWeek,
   startNextPhotoWeek,
   type PhotoMemory,
+  type PhotoPromptCategory,
 } from "@/lib/photo-challenge";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -47,6 +53,7 @@ export default function PhotoChallengesScreen() {
   const [busy, setBusy] = useState(false);
   const [looking, setLooking] = useState<PhotoMemory | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pack, setPack] = useState<PhotoPromptCategory>("dramatic");
 
   useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), 1000);
@@ -55,10 +62,14 @@ export default function PhotoChallengesScreen() {
 
   useEffect(() => {
     if (!ready) return;
-    if (photoWeekIsLive(data.photoWeek)) return;
     void patch((state) => {
-      if (photoWeekIsLive(state.photoWeek)) return state;
-      return { ...state, photoWeek: ensurePhotoWeek(state.photoWeek) };
+      const cats = state.photoPrefs.categories;
+      if (photoWeekIsLive(state.photoWeek) && state.photoWeek) {
+        const next = refreshUnknownPrompt(state.photoWeek, cats);
+        if (next === state.photoWeek) return state;
+        return { ...state, photoWeek: next };
+      }
+      return { ...state, photoWeek: ensurePhotoWeek(state.photoWeek, new Date(), cats) };
     });
   }, [ready, data.photoWeek, patch]);
 
@@ -84,7 +95,10 @@ export default function PhotoChallengesScreen() {
     );
   }
 
+  const cats = data.photoPrefs.categories;
   const prompt = photoPromptLabel(week.promptId);
+  const promptTitle = photoPromptTitle(week.promptId);
+  const suggestions = photoPromptsIn(pack);
   const done = Boolean(week.completedAt);
   const locked = week.locked || done;
   const agreed = Boolean(week.agreedAt) || done;
@@ -99,15 +113,47 @@ export default function PhotoChallengesScreen() {
     setDraftImage(null);
     await patch((state) => ({
       ...state,
-      photoWeek: shufflePhotoWeek(ensurePhotoWeek(state.photoWeek)),
+      photoWeek: shufflePhotoWeek(
+        ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories),
+        state.photoPrefs.categories
+      ),
     }));
+  };
+
+  const pickSuggestion = async (promptId: string) => {
+    if (locked) return;
+    setError(null);
+    setDraftImage(null);
+    await patch((state) => ({
+      ...state,
+      photoWeek: choosePhotoPrompt(
+        ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories),
+        promptId
+      ),
+    }));
+  };
+
+  const toggleCategory = async (id: PhotoPromptCategory) => {
+    await patch((state) => {
+      const current = state.photoPrefs.categories;
+      const next = current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id];
+      if (next.length === 0) return state;
+      return {
+        ...state,
+        photoPrefs: { ...state.photoPrefs, categories: next },
+      };
+    });
   };
 
   const agree = async () => {
     setError(null);
     await patch((state) => ({
       ...state,
-      photoWeek: agreePhotoWeek(ensurePhotoWeek(state.photoWeek)),
+      photoWeek: agreePhotoWeek(
+        ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories)
+      ),
     }));
   };
 
@@ -141,7 +187,7 @@ export default function PhotoChallengesScreen() {
         weekKey: week.weekKey,
       });
       await patch((state) => {
-        const live = ensurePhotoWeek(state.photoWeek);
+        const live = ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories);
         return {
           ...state,
           photoWeek: completePhotoWeek(live, user.id),
@@ -163,7 +209,7 @@ export default function PhotoChallengesScreen() {
     setCaption("");
     await patch((state) => ({
       ...state,
-      photoWeek: startNextPhotoWeek(state.photoWeek),
+      photoWeek: startNextPhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories),
     }));
   };
 
@@ -225,7 +271,7 @@ export default function PhotoChallengesScreen() {
             color: "rgba(246,214,214,0.65)",
           }}
         >
-          Take one photo. You get seven days.
+          100 ideas in four packs. Pick one, or shuffle.
         </Text>
 
         {settingsOpen ? (
@@ -267,6 +313,54 @@ export default function PhotoChallengesScreen() {
                 color: CREAM,
               }}
             >
+              Suggestion packs
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF,
+                fontSize: 14,
+                color: "rgba(246,214,214,0.65)",
+              }}
+            >
+              Shuffle only draws from packs you leave on.
+            </Text>
+            {PHOTO_CATEGORIES.map((row) => {
+              const on = cats.includes(row.id);
+              return (
+                <Pressable
+                  key={row.id}
+                  onPress={() => void toggleCategory(row.id)}
+                  style={{
+                    marginTop: 10,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: on ? RED : "rgba(246,214,214,0.18)",
+                    backgroundColor: on ? "rgba(194,59,59,0.18)" : "transparent",
+                  }}
+                >
+                  <Text style={{ color: CREAM, fontWeight: "800" }}>{row.label}</Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      fontFamily: SERIF,
+                      fontSize: 14,
+                      color: "rgba(246,214,214,0.65)",
+                    }}
+                  >
+                    {row.detail} · 25 shots
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Text
+              style={{
+                marginTop: 16,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: CREAM,
+              }}
+            >
               After a shot is pegged
             </Text>
             {(
@@ -290,7 +384,7 @@ export default function PhotoChallengesScreen() {
                   onPress={() =>
                     void patch((state) => ({
                       ...state,
-                      photoPrefs: { dealAfterComplete: row.on },
+                      photoPrefs: { ...state.photoPrefs, dealAfterComplete: row.on },
                     }))
                   }
                   style={{
@@ -392,7 +486,7 @@ export default function PhotoChallengesScreen() {
                   paddingHorizontal: 16,
                 }}
               >
-                {prompt}
+                {promptTitle}
               </Text>
             )}
           </View>
@@ -408,8 +502,105 @@ export default function PhotoChallengesScreen() {
               ? thisWeekShot?.caption || prompt
               : shownImage
                 ? prompt
-                : "This is the shot. Shuffle three times, then it's locked."}
+                : prompt}
           </Text>
+        </View>
+
+        <View style={{ marginTop: 22 }}>
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 2,
+              color: "rgba(246,214,214,0.5)",
+            }}
+          >
+            SUGGESTIONS · 100
+          </Text>
+          <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {PHOTO_CATEGORIES.map((row) => {
+              const on = pack === row.id;
+              return (
+                <Pressable
+                  key={row.id}
+                  onPress={() => setPack(row.id)}
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    borderWidth: 1,
+                    borderColor: on ? RED : "rgba(246,214,214,0.2)",
+                    backgroundColor: on ? "rgba(194,59,59,0.22)" : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: on ? CREAM : "rgba(246,214,214,0.7)",
+                      fontFamily: "SpaceMono",
+                      fontSize: 10,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    {row.label.toUpperCase()}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={{ marginTop: 8, gap: 8 }}>
+            {suggestions.map((row) => {
+              const selected = week.promptId === row.id;
+              return (
+                <Pressable
+                  key={row.id}
+                  onPress={() => void pickSuggestion(row.id)}
+                  disabled={locked}
+                  style={{
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: selected ? RED : "rgba(246,214,214,0.14)",
+                    backgroundColor: selected ? "rgba(194,59,59,0.16)" : "rgba(10,4,4,0.35)",
+                    opacity: locked && !selected ? 0.55 : 1,
+                  }}
+                >
+                  <Text style={{ color: CREAM, fontFamily: SERIF, fontSize: 17 }}>
+                    {row.title}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      color: "rgba(246,214,214,0.65)",
+                      fontFamily: SERIF,
+                      fontSize: 14,
+                      lineHeight: 20,
+                    }}
+                  >
+                    {row.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {locked ? (
+            <Text
+              style={{
+                marginTop: 8,
+                color: "rgba(246,214,214,0.45)",
+                fontFamily: SERIF,
+              }}
+            >
+              This week is locked. Browse for next time.
+            </Text>
+          ) : (
+            <Text
+              style={{
+                marginTop: 8,
+                color: "rgba(246,214,214,0.45)",
+                fontFamily: SERIF,
+              }}
+            >
+              Tap one to make it this week’s shot.
+            </Text>
+          )}
         </View>
 
         <View
