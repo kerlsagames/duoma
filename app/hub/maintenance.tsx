@@ -297,7 +297,9 @@ function ListRow({
           justifyContent: "center",
         }}
       >
-        <Ionicons name="checkmark" size={16} color={late ? "#E8A0A0" : PEG} />
+        {late ? null : (
+          <Ionicons name="checkmark" size={16} color={PEG} />
+        )}
       </Pressable>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: SERIF, fontSize: 16, color: late ? "#F6D6D0" : PAPER }}>
