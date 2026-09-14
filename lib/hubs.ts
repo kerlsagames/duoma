@@ -240,13 +240,6 @@ export const HUBS: HubDef[] = [
         icon: "book",
         href: "/hub/story",
       },
-      {
-        id: "scrapbook",
-        label: "Virtual Scrapbook",
-        detail: "Time capsule that unlocks on future anniversaries",
-        icon: "images",
-        href: "/hub/scrapbook",
-      },
     ],
   },
   {
