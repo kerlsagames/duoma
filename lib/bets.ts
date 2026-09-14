@@ -328,3 +328,24 @@ export function pickRandomStake(avoidId?: string | null): BetStake {
 export function betPromptById(id: string): BetPrompt | null {
   return BET_PROMPTS.find((row) => row.id === id) ?? null;
 }
+
+export function betWinnerId(row: {
+  resolved: "yes" | "no" | null;
+  side: "yes" | "no";
+  fromUserId: string;
+  toUserId: string;
+}): string | null {
+  if (!row.resolved) return null;
+  return row.resolved === row.side ? row.fromUserId : row.toUserId;
+}
+
+export function betLoserId(row: {
+  resolved: "yes" | "no" | null;
+  side: "yes" | "no";
+  fromUserId: string;
+  toUserId: string;
+}): string | null {
+  const winnerId = betWinnerId(row);
+  if (!winnerId) return null;
+  return winnerId === row.fromUserId ? row.toUserId : row.fromUserId;
+}

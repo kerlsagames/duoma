@@ -11,8 +11,10 @@ import {
   BET_PROMPTS,
   BET_STAKE_CATEGORIES,
   BET_STAKES,
+  betLoserId,
   betPromptsIn,
   betStakesIn,
+  betWinnerId,
   buildBetStatement,
   pickRandomPrompt,
   pickRandomStake,
@@ -39,11 +41,11 @@ type ViewMode =
   | "pick"
   | "stakes"
   | "stake-list"
+  | "stake-write"
   | "slip"
   | "custom";
 
-const TAPE_COPY =
-  "LOVEBETZ   ·   PLACE A SLIP   ·   THEY DISAGREE OR PASS   ·   WINNER TAKES THE PRIZE   ·   ";
+const TAPE_COPY = "LOVEBETZ   ·   PLACE A SLIP   ·   WINNER TAKES THE PRIZE   ·   ";
 
 export default function PredictionScreen() {
   const { user, partner } = useApp();
@@ -86,9 +88,9 @@ export default function PredictionScreen() {
     (row) => row.status === "offered" && user && row.fromUserId === user.id
   );
   const live = data.predictions.filter((row) => row.status === "accepted");
-  const closed = data.predictions.filter(
-    (row) => row.status === "settled" || row.status === "declined"
-  );
+  const owed = data.predictions.filter((row) => row.status === "settled" && !row.paidAt);
+  const paidOut = data.predictions.filter((row) => row.status === "settled" && row.paidAt);
+  const voided = data.predictions.filter((row) => row.status === "declined");
   const promptRows = useMemo(
     () => (promptCat ? betPromptsIn(promptCat) : []),
     [promptCat]
@@ -162,7 +164,6 @@ export default function PredictionScreen() {
     setTitle(nextTitle);
     setStake(nextStake);
     setKind(nextKind);
-    setSide("yes");
     setView("slip");
     setError(null);
   };
@@ -215,6 +216,7 @@ export default function PredictionScreen() {
           noVoters: [],
           status: "offered",
           resolved: null,
+          paidAt: null,
           createdAt: nowIso(),
           answeredAt: null,
         },
@@ -260,25 +262,47 @@ export default function PredictionScreen() {
   };
 
   const settle = async (id: string, result: "yes" | "no") => {
+    const row = data.predictions.find((item) => item.id === id);
+    await patch((state) => ({
+      ...state,
+      predictions: state.predictions.map((item) =>
+        item.id === id && item.status === "accepted"
+          ? { ...item, resolved: result, status: "settled" as const, paidAt: null }
+          : item
+      ),
+    }));
+    if (row) {
+      const settled = { ...row, resolved: result };
+      const loser = betLoserId(settled);
+      const winner = betWinnerId(settled);
+      if (loser && winner) {
+        setFlash(
+          `${personName(loser, user?.id, me, them)} owes ${personName(winner, user?.id, me, them)}: ${row.stake}`
+        );
+      }
+    }
+  };
+
+  const markPaid = async (id: string, paid: boolean) => {
     await patch((state) => ({
       ...state,
       predictions: state.predictions.map((row) =>
-        row.id === id && row.status === "accepted"
-          ? { ...row, resolved: result, status: "settled" as const }
+        row.id === id && row.status === "settled"
+          ? { ...row, paidAt: paid ? nowIso() : null }
           : row
       ),
     }));
+    setFlash(paid ? "Marked as paid." : "Back on the owed list.");
   };
 
   const goBack = () => {
     if (view === "prompt-list") setView("prompts");
     else if (view === "pick") setView("prompt-list");
-    else if (view === "stake-list") setView("stakes");
-    else if (view === "stakes") setView("pick");
+    else if (view === "stake-list" || view === "stake-write") setView("stakes");
+    else if (view === "stakes") setView(pickedPrompt ? "pick" : "custom");
     else if (view === "slip") {
-      if (pickedPrompt && stakeCat) setView("stake-list");
-      else if (pickedPrompt) setView("stakes");
-      else setView("custom");
+      if (stakeCat) setView("stake-list");
+      else setView("stakes");
     } else goHome();
   };
 
@@ -431,11 +455,13 @@ export default function PredictionScreen() {
                   <Badge label={`${BET_STAKES.length} stakes`} tone="gold" />
                   <Badge
                     label={
-                      incoming.length
-                        ? `${incoming.length} to accept`
-                        : live.length
-                          ? `${live.length} live`
-                          : "book open"
+                      owed.length
+                        ? `${owed.length} to pay`
+                        : incoming.length
+                          ? `${incoming.length} to accept`
+                          : live.length
+                            ? `${live.length} live`
+                            : "book open"
                     }
                   />
                 </View>
@@ -458,6 +484,15 @@ export default function PredictionScreen() {
                 </Text>
               </View>
             ) : null}
+
+            <PayoutBoard
+              owed={owed}
+              paid={paidOut}
+              userId={user?.id}
+              me={me}
+              them={them}
+              onPaid={(id, paid) => void markPaid(id, paid)}
+            />
 
             {incoming.length > 0 ? (
               <Section label={`${them} wants a piece`}>
@@ -484,7 +519,7 @@ export default function PredictionScreen() {
               <Door
                 kicker="WRITE IN"
                 title="Write your own"
-                detail="Name the future. Name what the winner collects."
+                detail="Name the future. Then pick a prize, or write one."
                 onPress={() => {
                   setTitle("");
                   setStake("");
@@ -544,9 +579,9 @@ export default function PredictionScreen() {
               )}
             </Section>
 
-            {closed.length > 0 ? (
-              <Section label="Results">
-                {closed.slice(0, 8).map((row) => (
+            {voided.length > 0 ? (
+              <Section label="Voided">
+                {voided.slice(0, 6).map((row) => (
                   <ResultCard
                     key={row.id}
                     row={row}
@@ -613,12 +648,12 @@ export default function PredictionScreen() {
           />
         ) : null}
 
-        {view === "stakes" && pickedPrompt ? (
+        {view === "stakes" && title ? (
           <View>
-            <Text style={{ marginTop: 12, ...kicker, color: T.pink }}>THE STAKE</Text>
-            <Text style={{ marginTop: 6, ...titleLg }}>{pickedPrompt.text}</Text>
+            <Text style={{ marginTop: 12, ...kicker, color: T.pink }}>WINNER COLLECTS</Text>
+            <Text style={{ marginTop: 6, ...titleLg }}>{title}</Text>
             <Text style={{ marginTop: 8, ...detail }}>
-              Whoever is right collects this. The loser owes it.
+              Pick a suggestion, write your own, or shuffle. The loser owes it.
             </Text>
             <View style={{ marginTop: 14, gap: 10 }}>
               {BET_STAKE_CATEGORIES.map((cat) => (
@@ -637,30 +672,95 @@ export default function PredictionScreen() {
                 </Pressable>
               ))}
               <Pressable
-                onPress={() =>
-                  openSlip(pickedPrompt.text, pickRandomStake().text, pickedPrompt.kind)
-                }
+                onPress={() => {
+                  setStake("");
+                  setStakeCat(null);
+                  setView("stake-write");
+                }}
                 style={tile}
               >
-                <Text style={[titleMd, { color: T.pink }]}>Shuffle a stake</Text>
+                <Text style={[titleMd, { color: T.pink }]}>Write your own prize</Text>
+                <Text style={detail}>Name exactly what the winner collects.</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setStakeCat(null);
+                  openSlip(title, pickRandomStake().text, kind);
+                }}
+                style={tile}
+              >
+                <Text style={titleMd}>Shuffle a stake</Text>
               </Pressable>
             </View>
           </View>
         ) : null}
 
-        {view === "stake-list" && pickedPrompt && stakeCat ? (
-          <ListPane
-            heading={
-              BET_STAKE_CATEGORIES.find((row) => row.id === stakeCat)?.label ??
-              "Stakes"
-            }
-            hint="Winner collects"
-            rows={stakeRows.map((row) => ({
-              id: row.id,
-              label: row.text,
-              onPress: () => openSlip(pickedPrompt.text, row.text, pickedPrompt.kind),
-            }))}
-          />
+        {view === "stake-list" && stakeCat && title ? (
+          <View>
+            <ListPane
+              heading={
+                BET_STAKE_CATEGORIES.find((row) => row.id === stakeCat)?.label ??
+                "Stakes"
+              }
+              hint="Winner collects"
+              rows={stakeRows.map((row) => ({
+                id: row.id,
+                label: row.text,
+                onPress: () => openSlip(title, row.text, kind),
+              }))}
+            />
+            <Pressable
+              onPress={() => {
+                setStake("");
+                setStakeCat(null);
+                setView("stake-write");
+              }}
+              style={[tile, { marginTop: 10 }]}
+            >
+              <Text style={[titleMd, { color: T.pink }]}>Write your own instead</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {view === "stake-write" ? (
+          <View
+            style={{
+              marginTop: 16,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              padding: 14,
+            }}
+          >
+            <Text style={[kicker, { color: T.pink }]}>WRITE THE PRIZE</Text>
+            <Text style={{ marginTop: 8, ...titleLg }}>{title}</Text>
+            <Text style={{ marginTop: 8, ...detail }}>
+              Whatever you type here is what the loser owes.
+            </Text>
+            <TextInput
+              value={stake}
+              onChangeText={(value) => {
+                setStake(value);
+                setError(null);
+              }}
+              placeholder="Winner collects…"
+              placeholderTextColor={T.dim}
+              style={term}
+            />
+            <Pressable
+              onPress={() => {
+                if (!stake.trim()) {
+                  setError("Name what the winner collects.");
+                  return;
+                }
+                openSlip(title, stake, kind);
+              }}
+              style={pinkBtn}
+            >
+              <Text style={pinkBtnText}>USE THIS PRIZE</Text>
+            </Pressable>
+            {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
+          </View>
         ) : null}
 
         {view === "slip" ? (
@@ -685,17 +785,13 @@ export default function PredictionScreen() {
             }}
           >
             <Text style={kicker}>WRITE-IN SLIP</Text>
+            <Text style={{ marginTop: 6, ...detail }}>
+              Write the market here. Next you pick a suggested prize or write your own.
+            </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="We'll use the nice plates"
-              placeholderTextColor={T.dim}
-              style={term}
-            />
-            <TextInput
-              value={stake}
-              onChangeText={setStake}
-              placeholder="What the winner collects"
               placeholderTextColor={T.dim}
               style={term}
             />
@@ -739,16 +835,29 @@ export default function PredictionScreen() {
             )}
             <Text style={{ marginTop: 12, ...detail }}>{statement}</Text>
             <Pressable
-              onPress={() => void sendSlip(title, stake || "Bragging rights", kind, side)}
+              onPress={() => {
+                if (!title.trim()) {
+                  setError("Name the market first.");
+                  return;
+                }
+                if (pickMode === "name" && !subject.trim()) {
+                  setError("Type who you are backing.");
+                  return;
+                }
+                setError(null);
+                setStake("");
+                setStakeCat(null);
+                setView("stakes");
+              }}
               style={pinkBtn}
             >
-              <Text style={pinkBtnText}>SEND TO {them.toUpperCase()}</Text>
+              <Text style={pinkBtnText}>NEXT · WINNER COLLECTS</Text>
             </Pressable>
             {error ? <Text style={{ marginTop: 8, color: T.pink }}>{error}</Text> : null}
           </View>
         ) : null}
 
-        {error && view !== "custom" && view !== "slip" ? (
+        {error && view !== "custom" && view !== "slip" && view !== "stake-write" ? (
           <Text style={{ marginTop: 12, color: T.pink, fontFamily: SANS }}>{error}</Text>
         ) : null}
       </Stage>
@@ -798,8 +907,8 @@ function personName(
 
 function winnerName(row: Prediction, me: string, them: string, userId?: string) {
   if (row.status === "declined") return "Void";
-  if (!row.resolved) return "Open";
-  const winnerId = row.resolved === row.side ? row.fromUserId : row.toUserId;
+  const winnerId = betWinnerId(row);
+  if (!winnerId) return "Open";
   return personName(winnerId, userId, me, them);
 }
 
@@ -933,6 +1042,119 @@ function LiveCard({
           </Text>
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function PayoutBoard({
+  owed,
+  paid,
+  userId,
+  me,
+  them,
+  onPaid,
+}: {
+  owed: Prediction[];
+  paid: Prediction[];
+  userId?: string;
+  me: string;
+  them: string;
+  onPaid: (id: string, paid: boolean) => void;
+}) {
+  return (
+    <View
+      style={{
+        marginTop: 16,
+        borderWidth: 1,
+        borderColor: T.border,
+        backgroundColor: T.surface,
+        overflow: "hidden",
+      }}
+    >
+      <View style={{ height: 6, backgroundColor: T.gold }} />
+      <View style={{ padding: 14 }}>
+        <Text style={kicker}>PAYOUTS</Text>
+        <Text style={{ marginTop: 4, ...detail }}>
+          Who has to pay the prize, and whether they have.
+        </Text>
+        {owed.length === 0 && paid.length === 0 ? (
+          <Text style={{ marginTop: 12, color: T.dim, fontFamily: SANS, fontSize: 14, lineHeight: 20 }}>
+            Nobody owes yet. Settle a live slip and it lands here.
+          </Text>
+        ) : null}
+        {owed.map((row) => (
+          <PayoutRow
+            key={row.id}
+            row={row}
+            userId={userId}
+            me={me}
+            them={them}
+            onPaid={onPaid}
+          />
+        ))}
+        {paid.slice(0, 5).map((row) => (
+          <PayoutRow
+            key={row.id}
+            row={row}
+            userId={userId}
+            me={me}
+            them={them}
+            onPaid={onPaid}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PayoutRow({
+  row,
+  userId,
+  me,
+  them,
+  onPaid,
+}: {
+  row: Prediction;
+  userId?: string;
+  me: string;
+  them: string;
+  onPaid: (id: string, paid: boolean) => void;
+}) {
+  const loserId = betLoserId(row);
+  const winnerId = betWinnerId(row);
+  const loser = loserId ? personName(loserId, userId, me, them) : "Someone";
+  const winner = winnerId ? personName(winnerId, userId, me, them) : "someone";
+  const paid = Boolean(row.paidAt);
+  const iOwe = Boolean(loserId && userId && loserId === userId);
+  const theyOwe = Boolean(winnerId && userId && winnerId === userId);
+  const headline = iOwe
+    ? `You owe ${winner}`
+    : theyOwe
+      ? `${loser} owes you`
+      : `${loser} owes ${winner}`;
+  return (
+    <View
+      style={{
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: paid ? T.border : T.pink,
+        backgroundColor: paid ? T.paper : T.pinkSoft,
+        padding: 12,
+      }}
+    >
+      <Text style={[kicker, { color: paid ? T.gold : T.pink }]}>
+        {paid ? "PAID" : "STILL OWED"}
+      </Text>
+      <Text style={{ marginTop: 6, ...titleMd }}>{headline}</Text>
+      <Text style={{ marginTop: 6, fontFamily: SANS, fontSize: 16, color: T.ink }}>
+        {row.stake}
+      </Text>
+      <Text style={{ marginTop: 4, ...detail }}>{row.statement || row.title}</Text>
+      <Pressable onPress={() => onPaid(row.id, !paid)} style={{ marginTop: 10 }}>
+        <Text style={{ fontFamily: DISPLAY, fontSize: 13, letterSpacing: 0.8, color: T.pink }}>
+          {paid ? "MARK UNPAID" : iOwe ? "I PAID UP" : "THEY PAID UP"}
+        </Text>
+      </Pressable>
     </View>
   );
 }

@@ -144,6 +144,8 @@ export type Prediction = {
   noVoters: string[];
   status: BetStatus;
   resolved: "yes" | "no" | null;
+  /** When the loser marked the stake as paid. */
+  paidAt: string | null;
   createdAt: string;
   answeredAt: string | null;
 };
@@ -704,6 +706,7 @@ function hydratePrediction(raw: unknown): Prediction {
       : [],
     status,
     resolved,
+    paidAt: typeof row.paidAt === "string" ? row.paidAt : null,
     createdAt,
     answeredAt:
       typeof row.answeredAt === "string"
