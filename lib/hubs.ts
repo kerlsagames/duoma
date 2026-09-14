@@ -221,7 +221,7 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "doodle",
-        label: "Pictionary",
+        label: "Draw It",
         detail: "Three prompts. Draw. They guess.",
         icon: "brush",
         href: "/hub/doodle",

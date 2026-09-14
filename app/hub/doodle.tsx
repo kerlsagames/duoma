@@ -26,6 +26,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   PanResponder,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -46,11 +47,9 @@ function toPath(points: DoodlePoint[]): string {
 
 function seatFor(
   round: DoodleRound | null,
-  youId: string,
-  holding: "drawer" | "guesser" | null
+  youId: string
 ): "drawer" | "guesser" | "none" {
   if (!round) return "none";
-  if (holding) return holding;
   if (round.guesserId && youId === round.guesserId) return "guesser";
   if (round.drawerId && youId === round.drawerId) return "drawer";
   return "none";
@@ -68,15 +67,13 @@ export default function DoodleScreen() {
   const [live, setLive] = useState<DoodleStroke | null>(null);
   const [guess, setGuess] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [holding, setHolding] = useState<"drawer" | "guesser" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const board = data.doodle;
   const round = board.round;
-  const seat = seatFor(round, youId, holding);
+  const seat = seatFor(round, youId);
 
   useEffect(() => {
-    setHolding(null);
     setGuess("");
     setError(null);
   }, [round?.id, round?.status]);
@@ -86,7 +83,8 @@ export default function DoodleScreen() {
   const canDrawRef = useRef(false);
   colorRef.current = color;
   widthRef.current = width;
-  canDrawRef.current = ready && round?.status === "draw" && seat === "drawer";
+  canDrawRef.current =
+    ready && !settingsOpen && round?.status === "draw" && seat === "drawer";
 
   const commitStroke = (stroke: DoodleStroke) => {
     void patch((state) => {
@@ -172,7 +170,6 @@ export default function DoodleScreen() {
       updatedAt: nowIso(),
       updatedBy: youId,
     }));
-    setHolding(null);
     setSettingsOpen(false);
   };
 
@@ -288,7 +285,7 @@ export default function DoodleScreen() {
 
   const title =
     !round
-      ? "Pictionary"
+      ? "Draw It"
       : round.status === "pick"
         ? "Pick one"
         : round.status === "draw"
@@ -300,7 +297,8 @@ export default function DoodleScreen() {
               : "So close";
 
   return (
-    <Screen scroll={!drawing} background={BG}>
+    <View style={{ flex: 1, backgroundColor: BG }}>
+    <Screen scroll background={BG}>
       <Stage background={BG} fallback={"/hub/play" as Href} accent={PAPER}>
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
           <View style={{ flex: 1, paddingRight: 12 }}>
@@ -312,7 +310,7 @@ export default function DoodleScreen() {
                 color: MUTED,
               }}
             >
-              FRIDGE · PICTIONARY
+              FRIDGE · DRAW IT
             </Text>
             <Text
               style={{
@@ -327,7 +325,7 @@ export default function DoodleScreen() {
           </View>
           <Pressable
             onPress={() => setSettingsOpen((open) => !open)}
-            accessibilityLabel="Pictionary settings"
+            accessibilityLabel="Draw It settings"
             style={{
               width: 44,
               height: 44,
@@ -346,27 +344,26 @@ export default function DoodleScreen() {
           </Pressable>
         </View>
 
-        <Scorecard
-          youName={youName}
-          themName={themName}
-          youScore={youScore}
-          themScore={themScore}
-          history={board.history}
-        />
-
-        {settingsOpen ? (
-          <SettingsPanel
-            enabled={board.enabledCategories}
-            onToggle={(id) =>
-              updateBoard((current) => ({
-                ...current,
-                enabledCategories: toggleDoodleCategory(current.enabledCategories, id),
-                updatedAt: nowIso(),
-                updatedBy: youId,
-              }))
-            }
+        {drawing ? (
+          <Text
+            style={{
+              marginTop: 8,
+              fontFamily: HANDWRITING,
+              fontSize: 18,
+              color: MUTED,
+            }}
+          >
+            {youName} {youScore}  ·  {themName} {themScore}
+          </Text>
+        ) : (
+          <Scorecard
+            youName={youName}
+            themName={themName}
+            youScore={youScore}
+            themScore={themScore}
+            history={board.history}
           />
-        ) : null}
+        )}
 
         {!round ? (
           <IdleBlock
@@ -415,6 +412,7 @@ export default function DoodleScreen() {
         {round && (round.status === "draw" || round.status === "wait" || round.status === "revealed") ? (
           <Paper
             strokes={strokes}
+            height={drawing ? 210 : 280}
             emptyLabel={
               round.status === "draw"
                 ? "stick figures welcome"
@@ -426,122 +424,61 @@ export default function DoodleScreen() {
 
         {drawing ? (
           <View>
-            <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable
+              onPress={leaveOnFridge}
+              style={{
+                marginTop: 12,
+                backgroundColor: PAPER,
+                paddingVertical: 12,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>
+                Drawing is ready for guessing
+              </Text>
+            </Pressable>
+            <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 7 }}>
               {PALETTE.map((c) => (
                 <Pressable
                   key={c}
                   onPress={() => setColor(c)}
                   style={{
-                    width: 18,
-                    height: 56,
+                    width: 22,
+                    height: 28,
                     backgroundColor: c,
                     borderRadius: 3,
-                    transform: [{ rotate: color === c ? "-8deg" : "4deg" }],
                     borderWidth: color === c ? 2 : 0,
                     borderColor: PAPER,
                   }}
                 />
               ))}
               <Pressable onPress={() => setWidth(width === 3 ? 7 : 3)}>
-                <Text style={{ color: PAPER, fontFamily: HANDWRITING, fontSize: 18 }}>
+                <Text style={{ color: PAPER, fontFamily: HANDWRITING, fontSize: 16 }}>
                   {width === 3 ? "pencil" : "crayon"}
                 </Text>
               </Pressable>
-            </View>
-            <View style={{ marginTop: 10, flexDirection: "row", gap: 18 }}>
               <Pressable onPress={undoStroke}>
                 <Text style={{ color: PAPER }}>undo</Text>
               </Pressable>
               <Pressable onPress={clearPage}>
-                <Text style={{ color: "#C23B3B" }}>rip the page out</Text>
+                <Text style={{ color: "#C23B3B" }}>rip</Text>
               </Pressable>
             </View>
-            <Pressable
-              onPress={leaveOnFridge}
-              style={{
-                marginTop: 16,
-                backgroundColor: PAPER,
-                paddingVertical: 14,
-                alignItems: "center",
-                transform: [{ rotate: "-0.6deg" }],
-              }}
-            >
-              <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>
-                Leave it on the fridge
-              </Text>
-            </Pressable>
           </View>
         ) : null}
 
-        {round?.status === "wait" && seat === "drawer" ? (
-          <View>
-            <Note>
-              Left for {nameFor(round.guesserId)}. Pass the phone — and do not say what it is.
-            </Note>
-            <Pressable
-              onPress={() => setHolding("guesser")}
-              style={{
-                marginTop: 12,
-                borderWidth: 1,
-                borderColor: "rgba(243,230,196,0.35)",
-                paddingVertical: 12,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: PAPER, fontFamily: SERIF, fontSize: 16 }}>
-                I am {nameFor(round.guesserId)} — start guessing
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-
-        {round?.status === "wait" && seat === "guesser" ? (
-          <View style={{ marginTop: 16 }}>
-            <Text
-              style={{
-                fontFamily: HANDWRITING,
-                fontSize: 22,
-                color: PAPER,
-                textAlign: "center",
-              }}
-            >
-              What is it?
-            </Text>
-            <TextInput
-              value={guess}
-              onChangeText={(value) => {
-                setGuess(value);
-                setError(null);
-              }}
-              placeholder="one guess…"
-              placeholderTextColor="rgba(42,28,18,0.35)"
-              autoCapitalize="none"
-              autoCorrect={false}
-              onSubmitEditing={sendGuess}
-              style={{
-                marginTop: 10,
-                backgroundColor: PAPER,
-                color: INK,
-                fontFamily: SERIF,
-                fontSize: 20,
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-              }}
-            />
-            <Pressable
-              onPress={sendGuess}
-              style={{
-                marginTop: 12,
-                backgroundColor: "#C23B3B",
-                paddingVertical: 14,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontFamily: SERIF, fontSize: 18, color: PAPER }}>
-                Lock it in
-              </Text>
-            </Pressable>
-          </View>
+        {round?.status === "wait" ? (
+          <GuessBox
+            guess={guess}
+            guesserName={nameFor(round.guesserId)}
+            forPartner={seat === "drawer"}
+            error={error}
+            onChange={(value) => {
+              setGuess(value);
+              setError(null);
+            }}
+            onSubmit={sendGuess}
+          />
         ) : null}
 
         {round?.status === "revealed" ? (
@@ -553,7 +490,7 @@ export default function DoodleScreen() {
           />
         ) : null}
 
-        {error ? (
+        {error && round?.status !== "wait" ? (
           <Text
             style={{
               marginTop: 12,
@@ -566,8 +503,24 @@ export default function DoodleScreen() {
             {error}
           </Text>
         ) : null}
+        <View style={{ height: 36 }} />
       </Stage>
     </Screen>
+    {settingsOpen ? (
+      <SettingsSheet
+        enabled={board.enabledCategories}
+        onClose={() => setSettingsOpen(false)}
+        onToggle={(id) =>
+          updateBoard((current) => ({
+            ...current,
+            enabledCategories: toggleDoodleCategory(current.enabledCategories, id),
+            updatedAt: nowIso(),
+            updatedBy: youId,
+          }))
+        }
+      />
+    ) : null}
+    </View>
   );
 }
 
@@ -673,92 +626,219 @@ function ScoreSeat({
   );
 }
 
-function SettingsPanel({
+function SettingsSheet({
   enabled,
   onToggle,
+  onClose,
 }: {
   enabled: string[];
   onToggle: (id: (typeof DOODLE_CATEGORIES)[number]["id"]) => void;
+  onClose: () => void;
 }) {
   return (
     <View
+      pointerEvents="box-none"
       style={{
-        marginTop: 16,
-        borderWidth: 1,
-        borderColor: "rgba(243,230,196,0.28)",
-        backgroundColor: "rgba(16,12,8,0.72)",
-        padding: 14,
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 40,
+        justifyContent: "flex-end",
       }}
     >
+      <Pressable
+        onPress={onClose}
+        accessibilityLabel="Close Draw It settings"
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          backgroundColor: "rgba(12,8,6,0.78)",
+        }}
+      />
+      <View
+        style={{
+          width: "100%",
+          maxHeight: "88%",
+          backgroundColor: "#1C1812",
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 18,
+          borderTopLeftRadius: 22,
+          borderTopRightRadius: 22,
+          borderTopWidth: 1,
+          borderColor: "rgba(243,230,196,0.2)",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 2,
+                color: MUTED,
+              }}
+            >
+              DRAW FROM
+            </Text>
+            <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 22, color: PAPER }}>
+              Categories
+            </Text>
+          </View>
+          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Close settings">
+            <Ionicons name="close" size={22} color={PAPER} />
+          </Pressable>
+        </View>
+        <Text style={{ fontFamily: SERIF, fontSize: 15, color: MUTED, marginBottom: 10 }}>
+          Prompts come from the categories you leave on. Naughty stays off until you flip it.
+        </Text>
+        <ScrollView
+          nestedScrollEnabled
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator
+          style={{ maxHeight: 420 }}
+          contentContainerStyle={{ paddingBottom: 28, gap: 8 }}
+        >
+          {DOODLE_CATEGORIES.map((category) => {
+            const on = enabled.includes(category.id);
+            const naughty = category.id === "naughty";
+            return (
+              <Pressable
+                key={category.id}
+                onPress={() => onToggle(category.id)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingVertical: 12,
+                  paddingHorizontal: 10,
+                  borderWidth: 1,
+                  borderColor: naughty
+                    ? on
+                      ? "rgba(194,59,59,0.7)"
+                      : "rgba(194,59,59,0.28)"
+                    : on
+                      ? "rgba(243,230,196,0.45)"
+                      : "rgba(243,230,196,0.16)",
+                  backgroundColor: naughty && on ? "rgba(194,59,59,0.16)" : "transparent",
+                }}
+              >
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text
+                    style={{
+                      fontFamily: SERIF,
+                      fontSize: 16,
+                      color: naughty ? "#E8A0A0" : PAPER,
+                    }}
+                  >
+                    {category.label}
+                    {naughty ? "  xxx" : ""}
+                  </Text>
+                  <Text style={{ marginTop: 2, fontFamily: HANDWRITING, fontSize: 15, color: MUTED }}>
+                    {category.detail}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={on ? "checkbox" : "square-outline"}
+                  size={22}
+                  color={on ? (naughty ? "#E8A0A0" : PAPER) : MUTED}
+                />
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+function GuessBox({
+  guess,
+  guesserName,
+  forPartner,
+  error,
+  onChange,
+  onSubmit,
+}: {
+  guess: string;
+  guesserName: string;
+  forPartner: boolean;
+  error: string | null;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <View style={{ marginTop: 16, marginBottom: 24 }}>
       <Text
         style={{
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          letterSpacing: 2,
+          fontFamily: HANDWRITING,
+          fontSize: 22,
+          color: PAPER,
+          textAlign: "center",
+        }}
+      >
+        {forPartner ? `Hand the phone to ${guesserName}` : "What is it?"}
+      </Text>
+      <Text
+        style={{
+          marginTop: 4,
+          textAlign: "center",
+          fontFamily: SERIF,
+          fontSize: 15,
           color: MUTED,
         }}
       >
-        DRAW FROM
+        {forPartner
+          ? `This box is for ${guesserName}. Don't type the answer.`
+          : "Type your guess. One shot."}
       </Text>
-      <Text
+      <TextInput
+        value={guess}
+        onChangeText={onChange}
+        placeholder={`${guesserName}'s guess…`}
+        placeholderTextColor="rgba(42,28,18,0.35)"
+        autoCapitalize="none"
+        autoCorrect={false}
+        onSubmitEditing={onSubmit}
         style={{
-          marginTop: 6,
+          marginTop: 12,
+          backgroundColor: PAPER,
+          color: INK,
           fontFamily: SERIF,
-          fontSize: 15,
-          color: PAPER,
+          fontSize: 20,
+          paddingHorizontal: 14,
+          paddingVertical: 14,
+        }}
+      />
+      <Pressable
+        onPress={onSubmit}
+        style={{
+          marginTop: 12,
+          backgroundColor: "#C23B3B",
+          paddingVertical: 14,
+          alignItems: "center",
         }}
       >
-        Prompts come from the categories you leave on. Naughty stays off until you flip it.
-      </Text>
-      <View style={{ marginTop: 12, gap: 8 }}>
-        {DOODLE_CATEGORIES.map((category) => {
-          const on = enabled.includes(category.id);
-          const naughty = category.id === "naughty";
-          return (
-            <Pressable
-              key={category.id}
-              onPress={() => onToggle(category.id)}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingVertical: 10,
-                paddingHorizontal: 10,
-                borderWidth: 1,
-                borderColor: naughty
-                  ? on
-                    ? "rgba(194,59,59,0.7)"
-                    : "rgba(194,59,59,0.28)"
-                  : on
-                    ? "rgba(243,230,196,0.45)"
-                    : "rgba(243,230,196,0.16)",
-                backgroundColor: naughty && on ? "rgba(194,59,59,0.16)" : "transparent",
-              }}
-            >
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 16,
-                    color: naughty ? "#E8A0A0" : PAPER,
-                  }}
-                >
-                  {category.label}
-                  {naughty ? "  xxx" : ""}
-                </Text>
-                <Text style={{ marginTop: 2, fontFamily: HANDWRITING, fontSize: 15, color: MUTED }}>
-                  {category.detail}
-                </Text>
-              </View>
-              <Ionicons
-                name={on ? "checkbox" : "square-outline"}
-                size={22}
-                color={on ? (naughty ? "#E8A0A0" : PAPER) : MUTED}
-              />
-            </Pressable>
-          );
-        })}
-      </View>
+        <Text style={{ fontFamily: SERIF, fontSize: 18, color: PAPER }}>Lock it in</Text>
+      </Pressable>
+      {error ? (
+        <Text
+          style={{
+            marginTop: 10,
+            textAlign: "center",
+            fontFamily: HANDWRITING,
+            fontSize: 18,
+            color: "#E8A0A0",
+          }}
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -895,17 +975,19 @@ function Paper({
   strokes,
   emptyLabel,
   panHandlers,
+  height = 280,
 }: {
   strokes: DoodleStroke[];
   emptyLabel: string;
   panHandlers?: object;
+  height?: number;
 }) {
   return (
     <View
       {...(panHandlers ?? {})}
       style={{
         marginTop: 14,
-        height: 340,
+        height,
         backgroundColor: PAPER,
         borderRadius: 2,
         overflow: "hidden",
