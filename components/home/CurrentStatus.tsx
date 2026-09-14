@@ -37,6 +37,8 @@ export function CurrentStatus({
     listEntries,
     spicyDares,
     fantasyTonightAsks,
+    dateNightAsks,
+    positionInvites,
   } = useApp();
   const { data: mini } = useMiniApps();
   const calendarReminders = useCalendarReminderItems();
@@ -63,6 +65,8 @@ export function CurrentStatus({
     listEntries,
     spicyDares,
     fantasyTonightAsks,
+    dateNightAsks,
+    positionInvites,
     sexyVault: mini.sexyVault,
     calendarReminders,
   }).filter((item) => prefsShowStatusId(prefs, item.id));

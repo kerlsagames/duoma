@@ -40,6 +40,8 @@ export function HomeNotificationsBell({
     listEntries,
     spicyDares,
     fantasyTonightAsks,
+    dateNightAsks,
+    positionInvites,
   } = useApp();
   const { data: mini } = useMiniApps();
   const calendarReminders = useCalendarReminderItems();
@@ -74,6 +76,8 @@ export function HomeNotificationsBell({
         listEntries,
         spicyDares,
         fantasyTonightAsks,
+        dateNightAsks,
+        positionInvites,
         sexyVault: mini.sexyVault,
         calendarReminders,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
@@ -92,6 +96,8 @@ export function HomeNotificationsBell({
       listEntries,
       spicyDares,
       fantasyTonightAsks,
+      dateNightAsks,
+      positionInvites,
       mini.sexyVault,
       calendarReminders,
       prefs,

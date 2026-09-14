@@ -96,6 +96,9 @@ import type {
   SpicyDarePlay,
   PositionInvite,
   RoleplayInvite,
+  DateNightAsk,
+  PositionSave,
+  PlayItemRating,
   CalendarCustomEvent,
   ErrandItem,
   ErrandKind,
@@ -406,6 +409,9 @@ type AppContextValue = {
   jarNotes: JarNote[];
   bucketItems: BucketItem[];
   ritualChecks: AppDB["ritualChecks"];
+  dateNightAsks: DateNightAsk[];
+  positionSaves: PositionSave[];
+  playItemRatings: PlayItemRating[];
   jarOpenVotes: AppDB["jarOpenVotes"];
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
@@ -491,6 +497,18 @@ type AppContextValue = {
     status: "accepted" | "declined"
   ) => Promise<void>;
   completePositionInvite: (id: string) => Promise<void>;
+  savePosition: (positionId: string) => Promise<PositionSave>;
+  markPositionSaveDone: (id: string) => Promise<void>;
+  ratePlayItem: (
+    kind: PlayItemRating["kind"],
+    targetId: string,
+    stars: number
+  ) => Promise<void>;
+  sendDateNightAsk: (bucketId: string) => Promise<void>;
+  respondDateNightAsk: (
+    id: string,
+    status: "accepted" | "declined"
+  ) => Promise<void>;
   sendRoleplayInvite: (roleplayId: string) => Promise<void>;
   respondRoleplayInvite: (
     id: string,
@@ -595,7 +613,8 @@ type AppContextValue = {
     kind: BucketKind;
     notes?: string;
     scheduledOn?: string | null;
-  }) => Promise<void>;
+    sourceId?: string | null;
+  }) => Promise<BucketItem>;
   spinDateNight: () => Promise<BucketItem | null>;
   markBucketDone: (id: string) => Promise<void>;
   toggleRitual: (ritualId: string) => Promise<void>;
@@ -958,6 +977,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
+  const positionSaves = useMemo(
+    () => (db.positionSaves ?? []).filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const dateNightAsks = useMemo(
+    () => (db.dateNightAsks ?? []).filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const playItemRatings = useMemo(
+    () => (db.playItemRatings ?? []).filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
   const roleplayInvites = useMemo(
     () => db.roleplayInvites.filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1200,6 +1234,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           doneAt: null,
           createdBy: demo.id,
           createdAt: nowIso(),
+          sourceId: null,
         },
         {
           id: createId(),
@@ -1211,6 +1246,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           doneAt: null,
           createdBy: demo.id,
           createdAt: nowIso(),
+          sourceId: null,
         },
       ],
       coupleLists: [
@@ -2900,6 +2936,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const id = positionId.trim();
       if (!id) throw new Error("Pick a position first.");
+      const already = db.positionInvites.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.positionId === id &&
+          (row.status === "offered" || row.status === "accepted")
+      );
+      if (already?.status === "accepted") {
+        throw new Error("Tonight's already a yes on this one.");
+      }
+      if (already?.status === "offered") {
+        if (already.fromUserId === user.id) {
+          throw new Error("They're still answering this one.");
+        }
+        throw new Error("They already asked you this one. Answer that first.");
+      }
       const row: PositionInvite = {
         id: createId(),
         coupleId: couple.id,
@@ -2917,8 +2968,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       await persist();
       pingPartner(couple, user, partner, {
-        title: "Sex Positions",
-        body: `${user.displayName} suggested a position.`,
+        title: "Try this tonight?",
+        body: `${user.displayName} wants to try a position.`,
         url: "/hub/positions",
       });
     },
@@ -2941,11 +2992,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       await persist();
       pingPartner(couple, user, partner, {
-        title: "Sex Positions",
+        title: status === "accepted" ? "Tonight's on" : "Not tonight",
         body:
           status === "accepted"
-            ? `${user.displayName} is into that position.`
-            : `${user.displayName} passed on that one.`,
+            ? `${user.displayName} said yes — that pose is on tonight.`
+            : `${user.displayName} said not tonight for that pose.`,
         url: "/hub/positions",
       });
     },
@@ -2955,6 +3006,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const completePositionInvite = useCallback(
     async (id: string) => {
       if (!user) return;
+      const existing = db.positionInvites.find((row) => row.id === id);
+      const stamp = nowIso();
       db = {
         ...db,
         positionInvites: db.positionInvites.map((row) => {
@@ -2969,14 +3022,199 @@ export function AppProvider({ children }: { children: ReactNode }) {
             row.status === "accepted" &&
             (involved || demoHold)
           ) {
-            return { ...row, status: "done", completedAt: nowIso() };
+            return { ...row, status: "done", completedAt: stamp };
           }
           return row;
         }),
+        positionSaves: existing
+          ? (db.positionSaves ?? []).map((row) =>
+              row.coupleId === existing.coupleId &&
+              row.positionId === existing.positionId &&
+              !row.doneAt
+                ? { ...row, doneAt: stamp }
+                : row
+            )
+          : (db.positionSaves ?? []),
       };
       await persist();
     },
     [partner, user]
+  );
+
+  const savePosition = useCallback(
+    async (positionId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then save a position.");
+      }
+      const id = positionId.trim();
+      if (!id) throw new Error("Pick a position first.");
+      const existing = (db.positionSaves ?? []).find(
+        (row) =>
+          row.coupleId === couple.id && row.positionId === id && !row.doneAt
+      );
+      if (existing) return existing;
+      const row: PositionSave = {
+        id: createId(),
+        coupleId: couple.id,
+        positionId: id,
+        createdBy: user.id,
+        createdAt: nowIso(),
+        doneAt: null,
+      };
+      db = { ...db, positionSaves: [...(db.positionSaves ?? []), row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const markPositionSaveDone = useCallback(async (id: string) => {
+    const stamp = nowIso();
+    const save = (db.positionSaves ?? []).find((row) => row.id === id);
+    db = {
+      ...db,
+      positionSaves: (db.positionSaves ?? []).map((row) =>
+        row.id === id ? { ...row, doneAt: stamp } : row
+      ),
+      positionInvites: save
+        ? (db.positionInvites ?? []).map((row) =>
+            row.coupleId === save.coupleId &&
+            row.positionId === save.positionId &&
+            (row.status === "offered" || row.status === "accepted")
+              ? { ...row, status: "done", completedAt: stamp }
+              : row
+          )
+        : db.positionInvites,
+    };
+    await persist();
+  }, []);
+
+  const ratePlayItem = useCallback(
+    async (
+      kind: PlayItemRating["kind"],
+      targetId: string,
+      stars: number
+    ) => {
+      if (!user || !couple) return;
+      const score = clampScore(stars);
+      const existing = (db.playItemRatings ?? []).find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.kind === kind &&
+          row.targetId === targetId
+      );
+      if (existing) {
+        db = {
+          ...db,
+          playItemRatings: (db.playItemRatings ?? []).map((row) =>
+            row.id === existing.id
+              ? { ...row, stars: score, createdAt: nowIso() }
+              : row
+          ),
+        };
+      } else {
+        const row: PlayItemRating = {
+          id: createId(),
+          coupleId: couple.id,
+          userId: user.id,
+          kind,
+          targetId,
+          stars: score,
+          createdAt: nowIso(),
+        };
+        db = { ...db, playItemRatings: [...(db.playItemRatings ?? []), row] };
+      }
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const sendDateNightAsk = useCallback(
+    async (bucketId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then ask for tonight.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before asking for tonight.");
+      }
+      const item = db.bucketItems.find(
+        (row) => row.id === bucketId && row.coupleId === couple.id
+      );
+      if (!item) throw new Error("That date is gone.");
+      const nightKey = localDateKey();
+      const already = (db.dateNightAsks ?? []).find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.bucketId === bucketId &&
+          row.nightKey === nightKey &&
+          (row.status === "offered" || row.status === "accepted")
+      );
+      if (already?.status === "accepted") {
+        throw new Error("Tonight's already a yes on this one.");
+      }
+      if (already?.status === "offered") {
+        if (already.fromUserId === user.id) {
+          throw new Error("They're still answering this one.");
+        }
+        throw new Error("They already asked you this one. Answer that first.");
+      }
+      const row: DateNightAsk = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        bucketId,
+        nightKey,
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+      };
+      db = { ...db, dateNightAsks: [...(db.dateNightAsks ?? []), row] };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Try this tonight?",
+        body: `${user.displayName} wants to do: ${item.title}`,
+        url: "/hub/planner",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondDateNightAsk = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = (db.dateNightAsks ?? []).find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      if (existing.toUserId !== user.id) return;
+      const item = db.bucketItems.find((row) => row.id === existing.bucketId);
+      const today = localDateKey();
+      db = {
+        ...db,
+        dateNightAsks: (db.dateNightAsks ?? []).map((row) =>
+          row.id === id ? { ...row, status, answeredAt: nowIso() } : row
+        ),
+        bucketItems:
+          status === "accepted"
+            ? db.bucketItems.map((row) =>
+                row.id === existing.bucketId
+                  ? { ...row, scheduledOn: row.scheduledOn ?? today }
+                  : row
+              )
+            : db.bucketItems,
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: status === "accepted" ? "Tonight's on" : "Not tonight",
+        body:
+          status === "accepted"
+            ? `${user.displayName} said yes — ${item?.title ?? "that date"} is on tonight.`
+            : `${user.displayName} said not tonight for ${item?.title ?? "that one"}.`,
+        url: "/hub/planner",
+      });
+    },
+    [couple, partner, user]
   );
 
   const sendRoleplayInvite = useCallback(
@@ -4116,10 +4354,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kind: BucketKind;
       notes?: string;
       scheduledOn?: string | null;
+      sourceId?: string | null;
     }) => {
-      if (!user || !couple) return;
+      if (!user || !couple) throw new Error("Pair up first.");
       const title = input.title.trim();
       if (!title) throw new Error("Name the plan.");
+      const sourceId = input.sourceId?.trim() || null;
+      if (sourceId) {
+        const existing = db.bucketItems.find(
+          (row) =>
+            row.coupleId === couple.id &&
+            row.sourceId === sourceId &&
+            !row.doneAt
+        );
+        if (existing) return existing;
+      }
       const row: BucketItem = {
         id: createId(),
         coupleId: couple.id,
@@ -4130,9 +4379,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         doneAt: null,
         createdBy: user.id,
         createdAt: nowIso(),
+        sourceId,
       };
       db = { ...db, bucketItems: [...db.bucketItems, row] };
       await persist();
+      return row;
     },
     [couple, user]
   );
@@ -4275,6 +4526,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     talkVault,
     spicyDares,
     positionInvites,
+    positionSaves,
+    dateNightAsks,
+    playItemRatings,
     roleplayInvites,
     milestones,
     desireToggles,
@@ -4329,6 +4583,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendPositionInvite,
     respondPositionInvite,
     completePositionInvite,
+    savePosition,
+    markPositionSaveDone,
+    ratePlayItem,
+    sendDateNightAsk,
+    respondDateNightAsk,
     sendRoleplayInvite,
     respondRoleplayInvite,
     completeRoleplayInvite,

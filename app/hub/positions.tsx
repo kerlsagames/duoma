@@ -1,3 +1,5 @@
+import { PlayRatingsToggle, PlayTabs } from "@/components/hub/PlayTabs";
+import { ScoreSlider } from "@/components/ScoreSlider";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -14,23 +16,42 @@ import {
   type SexPosition,
 } from "@/lib/sex-positions";
 import { useApp } from "@/lib/store";
-import type { PositionInvite } from "@/lib/types";
+import {
+  myPlayRating,
+  positionAskForPose,
+  ratingsForTarget,
+  tonightAskCopy,
+} from "@/lib/play-items";
+import {
+  POSITIONS_PREFS_KEY,
+  usePlayRatingsPrefs,
+} from "@/lib/play-prefs";
+import type { PositionInvite, PositionSave } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = POSITIONS_TONE;
+type Tab = "pick" | "todo" | "done";
 
 export default function PositionsScreen() {
   const {
     user,
     partner,
     positionInvites,
+    positionSaves,
+    playItemRatings,
     sendPositionInvite,
     respondPositionInvite,
     completePositionInvite,
+    savePosition,
+    markPositionSaveDone,
+    ratePlayItem,
   } = useApp();
+  const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const partnerName = partner?.displayName ?? "them";
+  const [tab, setTab] = useState<Tab>("pick");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [enabled, setEnabled] = useState<PositionCategoryId[]>(
     POSITION_CATEGORIES.map((row) => row.id)
@@ -39,6 +60,7 @@ export default function PositionsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -67,6 +89,15 @@ export default function PositionsScreen() {
     [positionInvites, user]
   );
 
+  const openSaves = useMemo(
+    () => positionSaves.filter((row) => !row.doneAt),
+    [positionSaves]
+  );
+  const doneSaves = useMemo(
+    () => positionSaves.filter((row) => row.doneAt),
+    [positionSaves]
+  );
+
   const toggleCategory = (id: PositionCategoryId) => {
     setEnabled((prev) => {
       if (prev.includes(id)) {
@@ -80,6 +111,7 @@ export default function PositionsScreen() {
   const pick = () => {
     setError(null);
     setSentFlash(false);
+    setSavedFlash(false);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -98,6 +130,7 @@ export default function PositionsScreen() {
 
   const skip = () => {
     setSentFlash(false);
+    setSavedFlash(false);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -111,8 +144,10 @@ export default function PositionsScreen() {
     setError(null);
     setSending(true);
     try {
+      await savePosition(current.id);
       await sendPositionInvite(current.id);
       setSentFlash(true);
+      setTab("todo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
     } finally {
@@ -120,10 +155,50 @@ export default function PositionsScreen() {
     }
   };
 
+  const saveCurrent = async () => {
+    if (!current) return;
+    setError(null);
+    try {
+      await savePosition(current.id);
+      setSavedFlash(true);
+      setTab("todo");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save.");
+    }
+  };
+
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-10">
-        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 12,
+          }}
+        >
+          <BackButton color={T.accent} />
+          <Pressable
+            onPress={() => setSettingsOpen((value) => !value)}
+            hitSlop={10}
+            accessibilityLabel="Positions settings"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.06)",
+            }}
+          >
+            <Ionicons
+              name={settingsOpen ? "close" : "settings-outline"}
+              size={20}
+              color={T.accent}
+            />
+          </Pressable>
+        </View>
 
         <Text
           style={{
@@ -156,10 +231,41 @@ export default function PositionsScreen() {
             color: T.muted,
           }}
         >
-          Toggle categories, spin one up, or search the list and send it to {partnerName}.
+          Save poses to To-do. Tick them off when you try them. Tap one to ask{" "}
+          {partnerName} tonight.
         </Text>
 
-        <View style={{ marginTop: 20 }}>
+        {settingsOpen ? (
+          <View style={{ marginTop: 22 }}>
+            <PlayRatingsToggle
+              on={prefs.ratingsOn}
+              accent={T.accent}
+              ink={T.ink}
+              onToggle={() => void savePrefs({ ratingsOn: !prefs.ratingsOn })}
+            />
+          </View>
+        ) : (
+          <>
+            <View style={{ marginTop: 20 }}>
+              <PlayTabs
+                tabs={[
+                  { id: "pick" as const, label: "Pick" },
+                  {
+                    id: "todo" as const,
+                    label: `To-do${openSaves.length ? ` · ${openSaves.length}` : ""}`,
+                  },
+                  { id: "done" as const, label: "Completed" },
+                ]}
+                current={tab}
+                onChange={setTab}
+                accent={T.accent}
+                ink={T.ink}
+              />
+            </View>
+
+            {tab === "pick" ? (
+              <>
+        <View style={{ marginTop: 4 }}>
           <PrimaryButton
             label="Pick me a Position"
             tone="crimson"
@@ -245,13 +351,31 @@ export default function PositionsScreen() {
                   fontWeight: "600",
                 }}
               >
-                Sent to {partnerName}.
+                Asked {partnerName} to try this tonight.
+              </Text>
+            ) : null}
+            {savedFlash ? (
+              <Text
+                style={{
+                  marginTop: 14,
+                  textAlign: "center",
+                  color: T.accent,
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                Saved to To-do.
               </Text>
             ) : null}
 
             <View style={{ marginTop: 16, gap: 10 }}>
               <PrimaryButton
-                label={`Send to ${partnerName}`}
+                label="Save to to-do"
+                tone="ghost"
+                onPress={() => void saveCurrent()}
+              />
+              <PrimaryButton
+                label="Try this tonight?"
                 tone="crimson"
                 loading={sending}
                 onPress={() => void send()}
@@ -393,6 +517,7 @@ export default function PositionsScreen() {
                       key={pose.id}
                       onPress={() => {
                         setSentFlash(false);
+                        setSavedFlash(false);
                         setError(null);
                         setCurrent(pose);
                       }}
@@ -446,7 +571,7 @@ export default function PositionsScreen() {
 
         {incoming.length ? (
           <InviteSection
-            title={`From ${partnerName}`}
+            title={`Tonight? · from ${partnerName}`}
             rows={incoming}
             partnerName={partnerName}
             outgoing={false}
@@ -457,7 +582,7 @@ export default function PositionsScreen() {
 
         {outgoing.length ? (
           <InviteSection
-            title={`Sent to ${partnerName}`}
+            title={`Asked ${partnerName}`}
             rows={outgoing}
             partnerName={partnerName}
             outgoing
@@ -465,6 +590,39 @@ export default function PositionsScreen() {
             onDone={(id) => void completePositionInvite(id)}
           />
         ) : null}
+              </>
+            ) : null}
+
+            {tab === "todo" ? (
+              <PositionTodo
+                saves={openSaves}
+                invites={positionInvites}
+                userId={user?.id ?? null}
+                partnerName={partnerName}
+                onAsk={(positionId) =>
+                  void sendPositionInvite(positionId).catch((err) =>
+                    setError(err instanceof Error ? err.message : "Could not send.")
+                  )
+                }
+                onDone={(id) => void markPositionSaveDone(id)}
+                incoming={incoming}
+                onRespond={(id, status) => void respondPositionInvite(id, status)}
+                onInviteDone={(id) => void completePositionInvite(id)}
+              />
+            ) : null}
+
+            {tab === "done" ? (
+              <PositionDone
+                saves={doneSaves}
+                ratingsOn={prefs.ratingsOn}
+                ratings={playItemRatings}
+                userId={user?.id ?? null}
+                partnerName={partnerName}
+                onRate={(id, stars) => void ratePlayItem("position", id, stars)}
+              />
+            ) : null}
+          </>
+        )}
       </View>
     </Screen>
   );
@@ -532,8 +690,13 @@ function InviteSection({
                   textTransform: "uppercase",
                 }}
               >
-                {row.status}
-                {outgoing ? ` · to ${partnerName}` : ` · from ${partnerName}`}
+                  {row.status === "offered"
+                    ? outgoing
+                      ? `Waiting on ${partnerName}`
+                      : `${partnerName} asked · tonight?`
+                    : row.status === "accepted"
+                      ? "Tonight's on"
+                      : row.status}
               </Text>
               <Text
                 style={{
@@ -548,12 +711,12 @@ function InviteSection({
               {!outgoing && row.status === "offered" ? (
                 <View style={{ marginTop: 12, gap: 8 }}>
                   <PrimaryButton
-                    label="I'm into it"
+                    label="Yes — tonight"
                     tone="crimson"
                     onPress={() => onRespond(row.id, "accepted")}
                   />
                   <PrimaryButton
-                    label="Pass"
+                    label="Not tonight"
                     tone="ghost"
                     onPress={() => onRespond(row.id, "declined")}
                   />
@@ -572,6 +735,183 @@ function InviteSection({
           );
         })}
       </View>
+    </View>
+  );
+}
+
+function PositionTodo({
+  saves,
+  invites,
+  userId,
+  partnerName,
+  onAsk,
+  onDone,
+  incoming,
+  onRespond,
+  onInviteDone,
+}: {
+  saves: PositionSave[];
+  invites: PositionInvite[];
+  userId: string | null;
+  partnerName: string;
+  onAsk: (positionId: string) => void;
+  onDone: (id: string) => void;
+  incoming: PositionInvite[];
+  onRespond: (id: string, status: "accepted" | "declined") => void;
+  onInviteDone: (id: string) => void;
+}) {
+  return (
+    <View>
+      {incoming.length ? (
+        <InviteSection
+          title={`Tonight? · from ${partnerName}`}
+          rows={incoming}
+          partnerName={partnerName}
+          outgoing={false}
+          onRespond={onRespond}
+          onDone={onInviteDone}
+        />
+      ) : null}
+      <Text
+        style={{
+          marginTop: incoming.length ? 8 : 0,
+          fontSize: 13,
+          lineHeight: 20,
+          color: T.muted,
+        }}
+      >
+        {saves.length
+          ? "Tick one off after you try it. Or send try this tonight?"
+          : "Save a pose from Pick. It waits here until you tick it off."}
+      </Text>
+      <View style={{ marginTop: 14, gap: 10 }}>
+        {saves.map((row) => {
+          const position = positionById(row.positionId);
+          if (!position) return null;
+          const ask = positionAskForPose(invites, row.positionId);
+          const mine = ask ? ask.fromUserId === userId : true;
+          return (
+            <View
+              key={row.id}
+              style={{
+                padding: 14,
+                borderRadius: 20,
+                backgroundColor: T.surface,
+                borderWidth: 1,
+                borderColor: T.border,
+              }}
+            >
+              <Text style={{ fontFamily: SERIF, fontSize: 20, color: T.ink }}>
+                {position.name}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  color: T.muted,
+                }}
+              >
+                {tonightAskCopy(ask?.status ?? null, mine, partnerName, "position")}
+              </Text>
+              <View style={{ marginTop: 12, gap: 8 }}>
+                {ask?.status === "offered" && !mine ? (
+                  <>
+                    <PrimaryButton
+                      label="Yes — tonight"
+                      tone="crimson"
+                      onPress={() => onRespond(ask.id, "accepted")}
+                    />
+                    <PrimaryButton
+                      label="Not tonight"
+                      tone="ghost"
+                      onPress={() => onRespond(ask.id, "declined")}
+                    />
+                  </>
+                ) : !ask ? (
+                  <PrimaryButton
+                    label="Try this tonight?"
+                    tone="crimson"
+                    onPress={() => onAsk(row.positionId)}
+                  />
+                ) : null}
+                <PrimaryButton
+                  label="Mark done"
+                  tone="ghost"
+                  onPress={() => onDone(row.id)}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function PositionDone({
+  saves,
+  ratingsOn,
+  ratings,
+  userId,
+  partnerName,
+  onRate,
+}: {
+  saves: PositionSave[];
+  ratingsOn: boolean;
+  ratings: import("@/lib/types").PlayItemRating[];
+  userId: string | null;
+  partnerName: string;
+  onRate: (id: string, stars: number) => void;
+}) {
+  if (!saves.length) {
+    return (
+      <Text style={{ color: T.muted, fontSize: 14, lineHeight: 20 }}>
+        Tick a pose off To-do and it lands here.
+      </Text>
+    );
+  }
+  return (
+    <View style={{ gap: 10 }}>
+      {saves.map((row) => {
+        const position = positionById(row.positionId);
+        if (!position) return null;
+        const mine = myPlayRating(ratings, "position", row.id, userId);
+        const theirs = ratingsForTarget(ratings, "position", row.id).find(
+          (item) => item.userId !== userId
+        );
+        return (
+          <View
+            key={row.id}
+            style={{
+              padding: 14,
+              borderRadius: 20,
+              backgroundColor: T.surface,
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 20, color: T.ink }}>
+              {position.name}
+            </Text>
+            <Text style={{ marginTop: 4, fontSize: 12, color: T.muted }}>Done</Text>
+            {ratingsOn ? (
+              <View style={{ marginTop: 12 }}>
+                <Text style={{ fontSize: 12, color: T.muted, marginBottom: 8 }}>
+                  You {mine ? mine.stars.toFixed(1) : "—"} · {partnerName}{" "}
+                  {theirs ? theirs.stars.toFixed(1) : "—"}
+                </Text>
+                <ScoreSlider
+                  value={mine?.stars ?? 7.5}
+                  onChange={(stars) => onRate(row.id, stars)}
+                  accent={T.accent}
+                  labelColor={T.ink}
+                />
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
     </View>
   );
 }

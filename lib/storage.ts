@@ -24,6 +24,9 @@ const hubEmpty = () => ({
   jarOpenVotes: [],
   bucketItems: [],
   ritualChecks: [],
+  dateNightAsks: [],
+  positionSaves: [],
+  playItemRatings: [],
   pushSubscriptions: [],
   talkDecks: [],
   talkDraws: [],
@@ -162,8 +165,11 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     listEntryRatings: (raw.listEntryRatings ?? []).map(hydrateListEntryRating),
     jarNotes: (raw.jarNotes ?? []).map(hydrateJarNote),
     jarOpenVotes: raw.jarOpenVotes ?? [],
-    bucketItems: raw.bucketItems ?? [],
+    bucketItems: (raw.bucketItems ?? []).map(hydrateBucketItem),
     ritualChecks: raw.ritualChecks ?? [],
+    dateNightAsks: raw.dateNightAsks ?? [],
+    positionSaves: (raw.positionSaves ?? []).map(hydratePositionSave),
+    playItemRatings: raw.playItemRatings ?? [],
     pushSubscriptions: raw.pushSubscriptions ?? [],
     talkDecks: raw.talkDecks ?? [],
     talkDraws: (raw.talkDraws ?? []).map((row) => ({
@@ -236,6 +242,27 @@ function hydrateErrandItem(
     notes: row.notes ?? "",
     doneAt: row.doneAt ?? null,
     doneBy: row.doneBy ?? null,
+  };
+}
+
+function hydrateBucketItem(
+  row: AppDB["bucketItems"][number]
+): AppDB["bucketItems"][number] {
+  return {
+    ...row,
+    notes: row.notes ?? "",
+    scheduledOn: row.scheduledOn ?? null,
+    doneAt: row.doneAt ?? null,
+    sourceId: row.sourceId ?? null,
+  };
+}
+
+function hydratePositionSave(
+  row: AppDB["positionSaves"][number]
+): AppDB["positionSaves"][number] {
+  return {
+    ...row,
+    doneAt: row.doneAt ?? null,
   };
 }
 

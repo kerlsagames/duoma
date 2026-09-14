@@ -21,6 +21,8 @@ import type {
   SpicyDarePlay,
   TalkDraw,
   FantasyTonightAsk,
+  DateNightAsk,
+  PositionInvite,
 } from "@/lib/types";
 import type { CalendarReminder } from "@/lib/calendar-reminders";
 import { dueCalendarReminders } from "@/lib/calendar-reminders";
@@ -137,6 +139,8 @@ export function buildHomeNotifications(input: {
   listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
   fantasyTonightAsks?: FantasyTonightAsk[];
+  dateNightAsks?: DateNightAsk[];
+  positionInvites?: PositionInvite[];
   sexyVault?: SexyVaultItem[];
   calendarReminders?: CalendarReminder[];
 }): StatusItem[] {
@@ -389,6 +393,72 @@ export function buildHomeNotifications(input: {
       });
     }
   });
+
+  (input.dateNightAsks ?? []).forEach((ask) => {
+    if (ask.nightKey !== today) return;
+    const incoming = ask.toUserId === myId;
+    const outgoing = ask.fromUserId === myId;
+    if (!incoming && !outgoing) return;
+    const title =
+      input.bucketItems?.find((item) => item.id === ask.bucketId)?.title ??
+      "a date";
+    if (ask.status === "offered" && incoming) {
+      items.push({
+        id: `date-ask-${ask.id}`,
+        line: `Try this tonight? · ${title}`,
+        when: recentWhen(ask.createdAt),
+        href: "/hub/planner",
+        sortAt: Date.parse(ask.createdAt) || now,
+      });
+      return;
+    }
+    if (ask.status === "offered" && outgoing) {
+      items.push({
+        id: `date-wait-${ask.id}`,
+        line: `Waiting on them · ${title}`,
+        when: recentWhen(ask.createdAt),
+        href: "/hub/planner",
+        sortAt: Date.parse(ask.createdAt) || now,
+      });
+      return;
+    }
+    if (ask.status === "accepted" && (incoming || outgoing)) {
+      items.push({
+        id: `date-yes-${ask.id}`,
+        line: `Tonight's on · ${title}`,
+        when: recentWhen(ask.answeredAt ?? ask.createdAt),
+        href: "/hub/planner",
+        sortAt: Date.parse(ask.answeredAt ?? ask.createdAt) || now,
+      });
+    }
+  });
+
+  (input.positionInvites ?? [])
+    .filter((row) => row.status === "offered" || row.status === "accepted")
+    .forEach((row) => {
+      const incoming = row.toUserId === myId;
+      const outgoing = row.fromUserId === myId;
+      if (!incoming && !outgoing) return;
+      if (row.status === "offered" && incoming) {
+        items.push({
+          id: `position-ask-${row.id}`,
+          line: "Try this tonight? · a pose",
+          when: recentWhen(row.createdAt),
+          href: "/hub/positions",
+          sortAt: Date.parse(row.createdAt) || now,
+        });
+        return;
+      }
+      if (row.status === "offered" && outgoing) {
+        items.push({
+          id: `position-wait-${row.id}`,
+          line: "Waiting on them · a pose",
+          when: recentWhen(row.createdAt),
+          href: "/hub/positions",
+          sortAt: Date.parse(row.createdAt) || now,
+        });
+      }
+    });
 
   (input.sexyVault ?? [])
     .filter((item) => item.fromId === input.partner?.id && !item.seenAt)

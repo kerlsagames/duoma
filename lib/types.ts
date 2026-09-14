@@ -353,6 +353,42 @@ export type BucketItem = {
   doneAt: string | null;
   createdBy: string;
   createdAt: string;
+  /** Date idea id when this came from the generator. */
+  sourceId: string | null;
+};
+
+export type DateNightAskStatus = "offered" | "accepted" | "declined";
+
+/** Pitch a saved date for tonight. Partner answers yes or no. */
+export type DateNightAsk = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  bucketId: string;
+  nightKey: string;
+  status: DateNightAskStatus;
+  createdAt: string;
+  answeredAt: string | null;
+};
+
+export type PositionSave = {
+  id: string;
+  coupleId: string;
+  positionId: string;
+  createdBy: string;
+  createdAt: string;
+  doneAt: string | null;
+};
+
+export type PlayItemRating = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  kind: "date" | "position";
+  targetId: string;
+  stars: number;
+  createdAt: string;
 };
 
 export type RitualCheck = {
@@ -592,6 +628,9 @@ export type AppDB = {
   jarOpenVotes: JarOpenVote[];
   bucketItems: BucketItem[];
   ritualChecks: RitualCheck[];
+  dateNightAsks: DateNightAsk[];
+  positionSaves: PositionSave[];
+  playItemRatings: PlayItemRating[];
   pushSubscriptions: PushSubscriptionRow[];
   talkDecks: TalkDeckState[];
   talkDraws: TalkDraw[];

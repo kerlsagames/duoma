@@ -11,8 +11,8 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
 - **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip. Shared world is off until you add it in Home settings.
-- **Connect** — Lists, Date Night Generator (400 ideas — spin or search the list), Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
-- **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (500 short swipe cards), Intimacy Streak (the fire grows with dares, spicy nights, pings & Connect), The Sexy Vault (shared pin, photo/video, optional hide-until).
+- **Connect** — Lists, Date Night Generator (400 ideas — spin or search, save to To-do, tick off, ask them tonight), Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
+- **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions (save to To-do, tick off, ask them tonight), Fantasy Matcher (500 short swipe cards), Intimacy Streak (the fire grows with dares, spicy nights, pings & Connect), The Sexy Vault (shared pin, photo/video, optional hide-until).
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (one weekly shot, shuffle until you lock it, clothesline gallery), Draw It, Scoreboard, Daily Word, Fair Share (spin a chore or tap who did it last).
 - **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Travel itinerary, Shared Goals (long-term on top, short-term list), Shared Budget (weekly or fortnight pay, bills, spending), Household maintenance, Emergency vault, Period Tracker. Each hub opens as two columns; the cog can hide, reorder, or switch to a list. Couple settings (notifications, card bank, pair code, sign out) live on the Home cog.
 - **Shared worlds** — Optional. Home settings → Shared world, then lock in Sanctuary, Pocket Ecosystem / Eden, Time Capsule Town, Odyssey, or Constellation. The Home tile only appears after you add it. Activity you already do feeds the world you pick.
@@ -24,7 +24,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Calendar** — Two tabs: Desire & Connect (recorded play) and General (birthdays, trips, jobs, your notes). Stacked month is the default; the cog also has Split (month left, notes right) and Agenda. Set reminders on General — 15 minutes before, 1 hour, 1 day, or 1 week — including for birthdays. Birthdays can take an optional year so age fills in, and you can add one from the calendar +.
 
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
-- **Positions** — Category toggles, Pick me a Position, and search the whole list.
+- **Positions** — Category toggles, Pick me a Position, search the whole list, save to To-do, tick off, ask them tonight. Rating sliders stay off until you turn them on in the cog.
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
