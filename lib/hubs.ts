@@ -338,13 +338,6 @@ export const HUBS: HubDef[] = [
         icon: "water",
         href: "/hub/period",
       },
-      {
-        id: "settings",
-        label: "Settings",
-        detail: "Couple prefs & notifications",
-        icon: "settings-sharp",
-        href: "/hub/settings",
-      },
     ],
   },
 ];

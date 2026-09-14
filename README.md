@@ -14,7 +14,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Connect** — Lists, Date Night Generator, Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions, Fantasy Matcher (500 short swipe cards), Intimacy Streak, The Sexy Vault (shared pin, photo/video, optional hide-until).
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (one weekly shot, shuffle until you lock it, clothesline gallery), Draw It, Scoreboard, Daily Word, Choose-Your-Own Adventure, Fair-Share wheel, Who Did It Last.
-- **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Period Tracker, Settings. Each hub opens as two columns; the cog can hide, reorder, or switch to a list.
+- **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Travel itinerary, Shared budget jars, Household maintenance, Emergency vault, Period Tracker. Each hub opens as two columns; the cog can hide, reorder, or switch to a list. Couple settings (notifications, card bank, pair code, sign out) live on the Home cog.
 - **Shared worlds** — Optional. Home settings → Shared world, then lock in Sanctuary, Pocket Ecosystem / Eden, Time Capsule Town, Odyssey, or Constellation. The Home tile only appears after you add it. Activity you already do feeds the world you pick.
   - **Shared Sanctuary** — cabin → terrace → observatory; photos on the memory wall, bets on the trophy mantle, voice notes on the turntable.
   - **Pocket Ecosystem (Eden)** — 3D island when WebGL is available, flat island otherwise. Never punitive — quiet only sleeps the world.
@@ -80,7 +80,7 @@ Vercel serverless functions live in `api/push/`. Netlify functions live in `netl
 ## Layout
 
 ```
-app/hub/settings.tsx     Card Bank, notifications, pair code, sign out
+app/(tabs)/index.tsx     Home cog: layout, wallpaper, couple settings, sign out
 public/sw.js             Push event + notification click
 public/manifest.webmanifest
 api/push/send.js         Vercel: web-push + VAPID

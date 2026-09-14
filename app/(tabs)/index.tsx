@@ -1,8 +1,12 @@
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
+import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
+import { GenderPicker } from "@/components/ui/GenderPicker";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { gameResumeHref } from "@/lib/home-status";
 import {
   allHubApps,
@@ -710,6 +714,23 @@ function HomeSettingsSheet({
   onReset: () => void;
 }) {
   const router = useRouter();
+  const {
+    user,
+    couple,
+    partner,
+    signOut,
+    nights,
+    bestCards,
+    setProfileGender,
+  } = useApp();
+  const names = resolveCardNames({
+    userName: user?.displayName,
+    partnerName: partner?.displayName,
+  });
+  const genders = resolveCardGenders({
+    userGender: user?.gender,
+    partnerGender: partner?.gender,
+  });
   return (
     <View
       pointerEvents="box-none"
@@ -915,9 +936,314 @@ function HomeSettingsSheet({
               Two-column hubs, all sections on, black background.
             </Text>
           </Pressable>
+
+          <Text
+            style={{
+              marginTop: 22,
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 1.6,
+              color: "rgba(244,244,246,0.45)",
+              marginBottom: 8,
+            }}
+          >
+            COUPLE
+          </Text>
+          <PartnerConnectionBanner />
+          <View
+            style={{
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
+              Male / Female
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                marginBottom: 10,
+                color: "rgba(244,244,246,0.5)",
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              Get Spicy uses this for wording. Change it if you got it wrong.
+            </Text>
+            <View style={{ gap: 12 }}>
+              <GenderPicker
+                value={user?.gender ?? null}
+                onChange={(gender) => void setProfileGender("you", gender)}
+                label="I am"
+              />
+              <GenderPicker
+                value={partner?.gender ?? null}
+                onChange={(gender) => void setProfileGender("partner", gender)}
+                label={partner ? `${partner.displayName} is` : "Partner is"}
+              />
+            </View>
+          </View>
+          <LinkRow
+            label="Notifications"
+            hint="Lock-screen pings and what shows on the Home bell."
+            onPress={() => {
+              onClose();
+              router.push("/hub/notification-settings" as Href);
+            }}
+          />
+          <LinkRow
+            label="Card Bank"
+            hint="Toggle rotation. Write custom cards with your names."
+            onPress={() => {
+              onClose();
+              router.push("/(tabs)/cards" as Href);
+            }}
+          />
+          <LinkRow
+            label="How it works"
+            hint="Pairing, the four hubs, calendar, and Get Spicy."
+            onPress={() => {
+              onClose();
+              router.push("/how-to" as Href);
+            }}
+          />
+          <View
+            style={{
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: "rgba(244,244,246,0.45)",
+              }}
+            >
+              PAIR CODE
+            </Text>
+            <Text
+              style={{
+                marginTop: 6,
+                fontFamily: "SpaceMono",
+                fontSize: 24,
+                letterSpacing: 6,
+                color: "#F4F4F6",
+                fontWeight: "700",
+              }}
+            >
+              {couple?.inviteCode ?? "------"}
+            </Text>
+            <Text
+              style={{
+                marginTop: 6,
+                color: "rgba(244,244,246,0.5)",
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {partner
+                ? `You stay paired with ${partner.displayName}${partner.isDemo ? " (demo)" : ""}. Sign out does not unpair you.`
+                : "Share this code so your partner can join."}
+            </Text>
+          </View>
+          <View
+            style={{
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: "rgba(244,244,246,0.45)",
+              }}
+            >
+              NIGHTS TOGETHER
+            </Text>
+            {nights.length === 0 ? (
+              <Text
+                style={{
+                  marginTop: 6,
+                  color: "rgba(244,244,246,0.5)",
+                  fontSize: 13,
+                  lineHeight: 18,
+                }}
+              >
+                No closed nights yet. Play Get Spicy and they land here.
+              </Text>
+            ) : (
+              nights.slice(0, 6).map((night) => (
+                <Text
+                  key={night.id}
+                  style={{ marginTop: 6, color: "#F4F4F6", fontSize: 14 }}
+                >
+                  {new Date(night.updatedAt).toLocaleDateString()} ·{" "}
+                  {night.status === "rating" ? "rating cards" : "closed"}
+                </Text>
+              ))
+            )}
+          </View>
+          <View
+            style={{
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: "rgba(244,244,246,0.45)",
+              }}
+            >
+              BEST CARDS
+            </Text>
+            {bestCards.length === 0 ? (
+              <Text
+                style={{
+                  marginTop: 6,
+                  color: "rgba(244,244,246,0.5)",
+                  fontSize: 13,
+                  lineHeight: 18,
+                }}
+              >
+                After a night, rate what you played. Keepers show up here.
+              </Text>
+            ) : (
+              bestCards.slice(0, 4).map((row) => {
+                const copy = personalizeCard(row.card, names, genders);
+                return (
+                  <View key={row.card.id} style={{ marginTop: 8 }}>
+                    <Text style={{ color: "#FF007F", fontSize: 12 }}>
+                      {row.average.toFixed(1)}/10
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 2,
+                        color: "#F4F4F6",
+                        fontSize: 14,
+                        lineHeight: 20,
+                      }}
+                    >
+                      {copy.body}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+          </View>
+          <View
+            style={{
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderRadius: 14,
+              backgroundColor: "#1A1A22",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: "rgba(244,244,246,0.45)",
+              }}
+            >
+              BACKEND
+            </Text>
+            <Text
+              style={{
+                marginTop: 6,
+                color: "#F4F4F6",
+                fontSize: 15,
+                fontWeight: "700",
+              }}
+            >
+              {isSupabaseConfigured ? "Supabase connected" : "Local realtime mode"}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                color: "rgba(244,244,246,0.5)",
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              {isSupabaseConfigured
+                ? "Invites, cards, and game state sync through Supabase."
+                : "Pairing works across tabs on this device. Add project keys to go cloud."}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => {
+              onClose();
+              void signOut();
+              router.replace("/welcome");
+            }}
+            style={{ marginTop: 8, paddingVertical: 12 }}
+          >
+            <Text style={{ color: "#FF007F", fontSize: 15, fontWeight: "700" }}>
+              Sign out
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Does not unpair you. Continue as {user?.displayName ?? "you"} next time.
+            </Text>
+          </Pressable>
         </ScrollView>
       </View>
     </View>
+  );
+}
+
+function LinkRow({
+  label,
+  hint,
+  onPress,
+}: {
+  label: string;
+  hint: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        marginBottom: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 14,
+        backgroundColor: "#1A1A22",
+      }}
+    >
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
+          {label}
+        </Text>
+        <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
+          {hint}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color="rgba(244,244,246,0.4)" />
+    </Pressable>
   );
 }
 

@@ -12,7 +12,7 @@ const STEPS = [
   {
     kicker: "Names",
     title: "Male or Female, set at the start",
-    body: "Pick Male or Female so spicy cards, positions, and roleplays use the right wording. Fix a mistake anytime in Settings.",
+    body: "Pick Male or Female so spicy cards, positions, and roleplays use the right wording. Fix a mistake anytime in Home settings.",
   },
   {
     kicker: "Home",

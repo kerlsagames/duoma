@@ -153,7 +153,7 @@ export default function CardBankScreen() {
         </View>
         <View className="pb-8">
           <PrimaryButton
-            label="Back to Settings"
+            label="Back to Home"
             tone="ghost"
             onPress={() => router.back()}
           />

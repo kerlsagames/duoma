@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
 
 export default function YouRedirect() {
-  return <Redirect href="/hub/settings" />;
+  return <Redirect href="/" />;
 }
