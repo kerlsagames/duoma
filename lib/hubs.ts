@@ -154,7 +154,7 @@ export const HUBS: HubDef[] = [
       {
         id: "roleplays",
         label: "Roleplays",
-        detail: "Scenes with stills. No two the same.",
+        detail: "Spin scenes. Save to To-do. Tick them off.",
         icon: "sparkles",
         href: "/hub/roleplays",
       },

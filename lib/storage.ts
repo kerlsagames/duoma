@@ -35,6 +35,7 @@ const hubEmpty = () => ({
   spicyDares: [],
   positionInvites: [],
   roleplayInvites: [],
+  roleplaySaves: [],
   calendarEvents: [],
   errandItems: [],
   mealRounds: [],
@@ -184,6 +185,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
     positionInvites: raw.positionInvites ?? [],
     roleplayInvites: raw.roleplayInvites ?? [],
+    roleplaySaves: (raw.roleplaySaves ?? []).map(hydrateRoleplaySave),
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
     errandItems: (raw.errandItems ?? []).map(hydrateErrandItem),
     mealRounds: (raw.mealRounds ?? []).map(hydrateMealRound),
@@ -262,6 +264,15 @@ function hydrateBucketItem(
 function hydratePositionSave(
   row: AppDB["positionSaves"][number]
 ): AppDB["positionSaves"][number] {
+  return {
+    ...row,
+    doneAt: row.doneAt ?? null,
+  };
+}
+
+function hydrateRoleplaySave(
+  row: AppDB["roleplaySaves"][number]
+): AppDB["roleplaySaves"][number] {
   return {
     ...row,
     doneAt: row.doneAt ?? null,

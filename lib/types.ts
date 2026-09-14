@@ -528,6 +528,16 @@ export type RoleplayInvite = {
   completedAt: string | null;
 };
 
+/** Shared to-do / completed list for roleplay scenarios. */
+export type RoleplaySave = {
+  id: string;
+  coupleId: string;
+  roleplayId: string;
+  createdBy: string;
+  createdAt: string;
+  doneAt: string | null;
+};
+
 /** Shared dinner spin + thumbs (Meal Decisions). */
 export type MealVoteKind = "up" | "down";
 
@@ -649,6 +659,7 @@ export type AppDB = {
   spicyDares: SpicyDarePlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
+  roleplaySaves: RoleplaySave[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
   mealRounds: MealRound[];

@@ -3,6 +3,8 @@ import type {
   PlayItemRating,
   PositionInvite,
   PositionSave,
+  RoleplayInvite,
+  RoleplaySave,
 } from "@/lib/types";
 
 export function dateAskForBucket(
@@ -40,6 +42,26 @@ export function openPositionSave(
   return saves.find((row) => row.positionId === positionId && !row.doneAt) ?? null;
 }
 
+export function roleplayAskForScene(
+  invites: RoleplayInvite[],
+  roleplayId: string
+): RoleplayInvite | null {
+  return (
+    invites.find(
+      (row) =>
+        row.roleplayId === roleplayId &&
+        (row.status === "offered" || row.status === "accepted")
+    ) ?? null
+  );
+}
+
+export function openRoleplaySave(
+  saves: RoleplaySave[],
+  roleplayId: string
+): RoleplaySave | null {
+  return saves.find((row) => row.roleplayId === roleplayId && !row.doneAt) ?? null;
+}
+
 export function ratingsForTarget(
   ratings: PlayItemRating[],
   kind: PlayItemRating["kind"],
@@ -65,9 +87,10 @@ export function tonightAskCopy(
   status: "offered" | "accepted" | "declined" | "done" | null,
   mine: boolean,
   partnerLabel: string,
-  kind: "date" | "position"
+  kind: "date" | "position" | "roleplay"
 ): string {
-  const thing = kind === "date" ? "date" : "pose";
+  const thing =
+    kind === "date" ? "date" : kind === "position" ? "pose" : "scene";
   if (!status || status === "done") {
     return `Send ${partnerLabel} “try this tonight?” They answer yes or no.`;
   }

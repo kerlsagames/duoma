@@ -1,6 +1,12 @@
 import { isCuriosityComplete } from "@/lib/curiosity";
-import { dateKeyFromIso, localDateKey } from "@/lib/dates";
-import type { AudioNote, IntimacyKind, IntimacyLog, Ping } from "@/lib/mini-content";
+import { addDaysToDateKey, dateKeyFromIso, localDateKey } from "@/lib/dates";
+import {
+  INTIMACY_KINDS,
+  type AudioNote,
+  type IntimacyKind,
+  type IntimacyLog,
+  type Ping,
+} from "@/lib/mini-content";
 import type {
   CuriosityAnswer,
   GameSession,
@@ -29,6 +35,29 @@ const AUTO_KIND_META: Record<
   ping: { label: "Thought-of-you" },
   connect: { label: "Connect" },
 };
+
+/** Five empty days in a row snuffs the fire. */
+export const MISS_DAYS_TO_OUT = 5;
+
+/** Days visible in the chart viewport. */
+export const GRAPH_WINDOW_DAYS = 30;
+
+/** How far you can pan back. */
+export const GRAPH_HISTORY_DAYS = 120;
+
+/** Tiny spark when the first log of a stretch lands. */
+const SPARK_LEVEL = 5;
+
+/**
+ * Slow climb — about three months of near-daily care to fill the grate.
+ * Extra logs on the same day help a little, not a leap.
+ */
+const GROWTH_BASE = 1.05;
+const GROWTH_EXTRA = 0.22;
+const GROWTH_EXTRA_CAP = 4;
+
+/** Shrink harder the longer the cold stretch — fifth miss goes to zero. */
+const MISS_DECAY = [0, 11, 16, 24, 34] as const;
 
 export function dateOffset(days: number, from = new Date()): string {
   const d = new Date(from);
@@ -205,22 +234,177 @@ export function intimacyStreak(dates: Set<string>, today = localDateKey()): numb
   return n;
 }
 
-/** Streak days plus tonight’s logs — this is what sizes the flame. */
+export function fireLabel(kind: IntimacyKind, fallback: string): string {
+  if (kind in AUTO_KIND_META) {
+    return AUTO_KIND_META[kind as keyof typeof AUTO_KIND_META].label;
+  }
+  return fallback;
+}
+
+export function colorForKind(kind: IntimacyKind): string {
+  return INTIMACY_KINDS.find((row) => row.id === kind)?.color ?? "#FF6A3D";
+}
+
+export function groupLogsByDate(logs: IntimacyLog[]): Map<string, IntimacyLog[]> {
+  const map = new Map<string, IntimacyLog[]>();
+  for (const row of logs) {
+    const list = map.get(row.date) ?? [];
+    list.push(row);
+    map.set(row.date, list);
+  }
+  return map;
+}
+
+export type DayBarSegment = {
+  kind: IntimacyKind;
+  color: string;
+  count: number;
+};
+
+export type DayBar = {
+  date: string;
+  total: number;
+  segments: DayBarSegment[];
+};
+
+/** Oldest → newest. Includes empty days so the axis stays honest. */
+export function buildDayBars(
+  logs: IntimacyLog[],
+  dayCount = GRAPH_HISTORY_DAYS,
+  today = localDateKey()
+): DayBar[] {
+  const byDate = groupLogsByDate(logs);
+  const bars: DayBar[] = [];
+  for (let i = dayCount - 1; i >= 0; i -= 1) {
+    const date = dateOffset(i, new Date(`${today}T12:00:00`));
+    const rows = byDate.get(date) ?? [];
+    const counts = new Map<IntimacyKind, number>();
+    for (const row of rows) {
+      counts.set(row.kind, (counts.get(row.kind) ?? 0) + 1);
+    }
+    const segments: DayBarSegment[] = [...counts.entries()]
+      .map(([kind, count]) => ({
+        kind,
+        count,
+        color: colorForKind(kind),
+      }))
+      .sort((a, b) => b.count - a.count || a.kind.localeCompare(b.kind));
+    bars.push({ date, total: rows.length, segments });
+  }
+  return bars;
+}
+
+export type FireState = {
+  /** 0–100. Grows slowly over months; empty days pull it down. */
+  level: number;
+  lit: boolean;
+  missStreak: number;
+  /** Days that actually fed the fire since the earliest log. */
+  fedDays: number;
+};
+
+function growthForDay(count: number): number {
+  if (count <= 0) return 0;
+  const extras = Math.min(GROWTH_EXTRA_CAP, Math.max(0, count - 1));
+  return GROWTH_BASE + extras * GROWTH_EXTRA;
+}
+
+function decayForMiss(missStreak: number): number {
+  if (missStreak <= 0) return 0;
+  if (missStreak >= MISS_DAYS_TO_OUT) return 100;
+  return MISS_DECAY[missStreak] ?? 34;
+}
+
+/**
+ * Walk day-by-day from the first log (or today) so the fire has to earn size
+ * over months, and five blank days snuff it.
+ */
+export function computeFireState(
+  logs: IntimacyLog[],
+  today = localDateKey()
+): FireState {
+  const byDate = groupLogsByDate(logs);
+  if (byDate.size === 0) {
+    return { level: 0, lit: false, missStreak: 0, fedDays: 0 };
+  }
+
+  const earliest = [...byDate.keys()].sort()[0]!;
+  let cursor = earliest;
+  let level = 0;
+  let lit = false;
+  let missStreak = 0;
+  let fedDays = 0;
+
+  while (cursor <= today) {
+    const count = byDate.get(cursor)?.length ?? 0;
+    if (count > 0) {
+      missStreak = 0;
+      fedDays += 1;
+      if (!lit) {
+        level = SPARK_LEVEL;
+        lit = true;
+      }
+      level = Math.min(100, level + growthForDay(count));
+    } else if (lit) {
+      missStreak += 1;
+      if (missStreak >= MISS_DAYS_TO_OUT) {
+        level = 0;
+        lit = false;
+        missStreak = MISS_DAYS_TO_OUT;
+      } else {
+        level = Math.max(0, level - decayForMiss(missStreak));
+        if (level <= 0) {
+          level = 0;
+          lit = false;
+        }
+      }
+    }
+    if (cursor === today) break;
+    cursor = addDaysToDateKey(cursor, 1);
+  }
+
+  return {
+    level: Math.round(level * 10) / 10,
+    lit: lit && level > 0,
+    missStreak,
+    fedDays,
+  };
+}
+
+/** Legacy heat used by the current campfire screen (streak + tonight). */
 export function fireHeat(streak: number, todayCount: number, totalCount: number): number {
   const tonight = Math.min(10, todayCount) * 1.15;
   const body = Math.min(6, Math.log2(1 + totalCount) * 0.9);
   return streak + tonight + body;
 }
 
-/** Ember when cold. First logs jump the size; a week of streak fills the grate. */
-export function fireScale(heat: number): number {
-  if (heat <= 0.35) return 0.4;
-  return 0.72 + Math.min(1.18, (heat - 0.35) * 0.17);
+/** Map 0–100 fire level onto the campfire’s visual scale. */
+export function fireScale(level: number): number {
+  if (level <= 0) return 0.34;
+  if (level < SPARK_LEVEL) return 0.42 + (level / SPARK_LEVEL) * 0.12;
+  // Slow visual climb — a month of care still looks like a modest fire.
+  return 0.55 + Math.min(1.35, (level / 100) * 1.35);
 }
 
-export function fireLabel(kind: IntimacyKind, fallback: string): string {
-  if (kind in AUTO_KIND_META) {
-    return AUTO_KIND_META[kind as keyof typeof AUTO_KIND_META].label;
+export function fireCaption(state: FireState): string {
+  if (!state.lit || state.level <= 0) {
+    if (state.fedDays === 0) {
+      return "Cold stones. Desire, Connect, or a manual log lights a tiny spark.";
+    }
+    return "The fire went out after too many quiet nights. One log today starts a new spark.";
   }
-  return fallback;
+  if (state.missStreak > 0) {
+    const left = MISS_DAYS_TO_OUT - state.missStreak;
+    return `Cooling — ${state.missStreak} quiet night${state.missStreak === 1 ? "" : "s"}. ${left} more and it goes out.`;
+  }
+  if (state.level < 15) {
+    return "A tiny spark. It only grows if you keep feeding it — slowly, over months.";
+  }
+  if (state.level < 40) {
+    return "Building. Daily care from Desire & Connect stacks up over weeks.";
+  }
+  if (state.level < 75) {
+    return "A steady fire — months of small moments, not one big night.";
+  }
+  return "A long-tended blaze. Keep the nights warm or it will shrink.";
 }

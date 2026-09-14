@@ -97,6 +97,7 @@ import type {
   SpicyDarePlay,
   PositionInvite,
   RoleplayInvite,
+  RoleplaySave,
   DateNightAsk,
   PositionSave,
   PlayItemRating,
@@ -422,6 +423,7 @@ type AppContextValue = {
   spicyDares: SpicyDarePlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
+  roleplaySaves: RoleplaySave[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
@@ -517,6 +519,8 @@ type AppContextValue = {
     status: "accepted" | "declined"
   ) => Promise<void>;
   completeRoleplayInvite: (id: string) => Promise<void>;
+  saveRoleplay: (roleplayId: string) => Promise<RoleplaySave>;
+  markRoleplaySaveDone: (id: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -998,6 +1002,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const roleplayInvites = useMemo(
     () => db.roleplayInvites.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const roleplaySaves = useMemo(
+    () => (db.roleplaySaves ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3296,6 +3305,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const completeRoleplayInvite = useCallback(
     async (id: string) => {
       if (!user) return;
+      const existing = db.roleplayInvites.find((row) => row.id === id);
+      const stamp = nowIso();
       db = {
         ...db,
         roleplayInvites: db.roleplayInvites.map((row) => {
@@ -3310,15 +3321,72 @@ export function AppProvider({ children }: { children: ReactNode }) {
             row.status === "accepted" &&
             (involved || demoHold)
           ) {
-            return { ...row, status: "done", completedAt: nowIso() };
+            return { ...row, status: "done", completedAt: stamp };
           }
           return row;
         }),
+        roleplaySaves: existing
+          ? (db.roleplaySaves ?? []).map((row) =>
+              row.coupleId === existing.coupleId &&
+              row.roleplayId === existing.roleplayId &&
+              !row.doneAt
+                ? { ...row, doneAt: stamp }
+                : row
+            )
+          : (db.roleplaySaves ?? []),
       };
       await persist();
     },
     [partner, user]
   );
+
+  const saveRoleplay = useCallback(
+    async (roleplayId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then save a roleplay.");
+      }
+      const id = roleplayId.trim();
+      if (!id) throw new Error("Pick a roleplay first.");
+      const existing = (db.roleplaySaves ?? []).find(
+        (row) =>
+          row.coupleId === couple.id && row.roleplayId === id && !row.doneAt
+      );
+      if (existing) return existing;
+      const row: RoleplaySave = {
+        id: createId(),
+        coupleId: couple.id,
+        roleplayId: id,
+        createdBy: user.id,
+        createdAt: nowIso(),
+        doneAt: null,
+      };
+      db = { ...db, roleplaySaves: [...(db.roleplaySaves ?? []), row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const markRoleplaySaveDone = useCallback(async (id: string) => {
+    const stamp = nowIso();
+    const save = (db.roleplaySaves ?? []).find((row) => row.id === id);
+    db = {
+      ...db,
+      roleplaySaves: (db.roleplaySaves ?? []).map((row) =>
+        row.id === id ? { ...row, doneAt: stamp } : row
+      ),
+      roleplayInvites: save
+        ? db.roleplayInvites.map((row) =>
+            row.coupleId === save.coupleId &&
+            row.roleplayId === save.roleplayId &&
+            (row.status === "offered" || row.status === "accepted")
+              ? { ...row, status: "done", completedAt: stamp }
+              : row
+          )
+        : db.roleplayInvites,
+    };
+    await persist();
+  }, []);
 
   const addMilestone = useCallback(
     async (input: { title: string; kind: MilestoneKind; date: string }) => {
@@ -4585,6 +4653,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dateNightAsks,
     playItemRatings,
     roleplayInvites,
+    roleplaySaves,
     milestones,
     desireToggles,
     fantasySwipes,
@@ -4647,6 +4716,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendRoleplayInvite,
     respondRoleplayInvite,
     completeRoleplayInvite,
+    saveRoleplay,
+    markRoleplaySaveDone,
     addMilestone,
     removeMilestone,
     addCalendarEvent,
