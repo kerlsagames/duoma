@@ -25,7 +25,12 @@ export type DiscoverCategoryId =
   | "bedroom"
   | "risky"
   | "emotion"
-  | "wild";
+  | "wild"
+  | "power"
+  | "voyeur"
+  | "dirty-talk"
+  | "sensory"
+  | "forbidden";
 
 export type DiscoverQuestion = {
   id: string;
@@ -486,6 +491,56 @@ const BANK: readonly DiscoverRow[] = [
   ["wild", "Would you ever participate in a blindfolded \"guess where I'm touching/kissing you\" challenge?"],
   ["wild", "What is one thing you’ve never allowed anyone else to do to you, but you’d consider letting me try?"],
   ["wild", "If tonight was the absolute last time we could ever be intimate, what exact scenario would you demand we do?"],
+  ["power", "Do you secretly get turned on by the idea of being completely helpless and forced to obey every command?"],
+  ["power", "What is a punishment you’d secretly love me to give you if you were \"bad\"?"],
+  ["power", "How do you feel about forced eye contact, hair-pulling, or command-based talk (e.g., \"Tell me thank you,\" \"Beg for it\")?"],
+  ["power", "Have you ever had a fantasy about taking total, aggressive control of me without asking first?"],
+  ["power", "Do you like the idea of me deciding when you are allowed to finish, or keeping you on the edge until you cry?"],
+  ["power", "How do you feel about physical restraint where you literally cannot move a single finger?"],
+  ["power", "Have you ever wanted to be treated purely like a toy or object for my pleasure for an entire night?"],
+  ["power", "What is the most submissive thing you’ve ever done (or wanted to do) for someone in bed?"],
+  ["power", "Does the idea of me inspecting your body while you stand still turn you on or make you nervous?"],
+  ["power", "Would you ever give me total control over your clothes, toys, or release for an entire weekend?"],
+  ["voyeur", "Have you ever touched yourself while looking at your own reflection in a full-length mirror?"],
+  ["voyeur", "How would you feel if I secretly recorded us with your full permission, just for our eyes?"],
+  ["voyeur", "Have you ever wanted to leave the curtains open or blinds cracked while we are fully exposed at night?"],
+  ["voyeur", "Does the thought of someone catching a glimpse of us through a window make you panic or turn you on immensely?"],
+  ["voyeur", "Have you ever walked around your house completely naked when you knew someone could potentially see you?"],
+  ["voyeur", "Would you ever want to sit back and watch me play with myself while you aren't allowed to touch me?"],
+  ["voyeur", "Have you ever had a fantasy about being watched by a stranger while you were in the middle of an intense session?"],
+  ["voyeur", "Do you like posing or taking explicit photos of yourself to send me throughout the day?"],
+  ["voyeur", "Have you ever looked through someone else’s private photos or media looking for something explicit?"],
+  ["voyeur", "Would you ever wear clear or sheer clothing out in public where people have to guess if you're exposed?"],
+  ["dirty-talk", "What is the filthiest, most degrading word you secretly love hearing in the heat of the moment?"],
+  ["dirty-talk", "Do you like it when I talk about how dirty, needy, or desperate you are while we’re doing it?"],
+  ["dirty-talk", "Does it turn you on when I describe in detail exactly what I'm going to do to your body hours before we touch?"],
+  ["dirty-talk", "Have you ever wanted me to narrate everything I'm feeling and doing to you while inside you?"],
+  ["dirty-talk", "How do you feel about \"over-praise\" (e.g., \"You take this so well,\" \"Such a good boy/girl\") vs. aggressive filthy insults?"],
+  ["dirty-talk", "Have you ever had a sexual thought so dark or weird that you’ve never told a living soul?"],
+  ["dirty-talk", "Do you get turned on when I show ownership over you (e.g., \"You belong to me,\" \"This body is mine\")?"],
+  ["dirty-talk", "What is a specific sentence I could whisper in your ear in public right now that would make your heart race?"],
+  ["dirty-talk", "Do you like it when I demand that you tell me how much you want it before I give it to you?"],
+  ["dirty-talk", "Have you ever turned yourself on just by typing out a filthy story or scenario?"],
+  ["sensory", "How do you feel about being completely blindfolded so you have no idea where my mouth or hands are going next?"],
+  ["sensory", "Have you ever experienced sensory overload where you couldn't stop squirming or shaking?"],
+  ["sensory", "How do you feel about me continuing to touch, stroke, or lick you immediately after you've already finished?"],
+  ["sensory", "Would you ever let me use ice cubes, hot liquids, or wax on your most sensitive areas?"],
+  ["sensory", "Do you like intense, sharp pain mixed with pleasure (slapping, biting hard, pinching, scratching)?"],
+  ["sensory", "Have you ever tried breath play or light pressure on your neck/chest to make the climax hit harder?"],
+  ["sensory", "Would you ever try wearing earplugs or noise-canceling headphones during intimacy so you only feel sensation?"],
+  ["sensory", "Do you like full body-to-body slick oil massages where we slide all over each other naked?"],
+  ["sensory", "What is the most intense physical sensation you’ve ever felt during intimacy—did it feel like pain or pleasure?"],
+  ["sensory", "Have you ever used weighted items, heavy ropes, or leather masks to change how your body feels?"],
+  ["forbidden", "What is your unedited opinion on three-ways, group play, or watching your partner with someone else?"],
+  ["forbidden", "Have you ever had a vivid fantasy about a friend, an ex, or a stranger while sleeping next to me?"],
+  ["forbidden", "What is a forbidden location (like a church, boss's office, public rooftop, or family home) you’ve wanted to do it in?"],
+  ["forbidden", "Have you ever fantasized about roleplaying an extreme non-consent or capture scenario with safe words?"],
+  ["forbidden", "How do you feel about swapping clothes, cross-dressing, or playing with gender roles in bed?"],
+  ["forbidden", "Have you ever gotten turned on by an authority figure (teacher, boss, doctor, officer) and imagined a scenario with them?"],
+  ["forbidden", "Do you like the idea of \"public play\" where I touch you under a coat or blanket while people are nearby?"],
+  ["forbidden", "What is a boundary you used to think was disgusting or weird, but now secretly fascinates you?"],
+  ["forbidden", "Have you ever wanted to try an age-play or dynamic-shift scenario (e.g., innocent vs. experienced)?"],
+  ["forbidden", "If there were zero judgment, zero risk, and zero consequences for one night, what is the wildest thing you’d ask me to do to you?"],
 ];
 
 export const DISCOVER_QUESTIONS: DiscoverQuestion[] = BANK.map(

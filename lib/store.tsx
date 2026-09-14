@@ -35,6 +35,7 @@ import {
   dailyCuriosityQuestion,
   isCuriosityComplete,
 } from "@/lib/curiosity";
+import { discoverQuestionById } from "@/lib/discover-questions";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import {
   registerDuomaWorker,
@@ -65,6 +66,7 @@ import type {
   Couple,
   CoupleList,
   CuriosityAnswer,
+  CuriositySkip,
   ListEntry,
   ListEntryRating,
   DeckCard,
@@ -394,6 +396,7 @@ type AppContextValue = {
   checkInRequests: CheckInRequest[];
   incomingCheckInRequest: CheckInRequest | null;
   curiosityAnswers: CuriosityAnswer[];
+  curiositySkips: CuriositySkip[];
   curiosityMatchScore: {
     matchScore: number;
     daysPlayed: number;
@@ -482,6 +485,9 @@ type AppContextValue = {
     answerIndex: number;
     guessIndex: number;
   }) => Promise<void>;
+  submitDiscoverAnswer: (questionId: string, body: string) => Promise<void>;
+  skipDiscover: (questionId: string) => Promise<void>;
+  restoreDiscoverSkip: (questionId: string) => Promise<void>;
   drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
   shuffleTalkQuestion: () => Promise<TalkDraw>;
   submitTalkAnswer: (input?: { categoryId?: string }) => Promise<void>;
@@ -950,6 +956,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [version]);
   const curiosityAnswers = useMemo(
     () => db.curiosityAnswers.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const curiositySkips = useMemo(
+    () => (db.curiositySkips ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -2589,11 +2600,147 @@ export function AppProvider({ children }: { children: ReactNode }) {
         pingPartner(couple, user, partner, {
           title: "Daily curiosity",
           body: `${user.displayName} locked today's sync. Your turn.`,
-          url: "/hub/curiosity",
+          url: "/hub/discover",
         });
       }
     },
     [couple, partner, user]
+  );
+
+  const submitDiscoverAnswer = useCallback(
+    async (questionId: string, body: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then Discover.");
+      }
+      const question = discoverQuestionById(questionId);
+      if (!question) throw new Error("That card isn’t in the deck.");
+      const text = body.trim();
+      if (!text) throw new Error("Write something — even a sentence.");
+      const today = localDateKey();
+      const existing = db.curiosityAnswers.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.questionId === questionId
+      );
+      const mine: CuriosityAnswer = {
+        id: existing?.id ?? createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        date: existing?.date ?? today,
+        questionId,
+        answerIndex: null,
+        guessIndex: null,
+        body: text,
+        createdAt: existing?.createdAt ?? nowIso(),
+      };
+      const extra: CuriosityAnswer[] = [];
+      if (partner?.isDemo) {
+        const already = db.curiosityAnswers.some(
+          (row) =>
+            row.coupleId === couple.id &&
+            row.userId === partner.id &&
+            row.questionId === questionId &&
+            Boolean(row.body?.trim())
+        );
+        if (!already) {
+          extra.push({
+            id: createId(),
+            coupleId: couple.id,
+            userId: partner.id,
+            date: today,
+            questionId,
+            answerIndex: null,
+            guessIndex: null,
+            body: "I’d rather say this out loud than type it — ask me tonight.",
+            createdAt: nowIso(),
+          });
+        }
+      }
+      db = {
+        ...db,
+        curiosityAnswers: [
+          ...db.curiosityAnswers.filter(
+            (row) =>
+              !(
+                row.coupleId === couple.id &&
+                row.userId === user.id &&
+                row.questionId === questionId
+              )
+          ),
+          mine,
+          ...extra,
+        ],
+        curiositySkips: (db.curiositySkips ?? []).filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.userId === user.id &&
+              row.questionId === questionId
+            )
+        ),
+        ritualChecks: upsertRitual(couple.id, user.id, "curiosity", today),
+      };
+      await persist();
+      if (!partner?.isDemo) {
+        pingPartner(couple, user, partner, {
+          title: "Discover",
+          body: `${user.displayName} answered a Discover card. Your turn if you want it.`,
+          url: "/hub/discover",
+        });
+      }
+    },
+    [couple, partner, user]
+  );
+
+  const skipDiscover = useCallback(
+    async (questionId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then Discover.");
+      }
+      if (!discoverQuestionById(questionId)) {
+        throw new Error("That card isn’t in the deck.");
+      }
+      const already = (db.curiositySkips ?? []).some(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.userId === user.id &&
+          row.questionId === questionId
+      );
+      if (already) return;
+      const row: CuriositySkip = {
+        id: createId(),
+        coupleId: couple.id,
+        userId: user.id,
+        questionId,
+        createdAt: nowIso(),
+      };
+      db = {
+        ...db,
+        curiositySkips: [...(db.curiositySkips ?? []), row],
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const restoreDiscoverSkip = useCallback(
+    async (questionId: string) => {
+      if (!user || !couple) return;
+      db = {
+        ...db,
+        curiositySkips: (db.curiositySkips ?? []).filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.userId === user.id &&
+              row.questionId === questionId
+            )
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
   );
 
   const drawTalkQuestion = useCallback(
@@ -4643,6 +4790,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkInRequests,
     incomingCheckInRequest,
     curiosityAnswers,
+    curiositySkips,
     curiosityMatchScore,
     talkDecks,
     talkDraws,
@@ -4699,6 +4847,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitCheckIn,
     requestCheckIn,
     submitCuriosity,
+    submitDiscoverAnswer,
+    skipDiscover,
+    restoreDiscoverSkip,
     drawTalkQuestion,
     shuffleTalkQuestion,
     submitTalkAnswer,

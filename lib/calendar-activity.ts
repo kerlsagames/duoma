@@ -403,7 +403,7 @@ export function buildCalendarActivities(
       kind: "curiosity",
       dateKey: date,
       at: latest?.createdAt ?? `${date}T12:00:00.000Z`,
-      title: "Curiosity question",
+      title: answers.length > 1 ? `Discover · ${answers.length} cards` : "Discover",
       subtitle: question?.question?.slice(0, 80) ?? `${answers.length} answer(s)`,
       mark: "curiosity",
       href: `/hub/calendar-item?kind=curiosity&id=${encodeURIComponent(date)}`,

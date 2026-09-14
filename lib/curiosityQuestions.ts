@@ -1,4 +1,5 @@
 import type { CuriosityCategory, CuriosityQuestion } from "@/lib/types";
+import { discoverQuestionById } from "@/lib/discover-questions";
 
 export type { CuriosityQuestion };
 export type CuriosityCategoryId = CuriosityCategory;
@@ -2174,6 +2175,15 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
 ] as CuriosityQuestion[];
 
 export function curiosityQuestionById(id: string): CuriosityQuestion | null {
+  const discover = discoverQuestionById(id);
+  if (discover) {
+    return {
+      id: discover.id,
+      question: discover.prompt,
+      options: [],
+      category: "deep",
+    };
+  }
   return CURIOSITY_QUESTIONS.find((row) => row.id === id) ?? null;
 }
 

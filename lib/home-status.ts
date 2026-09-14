@@ -223,40 +223,51 @@ export function buildHomeNotifications(input: {
     });
   }
 
-  const myCuriosity = input.curiosityAnswers.find(
-    (row) => row.userId === myId && row.date === today && isCuriosityComplete(row)
-  );
-  const partnerCuriosity = input.curiosityAnswers.find(
+  const theirToday = input.curiosityAnswers.filter(
     (row) =>
       row.userId === input.partner?.id &&
       row.date === today &&
       isCuriosityComplete(row)
   );
-  if (partnerCuriosity && !myCuriosity) {
+  const myQuestionIds = new Set(
+    input.curiosityAnswers
+      .filter((row) => row.userId === myId && isCuriosityComplete(row))
+      .map((row) => row.questionId)
+  );
+  const waitingOnMe = theirToday.filter((row) => !myQuestionIds.has(row.questionId));
+  const myToday = input.curiosityAnswers.filter(
+    (row) => row.userId === myId && row.date === today && isCuriosityComplete(row)
+  );
+  if (waitingOnMe.length) {
+    const latest = waitingOnMe.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
-      id: `curiosity-${partnerCuriosity.id}`,
-      line: "Curiosity sync · their turn is in",
-      when: recentWhen(partnerCuriosity.createdAt),
-      href: "/hub/curiosity",
-      sortAt: Date.parse(partnerCuriosity.createdAt) || now,
+      id: `curiosity-${latest.id}`,
+      line:
+        waitingOnMe.length === 1
+          ? "Discover · they answered a card"
+          : `Discover · ${waitingOnMe.length} cards waiting on you`,
+      when: recentWhen(latest.createdAt),
+      href: "/hub/discover",
+      sortAt: Date.parse(latest.createdAt) || now,
     });
-  } else if (partnerCuriosity && myCuriosity) {
+  } else if (myToday.length && theirToday.length) {
+    const latest = [...theirToday, ...myToday]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
-      id: `curiosity-both-${partnerCuriosity.id}`,
-      line: "Curiosity match results are in",
-      when: recentWhen(
-        [partnerCuriosity.createdAt, myCuriosity.createdAt].sort().slice(-1)[0]
-      ),
-      href: "/hub/curiosity",
-      sortAt: Date.parse(partnerCuriosity.createdAt) || now,
+      id: `curiosity-both-${latest.id}`,
+      line: "Discover vault has new answers",
+      when: recentWhen(latest.createdAt),
+      href: "/hub/discover",
+      sortAt: Date.parse(latest.createdAt) || now,
     });
-  } else if (myCuriosity && !partnerCuriosity) {
+  } else if (myToday.length) {
+    const latest = myToday.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
-      id: `curiosity-waiting-${myCuriosity.id}`,
-      line: "Curiosity · waiting on them",
-      when: recentWhen(myCuriosity.createdAt),
-      href: "/hub/curiosity",
-      sortAt: Date.parse(myCuriosity.createdAt) || now,
+      id: `curiosity-waiting-${latest.id}`,
+      line: "Discover · waiting on them",
+      when: recentWhen(latest.createdAt),
+      href: "/hub/discover",
+      sortAt: Date.parse(latest.createdAt) || now,
     });
   }
 

@@ -23,7 +23,7 @@ const MARK_COLOR: Record<CalendarMark, string> = {
   dare: "#C23B55",
   coupon: "#B8860B",
   jar: "#8B5A2B",
-  curiosity: "#3D7EA6",
+  curiosity: "#C084D4",
   custom: "#16181D",
   birthday: "#E07A8A",
   trip: "#1E4D8C",

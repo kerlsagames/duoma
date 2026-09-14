@@ -46,8 +46,8 @@ module.exports = async function handler(req, res) {
   }
   const results = await sendToMany(rows.map(asSubscription), {
     title: "Duoma",
-    body: "Today's curiosity question is waiting for both of you.",
-    url: "/hub/curiosity",
+    body: "A Discover card is waiting. Swipe as many as you want today.",
+    url: "/hub/discover",
   });
   res.status(200).json({
     ok: true,

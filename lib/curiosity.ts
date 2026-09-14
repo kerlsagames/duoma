@@ -18,12 +18,13 @@ export function curiosityFor(coupleId: string, date: string) {
 }
 
 export function isCuriosityComplete(row: CuriosityAnswer | null | undefined): boolean {
-  return Boolean(
-    row &&
-      row.answerIndex != null &&
-      row.guessIndex != null &&
-      row.answerIndex >= 0 &&
-      row.guessIndex >= 0
+  if (!row) return false;
+  if (row.body?.trim()) return true;
+  return (
+    row.answerIndex != null &&
+    row.guessIndex != null &&
+    row.answerIndex >= 0 &&
+    row.guessIndex >= 0
   );
 }
 

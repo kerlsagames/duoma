@@ -190,7 +190,7 @@ export function deriveAutoLogs(input: Omit<IntimacyFuelInput, "stored">): Intima
         sourceId: `connect:curiosity:${row.id}`,
         userId: row.userId,
         kind: "connect",
-        note: "Curiosity question",
+        note: "Discover",
         date: row.date || safeDateKey(row.createdAt, localDateKey()),
         createdAt: row.createdAt,
       })

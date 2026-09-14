@@ -350,33 +350,63 @@ export default function CalendarItemScreen() {
 
   if (kind === "curiosity") {
     const answers = curiosityAnswers.filter((item) => item.date === id);
-    const question = curiosityQuestionById(answers[0]?.questionId ?? "");
+    const byQuestion = new Map<string, typeof answers>();
+    for (const answer of answers) {
+      const list = byQuestion.get(answer.questionId) ?? [];
+      list.push(answer);
+      byQuestion.set(answer.questionId, list);
+    }
+    const groups = [...byQuestion.entries()];
+    const headline =
+      groups.length === 1
+        ? curiosityQuestionById(groups[0]![0])?.question ?? "Discover"
+        : `${groups.length} Discover cards`;
     return (
       <Screen scroll background={T.background}>
-        <Block kicker="Curiosity" title={question?.question ?? "Curiosity question"}>
+        <Block kicker="Discover" title={headline}>
           <Meta>{formatLongDate(id)}</Meta>
-          <Panel>
-            {answers.length === 0 ? (
+          {groups.length === 0 ? (
+            <Panel>
               <Text style={{ color: T.muted }}>No answers saved.</Text>
-            ) : (
-              answers.map((answer) => (
-                <View key={answer.id} style={{ gap: 4, marginBottom: 8 }}>
-                  <Text style={{ fontWeight: "700", color: T.ink }}>
-                    {nameFor(answer.userId)}
-                  </Text>
-                  <Text style={{ color: T.muted }}>
-                    {answer.body ||
-                      (answer.answerIndex != null && question
-                        ? question.options[answer.answerIndex]
-                        : "Answered")}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: "rgba(22,24,29,0.45)" }}>
-                    {formatClockTime(answer.createdAt)}
-                  </Text>
-                </View>
-              ))
-            )}
-          </Panel>
+            </Panel>
+          ) : (
+            groups.map(([questionId, rows]) => {
+              const question = curiosityQuestionById(questionId);
+              return (
+                <Panel key={questionId}>
+                  {groups.length > 1 ? (
+                    <Text
+                      style={{
+                        fontWeight: "700",
+                        color: T.ink,
+                        marginBottom: 8,
+                        fontSize: 16,
+                        lineHeight: 22,
+                      }}
+                    >
+                      {question?.question ?? "Discover card"}
+                    </Text>
+                  ) : null}
+                  {rows.map((answer) => (
+                    <View key={answer.id} style={{ gap: 4, marginBottom: 8 }}>
+                      <Text style={{ fontWeight: "700", color: T.ink }}>
+                        {nameFor(answer.userId)}
+                      </Text>
+                      <Text style={{ color: T.muted }}>
+                        {answer.body ||
+                          (answer.answerIndex != null && question
+                            ? question.options[answer.answerIndex]
+                            : "Answered")}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: "rgba(22,24,29,0.45)" }}>
+                        {formatClockTime(answer.createdAt)}
+                      </Text>
+                    </View>
+                  ))}
+                </Panel>
+              );
+            })
+          )}
         </Block>
       </Screen>
     );

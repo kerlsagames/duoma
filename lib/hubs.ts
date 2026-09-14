@@ -84,10 +84,10 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "curiosity",
-        label: "Curiosity Deck",
-        detail: "Daily curiosity questions",
+        label: "Discover",
+        detail: "Swipe shuffled questions. Answers go in the vault.",
         icon: "sparkles",
-        href: "/hub/curiosity",
+        href: "/hub/discover",
       },
       {
         id: "talk",

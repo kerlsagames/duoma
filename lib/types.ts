@@ -189,6 +189,15 @@ export type CheckInRequest = {
 
 export type CuriosityCategory = "flirty" | "fun" | "life" | "deep";
 
+/** Skip on the Discover swipe deck — card leaves the pile until restored. */
+export type CuriositySkip = {
+  id: string;
+  coupleId: string;
+  userId: string;
+  questionId: string;
+  createdAt: string;
+};
+
 export type CuriosityQuestion = {
   id: string;
   question: string;
@@ -635,6 +644,7 @@ export type AppDB = {
   checkIns: CheckIn[];
   checkInRequests: CheckInRequest[];
   curiosityAnswers: CuriosityAnswer[];
+  curiositySkips: CuriositySkip[];
   milestones: Milestone[];
   desireToggles: DesireToggle[];
   fantasySwipes: FantasySwipe[];

@@ -429,3 +429,26 @@ const GOALS_TONE_BASE = {
 } as const;
 
 export const GOALS_TONE = liveTone("home-base", GOALS_TONE_BASE, GOALS_TONE_BASE.accent);
+
+/** Pastel lilac deck for Discover. */
+const DISCOVER_TONE_BASE = {
+  background: "#F4EEF8",
+  surface: "#FFFBFE",
+  surfaceRaised: "#FFFFFF",
+  accent: "#C084D4",
+  accentSoft: "rgba(192,132,212,0.18)",
+  blush: "#F3B6C8",
+  mint: "#A8D5C4",
+  ink: "#3D2E4A",
+  muted: "rgba(61,46,74,0.58)",
+  dim: "rgba(61,46,74,0.38)",
+  border: "rgba(192,132,212,0.28)",
+  skip: "#E8A0B4",
+  talk: "#7EBEA8",
+} as const;
+
+export const DISCOVER_TONE = liveTone(
+  "connect",
+  DISCOVER_TONE_BASE,
+  DISCOVER_TONE_BASE.accent
+);

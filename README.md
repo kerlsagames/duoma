@@ -9,9 +9,9 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 ## What works in this slice
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
-- **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, curiosity answers, and a ready jar hit the other lock screen.
+- **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, Discover answers, and a ready jar hit the other lock screen.
 - **Home** — Daily Check-In, Calendar, four hubs, and a dotted favorites strip. Shared world is off until you add it in Home settings.
-- **Connect** — Lists, Date Night Generator (400 ideas — spin or search, save to To-do, tick off, ask them tonight), Curiosity, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
+- **Connect** — Lists, Date Night Generator (400 ideas — spin or search, save to To-do, tick off, ask them tonight), Discover (swipe shuffled questions into a vault), Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Thought-of-You Pings.
 - **Desire** — Get Spicy, Dare Me (18 categories, 200 dares), Roleplays (cartoon stills under each scene), Positions (save to To-do, tick off, ask them tonight), Fantasy Matcher (swipe deck, To-do, Completed, Passed), Intimacy Streak (the fire grows with dares, spicy nights, pings & Connect), The Sexy Vault (shared pin, photo/video, optional hide-until).
 - **Fun** — Coupons, How Well Do You Know Me (10 packs, scoreboard home), LoveBetz (propose a slip, they accept), Photo Memory (one weekly shot, shuffle until you lock it, clothesline gallery), Draw It, Scoreboard, Daily Word, Fair Share (spin a chore or tap who did it last).
 - **Home Base** — Groceries & Errands, Birthdays (family & friends, onto the home calendar), Meal Plan (post-it week, regulars, feeling lucky), Travel itinerary, Shared Goals (long-term on top, short-term list), Shared Budget (weekly or fortnight pay, bills, spending), Household maintenance, Emergency vault, Period Tracker. Each hub opens as two columns; the cog can hide, reorder, or switch to a list. Couple settings (notifications, card bank, pair code, sign out) live on the Home cog.

@@ -15,7 +15,7 @@ export default function SanctuaryScreen() {
       id: "living",
       title: "Living room & porch",
       open: living,
-      need: "Answer 5 curiosity questions, or just start together.",
+      need: "Answer 5 Discover cards, or just start together.",
       body: "The cabin is lit. The porch faces the garden you haven't planted yet.",
     },
     {
