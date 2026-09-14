@@ -1,3 +1,5 @@
+import type { ComponentProps } from "react";
+import type { Ionicons } from "@expo/vector-icons";
 import {
   emptyBirthdays,
   hydrateBirthdays,
@@ -361,10 +363,13 @@ export type MiniState = {
   worldChoice: WorldChoice;
 };
 
+type PingIcon = ComponentProps<typeof Ionicons>["name"];
+
 export const PING_KINDS: {
   id: PingKind;
   label: string;
   emoji: string;
+  icon: PingIcon;
   color: string;
   blurb: string;
 }[] = [
@@ -372,6 +377,7 @@ export const PING_KINDS: {
     id: "heart",
     label: "Thinking of you",
     emoji: "♡",
+    icon: "heart",
     color: "#FF6B9A",
     blurb: "A quiet pulse. No reply needed.",
   },
@@ -379,6 +385,7 @@ export const PING_KINDS: {
     id: "kiss",
     label: "Kiss incoming",
     emoji: "💋",
+    icon: "rose",
     color: "#FF4D6A",
     blurb: "Plant one on their lock screen.",
   },
@@ -386,6 +393,7 @@ export const PING_KINDS: {
     id: "miss",
     label: "I miss you",
     emoji: "🌙",
+    icon: "moon",
     color: "#8FA8C8",
     blurb: "Soft ache, not a guilt trip.",
   },
@@ -393,6 +401,7 @@ export const PING_KINDS: {
     id: "laugh",
     label: "That was funny",
     emoji: "✦",
+    icon: "sparkles",
     color: "#F0C75E",
     blurb: "You just remembered a bit.",
   },
@@ -400,6 +409,7 @@ export const PING_KINDS: {
     id: "home",
     label: "Come home",
     emoji: "⌂",
+    icon: "home",
     color: "#3ECFBF",
     blurb: "The couch is colder without you.",
   },
@@ -407,6 +417,7 @@ export const PING_KINDS: {
     id: "spicy",
     label: "Later…",
     emoji: "◆",
+    icon: "flame",
     color: "#FF7A45",
     blurb: "A raised eyebrow in haptic form.",
   },
@@ -414,6 +425,7 @@ export const PING_KINDS: {
     id: "hug",
     label: "Need a hug",
     emoji: "◎",
+    icon: "people",
     color: "#C9A0DC",
     blurb: "Arms-open, no explanation.",
   },
