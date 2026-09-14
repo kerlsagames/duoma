@@ -1,6 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import {
   DEMO_KNOW_ME_PACKS,
@@ -21,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 const BG = "#08060C";
-const NEON = "#F6E27A";
+const neon = () => sectionAccent("play", "#F6E27A");
 const PINK = "#FF3D8B";
 const MUTED = "rgba(255,246,216,0.58)";
 
@@ -188,7 +189,7 @@ export default function TriviaScreen() {
 
   return (
     <Screen scroll background={BG} scrollRef={scrollRef}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={NEON}>
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={neon()}>
         {view !== "hub" ? (
           <Pressable
             onPress={() => {
@@ -202,7 +203,7 @@ export default function TriviaScreen() {
             }}
             className="mb-3 flex-row items-center"
           >
-            <Ionicons name="chevron-back" size={18} color={NEON} />
+            <Ionicons name="chevron-back" size={18} color={neon()} />
             <Text
               style={{
                 marginLeft: 4,
@@ -210,7 +211,7 @@ export default function TriviaScreen() {
                 fontSize: 11,
                 letterSpacing: 1.4,
                 textTransform: "uppercase",
-                color: NEON,
+                color: neon(),
               }}
             >
               {view === "answer"
@@ -275,7 +276,7 @@ export default function TriviaScreen() {
             />
           ) : (
             <View>
-              <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: NEON }}>
+              <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: neon() }}>
                 Guess {them}
               </Text>
               <View
@@ -336,7 +337,7 @@ export default function TriviaScreen() {
                       borderRadius: 16,
                       backgroundColor: on ? PINK : "#16101C",
                       borderWidth: 2,
-                      borderColor: on ? NEON : "#2A2030",
+                      borderColor: on ? neon() : "#2A2030",
                     }}
                   >
                     <Text style={{ color: on ? "#FFF" : "#EDE4F4", fontWeight: "700" }}>
@@ -360,7 +361,7 @@ export default function TriviaScreen() {
                     borderColor: "rgba(246,226,122,0.35)",
                   }}
                 >
-                  <Text style={{ color: NEON, fontWeight: "700" }}>Back</Text>
+                  <Text style={{ color: neon(), fontWeight: "700" }}>Back</Text>
                 </Pressable>
               ) : null}
               <Pressable
@@ -372,7 +373,7 @@ export default function TriviaScreen() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: 14,
-                  backgroundColor: canAdvance ? NEON : "#2A2030",
+                  backgroundColor: canAdvance ? neon() : "#2A2030",
                   opacity: canAdvance ? 1 : 0.55,
                 }}
               >
@@ -434,7 +435,7 @@ function HubHome({
           fontSize: 11,
           letterSpacing: 2.4,
           textTransform: "uppercase",
-          color: NEON,
+          color: neon(),
         }}
       >
         How well do you know me
@@ -445,7 +446,7 @@ function HubHome({
           fontFamily: SERIF,
           fontSize: 34,
           lineHeight: 40,
-          color: NEON,
+          color: neon(),
         }}
       >
         Scoreboard
@@ -459,7 +460,7 @@ function HubHome({
           marginTop: 18,
           borderRadius: 8,
           borderWidth: 3,
-          borderColor: NEON,
+          borderColor: neon(),
           backgroundColor: "#140C18",
           padding: 16,
         }}
@@ -539,7 +540,7 @@ function StatRow({
       </Text>
       {stats.asked ? (
         <>
-          <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 40, color: NEON }}>
+          <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 40, color: neon() }}>
             {stats.correct}
             <Text style={{ fontSize: 22, color: MUTED }}> / {stats.asked}</Text>
           </Text>
@@ -572,7 +573,7 @@ function Door({
   badge?: number;
   onPress: () => void;
 }) {
-  const accent = hot ? PINK : NEON;
+  const accent = hot ? PINK : neon();
   return (
     <Pressable
       onPress={onPress}
@@ -646,7 +647,7 @@ function PackGrid({
 }) {
   return (
     <View>
-      <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: NEON }}>{title}</Text>
+      <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: neon() }}>{title}</Text>
       <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: MUTED }}>
         {subtitle}
       </Text>
@@ -742,7 +743,7 @@ function ResultBoard({
       <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 22, color: MUTED }}>
         Final score
       </Text>
-      <Text style={{ fontFamily: SERIF, fontSize: 84, lineHeight: 90, color: NEON }}>
+      <Text style={{ fontFamily: SERIF, fontSize: 84, lineHeight: 90, color: neon() }}>
         {result.score}
         <Text style={{ fontSize: 28, color: MUTED }}>/10</Text>
       </Text>
@@ -768,7 +769,7 @@ function ResultBoard({
                   marginTop: 6,
                   fontFamily: SERIF,
                   fontSize: 15,
-                  color: ok ? NEON : PINK,
+                  color: ok ? neon() : PINK,
                 }}
               >
                 {ok ? "You got it — " : "They said — "}
@@ -790,7 +791,7 @@ function ResultBoard({
           marginTop: 18,
           height: 52,
           borderRadius: 14,
-          backgroundColor: NEON,
+          backgroundColor: neon(),
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -798,7 +799,7 @@ function ResultBoard({
         <Text style={{ color: "#1A1008", fontWeight: "900" }}>Guess another pack</Text>
       </Pressable>
       <Pressable onPress={onHub} style={{ marginTop: 12, alignItems: "center", padding: 10 }}>
-        <Text style={{ color: NEON, fontFamily: "SpaceMono", fontSize: 12, letterSpacing: 1 }}>
+        <Text style={{ color: neon(), fontFamily: "SpaceMono", fontSize: 12, letterSpacing: 1 }}>
           BACK TO THE SCOREBOARD
         </Text>
       </Pressable>

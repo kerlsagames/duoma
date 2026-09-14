@@ -3,6 +3,7 @@ import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { Chore } from "@/lib/mini-content";
@@ -16,7 +17,7 @@ import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native
 const BG = "#0C1410";
 const PINK = "#FF6B9A";
 const BLUE = "#5B8CFF";
-const TEAL = "#3ECFBF";
+const teal = () => sectionAccent("play", "#3ECFBF");
 
 type Tab = "spin" | "last";
 
@@ -165,14 +166,14 @@ export default function FairShareScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/play" as Href} accent={TEAL}>
+        <Stage background={BG} fallback={"/hub/play" as Href} accent={teal()}>
           <Text
             style={{
               textAlign: "center",
               fontFamily: "SpaceMono",
               fontSize: 11,
               letterSpacing: 2,
-              color: TEAL,
+              color: teal(),
             }}
           >
             FUN
@@ -224,7 +225,7 @@ export default function FairShareScreen() {
                   borderRadius: 11,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: tab === id ? TEAL : "transparent",
+                  backgroundColor: tab === id ? teal() : "transparent",
                 }}
               >
                 <Text
@@ -259,7 +260,7 @@ export default function FairShareScreen() {
                   marginTop: 32,
                   height: 52,
                   borderRadius: 14,
-                  backgroundColor: TEAL,
+                  backgroundColor: teal(),
                   alignItems: "center",
                   justifyContent: "center",
                   opacity: spinning || !chore || people.length === 0 ? 0.6 : 1,
@@ -422,7 +423,7 @@ export default function FairShareScreen() {
                 height: 48,
                 paddingHorizontal: 16,
                 borderRadius: 14,
-                backgroundColor: TEAL,
+                backgroundColor: teal(),
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: draft.trim() ? 1 : 0.45,
@@ -431,7 +432,7 @@ export default function FairShareScreen() {
               <Text style={{ color: "#062016", fontWeight: "800" }}>Add</Text>
             </Pressable>
           </View>
-          {!ready ? <Text style={{ color: TEAL }}>Oiling the wheel…</Text> : null}
+          {!ready ? <Text style={{ color: teal() }}>Oiling the wheel…</Text> : null}
         </Stage>
       </Screen>
 
@@ -557,7 +558,7 @@ function ShareTable({
                 style={{
                   fontFamily: SERIF,
                   fontSize: 17,
-                  color: selected ? TEAL : "#E8FFF8",
+                  color: selected ? teal() : "#E8FFF8",
                 }}
                 numberOfLines={2}
               >

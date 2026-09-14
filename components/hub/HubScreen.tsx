@@ -15,6 +15,8 @@ type Props = {
   showBack?: boolean;
   /** Defaults to true. Set false to lock the page to one screen. */
   scroll?: boolean;
+  /** Override the tone accent (and kicker) with a hub colour. */
+  accent?: string;
 };
 
 export function HubScreen({
@@ -26,16 +28,18 @@ export function HubScreen({
   headerRight,
   showBack = true,
   scroll = true,
+  accent,
 }: Props) {
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
+  const color = accent ?? theme.accent;
 
   return (
     <Screen scroll={scroll} background={theme.background}>
       <View className={scroll ? "pt-4 pb-6" : "flex-1 pt-3 pb-3"}>
         {showBack ? (
           <BackButton
-            color={theme.accent}
+            color={color}
             style={{ marginBottom: scroll ? 14 : 8 }}
           />
         ) : null}
@@ -54,7 +58,7 @@ export function HubScreen({
               fontWeight: "600",
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: theme.kicker,
+              color: accent ?? theme.kicker,
               fontFamily: tone === "talk" ? "SpaceMono" : undefined,
             }}
           >

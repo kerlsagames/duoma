@@ -17,13 +17,14 @@ import {
   type DateVibeTag,
 } from "@/lib/dateIdeas";
 import { formatLongDate } from "@/lib/dates";
+import { sectionAccent } from "@/lib/hub-theme";
 import { useApp } from "@/lib/store";
 import type { BucketKind } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const ACCENT = "#FF6B9A";
+const accent = () => sectionAccent("connect", "#FF6B9A");
 const KINDS: BucketKind[] = ["place", "meal", "trip", "other"];
 
 const COST_LABEL: Record<DateCostTag, string> = {
@@ -86,7 +87,7 @@ function FilterRow<T extends string>({
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderWidth: 1,
-                borderColor: on ? ACCENT : "rgba(255,255,255,0.12)",
+                borderColor: on ? accent() : "rgba(255,255,255,0.12)",
                 backgroundColor: on ? "rgba(255,107,154,0.18)" : "rgba(255,255,255,0.04)",
               }}
             >
@@ -175,6 +176,7 @@ export default function PlannerScreen() {
       kicker="Connect · Date night"
       title="Date Night Generator"
       body="400 ideas. Spin one, or search the whole list."
+      accent={accent()}
     >
       <Text
         style={{
@@ -229,7 +231,7 @@ export default function PlannerScreen() {
               fontWeight: "700",
               letterSpacing: 2,
               textTransform: "uppercase",
-              color: ACCENT,
+              color: accent(),
             }}
           >
             Tonight&apos;s pick
@@ -294,8 +296,8 @@ export default function PlannerScreen() {
               gap: 6,
             }}
           >
-            <Ionicons name="bookmark-outline" size={16} color={ACCENT} />
-            <Text style={{ color: ACCENT, fontWeight: "700", fontSize: 14 }}>
+            <Ionicons name="bookmark-outline" size={16} color={accent()} />
+            <Text style={{ color: accent(), fontWeight: "700", fontSize: 14 }}>
               Save to our list
             </Text>
           </Pressable>
@@ -473,7 +475,7 @@ export default function PlannerScreen() {
                 padding: 14,
               }}
             >
-              <Text style={{ color: ACCENT, fontSize: 11, fontWeight: "700" }}>
+              <Text style={{ color: accent(), fontSize: 11, fontWeight: "700" }}>
                 SAVED SPIN
               </Text>
               <Text
@@ -548,7 +550,7 @@ export default function PlannerScreen() {
                     </Text>
                   ) : null}
                   <Pressable onPress={() => void markBucketDone(item.id)}>
-                    <Text style={{ marginTop: 10, color: ACCENT, fontSize: 13 }}>
+                    <Text style={{ marginTop: 10, color: accent(), fontSize: 13 }}>
                       Mark done
                     </Text>
                   </Pressable>

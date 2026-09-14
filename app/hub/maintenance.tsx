@@ -2,6 +2,7 @@ import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { localDateKey } from "@/lib/dates";
 import { createId } from "@/lib/ids";
 import {
@@ -21,7 +22,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 const BG = "#2A2418";
-const PEG = "#C4A574";
+const peg = () => sectionAccent("home-base", "#C4A574");
 const PAPER = "#F3E2C0";
 const INK = "#2A1C10";
 const MUTED = "rgba(196,165,116,0.7)";
@@ -78,7 +79,7 @@ export default function MaintenanceScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/home-base" as Href} accent={PEG}>
+        <Stage background={BG} fallback={"/hub/home-base" as Href} accent={peg()}>
           <View
             style={{
               flexDirection: "row",
@@ -102,7 +103,7 @@ export default function MaintenanceScreen() {
                   marginTop: 4,
                   fontFamily: SERIF,
                   fontSize: 30,
-                  color: PEG,
+                  color: peg(),
                 }}
               >
                 Maintenance
@@ -133,12 +134,12 @@ export default function MaintenanceScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="settings-outline" size={20} color={PEG} />
+              <Ionicons name="settings-outline" size={20} color={peg()} />
             </Pressable>
           </View>
 
           {!ready ? (
-            <Text style={{ marginTop: 16, color: PEG }}>Finding the hammer…</Text>
+            <Text style={{ marginTop: 16, color: peg() }}>Finding the hammer…</Text>
           ) : sorted.length === 0 ? (
             <Text
               style={{
@@ -175,11 +176,11 @@ export default function MaintenanceScreen() {
               placeholderTextColor="rgba(196,165,116,0.35)"
               style={{
                 flex: 1,
-                color: PEG,
+                color: peg(),
                 fontFamily: HANDWRITING,
                 fontSize: 18,
                 borderBottomWidth: 1,
-                borderBottomColor: PEG,
+                borderBottomColor: peg(),
                 paddingVertical: 6,
               }}
             />
@@ -190,9 +191,9 @@ export default function MaintenanceScreen() {
               accessibilityLabel="Repeat every days"
               style={{
                 width: 56,
-                color: PEG,
+                color: peg(),
                 borderBottomWidth: 1,
-                borderBottomColor: PEG,
+                borderBottomColor: peg(),
                 paddingVertical: 6,
                 textAlign: "center",
               }}
@@ -292,13 +293,13 @@ function ListRow({
           width: 28,
           height: 28,
           borderWidth: 1.5,
-          borderColor: late ? "#E8A0A0" : PEG,
+          borderColor: late ? "#E8A0A0" : peg(),
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         {late ? null : (
-          <Ionicons name="checkmark" size={16} color={PEG} />
+          <Ionicons name="checkmark" size={16} color={peg()} />
         )}
       </Pressable>
       <View style={{ flex: 1 }}>
@@ -541,7 +542,7 @@ function SettingsSheet({
                     Every {idea.everyDays} days
                   </Text>
                 </View>
-                <Ionicons name="add" size={18} color={PEG} />
+                <Ionicons name="add" size={18} color={peg()} />
               </Pressable>
             ))
           )}
@@ -570,7 +571,7 @@ function Choice({
         paddingVertical: 12,
         paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: on ? PEG : "rgba(196,165,116,0.18)",
+        borderColor: on ? peg() : "rgba(196,165,116,0.18)",
         backgroundColor: on ? "rgba(196,165,116,0.12)" : "transparent",
       }}
     >

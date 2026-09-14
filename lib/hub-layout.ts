@@ -1,3 +1,4 @@
+import { applyHubTheme, useHubThemes } from "@/lib/hub-theme";
 import { HUBS, hubById, type HubDef, type HubFeature, type HubId } from "@/lib/hubs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
@@ -197,7 +198,9 @@ export async function patchHubLayout(
 }
 
 export function useHubLayout(hubId: HubId) {
-  const hub = hubById(hubId) ?? HUBS[0]!;
+  const hubBase = hubById(hubId) ?? HUBS[0]!;
+  const themes = useHubThemes();
+  const hub = applyHubTheme(hubBase, themes[hubId]);
   const [layout, setLayout] = useState<HubLayout>(
     cache?.[hubId] ?? defaultHubLayout()
   );

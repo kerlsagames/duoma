@@ -3,6 +3,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
@@ -35,7 +36,7 @@ import {
 } from "react-native";
 
 const BG = "#10060A";
-const GOLD = "#E4B56A";
+const gold = () => sectionAccent("desire", "#E4B56A");
 const ROSE = "#FF6B8A";
 const INK = "#F6E7DC";
 
@@ -206,7 +207,7 @@ export default function SexyVaultScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/desire" as Href} accent={GOLD}>
+      <Stage background={BG} fallback={"/hub/desire" as Href} accent={gold()}>
         {!data.sexyVaultPin ? (
           <PinSetup
             pinDraft={pinDraft}
@@ -336,7 +337,7 @@ function PinSetup({
 }) {
   return (
     <View style={{ alignItems: "center", paddingTop: 12 }}>
-      <Text style={{ fontFamily: SERIF, fontSize: 34, color: GOLD }}>The Sexy Vault</Text>
+      <Text style={{ fontFamily: SERIF, fontSize: 34, color: gold() }}>The Sexy Vault</Text>
       <Text
         style={{
           marginTop: 8,
@@ -360,7 +361,7 @@ function PinSetup({
         secureTextEntry
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle}
+        style={pinStyle()}
       />
       <TextInput
         value={pinConfirm}
@@ -370,9 +371,9 @@ function PinSetup({
         secureTextEntry
         placeholder="again"
         placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle}
+        style={pinStyle()}
       />
-      <Pressable onPress={onSave} style={goldBtn}>
+      <Pressable onPress={onSave} style={goldBtn()}>
         <Text style={goldBtnText}>Set the pin</Text>
       </Pressable>
       {error ? <Text style={errText}>{error}</Text> : null}
@@ -405,9 +406,9 @@ function PinGate({
           justifyContent: "center",
         }}
       >
-        <Ionicons name="lock-closed" size={42} color={GOLD} />
+        <Ionicons name="lock-closed" size={42} color={gold()} />
       </View>
-      <Text style={{ marginTop: 18, fontFamily: SERIF, fontSize: 28, color: GOLD }}>
+      <Text style={{ marginTop: 18, fontFamily: SERIF, fontSize: 28, color: gold() }}>
         Locked
       </Text>
       <Text style={{ marginTop: 6, fontFamily: HANDWRITING, fontSize: 18, color: ROSE }}>
@@ -421,10 +422,10 @@ function PinGate({
         secureTextEntry
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle}
+        style={pinStyle()}
         onSubmitEditing={onUnlock}
       />
-      <Pressable onPress={onUnlock} style={goldBtn}>
+      <Pressable onPress={onUnlock} style={goldBtn()}>
         <Text style={goldBtnText}>Open the vault</Text>
       </Pressable>
       {error ? <Text style={errText}>{error}</Text> : null}
@@ -469,7 +470,7 @@ function VaultHome({
 }) {
   return (
     <View>
-      <Text style={{ fontFamily: SERIF, fontSize: 34, color: GOLD }}>The Sexy Vault</Text>
+      <Text style={{ fontFamily: SERIF, fontSize: 34, color: gold() }}>The Sexy Vault</Text>
       <Text
         style={{
           marginTop: 6,
@@ -480,7 +481,7 @@ function VaultHome({
       >
         just the two of you
       </Text>
-      <Pressable onPress={onLeave} style={[goldBtn, { marginTop: 22 }]}>
+      <Pressable onPress={onLeave} style={[goldBtn(), { marginTop: 22 }]}>
         <Text style={goldBtnText}>Leave a photo or clip</Text>
       </Pressable>
       <View style={{ marginTop: 18, flexDirection: "row", gap: 8 }}>
@@ -501,7 +502,7 @@ function VaultHome({
             secureTextEntry
             placeholder="new pin"
             placeholderTextColor="rgba(228,181,106,0.28)"
-            style={pinStyle}
+            style={pinStyle()}
           />
           <TextInput
             value={pinConfirm}
@@ -511,9 +512,9 @@ function VaultHome({
             secureTextEntry
             placeholder="again"
             placeholderTextColor="rgba(228,181,106,0.28)"
-            style={pinStyle}
+            style={pinStyle()}
           />
-          <Pressable onPress={onSavePin} style={goldBtn}>
+          <Pressable onPress={onSavePin} style={goldBtn()}>
             <Text style={goldBtnText}>Save new pin</Text>
           </Pressable>
         </View>
@@ -553,7 +554,7 @@ function VaultHome({
                           : "image"
                     }
                     size={20}
-                    color={locked ? GOLD : ROSE}
+                    color={locked ? gold() : ROSE}
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: INK, fontWeight: "700", fontSize: 15 }}>
@@ -634,7 +635,7 @@ function Compose({
 }) {
   return (
     <View>
-      <Text style={{ fontFamily: SERIF, fontSize: 30, color: GOLD }}>Leave something</Text>
+      <Text style={{ fontFamily: SERIF, fontSize: 30, color: gold() }}>Leave something</Text>
       <Text style={{ marginTop: 6, fontFamily: HANDWRITING, fontSize: 18, color: ROSE }}>
         for {them}
       </Text>
@@ -680,7 +681,7 @@ function Compose({
         <Ionicons
           name={hideUntil ? "time" : "time-outline"}
           size={20}
-          color={hideUntil ? GOLD : "rgba(246,231,220,0.5)"}
+          color={hideUntil ? gold() : "rgba(246,231,220,0.5)"}
         />
         <View style={{ flex: 1 }}>
           <Text style={{ color: INK, fontWeight: "700" }}>Stay hidden until a time</Text>
@@ -694,7 +695,7 @@ function Compose({
           value={revealLocal}
           min={toLocalDateTimeValue(new Date())}
           onChange={onReveal}
-          accent={GOLD}
+          accent={gold()}
           background="#1A0C12"
           ink={INK}
           border="rgba(228,181,106,0.32)"
@@ -703,7 +704,7 @@ function Compose({
       <Pressable
         onPress={onLeave}
         disabled={busy}
-        style={[goldBtn, { opacity: busy ? 0.6 : 1 }]}
+        style={[goldBtn(), { opacity: busy ? 0.6 : 1 }]}
       >
         <Text style={goldBtnText}>{busy ? "Locking it away…" : "Lock it in the vault"}</Text>
       </Pressable>
@@ -746,7 +747,7 @@ function Viewer({
 
   return (
     <View>
-      <Text style={{ fontFamily: SERIF, fontSize: 28, color: GOLD }}>
+      <Text style={{ fontFamily: SERIF, fontSize: 28, color: gold() }}>
         {mine ? "You left this" : `From ${them}`}
       </Text>
       {src ? (
@@ -767,7 +768,7 @@ function Viewer({
           {item.note}
         </Text>
       ) : null}
-      <Pressable onPress={onBack} style={[goldBtn, { marginTop: 22 }]}>
+      <Pressable onPress={onBack} style={[goldBtn(), { marginTop: 22 }]}>
         <Text style={goldBtnText}>Back to the vault</Text>
       </Pressable>
       {mine ? (
@@ -817,7 +818,7 @@ const lede = {
   textAlign: "center" as const,
 };
 
-const pinStyle = {
+const pinStyle = () => ({
   marginTop: 12,
   width: "100%" as const,
   height: 56,
@@ -825,20 +826,20 @@ const pinStyle = {
   borderWidth: 1,
   borderColor: "rgba(228,181,106,0.35)",
   backgroundColor: "#1A0C12",
-  color: GOLD,
+  color: gold(),
   textAlign: "center" as const,
   fontSize: 28,
   letterSpacing: 10,
-};
+});
 
-const goldBtn = {
+const goldBtn = () => ({
   marginTop: 16,
   height: 52,
   borderRadius: 16,
-  backgroundColor: GOLD,
+  backgroundColor: gold(),
   alignItems: "center" as const,
   justifyContent: "center" as const,
-};
+});
 
 const goldBtnText = {
   color: "#1A1008",

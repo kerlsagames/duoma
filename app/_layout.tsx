@@ -4,6 +4,7 @@ import { GameInvitationModal } from "@/components/GameInvitationModal";
 import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { AppProvider } from "@/lib/store";
+import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
 import { useFonts } from "expo-font";
 import Head from "expo-router/head";
@@ -54,6 +55,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507" }}>
       <SafeAreaProvider>
         <AppProvider>
+          <HubThemeProvider>
           <Head>
             <title>Duoma</title>
           </Head>
@@ -82,6 +84,7 @@ export default function RootLayout() {
               <GameInvitationModal />
             </View>
           </PhoneShell>
+          </HubThemeProvider>
           <StatusBar style="light" />
         </AppProvider>
       </SafeAreaProvider>

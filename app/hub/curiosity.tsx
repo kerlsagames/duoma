@@ -10,6 +10,7 @@ import {
 } from "@/lib/curiosity";
 import { dailyCuriosityQuestion } from "@/lib/curiosityQuestions";
 import { localDateKey } from "@/lib/dates";
+import { sectionAccent } from "@/lib/hub-theme";
 import { useApp } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -113,6 +114,7 @@ export default function CuriosityScreen() {
     <HubScreen
       kicker="Curiosity"
       scroll={false}
+      accent={sectionAccent("connect", "#FF007F")}
     >
       {!couple || !question ? (
         <Text className="text-[15px] leading-6 text-mist/65">

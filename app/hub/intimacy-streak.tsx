@@ -1,6 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { localDateKey } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
 import {
@@ -24,7 +25,7 @@ import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native
 import Svg, { Circle, Ellipse, Path } from "react-native-svg";
 
 const BG = "#140806";
-const HOT = "#FF6A3D";
+const hot = () => sectionAccent("desire", "#FF6A3D");
 
 function Campfire({ heat }: { heat: number }) {
   const flicker = useRef(new Animated.Value(0)).current;
@@ -230,7 +231,7 @@ export default function IntimacyStreakScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/desire" as Href} accent={HOT}>
+      <Stage background={BG} fallback={"/hub/desire" as Href} accent={hot()}>
         <Text
           style={{
             textAlign: "center",
@@ -247,7 +248,7 @@ export default function IntimacyStreakScreen() {
             textAlign: "center",
             fontFamily: SERIF,
             fontSize: 64,
-            color: HOT,
+            color: hot(),
             marginTop: -12,
           }}
         >
@@ -341,7 +342,7 @@ export default function IntimacyStreakScreen() {
                       width: 8,
                       height: 8,
                       borderRadius: 99,
-                      backgroundColor: meta?.color ?? HOT,
+                      backgroundColor: meta?.color ?? hot(),
                     }}
                   />
                   <Text style={{ flex: 1, color: "#FFD2B4", fontSize: 14 }}>
@@ -406,7 +407,7 @@ export default function IntimacyStreakScreen() {
             marginTop: 10,
             height: 52,
             borderRadius: 26,
-            backgroundColor: HOT,
+            backgroundColor: hot(),
             alignItems: "center",
             justifyContent: "center",
           }}

@@ -1,4 +1,4 @@
-import { HUBS, type HubFeature, type HubId } from "@/lib/hubs";
+import { HUBS, type HubDef, type HubFeature, type HubId } from "@/lib/hubs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const HOME_FAVORITES_KEY = "duoma:homeFavorites";
@@ -12,8 +12,8 @@ export type HubAppOption = HubFeature & {
   accent: string;
 };
 
-export function allHubApps(): HubAppOption[] {
-  return HUBS.flatMap((hub) =>
+export function allHubApps(hubs: readonly HubDef[] = HUBS): HubAppOption[] {
+  return hubs.flatMap((hub) =>
     hub.features.map((feature) => ({
       ...feature,
       hubId: hub.id,
@@ -23,8 +23,11 @@ export function allHubApps(): HubAppOption[] {
   );
 }
 
-export function hubAppById(featureId: string): HubAppOption | null {
-  return allHubApps().find((app) => app.id === featureId) ?? null;
+export function hubAppById(
+  featureId: string,
+  hubs: readonly HubDef[] = HUBS
+): HubAppOption | null {
+  return allHubApps(hubs).find((app) => app.id === featureId) ?? null;
 }
 
 export function emptyFavoriteSlots(): HomeFavoriteSlot[] {

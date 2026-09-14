@@ -1,6 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { everSolved } from "@/lib/daily-word";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -12,7 +13,7 @@ import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const BG = "#0A0C10";
-const AMBER = "#FFB000";
+const amber = () => sectionAccent("play", "#FFB000");
 
 type Icon = ComponentProps<typeof Ionicons>["name"];
 
@@ -49,7 +50,7 @@ export default function ScoreboardScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={AMBER}>
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={amber()}>
         <View
           style={{
             backgroundColor: "#11140A",
@@ -58,7 +59,7 @@ export default function ScoreboardScreen() {
             padding: 14,
           }}
         >
-          <Text style={{ color: AMBER, fontFamily: "SpaceMono", fontSize: 11, textAlign: "center" }}>
+          <Text style={{ color: amber(), fontFamily: "SpaceMono", fontSize: 11, textAlign: "center" }}>
             {you}  vs  THE WEEK  vs  {them}
           </Text>
           <Text
@@ -66,7 +67,7 @@ export default function ScoreboardScreen() {
               textAlign: "center",
               fontFamily: "SpaceMono",
               fontSize: 72,
-              color: AMBER,
+              color: amber(),
               letterSpacing: 4,
             }}
           >
@@ -86,21 +87,21 @@ export default function ScoreboardScreen() {
                 height: 72,
                 backgroundColor: badge.earned ? "#1A1608" : "#0E1014",
                 borderWidth: 1,
-                borderColor: badge.earned ? AMBER : "#222",
+                borderColor: badge.earned ? amber() : "#222",
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: badge.earned ? 1 : 0.35,
               }}
             >
-              <Ionicons name={badge.icon} size={18} color={AMBER} />
-              <Text style={{ marginTop: 4, color: AMBER, fontFamily: "SpaceMono", fontSize: 11 }}>
+              <Ionicons name={badge.icon} size={18} color={amber()} />
+              <Text style={{ marginTop: 4, color: amber(), fontFamily: "SpaceMono", fontSize: 11 }}>
                 {badge.label}
               </Text>
             </View>
           ))}
         </View>
 
-        <Text style={{ marginTop: 20, color: AMBER, fontFamily: SERIF, fontSize: 22 }}>
+        <Text style={{ marginTop: 20, color: amber(), fontFamily: SERIF, fontSize: 22 }}>
           Send a cheer from the stands
         </Text>
         <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -122,15 +123,15 @@ export default function ScoreboardScreen() {
                 paddingHorizontal: 10,
                 paddingVertical: 8,
                 borderWidth: 1,
-                borderColor: AMBER,
+                borderColor: amber(),
               }}
             >
-              <Text style={{ color: AMBER, fontFamily: "SpaceMono", fontSize: 11 }}>{label}</Text>
+              <Text style={{ color: amber(), fontFamily: "SpaceMono", fontSize: 11 }}>{label}</Text>
             </Pressable>
           ))}
         </View>
         {cheer ? (
-          <Text style={{ marginTop: 10, color: AMBER, fontFamily: "SpaceMono" }}>
+          <Text style={{ marginTop: 10, color: amber(), fontFamily: "SpaceMono" }}>
             NOW SHOWING: {cheer}
           </Text>
         ) : null}

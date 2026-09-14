@@ -1,7 +1,8 @@
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
-import { hubById, type HubId } from "@/lib/hubs";
+import { useThemedHub } from "@/lib/hub-theme";
+import { type HubId } from "@/lib/hubs";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import type { ComponentProps } from "react";
@@ -21,8 +22,8 @@ export function ComingSoonScreen({
   icon?: ComponentProps<typeof Ionicons>["name"];
   accent?: string;
 }) {
-  const hub = hubById(hubId);
-  const color = accent || hub?.accent || "#FF6B9A";
+  const hub = useThemedHub(hubId);
+  const color = hub?.accent ?? accent;
 
   return (
     <Screen scroll background="#0B0B0E">

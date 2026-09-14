@@ -2,6 +2,7 @@ import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { formatLongDate } from "@/lib/dates";
+import { sectionAccent } from "@/lib/hub-theme";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
   PHOTO_CATEGORIES,
@@ -36,7 +37,7 @@ import {
 } from "react-native";
 
 const BG = "#1A0A0A";
-const RED = "#C23B3B";
+const red = () => sectionAccent("play", "#C23B3B");
 const CREAM = "#F6EFE2";
 const INK = "#3A2A18";
 const PINK = "#F6D6D6";
@@ -75,7 +76,7 @@ export default function PhotoChallengesScreen() {
   if (!ready || !week) {
     return (
       <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/play" as Href} accent={RED}>
+        <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
           <Text
             style={{
               textAlign: "center",
@@ -203,7 +204,7 @@ export default function PhotoChallengesScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={RED}>
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
         <View
           style={{
             flexDirection: "row",
@@ -214,7 +215,7 @@ export default function PhotoChallengesScreen() {
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text
               style={{
-                color: RED,
+                color: red(),
                 fontFamily: "SpaceMono",
                 fontSize: 11,
                 letterSpacing: 3,
@@ -282,7 +283,7 @@ export default function PhotoChallengesScreen() {
                   fontFamily: "SpaceMono",
                   fontSize: 11,
                   letterSpacing: 2,
-                  color: RED,
+                  color: red(),
                 }}
               >
                 SETTINGS
@@ -321,7 +322,7 @@ export default function PhotoChallengesScreen() {
                     marginTop: 10,
                     padding: 12,
                     borderWidth: 1,
-                    borderColor: on ? RED : "rgba(246,214,214,0.18)",
+                    borderColor: on ? red() : "rgba(246,214,214,0.18)",
                     backgroundColor: on ? "rgba(194,59,59,0.18)" : "transparent",
                   }}
                 >
@@ -390,7 +391,7 @@ export default function PhotoChallengesScreen() {
                     marginTop: 10,
                     padding: 12,
                     borderWidth: 1,
-                    borderColor: selected ? RED : "rgba(246,214,214,0.18)",
+                    borderColor: selected ? red() : "rgba(246,214,214,0.18)",
                     backgroundColor: selected ? "rgba(194,59,59,0.18)" : "transparent",
                   }}
                 >
@@ -523,8 +524,8 @@ export default function PhotoChallengesScreen() {
                   height: 14,
                   borderRadius: 7,
                   borderWidth: 2,
-                  borderColor: RED,
-                  backgroundColor: used ? RED : "transparent",
+                  borderColor: red(),
+                  backgroundColor: used ? red() : "transparent",
                 }}
               />
             );
@@ -555,7 +556,7 @@ export default function PhotoChallengesScreen() {
                 style={{
                   height: 48,
                   borderWidth: 1,
-                  borderColor: RED,
+                  borderColor: red(),
                   alignItems: "center",
                   justifyContent: "center",
                   flexDirection: "row",
@@ -574,7 +575,7 @@ export default function PhotoChallengesScreen() {
                 onPress={() => void agree()}
                 style={{
                   height: 48,
-                  backgroundColor: RED,
+                  backgroundColor: red(),
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -591,7 +592,7 @@ export default function PhotoChallengesScreen() {
                   style={{
                     height: 48,
                     borderWidth: 1,
-                    borderColor: RED,
+                    borderColor: red(),
                     backgroundColor: draftImage ? "rgba(194,59,59,0.18)" : "transparent",
                     alignItems: "center",
                     justifyContent: "center",
@@ -615,7 +616,7 @@ export default function PhotoChallengesScreen() {
                   placeholderTextColor="rgba(246,214,214,0.3)"
                   style={{
                     borderBottomWidth: 1,
-                    borderBottomColor: RED,
+                    borderBottomColor: red(),
                     color: PINK,
                     fontFamily: HANDWRITING,
                     fontSize: 20,
@@ -627,7 +628,7 @@ export default function PhotoChallengesScreen() {
                   disabled={busy || !draftImage}
                   style={{
                     height: 48,
-                    backgroundColor: draftImage ? RED : "rgba(194,59,59,0.35)",
+                    backgroundColor: draftImage ? red() : "rgba(194,59,59,0.35)",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -655,7 +656,7 @@ export default function PhotoChallengesScreen() {
               onPress={() => void dealNext()}
               style={{
                 height: 48,
-                backgroundColor: RED,
+                backgroundColor: red(),
                 alignItems: "center",
                 justifyContent: "center",
               }}

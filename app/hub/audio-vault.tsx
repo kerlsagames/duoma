@@ -2,6 +2,7 @@ import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
@@ -30,7 +31,7 @@ import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native
 import Svg, { Circle, Rect } from "react-native-svg";
 
 const BG = "#12080C";
-const ROSE = "#E8A0B0";
+const rose = () => sectionAccent("connect", "#E8A0B0");
 const FOLDERS: { id: AudioFolder; label: string; tape: string }[] = [
   { id: "sweet", label: "Side A · sweet", tape: "#E8A0B0" },
   { id: "bedtime", label: "Side B · sleep", tape: "#8FA8C8" },
@@ -99,7 +100,7 @@ export default function AudioVaultScreen() {
     () => data.audioNotes.filter((row) => row.folder === folder),
     [data.audioNotes, folder]
   );
-  const tape = FOLDERS.find((row) => row.id === folder)?.tape ?? ROSE;
+  const tape = FOLDERS.find((row) => row.id === folder)?.tape ?? rose();
   const recRef = useRef<{
     stream: MediaStream;
     recorder: MediaRecorder;
@@ -339,12 +340,12 @@ export default function AudioVaultScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/connect" as Href} accent={ROSE}>
+      <Stage background={BG} fallback={"/hub/connect" as Href} accent={rose()}>
         <Text
           style={{
             fontFamily: HANDWRITING,
             fontSize: 20,
-            color: ROSE,
+            color: rose(),
             textAlign: "center",
           }}
         >
@@ -411,7 +412,7 @@ export default function AudioVaultScreen() {
               style={{
                 fontFamily: HANDWRITING,
                 fontSize: 20,
-                color: recording ? ROSE : "rgba(248,232,238,0.7)",
+                color: recording ? rose() : "rgba(248,232,238,0.7)",
               }}
             >
               {deckCopy}
@@ -437,7 +438,7 @@ export default function AudioVaultScreen() {
             >
               <Text
                 style={{
-                  color: folder === row.id ? "#1A0810" : ROSE,
+                  color: folder === row.id ? "#1A0810" : rose(),
                   fontFamily: "SpaceMono",
                   fontSize: 11,
                 }}
@@ -448,7 +449,7 @@ export default function AudioVaultScreen() {
           ))}
         </View>
 
-        <Text style={{ marginTop: 20, fontFamily: HANDWRITING, fontSize: 22, color: ROSE }}>
+        <Text style={{ marginTop: 20, fontFamily: HANDWRITING, fontSize: 22, color: rose() }}>
           Record onto the tape
         </Text>
         <TextInput
@@ -465,7 +466,7 @@ export default function AudioVaultScreen() {
           style={{
             marginTop: 10,
             height: 52,
-            backgroundColor: recording ? "#FF4D6A" : ROSE,
+            backgroundColor: recording ? "#FF4D6A" : rose(),
             alignItems: "center",
             justifyContent: "center",
             borderRadius: 4,
@@ -539,7 +540,7 @@ export default function AudioVaultScreen() {
           )}
         </View>
 
-        <Text style={{ marginTop: 22, fontFamily: HANDWRITING, fontSize: 20, color: ROSE }}>
+        <Text style={{ marginTop: 22, fontFamily: HANDWRITING, fontSize: 20, color: rose() }}>
           Written library
         </Text>
         <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF, marginBottom: 6 }}>
@@ -556,7 +557,7 @@ export default function AudioVaultScreen() {
                 borderRadius: 8,
               }}
             >
-              <Text style={{ color: ROSE, fontFamily: "SpaceMono", fontSize: 10 }}>
+              <Text style={{ color: rose(), fontFamily: "SpaceMono", fontSize: 10 }}>
                 LIBRARY · {row.folder}
               </Text>
               <Text style={{ fontFamily: SERIF, fontSize: 18, color: "#F8E8EE" }}>{row.title}</Text>

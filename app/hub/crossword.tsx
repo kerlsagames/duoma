@@ -19,6 +19,7 @@ import {
   type WordleTheme,
 } from "@/lib/daily-word";
 import { formatClockTime, formatLongDate, localDateKey } from "@/lib/dates";
+import { themedTone } from "@/lib/hub-theme";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,7 +53,8 @@ export default function DailyWordScreen() {
   const day = wordleDay(wordle, dateKey);
   const mine = playerFor(day, youId);
   const theirs = playerFor(day, themId);
-  const theme = themeFor(wordle.prefs);
+  const baseTheme = themeFor(wordle.prefs);
+  const theme = themedTone("play", baseTheme, baseTheme.accent);
   const keys = useMemo(() => keyMarks(mine.guesses, day.word), [mine.guesses, day.word]);
   const done = finished(mine);
   const winner = winnerOf(day);

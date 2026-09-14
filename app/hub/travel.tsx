@@ -1,6 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { PackItem, Trip, TripStop } from "@/lib/mini-content";
@@ -9,8 +10,9 @@ import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const BG = "#101820";
-const BLUE = "#1E4D8C";
 const PAPER = "#F3EFE4";
+const blue = () => sectionAccent("home-base", "#1E4D8C");
+const paperInk = () => sectionAccent("home-base", "#D7E4F2");
 
 export default function TravelScreen() {
   const { data, ready, patch } = useMiniApps();
@@ -60,10 +62,10 @@ export default function TravelScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent="#D7E4F2">
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={paperInk()}>
         {!trip ? (
           <View>
-            <Text style={{ fontFamily: SERIF, fontSize: 32, color: "#D7E4F2" }}>
+            <Text style={{ fontFamily: SERIF, fontSize: 32, color: paperInk() }}>
               Issue a ticket
             </Text>
             <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(215,228,242,0.6)" }}>
@@ -86,7 +88,7 @@ export default function TravelScreen() {
             ))}
             <Pressable
               onPress={() => void create()}
-              style={{ marginTop: 14, height: 50, backgroundColor: BLUE, justifyContent: "center" }}
+              style={{ marginTop: 14, height: 50, backgroundColor: blue(), justifyContent: "center" }}
             >
               <Text style={{ textAlign: "center", color: PAPER, fontWeight: "800" }}>
                 Print boarding pass
@@ -97,7 +99,7 @@ export default function TravelScreen() {
         ) : (
           <View>
             <View style={{ backgroundColor: PAPER, overflow: "hidden" }}>
-              <View style={{ backgroundColor: BLUE, padding: 14 }}>
+              <View style={{ backgroundColor: blue(), padding: 14 }}>
                 <Text style={{ color: PAPER, fontFamily: "SpaceMono", fontSize: 10 }}>
                   BOARDING PASS · DUOMA AIR
                 </Text>
@@ -109,17 +111,17 @@ export default function TravelScreen() {
                   padding: 14,
                   borderStyle: "dashed",
                   borderBottomWidth: 2,
-                  borderColor: BLUE,
+                  borderColor: blue(),
                 }}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>TO</Text>
+                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>TO</Text>
                   <Text style={{ fontFamily: SERIF, fontSize: 22, color: "#1A2430" }}>
                     {trip.where}
                   </Text>
                 </View>
                 <View>
-                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>
+                  <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>
                     {trip.start} → {trip.end}
                   </Text>
                   <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "#1A2430" }}>
@@ -128,7 +130,7 @@ export default function TravelScreen() {
                 </View>
               </View>
               <View style={{ padding: 14 }}>
-                <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>ITINERARY</Text>
+                <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>ITINERARY</Text>
                 {trip.stops.map((row) => (
                   <Pressable key={row.id} onPress={() => void mutateTrip((t) => ({
                     ...t,
@@ -168,10 +170,10 @@ export default function TravelScreen() {
                       setStop("");
                     }}
                   >
-                    <Text style={{ color: BLUE }}>add</Text>
+                    <Text style={{ color: blue() }}>add</Text>
                   </Pressable>
                 </View>
-                <Text style={{ marginTop: 14, fontFamily: "SpaceMono", fontSize: 10, color: BLUE }}>
+                <Text style={{ marginTop: 14, fontFamily: "SpaceMono", fontSize: 10, color: blue() }}>
                   PACKING
                 </Text>
                 {trip.packing.map((row) => (
@@ -186,7 +188,7 @@ export default function TravelScreen() {
                       }))
                     }
                   >
-                    <Text style={{ color: row.packed ? BLUE : "#1A2430" }}>
+                    <Text style={{ color: row.packed ? blue() : "#1A2430" }}>
                       {row.packed ? "▣" : "□"} {row.label}
                     </Text>
                   </Pressable>
@@ -208,14 +210,14 @@ export default function TravelScreen() {
                       setPack("");
                     }}
                   >
-                    <Text style={{ color: BLUE }}>add</Text>
+                    <Text style={{ color: blue() }}>add</Text>
                   </Pressable>
                 </View>
               </View>
             </View>
           </View>
         )}
-        {!ready ? <Text style={{ color: "#D7E4F2" }}>Stamping passports…</Text> : null}
+        {!ready ? <Text style={{ color: paperInk() }}>Stamping passports…</Text> : null}
       </Stage>
     </Screen>
   );
@@ -225,7 +227,7 @@ const field = {
   marginTop: 10,
   borderBottomWidth: 1,
   borderBottomColor: "rgba(215,228,242,0.3)",
-  color: "#D7E4F2",
+  color: paperInk(),
   fontFamily: HANDWRITING,
   fontSize: 20,
   paddingVertical: 6,

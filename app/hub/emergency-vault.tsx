@@ -1,6 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
 
 const BG = "#0C1014";
-const STEEL = "#C5D0DA";
+const steel = () => sectionAccent("home-base", "#C5D0DA");
 
 export default function EmergencyVaultScreen() {
   const { data, ready, patch } = useMiniApps();
@@ -67,10 +68,10 @@ export default function EmergencyVaultScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={STEEL}>
+      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={steel()}>
         {!data.vaultPin ? (
           <View style={{ alignItems: "center" }}>
-            <Text style={{ fontFamily: SERIF, fontSize: 32, color: STEEL }}>Cut a key</Text>
+            <Text style={{ fontFamily: SERIF, fontSize: 32, color: steel() }}>Cut a key</Text>
             <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(197,208,218,0.6)" }}>
               four digits, shared
             </Text>
@@ -81,9 +82,9 @@ export default function EmergencyVaultScreen() {
               maxLength={4}
               placeholder="••••"
               placeholderTextColor="rgba(197,208,218,0.3)"
-              style={pinStyle}
+              style={pinStyle()}
             />
-            <Pressable onPress={() => void setPin()} style={btn}>
+            <Pressable onPress={() => void setPin()} style={btn()}>
               <Text style={{ color: "#0C1014", fontWeight: "800" }}>Set combination</Text>
             </Pressable>
             {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
@@ -108,14 +109,14 @@ export default function EmergencyVaultScreen() {
                   height: 170,
                   borderRadius: 85,
                   borderWidth: 8,
-                  borderColor: STEEL,
+                  borderColor: steel(),
                   borderStyle: "dashed",
                   alignItems: "center",
                   justifyContent: "center",
                   transform: [{ rotate }],
                 }}
               >
-                <Ionicons name="lock-closed" size={42} color={STEEL} />
+                <Ionicons name="lock-closed" size={42} color={steel()} />
               </Animated.View>
             </View>
             <Text
@@ -123,7 +124,7 @@ export default function EmergencyVaultScreen() {
                 marginTop: 16,
                 fontFamily: SERIF,
                 fontSize: 28,
-                color: STEEL,
+                color: steel(),
               }}
             >
               Vault
@@ -136,9 +137,9 @@ export default function EmergencyVaultScreen() {
               secureTextEntry
               placeholder="combination"
               placeholderTextColor="rgba(197,208,218,0.3)"
-              style={pinStyle}
+              style={pinStyle()}
             />
-            <Pressable onPress={unlock} style={btn}>
+            <Pressable onPress={unlock} style={btn()}>
               <Text style={{ color: "#0C1014", fontWeight: "800" }}>Turn the wheel</Text>
             </Pressable>
             {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
@@ -146,7 +147,7 @@ export default function EmergencyVaultScreen() {
         ) : (
           <View>
             <Pressable onPress={() => setOpen(false)}>
-              <Text style={{ color: STEEL, fontFamily: HANDWRITING, fontSize: 18 }}>
+              <Text style={{ color: steel(), fontFamily: HANDWRITING, fontSize: 18 }}>
                 slam it shut
               </Text>
             </Pressable>
@@ -213,7 +214,7 @@ export default function EmergencyVaultScreen() {
                 onChangeText={setNewLabel}
                 placeholder="new folder"
                 placeholderTextColor="rgba(197,208,218,0.3)"
-                style={{ flex: 1, color: STEEL, borderBottomWidth: 1, borderBottomColor: STEEL }}
+                style={{ flex: 1, color: steel(), borderBottomWidth: 1, borderBottomColor: steel() }}
               />
               <Pressable
                 onPress={() => {
@@ -228,7 +229,7 @@ export default function EmergencyVaultScreen() {
                   setNewLabel("");
                 }}
               >
-                <Text style={{ color: STEEL }}>add</Text>
+                <Text style={{ color: steel() }}>add</Text>
               </Pressable>
             </View>
           </View>
@@ -238,21 +239,21 @@ export default function EmergencyVaultScreen() {
   );
 }
 
-const pinStyle = {
+const pinStyle = () => ({
   marginTop: 16,
   width: "100%" as const,
   textAlign: "center" as const,
   letterSpacing: 14,
   fontSize: 32,
-  color: STEEL,
+  color: steel(),
   padding: 10,
-};
+});
 
-const btn = {
+const btn = () => ({
   marginTop: 14,
   height: 48,
   width: "100%" as const,
-  backgroundColor: STEEL,
+  backgroundColor: steel(),
   alignItems: "center" as const,
   justifyContent: "center" as const,
-};
+});

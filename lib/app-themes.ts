@@ -1,3 +1,4 @@
+import { liveTone } from "@/lib/hub-theme";
 import { Platform, type TextStyle } from "react-native";
 
 export type HubTone = "default" | "talk" | "calendar";
@@ -8,7 +9,7 @@ export const SERIF: TextStyle["fontFamily"] = Platform.select({
   default: 'Georgia, "Iowan Old Style", Palatino, serif',
 });
 
-export const COUPONS_TONE = {
+const COUPONS_TONE_BASE = {
   background: "#10131A",
   accent: "#F0C75E",
   accentSoft: "rgba(240,199,94,0.18)",
@@ -21,8 +22,14 @@ export const COUPONS_TONE = {
   used: "rgba(247,241,227,0.35)",
 } as const;
 
+export const COUPONS_TONE = liveTone(
+  "play",
+  COUPONS_TONE_BASE,
+  COUPONS_TONE_BASE.accent
+);
+
 /** Light race-day book for LoveBetz — cream paper, magenta, readable gold. */
-export const LOVEBETZ_TONE = {
+const LOVEBETZ_TONE_BASE = {
   background: "#FFF1E8",
   paper: "#FFF8F3",
   surface: "#FFFFFF",
@@ -40,6 +47,12 @@ export const LOVEBETZ_TONE = {
   onPink: "#FFF7F2",
 } as const;
 
+export const LOVEBETZ_TONE = liveTone(
+  "play",
+  LOVEBETZ_TONE_BASE,
+  LOVEBETZ_TONE_BASE.pink
+);
+
 export const LOVEBETZ_SCRIPT: TextStyle["fontFamily"] = "GreatVibes";
 
 export const LOVEBETZ_DISPLAY: TextStyle["fontFamily"] = Platform.select({
@@ -55,7 +68,7 @@ export const LOVEBETZ_SANS: TextStyle["fontFamily"] = Platform.select({
 });
 
 /** Arcade / slot-machine energy for Up for it challenges. */
-export const UP_FOR_IT_TONE = {
+const UP_FOR_IT_TONE_BASE = {
   background: "#070B10",
   accent: "#3DE0C5",
   accentSoft: "rgba(61,224,197,0.16)",
@@ -68,11 +81,17 @@ export const UP_FOR_IT_TONE = {
   flash: "#7CFFB2",
 } as const;
 
+export const UP_FOR_IT_TONE = liveTone(
+  "desire",
+  UP_FOR_IT_TONE_BASE,
+  UP_FOR_IT_TONE_BASE.accent
+);
+
 /** @deprecated use UP_FOR_IT_TONE */
 export const WILDCARD_TONE = UP_FOR_IT_TONE;
 
 /** Ink + rose for Sex Positions — pink F / blue M accents. */
-export const POSITIONS_TONE = {
+const POSITIONS_TONE_BASE = {
   background: "#0C0810",
   accent: "#FF6B9A",
   accentSoft: "rgba(255,107,154,0.16)",
@@ -86,8 +105,14 @@ export const POSITIONS_TONE = {
   frame: "#1A1018",
 } as const;
 
+export const POSITIONS_TONE = liveTone(
+  "desire",
+  POSITIONS_TONE_BASE,
+  POSITIONS_TONE_BASE.accent
+);
+
 /** Desire crimson for Roleplays — spicy scenario library. */
-export const ROLEPLAYS_TONE = {
+const ROLEPLAYS_TONE_BASE = {
   background: "#14080C",
   accent: "#FF4D6A",
   accentSoft: "rgba(255,77,106,0.16)",
@@ -101,8 +126,14 @@ export const ROLEPLAYS_TONE = {
   frame: "#1A0C12",
 } as const;
 
+export const ROLEPLAYS_TONE = liveTone(
+  "desire",
+  ROLEPLAYS_TONE_BASE,
+  ROLEPLAYS_TONE_BASE.accent
+);
+
 /** Warm glass mason jar for Appreciation notes. */
-export const JAR_TONE = {
+const JAR_TONE_BASE = {
   background: "#100E0C",
   accent: "#D4A35A",
   accentSoft: "rgba(212,163,90,0.18)",
@@ -122,6 +153,8 @@ export const JAR_TONE = {
   handwriting: "#3A2A18",
 } as const;
 
+export const JAR_TONE = liveTone("connect", JAR_TONE_BASE, JAR_TONE_BASE.accent);
+
 export const HANDWRITING: TextStyle["fontFamily"] = Platform.select({
   ios: "Snell Roundhand",
   android: "serif",
@@ -129,7 +162,7 @@ export const HANDWRITING: TextStyle["fontFamily"] = Platform.select({
 });
 
 /** Fun travel-sticker / bucket-list energy for shared Lists. */
-export const LISTS_TONE = {
+const LISTS_TONE_BASE = {
   background: "#07191D",
   sky: "#0E2A31",
   accent: "#FF6B4A",
@@ -147,6 +180,8 @@ export const LISTS_TONE = {
   stamp: "#FF6B4A",
 } as const;
 
+export const LISTS_TONE = liveTone("connect", LISTS_TONE_BASE, LISTS_TONE_BASE.accent);
+
 /** Chunky poster display for Lists titles. */
 export const LISTS_DISPLAY: TextStyle["fontFamily"] = Platform.select({
   ios: "Avenir Next Condensed",
@@ -159,6 +194,15 @@ export const LISTS_ROUNDED: TextStyle["fontFamily"] = Platform.select({
   android: "sans-serif-medium",
   default: '"Avenir Next", "Nunito", "Trebuchet MS", sans-serif',
 });
+
+const TALK_TONE_BASE = {
+  background: "#12100C",
+  accent: "#E4C37A",
+  ink: "#F4EDE0",
+  muted: "rgba(244,237,224,0.62)",
+  surface: "#1B1812",
+  kicker: "#E4C37A",
+} as const;
 
 export const HUB_TONES: Record<
   HubTone,
@@ -179,14 +223,7 @@ export const HUB_TONES: Record<
     surface: "rgba(255,255,255,0.05)",
     kicker: "#FF007F",
   },
-  talk: {
-    background: "#12100C",
-    accent: "#E4C37A",
-    ink: "#F4EDE0",
-    muted: "rgba(244,237,224,0.62)",
-    surface: "#1B1812",
-    kicker: "#E4C37A",
-  },
+  talk: liveTone("connect", TALK_TONE_BASE, TALK_TONE_BASE.accent),
   calendar: {
     background: "#F3F5F8",
     accent: "#C23B55",
@@ -210,7 +247,7 @@ export const TALK_DECK_TINT: Record<string, string> = {
 };
 
 /** Corkboard and post-its for the weekly Meal Plan. */
-export const MEAL_PLAN_TONE = {
+const MEAL_PLAN_TONE_BASE = {
   background: "#5C3D24",
   cork: "#7A5230",
   corkLight: "#8F643C",
@@ -226,8 +263,14 @@ export const MEAL_PLAN_TONE = {
   paperMuted: "rgba(42,33,22,0.55)",
 } as const;
 
+export const MEAL_PLAN_TONE = liveTone(
+  "home-base",
+  MEAL_PLAN_TONE_BASE,
+  MEAL_PLAN_TONE_BASE.accent
+);
+
 /** Diner ticket for Meal Decisions. */
-export const MEALS_TONE = {
+const MEALS_TONE_BASE = {
   background: "#1C1410",
   accent: "#F25C3A",
   accentSoft: "rgba(242,92,58,0.16)",
@@ -242,8 +285,10 @@ export const MEALS_TONE = {
   down: "#F25C3A",
 } as const;
 
+export const MEALS_TONE = liveTone("home-base", MEALS_TONE_BASE, MEALS_TONE_BASE.accent);
+
 /** Kitchen-table notepad for Groceries & Errands. */
-export const ERRANDS_TONE = {
+const ERRANDS_TONE_BASE = {
   background: "#3A2C22",
   desk: "#4A382C",
   paper: "#F7F0DC",
@@ -259,8 +304,14 @@ export const ERRANDS_TONE = {
   hole: "#D7CBB0",
 } as const;
 
+export const ERRANDS_TONE = liveTone(
+  "home-base",
+  ERRANDS_TONE_BASE,
+  ERRANDS_TONE_BASE.accent
+);
+
 /** Party-card paper for the shared birthday book. */
-export const BIRTHDAYS_TONE = {
+const BIRTHDAYS_TONE_BASE = {
   background: "#1A1624",
   paper: "#FFF6E8",
   surface: "#241E30",
@@ -276,8 +327,14 @@ export const BIRTHDAYS_TONE = {
   border: "rgba(232,160,58,0.28)",
 } as const;
 
+export const BIRTHDAYS_TONE = liveTone(
+  "home-base",
+  BIRTHDAYS_TONE_BASE,
+  BIRTHDAYS_TONE_BASE.accent
+);
+
 /** Soft rose paper for the shared period tracker. */
-export const PERIOD_TONE = {
+const PERIOD_TONE_BASE = {
   background: "#F6EEF2",
   paper: "#FFF8FA",
   surface: "#FFFFFF",
@@ -294,8 +351,10 @@ export const PERIOD_TONE = {
   today: "#2A1A22",
 } as const;
 
+export const PERIOD_TONE = liveTone("home-base", PERIOD_TONE_BASE, PERIOD_TONE_BASE.rose);
+
 /** Ledger paper for Shared Budget. */
-export const BUDGET_TONE = {
+const BUDGET_TONE_BASE = {
   background: "#12160F",
   surface: "#1A2016",
   surfaceRaised: "#222A1C",
@@ -310,8 +369,14 @@ export const BUDGET_TONE = {
   paid: "#7DCEA0",
 } as const;
 
+export const BUDGET_TONE = liveTone(
+  "home-base",
+  BUDGET_TONE_BASE,
+  BUDGET_TONE_BASE.accent
+);
+
 /** Quiet savings list for Shared Goals. */
-export const GOALS_TONE = {
+const GOALS_TONE_BASE = {
   background: "#14110C",
   surface: "#1E1A14",
   surfaceRaised: "#2A241C",
@@ -322,3 +387,5 @@ export const GOALS_TONE = {
   dim: "rgba(246,239,226,0.4)",
   border: "rgba(228,195,122,0.22)",
 } as const;
+
+export const GOALS_TONE = liveTone("home-base", GOALS_TONE_BASE, GOALS_TONE_BASE.accent);

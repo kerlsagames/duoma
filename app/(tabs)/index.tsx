@@ -1,3 +1,4 @@
+import { HubColorPicker, HubColorSectionLabel } from "@/components/home/HubColorPicker";
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
@@ -32,7 +33,12 @@ import {
   saveHomeWallpaper,
   type HomeWallpaperId,
 } from "@/lib/home-wallpaper";
-import { HOME_HEADER_WIDGETS, HUBS } from "@/lib/hubs";
+import {
+  resetHubThemes,
+  useHubThemes,
+  useThemedHubs,
+} from "@/lib/hub-theme";
+import { HOME_HEADER_WIDGETS } from "@/lib/hubs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { homeWorldWidget } from "@/lib/worlds";
@@ -62,6 +68,7 @@ export default function HomeScreen() {
   const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
   const [layout, setLayout] = useState<HomeLayout>(defaultHomeLayout());
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const hubs = useThemedHubs();
   const dailyWidgets = useMemo(() => {
     const world = homeWorldWidget(mini.worldChoice);
     return HOME_HEADER_WIDGETS.filter(
@@ -84,13 +91,13 @@ export default function HomeScreen() {
 
   const appsByHub = useMemo(() => {
     const used = new Set(favorites.filter(Boolean) as string[]);
-    return HUBS.map((hub) => ({
+    return hubs.map((hub) => ({
       hub,
-      apps: allHubApps().filter(
+      apps: allHubApps(hubs).filter(
         (app) => app.hubId === hub.id && !used.has(app.id)
       ),
     })).filter((row) => row.apps.length > 0);
-  }, [favorites]);
+  }, [favorites, hubs]);
 
   useEffect(() => {
     let alive = true;
@@ -235,7 +242,7 @@ export default function HomeScreen() {
               : { gap: 8, marginBottom: 14 }
           }
         >
-          {HUBS.map((hub) => (
+          {hubs.map((hub) => (
             <Pressable
               key={hub.id}
               onPress={() => router.push(hub.href as Href)}
@@ -440,7 +447,7 @@ export default function HomeScreen() {
         >
           <View style={{ flexDirection: "row", gap: favoriteGap }}>
             {favorites.map((featureId, index) => {
-              const app = featureId ? hubAppById(featureId) : null;
+              const app = featureId ? hubAppById(featureId, hubs) : null;
               if (app) {
                 return (
                   <Pressable
@@ -687,6 +694,7 @@ export default function HomeScreen() {
         onReset={() => {
           void persistLayout(defaultHomeLayout());
           void persistWallpaper("black");
+          void resetHubThemes();
         }}
       />
     ) : null}
@@ -723,6 +731,7 @@ function HomeSettingsSheet({
     bestCards,
     setProfileGender,
   } = useApp();
+  const hubThemes = useHubThemes();
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
@@ -889,6 +898,9 @@ function HomeSettingsSheet({
             onPress={() => onLayout({ ...layout, showFavorites: !layout.showFavorites })}
           />
 
+          <HubColorSectionLabel />
+          <HubColorPicker themes={hubThemes} />
+
           <Text
             style={{
               marginTop: 18,
@@ -933,7 +945,7 @@ function HomeSettingsSheet({
               Reset home
             </Text>
             <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
-              Two-column hubs, all sections on, black background.
+              Two-column hubs, all sections on, original colours, black background.
             </Text>
           </Pressable>
 
