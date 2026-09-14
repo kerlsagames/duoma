@@ -59,6 +59,9 @@ const GROWTH_EXTRA_CAP = 3;
 /** Shrink harder the longer the cold stretch — fifth miss goes to zero. */
 const MISS_DECAY = [0, 11, 16, 24, 34] as const;
 
+/** While still within the five-night window, keep a visible ember — decay never snuffs early. */
+const COOLING_EMBER = 1;
+
 export function dateOffset(days: number, from = new Date()): string {
   const d = new Date(from);
   d.setDate(d.getDate() - days);
@@ -319,7 +322,10 @@ function decayForMiss(missStreak: number): number {
 
 /**
  * Walk day-by-day from the first log so the fire has to earn size over months,
- * and five blank days snuff it.
+ * and five finished quiet days snuff it.
+ *
+ * Today is grace: an empty morning does not count as a miss while the day is
+ * still open — you still have until tonight to feed it.
  */
 export function computeFireState(
   logs: IntimacyLog[],
@@ -340,6 +346,7 @@ export function computeFireState(
 
   while (cursor <= today) {
     const count = byDate.get(cursor)?.length ?? 0;
+    const isToday = cursor === today;
     if (count > 0) {
       missStreak = 0;
       fedDays += 1;
@@ -351,7 +358,8 @@ export function computeFireState(
         day += 1;
       }
       level = Math.min(100, level + growthForDay(count));
-    } else if (lit) {
+    } else if (lit && !isToday) {
+      // Only finished days can miss — today stays open until midnight.
       missStreak += 1;
       day = 0;
       if (missStreak >= MISS_DAYS_TO_OUT) {
@@ -359,11 +367,8 @@ export function computeFireState(
         lit = false;
         missStreak = MISS_DAYS_TO_OUT;
       } else {
-        level = Math.max(0, level - decayForMiss(missStreak));
-        if (level <= 0) {
-          level = 0;
-          lit = false;
-        }
+        // Cool down only. A small fire must still survive quiet nights until night 5.
+        level = Math.max(COOLING_EMBER, level - decayForMiss(missStreak));
       }
     }
     if (cursor === today) break;
@@ -412,7 +417,7 @@ export function fireCaption(state: FireState): string {
   }
   if (state.missStreak > 0) {
     const left = MISS_DAYS_TO_OUT - state.missStreak;
-    return `Cooling — ${state.missStreak} quiet night${state.missStreak === 1 ? "" : "s"}. ${left} more and it goes out.`;
+    return `Cooling — ${state.missStreak} quiet night${state.missStreak === 1 ? "" : "s"}. Feed it today — ${left} more finished quiet day${left === 1 ? "" : "s"} and it goes out.`;
   }
   if (state.day <= 1 || state.level < 15) {
     return "Day 1 spark. It only grows if you keep feeding it — slowly, over months.";
