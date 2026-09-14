@@ -1,7 +1,6 @@
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { SERIF } from "@/lib/app-themes";
-import { sectionAccent } from "@/lib/hub-theme";
+import { KNOW_ME_DISPLAY, KNOW_ME_TONE, SERIF } from "@/lib/app-themes";
 import { createId, nowIso } from "@/lib/ids";
 import {
   DEMO_KNOW_ME_PACKS,
@@ -21,12 +20,61 @@ import type { Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-const BG = "#08060C";
-const neon = () => sectionAccent("play", "#F6E27A");
-const PINK = "#FF3D8B";
-const MUTED = "rgba(255,246,216,0.58)";
+const T = KNOW_ME_TONE;
 
-type ViewMode = "hub" | "answer-packs" | "answer" | "guess-packs" | "guess" | "result";
+type ViewMode =
+  | "hub"
+  | "answer-packs"
+  | "answer"
+  | "guess-packs"
+  | "guess"
+  | "result";
+
+function Marquee() {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 14,
+        paddingHorizontal: 2,
+      }}
+    >
+      {Array.from({ length: 14 }).map((_, i) => (
+        <View
+          key={i}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: i % 2 === 0 ? T.gold : T.magenta,
+            opacity: i % 3 === 0 ? 1 : 0.45,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+function StudioFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <View
+      style={{
+        borderRadius: 6,
+        borderWidth: 3,
+        borderColor: T.gold,
+        backgroundColor: T.stage,
+        padding: 16,
+        shadowColor: T.magenta,
+        shadowOpacity: 0.25,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 0 },
+      }}
+    >
+      {children}
+    </View>
+  );
+}
 
 export default function TriviaScreen() {
   const { user, partner } = useApp();
@@ -49,8 +97,13 @@ export default function TriviaScreen() {
   const sheets = data.knowMeSheets;
   const guesses = data.knowMeGuesses;
 
-  const pack = packId ? KNOW_ME_PACKS.find((row) => row.id === packId) ?? null : null;
-  const myStats = useMemo(() => tallyKnowMeGuesses(guesses, user?.id), [guesses, user?.id]);
+  const pack = packId
+    ? (KNOW_ME_PACKS.find((row) => row.id === packId) ?? null)
+    : null;
+  const myStats = useMemo(
+    () => tallyKnowMeGuesses(guesses, user?.id),
+    [guesses, user?.id]
+  );
   const theirStats = useMemo(
     () => tallyKnowMeGuesses(guesses, partner?.id),
     [guesses, partner?.id]
@@ -64,7 +117,8 @@ export default function TriviaScreen() {
     [sheets, partner?.id]
   );
   const waitingGuesses = theirSheets.filter(
-    (sheet) => !latestGuess(guesses, sheet.packId, sheet.userId, user?.id ?? "")
+    (sheet) =>
+      !latestGuess(guesses, sheet.packId, sheet.userId, user?.id ?? "")
   ).length;
 
   const go = useCallback((next: ViewMode) => {
@@ -75,7 +129,8 @@ export default function TriviaScreen() {
   useEffect(() => {
     if (!ready || !partner?.isDemo || !partner.id) return;
     const missing = DEMO_KNOW_ME_PACKS.filter(
-      (id) => !sheets.some((row) => row.userId === partner.id && row.packId === id)
+      (id) =>
+        !sheets.some((row) => row.userId === partner.id && row.packId === id)
     );
     if (!missing.length) return;
     void patch((state) => ({
@@ -119,7 +174,11 @@ export default function TriviaScreen() {
 
   const saveAnswers = async () => {
     if (!user || !pack) return;
-    if (picks.length < pack.questions.length || picks.some((n) => n < 0 || n == null)) return;
+    if (
+      picks.length < pack.questions.length ||
+      picks.some((n) => n < 0 || n == null)
+    )
+      return;
     const existing = sheetFor(sheets, user.id, pack.id);
     const now = nowIso();
     await patch((state) => ({
@@ -150,7 +209,11 @@ export default function TriviaScreen() {
     if (!user || !partner || !pack) return;
     const sheet = sheetFor(sheets, partner.id, pack.id);
     if (!sheet) return;
-    if (picks.length < pack.questions.length || picks.some((n) => n < 0 || n == null)) return;
+    if (
+      picks.length < pack.questions.length ||
+      picks.some((n) => n < 0 || n == null)
+    )
+      return;
     const score = scoreKnowMe(sheet.answers, picks);
     await patch((state) => ({
       ...state,
@@ -167,7 +230,12 @@ export default function TriviaScreen() {
         ...state.knowMeGuesses,
       ],
     }));
-    setResult({ pack, guesses: [...picks], answers: [...sheet.answers], score });
+    setResult({
+      pack,
+      guesses: [...picks],
+      answers: [...sheet.answers],
+      score,
+    });
     go("result");
   };
 
@@ -188,8 +256,12 @@ export default function TriviaScreen() {
   };
 
   return (
-    <Screen scroll background={BG} scrollRef={scrollRef}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={neon()}>
+    <Screen scroll background={T.background} scrollRef={scrollRef}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/play" as Href}
+        accent={T.gold}
+      >
         {view !== "hub" ? (
           <Pressable
             onPress={() => {
@@ -203,15 +275,15 @@ export default function TriviaScreen() {
             }}
             className="mb-3 flex-row items-center"
           >
-            <Ionicons name="chevron-back" size={18} color={neon()} />
+            <Ionicons name="chevron-back" size={18} color={T.cyan} />
             <Text
               style={{
                 marginLeft: 4,
                 fontFamily: "SpaceMono",
                 fontSize: 11,
-                letterSpacing: 1.4,
+                letterSpacing: 1.6,
                 textTransform: "uppercase",
-                color: neon(),
+                color: T.cyan,
               }}
             >
               {view === "answer"
@@ -219,8 +291,8 @@ export default function TriviaScreen() {
                 : view === "guess"
                   ? "Guess packs"
                   : view === "result"
-                    ? "Scoreboard"
-                    : "Scoreboard"}
+                    ? "Studio"
+                    : "Studio"}
             </Text>
           </Pressable>
         ) : null}
@@ -241,12 +313,12 @@ export default function TriviaScreen() {
 
         {view === "answer-packs" ? (
           <PackGrid
-            title="Answer my questions"
-            subtitle="Lock in a pack so they can guess the real you."
+            title="YOUR ANSWERS"
+            subtitle="Lock a pack so they can play contestant."
             packs={KNOW_ME_PACKS}
             statusFor={(id) => {
               const mine = sheetFor(sheets, user?.id, id);
-              return mine ? "Answered" : "10 questions";
+              return mine ? "LOCKED IN" : "10 Qs";
             }}
             doneFor={(id) => Boolean(sheetFor(sheets, user?.id, id))}
             onPick={openAnswer}
@@ -256,16 +328,18 @@ export default function TriviaScreen() {
         {view === "guess-packs" ? (
           theirSheets.length ? (
             <PackGrid
-              title={`Guess ${them}`}
-              subtitle={`${theirSheets.length} pack${theirSheets.length === 1 ? "" : "s"} ready. Seven or more is a win.`}
+              title={`GUESS ${them.toUpperCase()}`}
+              subtitle={`${theirSheets.length} pack${
+                theirSheets.length === 1 ? "" : "s"
+              } ready. ${KNOW_ME_WIN}+ correct wins the round.`}
               packs={KNOW_ME_PACKS}
               statusFor={(id) => {
                 const theirs = sheetFor(sheets, partner?.id, id);
-                if (!theirs) return "Not answered yet";
+                if (!theirs) return "NOT READY";
                 const last = user
                   ? latestGuess(guesses, id, theirs.userId, user.id)
                   : null;
-                return last ? `${last.score}/10 last time` : "Ready";
+                return last ? `${last.score}/10 LAST` : "READY";
               }}
               doneFor={(id) => Boolean(sheetFor(sheets, partner?.id, id))}
               lockedFor={(id) => !sheetFor(sheets, partner?.id, id)}
@@ -276,72 +350,148 @@ export default function TriviaScreen() {
             />
           ) : (
             <View>
-              <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: neon() }}>
-                Guess {them}
-              </Text>
-              <View
+              <Marquee />
+              <Text
                 style={{
-                  marginTop: 18,
-                  borderRadius: 22,
-                  borderWidth: 1,
-                  borderColor: "rgba(246,226,122,0.28)",
-                  backgroundColor: "#140C18",
-                  padding: 20,
+                  fontFamily: KNOW_ME_DISPLAY,
+                  fontSize: 34,
+                  lineHeight: 38,
+                  color: T.gold,
+                  letterSpacing: 1,
                 }}
               >
-                <Text style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 26, color: "#FFF6D8" }}>
-                  Nothing to guess yet.
+                GUESS {them.toUpperCase()}
+              </Text>
+              <StudioFrame>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 20,
+                    lineHeight: 28,
+                    color: T.ink,
+                  }}
+                >
+                  No packs on stage yet.
                 </Text>
-                <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 21, color: MUTED }}>
-                  They need to lock in a pack first. Nudge them to answer theirs.
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontSize: 14,
+                    lineHeight: 21,
+                    color: T.muted,
+                  }}
+                >
+                  They need to lock in answers first. Nudge your contestant.
                 </Text>
-              </View>
+              </StudioFrame>
             </View>
           )
         ) : null}
 
         {quizMode && pack && current ? (
           <View>
+            <Marquee />
             <Text
               style={{
                 fontFamily: "SpaceMono",
                 fontSize: 11,
-                letterSpacing: 1.6,
+                letterSpacing: 2,
                 textTransform: "uppercase",
-                color: PINK,
+                color: T.magenta,
               }}
             >
-              {pack.title} · {cursor + 1} / {pack.questions.length}
+              {view === "answer" ? "Contestant booth" : "Guessing booth"} ·{" "}
+              {pack.title}
             </Text>
-            <Text
+            <View
               style={{
                 marginTop: 10,
+                alignSelf: "flex-start",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 4,
+                backgroundColor: T.goldSoft,
+                borderWidth: 1,
+                borderColor: T.gold,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: KNOW_ME_DISPLAY,
+                  fontSize: 16,
+                  letterSpacing: 1.2,
+                  color: T.gold,
+                }}
+              >
+                Q {cursor + 1} / {pack.questions.length}
+              </Text>
+            </View>
+            <Text
+              style={{
+                marginTop: 14,
                 fontFamily: SERIF,
                 fontSize: 26,
                 lineHeight: 32,
-                color: "#FFF6D8",
+                color: T.ink,
               }}
             >
               {current.prompt}
             </Text>
-            <View style={{ marginTop: 16, gap: 8 }}>
+            <View style={{ marginTop: 16, gap: 10 }}>
               {current.options.map((opt, i) => {
                 const on = selected === i;
+                const letter = String.fromCharCode(65 + i);
                 return (
                   <Pressable
                     key={`${current.id}-${opt}`}
                     onPress={() => pickOption(i)}
                     style={{
+                      flexDirection: "row",
+                      alignItems: "center",
                       paddingVertical: 14,
-                      paddingHorizontal: 14,
-                      borderRadius: 16,
-                      backgroundColor: on ? PINK : "#16101C",
+                      paddingHorizontal: 12,
+                      borderRadius: 6,
+                      backgroundColor: on ? T.magenta : T.panel,
                       borderWidth: 2,
-                      borderColor: on ? neon() : "#2A2030",
+                      borderColor: on ? T.gold : "rgba(255,229,102,0.18)",
                     }}
                   >
-                    <Text style={{ color: on ? "#FFF" : "#EDE4F4", fontWeight: "700" }}>
-                      {String.fromCharCode(65 + i)}  {opt}
+                    <View
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 4,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: on
+                          ? "rgba(5,4,10,0.35)"
+                          : T.panelRaised,
+                        borderWidth: 1,
+                        borderColor: on ? T.gold : T.cyan,
+                        marginRight: 12,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: KNOW_ME_DISPLAY,
+                          fontSize: 18,
+                          color: on ? T.gold : T.cyan,
+                          fontWeight: "800",
+                        }}
+                      >
+                        {letter}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        flex: 1,
+                        color: on ? "#FFF" : T.ink,
+                        fontWeight: "700",
+                        fontSize: 15,
+                        lineHeight: 20,
+                      }}
+                    >
+                      {opt}
                     </Text>
                   </Pressable>
                 );
@@ -353,15 +503,24 @@ export default function TriviaScreen() {
                   onPress={() => setCursor(cursor - 1)}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: 56,
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: "rgba(246,226,122,0.35)",
+                    borderRadius: 6,
+                    borderWidth: 2,
+                    borderColor: T.cyan,
                   }}
                 >
-                  <Text style={{ color: neon(), fontWeight: "700" }}>Back</Text>
+                  <Text
+                    style={{
+                      color: T.cyan,
+                      fontFamily: KNOW_ME_DISPLAY,
+                      fontSize: 16,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    BACK
+                  </Text>
                 </Pressable>
               ) : null}
               <Pressable
@@ -369,20 +528,28 @@ export default function TriviaScreen() {
                 disabled={!canAdvance}
                 style={{
                   flex: 2,
-                  height: 52,
+                  height: 56,
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: 14,
-                  backgroundColor: canAdvance ? neon() : "#2A2030",
+                  borderRadius: 6,
+                  backgroundColor: canAdvance ? T.gold : T.panelRaised,
                   opacity: canAdvance ? 1 : 0.55,
                 }}
               >
-                <Text style={{ color: "#1A1008", fontWeight: "900", letterSpacing: 0.6 }}>
+                <Text
+                  style={{
+                    color: "#14080C",
+                    fontFamily: KNOW_ME_DISPLAY,
+                    fontSize: 18,
+                    letterSpacing: 1.4,
+                    fontWeight: "900",
+                  }}
+                >
                   {lastQuestion
                     ? view === "answer"
-                      ? "Lock this pack in"
-                      : "See my score"
-                    : "Next"}
+                      ? "LOCK THIS PACK"
+                      : "LOCK IN SCORE"
+                    : "NEXT"}
                 </Text>
               </Pressable>
             </View>
@@ -429,66 +596,79 @@ function HubHome({
 }) {
   return (
     <View>
+      <Marquee />
       <Text
         style={{
           fontFamily: "SpaceMono",
           fontSize: 11,
-          letterSpacing: 2.4,
+          letterSpacing: 2.6,
           textTransform: "uppercase",
-          color: neon(),
+          color: T.cyan,
         }}
       >
-        How well do you know me
+        Live from the booth
       </Text>
       <Text
         style={{
           marginTop: 8,
-          fontFamily: SERIF,
-          fontSize: 34,
-          lineHeight: 40,
-          color: neon(),
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 40,
+          lineHeight: 44,
+          color: T.gold,
+          letterSpacing: 0.5,
         }}
       >
-        Scoreboard
+        HOW WELL DO YOU KNOW ME?
       </Text>
-      <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 16, lineHeight: 24, color: MUTED }}>
-        Ten packs. Ten questions each. Seven right is a win.
+      <Text
+        style={{
+          marginTop: 10,
+          fontFamily: SERIF,
+          fontSize: 16,
+          lineHeight: 24,
+          color: T.muted,
+        }}
+      >
+        Ten packs. Ten questions. Hit {KNOW_ME_WIN} or more and you win the
+        round.
       </Text>
 
-      <View
-        style={{
-          marginTop: 18,
-          borderRadius: 8,
-          borderWidth: 3,
-          borderColor: neon(),
-          backgroundColor: "#140C18",
-          padding: 16,
-        }}
-      >
-        <StatRow
-          label={`${you} know ${them}`}
-          stats={myStats}
-          empty={
-            theirPacks
-              ? `${theirPacks} pack${theirPacks === 1 ? "" : "s"} waiting`
-              : "They haven't locked a pack in yet"
-          }
-        />
-        <View style={{ height: 1, backgroundColor: "rgba(246,226,122,0.18)", marginVertical: 14 }} />
-        <StatRow
-          label={`${them} know you`}
-          stats={theirStats}
-          empty={
-            myPacks
-              ? `${myPacks} of your packs are ready for them`
-              : "Answer a pack so they can guess"
-          }
-        />
+      <View style={{ marginTop: 18 }}>
+        <StudioFrame>
+          <View className="flex-row" style={{ gap: 12 }}>
+            <Podium
+              label={`YOU · ${you}`}
+              accent={T.cyan}
+              stats={myStats}
+              empty={
+                theirPacks
+                  ? `${theirPacks} pack${theirPacks === 1 ? "" : "s"} waiting`
+                  : "They haven't locked a pack"
+              }
+            />
+            <View
+              style={{
+                width: 2,
+                backgroundColor: "rgba(255,229,102,0.22)",
+              }}
+            />
+            <Podium
+              label={`${them.toUpperCase()}`}
+              accent={T.magenta}
+              stats={theirStats}
+              empty={
+                myPacks
+                  ? `${myPacks} of your packs ready`
+                  : "Answer a pack for them"
+              }
+            />
+          </View>
+        </StudioFrame>
       </View>
 
       <View style={{ marginTop: 16, gap: 12 }}>
         <Door
-          icon="create-outline"
+          kicker="BOOTH A"
           title="Answer my questions"
           detail={
             myPacks
@@ -498,11 +678,13 @@ function HubHome({
           onPress={onAnswer}
         />
         <Door
-          icon="help-circle-outline"
+          kicker="BOOTH B"
           title={`Guess ${them}`}
           detail={
             waitingGuesses
-              ? `${waitingGuesses} pack${waitingGuesses === 1 ? "" : "s"} waiting on you`
+              ? `${waitingGuesses} pack${
+                  waitingGuesses === 1 ? "" : "s"
+                } waiting on you`
               : theirPacks
                 ? `${theirPacks} pack${theirPacks === 1 ? "" : "s"} ready`
                 : "Waiting on them to answer"
@@ -516,41 +698,58 @@ function HubHome({
   );
 }
 
-function StatRow({
+function Podium({
   label,
+  accent,
   stats,
   empty,
 }: {
   label: string;
+  accent: string;
   stats: ReturnType<typeof tallyKnowMeGuesses>;
   empty: string;
 }) {
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <Text
         style={{
           fontFamily: "SpaceMono",
-          fontSize: 11,
+          fontSize: 10,
           letterSpacing: 1.2,
           textTransform: "uppercase",
-          color: PINK,
+          color: accent,
         }}
       >
         {label}
       </Text>
       {stats.asked ? (
         <>
-          <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 40, color: neon() }}>
+          <Text
+            style={{
+              marginTop: 8,
+              fontFamily: KNOW_ME_DISPLAY,
+              fontSize: 36,
+              color: T.gold,
+            }}
+          >
             {stats.correct}
-            <Text style={{ fontSize: 22, color: MUTED }}> / {stats.asked}</Text>
+            <Text style={{ fontSize: 18, color: T.dim }}>/{stats.asked}</Text>
           </Text>
-          <Text style={{ marginTop: 2, color: MUTED, fontSize: 13 }}>
-            {stats.guesses} pack{stats.guesses === 1 ? "" : "s"} · {stats.wins} win
-            {stats.wins === 1 ? "" : "s"}
+          <Text style={{ marginTop: 2, color: T.muted, fontSize: 12 }}>
+            {stats.guesses} pack{stats.guesses === 1 ? "" : "s"} · {stats.wins}{" "}
+            win{stats.wins === 1 ? "" : "s"}
           </Text>
         </>
       ) : (
-        <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 16, lineHeight: 22, color: MUTED }}>
+        <Text
+          style={{
+            marginTop: 10,
+            fontFamily: SERIF,
+            fontSize: 14,
+            lineHeight: 20,
+            color: T.muted,
+          }}
+        >
           {empty}
         </Text>
       )}
@@ -559,52 +758,76 @@ function StatRow({
 }
 
 function Door({
-  icon,
+  kicker,
   title,
   detail,
   hot,
   badge,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  kicker: string;
   title: string;
   detail: string;
   hot?: boolean;
   badge?: number;
   onPress: () => void;
 }) {
-  const accent = hot ? PINK : neon();
+  const accent = hot ? T.magenta : T.cyan;
   return (
     <Pressable
       onPress={onPress}
       style={{
-        borderRadius: 22,
-        borderWidth: 1,
-        borderColor: hot ? "rgba(255,61,139,0.45)" : "rgba(246,226,122,0.28)",
-        backgroundColor: "#140C18",
-        paddingVertical: 18,
-        paddingHorizontal: 16,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: hot ? T.magenta : T.gold,
+        backgroundColor: T.panel,
+        paddingVertical: 16,
+        paddingHorizontal: 14,
         flexDirection: "row",
         alignItems: "center",
       }}
     >
       <View
         style={{
-          width: 46,
-          height: 46,
-          borderRadius: 14,
+          width: 48,
+          height: 48,
+          borderRadius: 4,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: hot ? "rgba(255,61,139,0.14)" : "rgba(246,226,122,0.12)",
+          backgroundColor: hot ? T.magentaSoft : T.goldSoft,
           borderWidth: 1,
-          borderColor: hot ? "rgba(255,61,139,0.4)" : "rgba(246,226,122,0.28)",
+          borderColor: accent,
+          marginRight: 12,
         }}
       >
-        <Ionicons name={icon} size={22} color={accent} />
+        <Text
+          style={{
+            fontFamily: KNOW_ME_DISPLAY,
+            fontSize: 12,
+            letterSpacing: 0.8,
+            color: accent,
+            textAlign: "center",
+          }}
+        >
+          {kicker}
+        </Text>
       </View>
-      <View className="ml-3 flex-1">
-        <Text style={{ fontFamily: SERIF, fontSize: 20, color: "#FFF6D8" }}>{title}</Text>
-        <Text style={{ marginTop: 4, fontSize: 13, lineHeight: 19, color: MUTED }}>{detail}</Text>
+      <View className="flex-1">
+        <Text
+          style={{
+            fontFamily: KNOW_ME_DISPLAY,
+            fontSize: 20,
+            color: T.ink,
+            letterSpacing: 0.4,
+          }}
+        >
+          {title}
+        </Text>
+        <Text
+          style={{ marginTop: 4, fontSize: 13, lineHeight: 18, color: T.muted }}
+        >
+          {detail}
+        </Text>
       </View>
       {badge ? (
         <View
@@ -612,17 +835,21 @@ function Door({
             minWidth: 28,
             height: 28,
             paddingHorizontal: 8,
-            borderRadius: 14,
+            borderRadius: 4,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: PINK,
+            backgroundColor: T.magenta,
             marginLeft: 8,
           }}
         >
-          <Text style={{ fontFamily: "SpaceMono", fontSize: 12, color: "#FFF6D8" }}>{badge}</Text>
+          <Text
+            style={{ fontFamily: "SpaceMono", fontSize: 12, color: T.ink }}
+          >
+            {badge}
+          </Text>
         </View>
       ) : (
-        <Ionicons name="chevron-forward" size={18} color={MUTED} />
+        <Ionicons name="chevron-forward" size={18} color={T.dim} />
       )}
     </Pressable>
   );
@@ -647,14 +874,34 @@ function PackGrid({
 }) {
   return (
     <View>
-      <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: neon() }}>{title}</Text>
-      <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: MUTED }}>
+      <Marquee />
+      <Text
+        style={{
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 32,
+          lineHeight: 36,
+          color: T.gold,
+          letterSpacing: 1,
+        }}
+      >
+        {title}
+      </Text>
+      <Text
+        style={{
+          marginTop: 8,
+          fontFamily: SERIF,
+          fontSize: 15,
+          lineHeight: 22,
+          color: T.muted,
+        }}
+      >
         {subtitle}
       </Text>
       <View className="mt-5 flex-row flex-wrap justify-between">
-        {packs.map((item) => {
+        {packs.map((item, index) => {
           const locked = lockedFor?.(item.id) ?? false;
           const done = doneFor?.(item.id) ?? false;
+          const doorColor = index % 2 === 0 ? T.cyan : T.magenta;
           return (
             <Pressable
               key={item.id}
@@ -662,28 +909,43 @@ function PackGrid({
               style={{
                 width: "48%",
                 marginBottom: 12,
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: done ? item.accent : "rgba(246,226,122,0.18)",
-                backgroundColor: "#140C18",
-                paddingVertical: 16,
+                borderRadius: 6,
+                borderWidth: 2,
+                borderColor: done ? item.accent : doorColor,
+                backgroundColor: T.panel,
+                paddingVertical: 14,
                 paddingHorizontal: 12,
                 opacity: locked ? 0.45 : 1,
               }}
             >
-              <View
+              <Text
                 style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: item.accent,
-                  marginBottom: 10,
+                  fontFamily: "SpaceMono",
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  color: doorColor,
                 }}
-              />
-              <Text style={{ fontFamily: SERIF, fontSize: 18, color: "#FFF6D8" }}>
+              >
+                DOOR {index + 1}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: KNOW_ME_DISPLAY,
+                  fontSize: 18,
+                  color: T.ink,
+                }}
+              >
                 {item.title}
               </Text>
-              <Text style={{ marginTop: 4, fontSize: 12, lineHeight: 17, color: MUTED }}>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  lineHeight: 17,
+                  color: T.muted,
+                }}
+              >
                 {locked ? "Waiting on them" : item.blurb}
               </Text>
               <Text
@@ -713,41 +975,72 @@ function ResultBoard({
   onAgain,
 }: {
   them: string;
-  result: { pack: KnowMePack; guesses: number[]; answers: number[]; score: number };
+  result: {
+    pack: KnowMePack;
+    guesses: number[];
+    answers: number[];
+    score: number;
+  };
   onHub: () => void;
   onAgain: () => void;
 }) {
   const win = result.score >= KNOW_ME_WIN;
   const line =
     result.score === 10
-      ? "Dangerously well. Leave a mystery."
+      ? "PERFECT ROUND. Leave a little mystery."
       : win
-        ? `You live here. That's a win.`
+        ? "YOU WIN. You live here."
         : result.score >= 4
-          ? "The booth is still guessing."
-          : "Cute. Wrong. Try another pack.";
+          ? "CLOSE. The booth wants another try."
+          : "BUZZED OUT. Pick another pack.";
 
   return (
     <View>
+      <Marquee />
       <Text
         style={{
           fontFamily: "SpaceMono",
           fontSize: 11,
-          letterSpacing: 1.6,
+          letterSpacing: 1.8,
           textTransform: "uppercase",
-          color: PINK,
+          color: T.magenta,
         }}
       >
         {result.pack.title} · vs {them}
       </Text>
-      <Text style={{ marginTop: 6, fontFamily: SERIF, fontSize: 22, color: MUTED }}>
-        Final score
+      <Text
+        style={{
+          marginTop: 6,
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 22,
+          color: T.dim,
+          letterSpacing: 1,
+        }}
+      >
+        FINAL SCORE
       </Text>
-      <Text style={{ fontFamily: SERIF, fontSize: 84, lineHeight: 90, color: neon() }}>
+      <Text
+        style={{
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 92,
+          lineHeight: 96,
+          color: win ? T.win : T.gold,
+        }}
+      >
         {result.score}
-        <Text style={{ fontSize: 28, color: MUTED }}>/10</Text>
+        <Text style={{ fontSize: 28, color: T.dim }}>/10</Text>
       </Text>
-      <Text style={{ fontFamily: SERIF, fontSize: 20, lineHeight: 28, color: PINK }}>{line}</Text>
+      <Text
+        style={{
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 20,
+          lineHeight: 26,
+          color: win ? T.cyan : T.magenta,
+          letterSpacing: 0.6,
+        }}
+      >
+        {line}
+      </Text>
 
       <View style={{ marginTop: 18, gap: 8 }}>
         {result.pack.questions.map((q, i) => {
@@ -756,28 +1049,30 @@ function ResultBoard({
             <View
               key={q.id}
               style={{
-                borderRadius: 16,
+                borderRadius: 6,
                 borderWidth: 1,
-                borderColor: ok ? "rgba(246,226,122,0.35)" : "rgba(255,61,139,0.28)",
-                backgroundColor: "#140C18",
+                borderColor: ok ? T.win : T.miss,
+                backgroundColor: T.panel,
                 padding: 12,
               }}
             >
-              <Text style={{ fontSize: 13, lineHeight: 18, color: MUTED }}>{q.prompt}</Text>
+              <Text style={{ fontSize: 13, lineHeight: 18, color: T.muted }}>
+                {q.prompt}
+              </Text>
               <Text
                 style={{
                   marginTop: 6,
                   fontFamily: SERIF,
                   fontSize: 15,
-                  color: ok ? neon() : PINK,
+                  color: ok ? T.win : T.miss,
                 }}
               >
-                {ok ? "You got it — " : "They said — "}
+                {ok ? "Correct — " : "They said — "}
                 {q.options[result.answers[i]]}
               </Text>
               {!ok ? (
-                <Text style={{ marginTop: 2, fontSize: 13, color: MUTED }}>
-                  You picked {q.options[result.guesses[i]]}
+                <Text style={{ marginTop: 2, fontSize: 13, color: T.dim }}>
+                  You buzzed {q.options[result.guesses[i]]}
                 </Text>
               ) : null}
             </View>
@@ -789,18 +1084,38 @@ function ResultBoard({
         onPress={onAgain}
         style={{
           marginTop: 18,
-          height: 52,
-          borderRadius: 14,
-          backgroundColor: neon(),
+          height: 56,
+          borderRadius: 6,
+          backgroundColor: T.gold,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Text style={{ color: "#1A1008", fontWeight: "900" }}>Guess another pack</Text>
+        <Text
+          style={{
+            color: "#14080C",
+            fontFamily: KNOW_ME_DISPLAY,
+            fontSize: 18,
+            letterSpacing: 1.2,
+            fontWeight: "900",
+          }}
+        >
+          PLAY ANOTHER PACK
+        </Text>
       </Pressable>
-      <Pressable onPress={onHub} style={{ marginTop: 12, alignItems: "center", padding: 10 }}>
-        <Text style={{ color: neon(), fontFamily: "SpaceMono", fontSize: 12, letterSpacing: 1 }}>
-          BACK TO THE SCOREBOARD
+      <Pressable
+        onPress={onHub}
+        style={{ marginTop: 12, alignItems: "center", padding: 10 }}
+      >
+        <Text
+          style={{
+            color: T.cyan,
+            fontFamily: "SpaceMono",
+            fontSize: 12,
+            letterSpacing: 1.4,
+          }}
+        >
+          BACK TO THE STUDIO
         </Text>
       </Pressable>
     </View>

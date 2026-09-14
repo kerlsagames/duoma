@@ -9,17 +9,25 @@ export const SERIF: TextStyle["fontFamily"] = Platform.select({
   default: 'Georgia, "Iowan Old Style", Palatino, serif',
 });
 
+/** Physical coupon booklet — wine cover, parchment tickets, cherry stamp. */
 const COUPONS_TONE_BASE = {
-  background: "#10131A",
-  accent: "#F0C75E",
-  accentSoft: "rgba(240,199,94,0.18)",
-  ink: "#F7F1E3",
-  muted: "rgba(247,241,227,0.62)",
-  surface: "#171C27",
-  surfaceRaised: "#1E2533",
-  border: "rgba(240,199,94,0.28)",
-  stamp: "#FF5C7A",
-  used: "rgba(247,241,227,0.35)",
+  background: "#2A1320",
+  cover: "#3A1528",
+  spine: "#6E1F38",
+  paper: "#F3E6CF",
+  paperEdge: "#E4D3B0",
+  accent: "#C9A24A",
+  accentSoft: "rgba(201,162,74,0.20)",
+  ink: "#1A120C",
+  muted: "rgba(26,18,12,0.58)",
+  fine: "rgba(26,18,12,0.42)",
+  surface: "#F7ECD8",
+  surfaceRaised: "#FFF6E6",
+  border: "rgba(110,31,56,0.22)",
+  stamp: "#C62828",
+  used: "rgba(26,18,12,0.32)",
+  onCover: "#F7E7C8",
+  onCoverMuted: "rgba(247,231,200,0.62)",
 } as const;
 
 export const COUPONS_TONE = liveTone(
@@ -27,6 +35,38 @@ export const COUPONS_TONE = liveTone(
   COUPONS_TONE_BASE,
   COUPONS_TONE_BASE.accent
 );
+
+/** TV game-show studio for How Well Do You Know Me. */
+const KNOW_ME_TONE_BASE = {
+  background: "#05040A",
+  stage: "#0C0814",
+  panel: "#140C1C",
+  panelRaised: "#1A1024",
+  gold: "#FFE566",
+  goldSoft: "rgba(255,229,102,0.16)",
+  cyan: "#3DFFF0",
+  magenta: "#FF2D8A",
+  magentaSoft: "rgba(255,45,138,0.16)",
+  ink: "#FFF8E8",
+  muted: "rgba(255,248,232,0.58)",
+  dim: "rgba(255,248,232,0.34)",
+  border: "rgba(255,229,102,0.28)",
+  win: "#7CFFB2",
+  miss: "#FF6B8A",
+} as const;
+
+export const KNOW_ME_TONE = liveTone(
+  "play",
+  KNOW_ME_TONE_BASE,
+  KNOW_ME_TONE_BASE.gold
+);
+
+export const KNOW_ME_DISPLAY: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next Condensed",
+  android: "sans-serif-condensed",
+  default:
+    '"Avenir Next Condensed", "Trebuchet MS", "Segoe UI Condensed", Impact, sans-serif',
+});
 
 /** Light race-day book for LoveBetz — cream paper, magenta, readable gold. */
 const LOVEBETZ_TONE_BASE = {

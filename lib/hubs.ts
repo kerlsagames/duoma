@@ -168,7 +168,7 @@ export const HUBS: HubDef[] = [
       {
         id: "fantasy-matcher",
         label: "Fantasy Matcher",
-        detail: "500 short fantasies. Swipe, match, ask to try tonight.",
+        detail: "Swipe yes or no. To-do, completed, and passed.",
         icon: "heart-circle",
         href: "/hub/fantasy-matcher",
       },
@@ -202,14 +202,14 @@ export const HUBS: HubDef[] = [
       {
         id: "coupons",
         label: "Coupons",
-        detail: "Digital favors & redeemable vouchers",
+        detail: "Tear a favor from the booklet and gift it",
         icon: "ticket",
         href: "/hub/coupons",
       },
       {
         id: "trivia",
         label: "How Well Do You Know Me?",
-        detail: "10 packs. Answer yours. Guess theirs.",
+        detail: "Game-show packs. Answer yours. Guess theirs.",
         icon: "help-circle",
         href: "/hub/trivia",
       },

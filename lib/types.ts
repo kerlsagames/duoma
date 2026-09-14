@@ -256,6 +256,15 @@ export type FantasyTonightAsk = {
   answeredAt: string | null;
 };
 
+/** Mutual fantasy match marked done after you try it. */
+export type FantasyCompletion = {
+  id: string;
+  coupleId: string;
+  fantasyId: string;
+  completedBy: string;
+  doneAt: string;
+};
+
 export type CouponStatus = "offered" | "accepted" | "redeemed" | "expired";
 
 export type Coupon = {
@@ -619,6 +628,7 @@ export type AppDB = {
   desireToggles: DesireToggle[];
   fantasySwipes: FantasySwipe[];
   fantasyTonightAsks: FantasyTonightAsk[];
+  fantasyCompletions: FantasyCompletion[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];

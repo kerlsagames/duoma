@@ -69,6 +69,7 @@ import type {
   ListEntryRating,
   DeckCard,
   DesireToggle,
+  FantasyCompletion,
   FantasySwipe,
   FantasyTonightAsk,
   DesireGauge,
@@ -401,6 +402,7 @@ type AppContextValue = {
   desireToggles: DesireToggle[];
   fantasySwipes: FantasySwipe[];
   fantasyTonightAsks: FantasyTonightAsk[];
+  fantasyCompletions: FantasyCompletion[];
   coupons: Coupon[];
   scratches: ScratchReveal[];
   coupleLists: CoupleList[];
@@ -575,6 +577,8 @@ type AppContextValue = {
     id: string,
     status: "accepted" | "declined"
   ) => Promise<void>;
+  completeFantasyMatch: (fantasyId: string) => Promise<void>;
+  reopenFantasyMatch: (fantasyId: string) => Promise<void>;
   createCoupon: (input: {
     title: string;
     body?: string;
@@ -1018,6 +1022,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const fantasyTonightAsks = useMemo(
     () =>
       (db.fantasyTonightAsks ?? []).filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const fantasyCompletions = useMemo(
+    () =>
+      (db.fantasyCompletions ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3951,6 +3961,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, partner, user]
   );
 
+  const completeFantasyMatch = useCallback(
+    async (fantasyId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair up before marking a fantasy done.");
+      }
+      const id = fantasyId.trim();
+      if (!id || !fantasyById(id)) throw new Error("That fantasy is gone.");
+      const existing = (db.fantasyCompletions ?? []).find(
+        (row) => row.coupleId === couple.id && row.fantasyId === id
+      );
+      if (existing) return;
+      const row: FantasyCompletion = {
+        id: createId(),
+        coupleId: couple.id,
+        fantasyId: id,
+        completedBy: user.id,
+        doneAt: nowIso(),
+      };
+      db = {
+        ...db,
+        fantasyCompletions: [...(db.fantasyCompletions ?? []), row],
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const reopenFantasyMatch = useCallback(
+    async (fantasyId: string) => {
+      if (!couple) return;
+      db = {
+        ...db,
+        fantasyCompletions: (db.fantasyCompletions ?? []).filter(
+          (row) =>
+            !(row.coupleId === couple.id && row.fantasyId === fantasyId)
+        ),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
   const createCoupon = useCallback(
     async (input: {
       title: string;
@@ -4534,6 +4586,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     desireToggles,
     fantasySwipes,
     fantasyTonightAsks,
+    fantasyCompletions,
     coupons,
     scratches,
     coupleLists,
@@ -4610,6 +4663,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     swipeFantasy,
     askFantasyTonight,
     respondFantasyTonight,
+    completeFantasyMatch,
+    reopenFantasyMatch,
     createCoupon,
     acceptCoupon,
     redeemCoupon,

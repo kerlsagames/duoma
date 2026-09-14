@@ -1,3 +1,4 @@
+import { PlayTabs } from "@/components/hub/PlayTabs";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -32,7 +33,7 @@ const T = POSITIONS_TONE;
 const SWIPE_THRESHOLD = 110;
 const SCREEN_W = Dimensions.get("window").width;
 
-type Tab = "deck" | "matches";
+type Tab = "deck" | "todo" | "done" | "passed";
 
 export default function FantasyMatcherScreen() {
   const {
@@ -41,9 +42,12 @@ export default function FantasyMatcherScreen() {
     couple,
     fantasySwipes,
     fantasyTonightAsks,
+    fantasyCompletions,
     swipeFantasy,
     askFantasyTonight,
     respondFantasyTonight,
+    completeFantasyMatch,
+    reopenFantasyMatch,
   } = useApp();
   const cast = useMemo(
     () => roleplayCastNames(user, partner),
@@ -58,6 +62,7 @@ export default function FantasyMatcherScreen() {
   const [matchFlash, setMatchFlash] = useState<FantasyIdea | null>(null);
   const [pickedMatch, setPickedMatch] = useState<FantasyIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [passedWho, setPassedWho] = useState<"you" | "partner">("you");
 
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -101,6 +106,44 @@ export default function FantasyMatcherScreen() {
     () => groupFantasiesByCategory(matches),
     [matches]
   );
+
+  const doneIds = useMemo(
+    () => new Set(fantasyCompletions.map((row) => row.fantasyId)),
+    [fantasyCompletions]
+  );
+  const todoMatches = useMemo(
+    () => matches.filter((idea) => !doneIds.has(idea.id)),
+    [doneIds, matches]
+  );
+  const doneMatches = useMemo(
+    () => matches.filter((idea) => doneIds.has(idea.id)),
+    [doneIds, matches]
+  );
+  const todoGroups = useMemo(
+    () => groupFantasiesByCategory(todoMatches),
+    [todoMatches]
+  );
+  const doneGroups = useMemo(
+    () => groupFantasiesByCategory(doneMatches),
+    [doneMatches]
+  );
+  const myPasses = useMemo(() => {
+    const ids = new Set(
+      mySwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
+    );
+    return FANTASY_IDEAS.filter((idea) => ids.has(idea.id));
+  }, [mySwipes]);
+  const partnerPasses = useMemo(() => {
+    const ids = new Set(
+      partnerSwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
+    );
+    return FANTASY_IDEAS.filter((idea) => ids.has(idea.id));
+  }, [partnerSwipes]);
+  const passedList = passedWho === "you" ? myPasses : partnerPasses;
+  const passedGroups = useMemo(
+    () => groupFantasiesByCategory(passedList),
+    [passedList]
+  );
   const incomingAsks = useMemo(
     () => (user ? incomingTonightAsks(fantasyTonightAsks, user.id) : []),
     [fantasyTonightAsks, user]
@@ -135,8 +178,10 @@ export default function FantasyMatcherScreen() {
       setBusy(false);
     }
   };
+  const activeGroups =
+    tab === "done" ? doneGroups : tab === "passed" ? passedGroups : todoGroups;
   const openMatchGroup = matchCategory
-    ? matchGroups.find((row) => row.category.id === matchCategory) ?? null
+    ? activeGroups.find((row) => row.category.id === matchCategory) ?? null
     : null;
 
   const resetCard = () => {
@@ -259,8 +304,8 @@ export default function FantasyMatcherScreen() {
           }}
         >
           Short fantasies, not whole scenes. Right = yes. Left = pass.
-          {partnerLabel} never sees your passes — only mutual yeses become
-          matches.
+          Mutual yeses land on To-do. Passed shows yours and {partnerLabel}'s
+          nos.
         </Text>
 
         <View
@@ -274,43 +319,26 @@ export default function FantasyMatcherScreen() {
             borderColor: T.border,
           }}
         >
-          {(
-            [
-              { id: "deck" as const, label: "Deck" },
+          <PlayTabs
+            tabs={[
+              { id: "deck", label: "Deck" },
               {
-                id: "matches" as const,
-                label: `Matches (${matches.length})`,
+                id: "todo",
+                label: todoMatches.length
+                  ? `To-do · ${todoMatches.length}`
+                  : "To-do",
               },
-            ] as const
-          ).map((item) => {
-            const on = tab === item.id;
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => {
-                  setTab(item.id);
-                  if (item.id === "deck") setMatchCategory(null);
-                }}
-                style={{
-                  flex: 1,
-                  borderRadius: 12,
-                  paddingVertical: 10,
-                  alignItems: "center",
-                  backgroundColor: on ? T.accent : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "700",
-                    color: on ? "#1A0508" : T.muted,
-                  }}
-                >
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+              { id: "done", label: "Completed" },
+              { id: "passed", label: "Passed" },
+            ]}
+            current={tab}
+            onChange={(next) => {
+              setTab(next);
+              setMatchCategory(null);
+            }}
+            accent={T.accent}
+            ink={T.ink}
+          />
         </View>
 
         {incomingAsks.length ? (
@@ -566,14 +594,12 @@ export default function FantasyMatcherScreen() {
                           remaining.length === 1 ? "" : "s"
                         } still waiting in the deck.`
                       : matches.length
-                        ? `You have ${matches.length} match${
-                            matches.length === 1 ? "" : "es"
-                          }. Open Matches and browse by category.`
+                        ? `You have ${todoMatches.length} on to-do. Open To-do to browse them.`
                         : `Every scenario is swiped. When new ones land, they’ll show up here — or wait for ${partnerLabel} to catch up.`}
                   </Text>
                   {matches.length ? (
                     <Pressable
-                      onPress={() => setTab("matches")}
+                      onPress={() => setTab("todo")}
                       style={{
                         marginTop: 18,
                         borderRadius: 999,
@@ -583,7 +609,7 @@ export default function FantasyMatcherScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "700", color: "#1A0508" }}>
-                        View matches
+                        Open to-do
                       </Text>
                     </Pressable>
                   ) : null}
@@ -649,13 +675,155 @@ export default function FantasyMatcherScreen() {
               </Text>
             ) : null}
           </View>
+        ) : tab === "passed" ? (
+          <View style={{ marginTop: 18, gap: 12 }}>
+            {!partner ? (
+              <Text style={{ color: T.muted, fontFamily: SERIF, fontSize: 15 }}>
+                Pair up to compare passes.
+              </Text>
+            ) : (
+              <>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    borderRadius: 14,
+                    backgroundColor: T.surface,
+                    padding: 4,
+                    borderWidth: 1,
+                    borderColor: T.border,
+                  }}
+                >
+                  {(
+                    [
+                      { id: "you" as const, label: "You" },
+                      {
+                        id: "partner" as const,
+                        label: partnerLabel,
+                      },
+                    ] as const
+                  ).map((item) => {
+                    const on = passedWho === item.id;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        onPress={() => setPassedWho(item.id)}
+                        style={{
+                          flex: 1,
+                          borderRadius: 10,
+                          paddingVertical: 10,
+                          alignItems: "center",
+                          backgroundColor: on ? T.accent : "transparent",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "700",
+                            color: on ? "#1A0508" : T.muted,
+                          }}
+                        >
+                          {item.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 14,
+                    lineHeight: 20,
+                    color: T.muted,
+                  }}
+                >
+                  {passedWho === "you"
+                    ? "Fantasies you swiped left on."
+                    : `Fantasies ${partnerLabel} swiped left on.`}
+                </Text>
+                {passedList.length === 0 ? (
+                  <View
+                    style={{
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: T.border,
+                      backgroundColor: T.surface,
+                      padding: 20,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: SERIF,
+                        fontSize: 20,
+                        color: T.ink,
+                      }}
+                    >
+                      No passes yet
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 8,
+                        fontFamily: SERIF,
+                        fontSize: 15,
+                        lineHeight: 22,
+                        color: T.muted,
+                      }}
+                    >
+                      {passedWho === "you"
+                        ? "When you swipe left, those cards land here."
+                        : `When ${partnerLabel} passes, their nos show up here.`}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{ gap: 12 }}>
+                    {passedGroups.map(({ category, items }) => (
+                      <View key={category.id} style={{ gap: 8 }}>
+                        <Text
+                          style={{
+                            fontFamily: "SpaceMono",
+                            fontSize: 11,
+                            letterSpacing: 1.6,
+                            textTransform: "uppercase",
+                            color: category.tint,
+                          }}
+                        >
+                          {category.label} · {items.length}
+                        </Text>
+                        {items.map((idea) => (
+                          <View
+                            key={idea.id}
+                            style={{
+                              borderRadius: 18,
+                              borderWidth: 1,
+                              borderColor: T.border,
+                              backgroundColor: T.surface,
+                              padding: 16,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: SERIF,
+                                fontSize: 20,
+                                color: T.ink,
+                              }}
+                            >
+                              {nameTitle(idea)}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+          </View>
         ) : (
           <View style={{ marginTop: 22, gap: 12 }}>
             {!partner ? (
               <Text style={{ color: T.muted, fontFamily: SERIF, fontSize: 15 }}>
                 Pair with a partner to start matching.
               </Text>
-            ) : matches.length === 0 ? (
+            ) : (tab === "todo" ? todoMatches : doneMatches).length === 0 ? (
               <View
                 style={{
                   borderRadius: 20,
@@ -672,7 +840,7 @@ export default function FantasyMatcherScreen() {
                     color: T.ink,
                   }}
                 >
-                  No matches yet
+                  {tab === "todo" ? "To-do is empty" : "Nothing completed yet"}
                 </Text>
                 <Text
                   style={{
@@ -683,12 +851,13 @@ export default function FantasyMatcherScreen() {
                     color: T.muted,
                   }}
                 >
-                  Keep swiping right on ideas you’d try. When {partnerLabel}{" "}
-                  does the same, they land here in categories you can open.
+                  {tab === "todo"
+                    ? `Mutual yeses with ${partnerLabel} land here until you mark them done.`
+                    : "Tick something off To-do after you try it."}
                 </Text>
                 <PrimaryButton
                   label="Back to deck"
-                  tone="neon"
+                  tone="ghost"
                   onPress={() => setTab("deck")}
                   style={{ marginTop: 16 }}
                 />
@@ -759,9 +928,8 @@ export default function FantasyMatcherScreen() {
                         color: T.muted,
                       }}
                     >
-                      {openMatchGroup.items.length} match
-                      {openMatchGroup.items.length === 1 ? "" : "es"} you can
-                      look through
+                      {openMatchGroup.items.length}{" "}
+                      {tab === "todo" ? "to try" : "done"}
                     </Text>
                   </View>
                 </View>
@@ -770,9 +938,17 @@ export default function FantasyMatcherScreen() {
                     key={idea.id}
                     idea={idea}
                     title={nameTitle(idea)}
-                    ask={tonightAskForFantasy(fantasyTonightAsks, idea.id)}
+                    ask={
+                      tab === "todo"
+                        ? tonightAskForFantasy(fantasyTonightAsks, idea.id)
+                        : null
+                    }
                     userId={user?.id ?? ""}
+                    mode={tab === "todo" ? "todo" : "done"}
+                    busy={busy}
                     onPress={() => setPickedMatch(idea)}
+                    onMarkDone={() => void completeFantasyMatch(idea.id)}
+                    onReopen={() => void reopenFantasyMatch(idea.id)}
                   />
                 ))}
               </View>
@@ -787,7 +963,9 @@ export default function FantasyMatcherScreen() {
                     marginBottom: 14,
                   }}
                 >
-                  Tap a category, then a match, and send Try this tonight?
+                  {tab === "todo"
+                    ? "Open a category, then send Try this tonight? or mark one done."
+                    : "Fantasies you already tried."}
                 </Text>
                 <View
                   style={{
@@ -796,7 +974,7 @@ export default function FantasyMatcherScreen() {
                     justifyContent: "space-between",
                   }}
                 >
-                  {matchGroups.map(({ category, items }) => (
+                  {activeGroups.map(({ category, items }) => (
                     <Pressable
                       key={category.id}
                       onPress={() => setMatchCategory(category.id)}
@@ -844,7 +1022,8 @@ export default function FantasyMatcherScreen() {
                           color: T.muted,
                         }}
                       >
-                        {items.length} match{items.length === 1 ? "" : "es"}
+                        {items.length}{" "}
+                        {tab === "todo" ? "to try" : "done"}
                       </Text>
                     </Pressable>
                   ))}
@@ -1013,7 +1192,7 @@ export default function FantasyMatcherScreen() {
               onPress={() => {
                 const category = matchFlash.category;
                 setMatchFlash(null);
-                setTab("matches");
+                setTab("todo");
                 setMatchCategory(category);
               }}
             />
@@ -1056,28 +1235,37 @@ function MatchCard({
   title,
   ask,
   userId,
+  mode,
+  busy,
   onPress,
+  onMarkDone,
+  onReopen,
 }: {
   idea: FantasyIdea;
   title: string;
   ask: FantasyTonightAsk | null;
   userId: string;
+  mode: "todo" | "done";
+  busy?: boolean;
   onPress: () => void;
+  onMarkDone?: () => void;
+  onReopen?: () => void;
 }) {
   const cat = fantasyCategoryMeta(idea.category);
   const chip =
-    ask?.status === "accepted"
-      ? "Tonight's on"
-      : ask?.status === "declined"
-        ? "Not tonight"
-        : ask?.status === "offered" && ask.fromUserId === userId
-          ? "Waiting"
-          : ask?.status === "offered"
-            ? "They asked"
-            : "Ask";
+    mode === "done"
+      ? "Done"
+      : ask?.status === "accepted"
+        ? "Tonight's on"
+        : ask?.status === "declined"
+          ? "Not tonight"
+          : ask?.status === "offered" && ask.fromUserId === userId
+            ? "Waiting"
+            : ask?.status === "offered"
+              ? "They asked"
+              : "Ask";
   return (
-    <Pressable
-      onPress={onPress}
+    <View
       style={{
         borderRadius: 20,
         borderWidth: 1,
@@ -1091,72 +1279,100 @@ function MatchCard({
         padding: 18,
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <View
-          style={{
-            borderRadius: 999,
-            backgroundColor: cat.tint + "33",
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-          }}
-        >
-          <Text
-            style={{
-              color: cat.tint,
-              fontSize: 11,
-              fontWeight: "700",
-              letterSpacing: 1,
-              textTransform: "uppercase",
-            }}
-          >
-            {cat.label}
-          </Text>
-        </View>
+      <Pressable onPress={onPress}>
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            gap: 4,
+            justifyContent: "space-between",
           }}
         >
-          <Ionicons
-            name={
-              ask?.status === "accepted"
-                ? "moon"
-                : ask?.status === "offered"
-                  ? "time-outline"
-                  : "heart"
-            }
-            size={14}
-            color={T.accent}
-          />
-          <Text
+          <View
             style={{
-              color: T.accent,
-              fontSize: 12,
-              fontWeight: "700",
+              borderRadius: 999,
+              backgroundColor: cat.tint + "33",
+              paddingHorizontal: 10,
+              paddingVertical: 4,
             }}
           >
-            {chip}
-          </Text>
+            <Text
+              style={{
+                color: cat.tint,
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 1,
+                textTransform: "uppercase",
+              }}
+            >
+              {cat.label}
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Ionicons
+              name={
+                mode === "done"
+                  ? "checkmark-circle"
+                  : ask?.status === "accepted"
+                    ? "moon"
+                    : ask?.status === "offered"
+                      ? "time-outline"
+                      : "heart"
+              }
+              size={14}
+              color={T.accent}
+            />
+            <Text
+              style={{
+                color: T.accent,
+                fontSize: 12,
+                fontWeight: "700",
+              }}
+            >
+              {chip}
+            </Text>
+          </View>
         </View>
-      </View>
-      <Text
-        style={{
-          marginTop: 12,
-          fontFamily: SERIF,
-          fontSize: 24,
-          color: T.ink,
-        }}
-      >
-        {title}
-      </Text>
-    </Pressable>
+        <Text
+          style={{
+            marginTop: 12,
+            fontFamily: SERIF,
+            fontSize: 24,
+            color: T.ink,
+          }}
+        >
+          {title}
+        </Text>
+      </Pressable>
+      {mode === "todo" ? (
+        <View style={{ marginTop: 14, gap: 8 }}>
+          <PrimaryButton
+            label="Try this tonight?"
+            onPress={onPress}
+            disabled={busy}
+          />
+          <PrimaryButton
+            label="Mark done"
+            tone="ghost"
+            onPress={onMarkDone}
+            disabled={busy}
+          />
+        </View>
+      ) : (
+        <View style={{ marginTop: 14 }}>
+          <PrimaryButton
+            label="Back to to-do"
+            tone="ghost"
+            onPress={onReopen}
+            disabled={busy}
+          />
+        </View>
+      )}
+    </View>
   );
 }
