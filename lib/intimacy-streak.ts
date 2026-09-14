@@ -40,7 +40,7 @@ const AUTO_KIND_META: Record<
 export const MISS_DAYS_TO_OUT = 5;
 
 /** Days shown in the chart window. */
-export const GRAPH_WINDOW_DAYS = 30;
+export const GRAPH_WINDOW_DAYS = 7;
 
 /** How far you can page back. */
 export const GRAPH_HISTORY_DAYS = 120;

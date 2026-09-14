@@ -206,9 +206,27 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
   );
 }
 
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 function dayLabel(date: string): string {
-  const day = Number(date.slice(8, 10));
-  return Number.isFinite(day) ? String(day) : date.slice(5);
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date.slice(5);
+  return WEEKDAYS[parsed.getDay()] ?? date.slice(5);
+}
+
+function prettyDate(date: string): string {
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function kindLabel(kind: string): string {
+  const meta = INTIMACY_KINDS.find((item) => item.id === kind);
+  return fireLabel(kind as never, meta?.label ?? kind);
 }
 
 /** Fixed-height bar window — no nested ScrollView, so it always paints on web. */
@@ -221,22 +239,27 @@ function ActivityChart({
   selected: string | null;
   onSelect: (date: string) => void;
 }) {
-  const chartHeight = 118;
+  const chartHeight = 128;
   const maxEnd = Math.max(GRAPH_WINDOW_DAYS, bars.length);
   const [end, setEnd] = useState(maxEnd);
+  const [hovered, setHovered] = useState<string | null>(null);
   const windowEnd = Math.min(end, bars.length);
   const windowStart = Math.max(0, windowEnd - GRAPH_WINDOW_DAYS);
   const visible = bars.slice(windowStart, windowEnd);
   const maxTotal = Math.max(1, ...bars.map((row) => row.total));
   const canOlder = windowStart > 0;
   const canNewer = windowEnd < bars.length;
+  const tipBar =
+    visible.find((bar) => bar.date === hovered) ??
+    visible.find((bar) => bar.date === selected) ??
+    null;
 
   useEffect(() => {
     setEnd(bars.length);
   }, [bars.length]);
 
   return (
-    <View style={{ minHeight: 190 }}>
+    <View style={{ minHeight: 220 }}>
       <View
         style={{
           flexDirection: "row",
@@ -246,7 +269,10 @@ function ActivityChart({
         }}
       >
         <Pressable
-          onPress={() => canOlder && setEnd((value) => Math.max(GRAPH_WINDOW_DAYS, value - GRAPH_WINDOW_DAYS))}
+          onPress={() =>
+            canOlder &&
+            setEnd((value) => Math.max(GRAPH_WINDOW_DAYS, value - GRAPH_WINDOW_DAYS))
+          }
           disabled={!canOlder}
           hitSlop={10}
           style={{ opacity: canOlder ? 1 : 0.25, paddingHorizontal: 6 }}
@@ -262,10 +288,12 @@ function ActivityChart({
             color: "rgba(255,210,180,0.5)",
           }}
         >
-          {GRAPH_WINDOW_DAYS}-day graph
+          Last {GRAPH_WINDOW_DAYS} days
         </Text>
         <Pressable
-          onPress={() => canNewer && setEnd((value) => Math.min(bars.length, value + GRAPH_WINDOW_DAYS))}
+          onPress={() =>
+            canNewer && setEnd((value) => Math.min(bars.length, value + GRAPH_WINDOW_DAYS))
+          }
           disabled={!canNewer}
           hitSlop={10}
           style={{ opacity: canNewer ? 1 : 0.25, paddingHorizontal: 6 }}
@@ -276,45 +304,128 @@ function ActivityChart({
 
       <View
         style={{
-          height: chartHeight + 22,
+          minHeight: 58,
+          marginBottom: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          borderRadius: 14,
+          backgroundColor: tipBar ? "#2A1410" : "rgba(42,20,16,0.45)",
+          borderWidth: 1,
+          borderColor: tipBar ? "rgba(255,106,61,0.35)" : "rgba(255,106,61,0.12)",
+        }}
+      >
+        {tipBar ? (
+          <>
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 0.8,
+                color: hot(),
+                marginBottom: 4,
+              }}
+            >
+              {prettyDate(tipBar.date)}
+              {tipBar.total
+                ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
+                : " · quiet"}
+            </Text>
+            {tipBar.total === 0 ? (
+              <Text style={{ color: "rgba(255,210,180,0.55)", fontSize: 13 }}>
+                No fuel this day.
+              </Text>
+            ) : (
+              tipBar.segments.map((segment) => (
+                <View
+                  key={`${tipBar.date}-tip-${segment.kind}`}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 3,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 99,
+                      backgroundColor: segment.color,
+                    }}
+                  />
+                  <Text style={{ flex: 1, color: "#FFD2B4", fontSize: 13 }}>
+                    {kindLabel(segment.kind)}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "rgba(255,210,180,0.55)",
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                    }}
+                  >
+                    ×{segment.count}
+                  </Text>
+                </View>
+              ))
+            )}
+          </>
+        ) : (
+          <Text
+            style={{
+              color: "rgba(255,210,180,0.45)",
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
+            Hover or tap a bar to see what fed that day.
+          </Text>
+        )}
+      </View>
+
+      <View
+        style={{
+          height: chartHeight + 26,
           flexDirection: "row",
           alignItems: "flex-end",
         }}
       >
         {visible.map((bar) => {
-          const active = selected === bar.date;
+          const active = selected === bar.date || hovered === bar.date;
           const height =
             bar.total === 0
-              ? 3
-              : Math.max(14, Math.round((bar.total / maxTotal) * chartHeight));
+              ? 4
+              : Math.max(16, Math.round((bar.total / maxTotal) * chartHeight));
           return (
             <Pressable
               key={bar.date}
               onPress={() => onSelect(bar.date)}
-              accessibilityLabel={`${bar.date}: ${bar.total} log${bar.total === 1 ? "" : "s"}`}
+              onHoverIn={() => setHovered(bar.date)}
+              onHoverOut={() => setHovered((current) => (current === bar.date ? null : current))}
+              accessibilityLabel={`${prettyDate(bar.date)}: ${bar.total} log${bar.total === 1 ? "" : "s"}`}
               style={{
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "flex-end",
-                paddingHorizontal: 1,
+                paddingHorizontal: 3,
               }}
             >
               <View
                 style={{
-                  width: "78%",
-                  maxWidth: 14,
+                  width: "70%",
+                  maxWidth: 28,
                   height,
-                  borderRadius: bar.total ? 3 : 1,
+                  borderRadius: bar.total ? 5 : 2,
                   overflow: "hidden",
                   backgroundColor: bar.total ? "transparent" : "rgba(255,106,61,0.2)",
-                  borderWidth: active ? 1 : 0,
+                  borderWidth: active ? 1.5 : 0,
                   borderColor: hot(),
                   justifyContent: "flex-end",
+                  opacity: hovered && hovered !== bar.date ? 0.55 : 1,
                 }}
               >
                 {bar.segments.map((segment) => {
                   const piece = Math.max(
-                    3,
+                    4,
                     Math.round((segment.count / maxTotal) * chartHeight)
                   );
                   return (
@@ -331,9 +442,9 @@ function ActivityChart({
               </View>
               <Text
                 style={{
-                  marginTop: 4,
-                  fontSize: 8,
-                  color: active ? hot() : "rgba(255,210,180,0.35)",
+                  marginTop: 6,
+                  fontSize: 10,
+                  color: active ? hot() : "rgba(255,210,180,0.4)",
                   fontFamily: "SpaceMono",
                 }}
               >
@@ -343,18 +454,6 @@ function ActivityChart({
           );
         })}
       </View>
-
-      <Text
-        style={{
-          marginTop: 10,
-          textAlign: "center",
-          fontSize: 12,
-          color: "rgba(255,210,180,0.45)",
-          lineHeight: 17,
-        }}
-      >
-        Taller = more that day. Color is the kind of fuel — tap a bar for details.
-      </Text>
     </View>
   );
 }
