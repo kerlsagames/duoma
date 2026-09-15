@@ -100,7 +100,8 @@ export default function ChickenScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <View style={{ flex: 1, backgroundColor: T.background }}>
+    <Screen scroll={!picked} background={T.background}>
       <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.yolk}>
         <View
           style={{
@@ -511,6 +512,7 @@ export default function ChickenScreen() {
           </View>
         ) : null}
       </Stage>
+    </Screen>
 
       {picked ? (
         <SheetOverlay
@@ -583,7 +585,7 @@ export default function ChickenScreen() {
           </Pressable>
         </SheetOverlay>
       ) : null}
-    </Screen>
+    </View>
   );
 }
 
