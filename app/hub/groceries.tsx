@@ -1,77 +1,24 @@
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { ERRANDS_TONE, HANDWRITING, SERIF } from "@/lib/app-themes";
+import {
+  DEFAULT_QUICK_GROCERIES,
+  QUICK_ADD_EMOJIS,
+  readErrandPrefs,
+  writeErrandPrefs,
+  type QuickAddItem,
+} from "@/lib/errand-prefs";
 import { noteHeading, type MealPlanNote } from "@/lib/meal-plan";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { ErrandItem, ErrandKind } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = ERRANDS_TONE;
 const LINE = 36;
-
-const QUICK_GROCERIES = [
-  { emoji: "🥛", label: "Milk" },
-  { emoji: "🍞", label: "Bread" },
-  { emoji: "🥚", label: "Eggs" },
-  { emoji: "🧈", label: "Butter" },
-  { emoji: "🧀", label: "Cheese" },
-  { emoji: "🥛", label: "Yoghurt" },
-  { emoji: "🥛", label: "Cream" },
-  { emoji: "🍎", label: "Apples" },
-  { emoji: "🍌", label: "Bananas" },
-  { emoji: "🍓", label: "Berries" },
-  { emoji: "🍋", label: "Lemons" },
-  { emoji: "🥑", label: "Avocado" },
-  { emoji: "🍅", label: "Tomatoes" },
-  { emoji: "🧅", label: "Onions" },
-  { emoji: "🧄", label: "Garlic" },
-  { emoji: "🥔", label: "Potatoes" },
-  { emoji: "🥕", label: "Carrots" },
-  { emoji: "🥬", label: "Greens" },
-  { emoji: "🥦", label: "Broccoli" },
-  { emoji: "🥒", label: "Cucumber" },
-  { emoji: "🫑", label: "Capsicum" },
-  { emoji: "🍄", label: "Mushrooms" },
-  { emoji: "🌽", label: "Corn" },
-  { emoji: "🫚", label: "Ginger" },
-  { emoji: "🍗", label: "Chicken" },
-  { emoji: "🥩", label: "Beef" },
-  { emoji: "🥩", label: "Mince" },
-  { emoji: "🥓", label: "Bacon" },
-  { emoji: "🌭", label: "Sausages" },
-  { emoji: "🐟", label: "Salmon" },
-  { emoji: "🐟", label: "Tuna" },
-  { emoji: "🦐", label: "Prawns" },
-  { emoji: "🍝", label: "Pasta" },
-  { emoji: "🍜", label: "Noodles" },
-  { emoji: "🍚", label: "Rice" },
-  { emoji: "🌮", label: "Tortillas" },
-  { emoji: "🫘", label: "Beans" },
-  { emoji: "🥫", label: "Tinned tomatoes" },
-  { emoji: "🥥", label: "Coconut milk" },
-  { emoji: "🥣", label: "Stock" },
-  { emoji: "🫘", label: "Chickpeas" },
-  { emoji: "🌾", label: "Flour" },
-  { emoji: "🍯", label: "Honey" },
-  { emoji: "🥜", label: "Peanut butter" },
-  { emoji: "🫒", label: "Oil" },
-  { emoji: "🧂", label: "Salt" },
-  { emoji: "🌶️", label: "Chilli" },
-  { emoji: "☕", label: "Coffee" },
-  { emoji: "🍵", label: "Tea" },
-  { emoji: "🧃", label: "Juice" },
-  { emoji: "🍷", label: "Wine" },
-  { emoji: "🧊", label: "Frozen veg" },
-  { emoji: "🍦", label: "Ice cream" },
-  { emoji: "🥣", label: "Oats" },
-  { emoji: "🥣", label: "Cereal" },
-  { emoji: "🍫", label: "Chocolate" },
-  { emoji: "🍪", label: "Crackers" },
-] as const;
 
 function itemLabel(item: ErrandItem) {
   return item.title.replace(/^[^\w]+/u, "").trim().toLowerCase();
@@ -88,6 +35,19 @@ export default function GroceriesErrandsScreen() {
   const { data } = useMiniApps();
   const router = useRouter();
   const [pad, setPad] = useState<ErrandKind>("grocery");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [quickAdd, setQuickAdd] = useState<QuickAddItem[]>(() =>
+    DEFAULT_QUICK_GROCERIES.map((row) => ({ ...row }))
+  );
+
+  useEffect(() => {
+    void readErrandPrefs().then((prefs) => setQuickAdd(prefs.quickAdd));
+  }, []);
+
+  const persistQuick = (next: QuickAddItem[]) => {
+    setQuickAdd(next);
+    void writeErrandPrefs({ quickAdd: next });
+  };
 
   const groceries = useMemo(
     () => errandItems.filter((row) => row.kind === "grocery"),
@@ -111,31 +71,91 @@ export default function GroceriesErrandsScreen() {
           color="#E8D9C4"
           fallback={"/hub/home-base" as Href}
           style={{ marginBottom: 12 }}
+          onPress={() => {
+            if (settingsOpen) {
+              setSettingsOpen(false);
+              return true;
+            }
+          }}
         />
 
-        <Text
+        <View
           style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 2.4,
-            textTransform: "uppercase",
-            color: "#E8D9C4",
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          Home Base · Kitchen table
-        </Text>
-        <Text
-          style={{
-            marginTop: 8,
-            fontFamily: HANDWRITING,
-            fontSize: 34,
-            lineHeight: 40,
-            color: "#F6EFE2",
-          }}
-        >
-          {onGroceries ? "Groceries" : "Errands"}
-        </Text>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 2.4,
+                textTransform: "uppercase",
+                color: "#E8D9C4",
+              }}
+            >
+              Home Base · Kitchen table
+            </Text>
+            <Text
+              style={{
+                marginTop: 8,
+                fontFamily: HANDWRITING,
+                fontSize: 34,
+                lineHeight: 40,
+                color: "#F6EFE2",
+              }}
+            >
+              {settingsOpen ? "Settings" : onGroceries ? "Groceries" : "Errands"}
+            </Text>
+            {settingsOpen ? (
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: SERIF,
+                  fontSize: 15,
+                  lineHeight: 22,
+                  color: "rgba(232,217,196,0.72)",
+                }}
+              >
+                Edit the quick-add chips on Groceries. Add the stuff you actually buy.
+              </Text>
+            ) : null}
+          </View>
+          <Pressable
+            onPress={() => setSettingsOpen((open) => !open)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              settingsOpen ? "Close groceries settings" : "Groceries settings"
+            }
+            style={{
+              height: 44,
+              width: 44,
+              borderRadius: 16,
+              backgroundColor: T.paper,
+              borderWidth: 1,
+              borderColor: T.paperEdge,
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 4,
+            }}
+          >
+            <Ionicons
+              name={settingsOpen ? "close" : "settings-outline"}
+              size={22}
+              color={T.ink}
+            />
+          </Pressable>
+        </View>
 
+        {settingsOpen ? (
+          <View style={{ marginTop: 18 }}>
+            <QuickAddSettings items={quickAdd} onChange={persistQuick} />
+          </View>
+        ) : (
+          <>
         <View
           style={{
             marginTop: 16,
@@ -194,7 +214,7 @@ export default function GroceriesErrandsScreen() {
               onToggle={(id) => toggleErrandDone(id)}
               onRemove={(id) => removeErrandItem(id)}
               onClearDone={() => clearDoneErrands("grocery")}
-              quickAdd
+              quickItems={quickAdd}
               meals={plannedMeals}
               onOpenMeals={() => router.push("/hub/meal-plan" as Href)}
             />
@@ -212,6 +232,8 @@ export default function GroceriesErrandsScreen() {
             />
           )}
         </View>
+          </>
+        )}
       </View>
     </Screen>
   );
@@ -227,7 +249,7 @@ function Notepad({
   onToggle,
   onRemove,
   onClearDone,
-  quickAdd,
+  quickItems,
   meals,
   onOpenMeals,
 }: {
@@ -240,7 +262,7 @@ function Notepad({
   onToggle: (id: string) => Promise<unknown>;
   onRemove: (id: string) => Promise<unknown>;
   onClearDone: () => Promise<unknown>;
-  quickAdd?: boolean;
+  quickItems?: QuickAddItem[];
   meals?: MealPlanNote[];
   onOpenMeals?: () => void;
 }) {
@@ -384,7 +406,7 @@ function Notepad({
         </Pressable>
       </LinedRow>
 
-      {quickAdd ? (
+      {quickItems && quickItems.length > 0 ? (
         <LinedRow>
           <Pressable
             onPress={() => setShowQuick((on) => !on)}
@@ -411,7 +433,7 @@ function Notepad({
         </LinedRow>
       ) : null}
 
-      {quickAdd && showQuick ? (
+      {quickItems && showQuick ? (
         <View
           style={{
             paddingLeft: 40,
@@ -425,7 +447,7 @@ function Notepad({
             gap: 6,
           }}
         >
-          {QUICK_GROCERIES.map((item) => {
+          {quickItems.map((item) => {
             const onList = alreadyOpen(item.label);
             return (
               <Pressable
@@ -655,5 +677,231 @@ function ListRow({
         <Ionicons name="close" size={16} color={T.muted} />
       </Pressable>
     </LinedRow>
+  );
+}
+
+function QuickAddSettings({
+  items,
+  onChange,
+}: {
+  items: QuickAddItem[];
+  onChange: (next: QuickAddItem[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const [emoji, setEmoji] = useState("🛒");
+  const [error, setError] = useState<string | null>(null);
+
+  const addChip = () => {
+    const label = draft.trim();
+    if (!label) {
+      setError("Type a name first.");
+      return;
+    }
+    if (items.some((row) => row.label.toLowerCase() === label.toLowerCase())) {
+      setError("That’s already on quick add.");
+      return;
+    }
+    onChange([...items, { emoji, label }]);
+    setDraft("");
+    setError(null);
+  };
+
+  return (
+    <View
+      style={{
+        backgroundColor: T.paper,
+        borderRadius: 3,
+        overflow: "hidden",
+        borderWidth: 1,
+        borderColor: T.paperEdge,
+      }}
+    >
+      <View
+        style={{
+          paddingLeft: 18,
+          paddingRight: 14,
+          paddingTop: 14,
+          paddingBottom: 10,
+          borderBottomWidth: 1,
+          borderBottomColor: T.rule,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: HANDWRITING,
+            fontSize: 24,
+            color: T.ink,
+          }}
+        >
+          Quick add
+        </Text>
+        <Text
+          style={{
+            marginTop: 4,
+            fontFamily: SERIF,
+            fontSize: 14,
+            lineHeight: 20,
+            color: T.muted,
+          }}
+        >
+          {items.length} chip{items.length === 1 ? "" : "s"} on the grocery pad.
+        </Text>
+      </View>
+
+      <View
+        style={{
+          paddingLeft: 18,
+          paddingRight: 14,
+          paddingTop: 12,
+          paddingBottom: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: T.rule,
+          gap: 10,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.2,
+            color: T.muted,
+          }}
+        >
+          ADD A CHIP
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          {QUICK_ADD_EMOJIS.map((pick) => {
+            const on = emoji === pick;
+            return (
+              <Pressable
+                key={pick}
+                onPress={() => setEmoji(pick)}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: on ? T.accentSoft : "rgba(44,36,22,0.04)",
+                  borderWidth: 1,
+                  borderColor: on ? T.accent : "rgba(44,36,22,0.1)",
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>{pick}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <TextInput
+            value={draft}
+            onChangeText={(value) => {
+              setDraft(value);
+              if (error) setError(null);
+            }}
+            placeholder="Oat milk, coriander…"
+            placeholderTextColor="rgba(44,36,22,0.32)"
+            onSubmitEditing={addChip}
+            returnKeyType="done"
+            style={{
+              flex: 1,
+              height: 44,
+              paddingHorizontal: 12,
+              borderRadius: 10,
+              backgroundColor: "rgba(44,36,22,0.05)",
+              color: T.ink,
+              fontFamily: SERIF,
+              fontSize: 16,
+            }}
+          />
+          <Pressable
+            onPress={addChip}
+            disabled={!draft.trim()}
+            accessibilityLabel="Add quick-add chip"
+            style={{
+              height: 44,
+              paddingHorizontal: 14,
+              borderRadius: 10,
+              backgroundColor: T.accent,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: draft.trim() ? 1 : 0.4,
+            }}
+          >
+            <Text style={{ color: T.paper, fontWeight: "700", fontSize: 14 }}>Add</Text>
+          </Pressable>
+        </View>
+        {error ? (
+          <Text style={{ fontFamily: SERIF, fontSize: 13, color: T.margin }}>{error}</Text>
+        ) : null}
+      </View>
+
+      {items.length === 0 ? (
+        <View style={{ padding: 18 }}>
+          <Text
+            style={{
+              fontFamily: SERIF,
+              fontSize: 15,
+              color: T.muted,
+              fontStyle: "italic",
+            }}
+          >
+            No chips yet. Add one above, or restore the starter list.
+          </Text>
+        </View>
+      ) : (
+        items.map((item, index) => (
+          <View
+            key={`${item.label}-${index}`}
+            style={{
+              minHeight: LINE,
+              paddingLeft: 18,
+              paddingRight: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: T.rule,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
+            <Text
+              style={{
+                flex: 1,
+                fontFamily: SERIF,
+                fontSize: 16,
+                color: T.ink,
+              }}
+            >
+              {item.label}
+            </Text>
+            <Pressable
+              onPress={() => onChange(items.filter((_, i) => i !== index))}
+              hitSlop={10}
+              accessibilityLabel={`Remove ${item.label}`}
+              style={{ padding: 4 }}
+            >
+              <Ionicons name="close" size={18} color={T.muted} />
+            </Pressable>
+          </View>
+        ))
+      )}
+
+      <Pressable
+        onPress={() => {
+          onChange(DEFAULT_QUICK_GROCERIES.map((row) => ({ ...row })));
+          setError(null);
+        }}
+        style={{
+          paddingVertical: 16,
+          paddingHorizontal: 18,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontFamily: SERIF, fontSize: 14, color: T.accent, fontWeight: "600" }}>
+          Restore starter chips
+        </Text>
+      </Pressable>
+    </View>
   );
 }

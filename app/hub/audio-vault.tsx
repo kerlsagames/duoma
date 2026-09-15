@@ -5,12 +5,7 @@ import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
-import {
-  AUDIO_WHISPERS,
-  secondsForText,
-  type AudioFolder,
-  type AudioNote,
-} from "@/lib/mini-content";
+import { type AudioFolder, type AudioNote } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
 import {
   abandonRecorder,
@@ -97,7 +92,7 @@ export default function AudioVaultScreen() {
   const [removeId, setRemoveId] = useState<string | null>(null);
   const them = partner?.displayName || "them";
   const notes = useMemo(
-    () => data.audioNotes.filter((row) => row.folder === folder),
+    () => data.audioNotes.filter((row) => row.folder === folder && row.hasAudio),
     [data.audioNotes, folder]
   );
   const tape = FOLDERS.find((row) => row.id === folder)?.tape ?? rose();
@@ -145,24 +140,6 @@ export default function AudioVaultScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!playing) return;
-    if (playing.hasAudio) return;
-    setProgress(0);
-    setElapsed(0);
-    const start = Date.now();
-    const tick = setInterval(() => {
-      const pct = Math.min(1, (Date.now() - start) / (playing.seconds * 1000));
-      setProgress(pct);
-      setElapsed(pct * playing.seconds);
-      if (pct >= 1) {
-        clearInterval(tick);
-        setPlaying(null);
-      }
-    }, 80);
-    return () => clearInterval(tick);
-  }, [playing]);
-
   const playNote = async (note: AudioNote) => {
     if (playing?.id === note.id) {
       stopPlayback();
@@ -170,10 +147,6 @@ export default function AudioVaultScreen() {
     }
     stopPlayback();
     setError(null);
-    if (!note.hasAudio) {
-      setPlaying(note);
-      return;
-    }
     try {
       const src = await resolveVoiceSrc(note.id, note.uri);
       if (!src) {
@@ -295,27 +268,6 @@ export default function AudioVaultScreen() {
     }
   };
 
-  const saveWritten = async (preset: { title: string; body: string; folder: AudioFolder }) => {
-    if (!user) return;
-    setError(null);
-    await patch((state) => ({
-      ...state,
-      audioNotes: [
-        {
-          id: createId(),
-          fromId: user.id,
-          folder: preset.folder,
-          title: preset.title,
-          body: preset.body,
-          seconds: secondsForText(preset.body),
-          createdAt: nowIso(),
-          hasAudio: false,
-        },
-        ...state.audioNotes,
-      ],
-    }));
-  };
-
   const confirmRemove = async () => {
     const id = removeId;
     setRemoveId(null);
@@ -331,11 +283,9 @@ export default function AudioVaultScreen() {
   const spinning = recording || Boolean(playing);
   const deckCopy = recording
     ? "Recording — say it like they are in the next room."
-    : playing?.hasAudio
+    : playing
       ? `Playing ${playing.title}`
-      : playing
-        ? playing.body.slice(0, Math.max(8, Math.floor(playing.body.length * progress)))
-        : "Press record. This captures your microphone — not typed text.";
+      : "Press record. This captures your microphone.";
   const clock = recording || playing ? formatTapeTime(elapsed) : "0:00";
 
   return (
@@ -402,22 +352,15 @@ export default function AudioVaultScreen() {
             borderLeftColor: tape,
           }}
         >
-          {playing && !playing.hasAudio ? (
-            <Text style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 26, color: "#F8E8EE" }}>
-              {deckCopy}
-              <Text style={{ color: tape }}>▍</Text>
-            </Text>
-          ) : (
-            <Text
-              style={{
-                fontFamily: HANDWRITING,
-                fontSize: 20,
-                color: recording ? rose() : "rgba(248,232,238,0.7)",
-              }}
-            >
-              {deckCopy}
-            </Text>
-          )}
+          <Text
+            style={{
+              fontFamily: HANDWRITING,
+              fontSize: 20,
+              color: recording ? rose() : "rgba(248,232,238,0.7)",
+            }}
+          >
+            {deckCopy}
+          </Text>
         </View>
 
         <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -523,8 +466,7 @@ export default function AudioVaultScreen() {
                       {note.title}
                     </Text>
                     <Text style={{ color: "rgba(248,232,238,0.4)", fontSize: 12 }}>
-                      {note.hasAudio ? "your voice · " : "written · "}
-                      {formatTapeTime(note.seconds)}
+                      your voice · {formatTapeTime(note.seconds)}
                       {note.fromId === user?.id ? " · you" : partner ? ` · ${them}` : ""}
                     </Text>
                   </View>
@@ -538,31 +480,6 @@ export default function AudioVaultScreen() {
               </View>
             ))
           )}
-        </View>
-
-        <Text style={{ marginTop: 22, fontFamily: HANDWRITING, fontSize: 20, color: rose() }}>
-          Written library
-        </Text>
-        <Text style={{ color: "rgba(248,232,238,0.4)", fontFamily: SERIF, marginBottom: 6 }}>
-          These are bedtime notes to read aloud — they are not microphone recordings.
-        </Text>
-        <View style={{ gap: 8 }}>
-          {AUDIO_WHISPERS.map((row) => (
-            <Pressable
-              key={row.title}
-              onPress={() => void saveWritten(row)}
-              style={{
-                padding: 12,
-                backgroundColor: "#1A1012",
-                borderRadius: 8,
-              }}
-            >
-              <Text style={{ color: rose(), fontFamily: "SpaceMono", fontSize: 10 }}>
-                LIBRARY · {row.folder}
-              </Text>
-              <Text style={{ fontFamily: SERIF, fontSize: 18, color: "#F8E8EE" }}>{row.title}</Text>
-            </Pressable>
-          ))}
         </View>
       </Stage>
       <ConfirmDialog

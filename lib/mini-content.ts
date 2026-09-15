@@ -123,6 +123,8 @@ export function hydrateAudioNote(raw: unknown): AudioNote | null {
   const mimeType = typeof row.mimeType === "string" && row.mimeType ? row.mimeType : undefined;
   const uri =
     typeof row.uri === "string" && row.uri.startsWith("data:audio") ? row.uri : undefined;
+  const hasAudio = Boolean(row.hasAudio) || Boolean(uri);
+  if (!hasAudio) return null;
   return {
     id: row.id,
     fromId: row.fromId,
@@ -131,7 +133,7 @@ export function hydrateAudioNote(raw: unknown): AudioNote | null {
     body,
     seconds,
     createdAt,
-    hasAudio: Boolean(row.hasAudio) || Boolean(uri),
+    hasAudio: true,
     mimeType,
     uri,
   };
@@ -587,33 +589,6 @@ export const DEFAULT_SIGNALS: SignalCode[] = [
   },
 ];
 
-export const AUDIO_WHISPERS: {
-  folder: AudioFolder;
-  title: string;
-  body: string;
-}[] = [
-  {
-    folder: "sweet",
-    title: "The way you make coffee",
-    body: "I still think about the first morning you made coffee in my kitchen like you'd always lived there. You hummed off-key. I pretended to be asleep so I could keep it.",
-  },
-  {
-    folder: "bedtime",
-    title: "A story about a lighthouse",
-    body: "There is a lighthouse that only turns on when two people remember the same joke at the same time. Tonight the beam found our window. Sleep. I'll keep the light.",
-  },
-  {
-    folder: "spicy",
-    title: "Leave the hallway light on",
-    body: "If you get home before me, leave the hallway light on. I have plans that do not involve talking about the dishwasher.",
-  },
-  {
-    folder: "voice",
-    title: "In the car, after the song",
-    body: "That silence after our song ended on the drive back — I wanted to say it then. I still do. You make ordinary roads feel like a getaway.",
-  },
-];
-
 export const MANUAL_INTIMACY_KINDS: {
   id: ManualIntimacyKind;
   label: string;
@@ -978,7 +953,3 @@ export function hydrateMiniState(raw: unknown): MiniState {
   };
 }
 
-export function secondsForText(body: string): number {
-  const words = body.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(8, Math.min(90, Math.round(words / 2.4)));
-}

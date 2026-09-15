@@ -3,6 +3,7 @@ import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { DISCOVER_TONE, SERIF } from "@/lib/app-themes";
+import { dateKeyFromIso, formatLongDate } from "@/lib/dates";
 import {
   ALL_DISCOVER_CATEGORY_IDS,
   DISCOVER_FAMILIES,
@@ -40,7 +41,6 @@ type DeckMove = { type: "talk" | "skip"; questionId: string };
 export default function DiscoverScreen() {
   const {
     user,
-    partner,
     couple,
     curiosityAnswers,
     curiositySkips,
@@ -85,21 +85,21 @@ export default function DiscoverScreen() {
   );
 
   const remaining = useMemo(
-    () =>
-      leftoverDiscover(
-        seen,
-        enabled,
-        `${couple?.id ?? "solo"}:${user?.id ?? "anon"}`
-      ),
-    [couple?.id, enabled, seen, user?.id]
+    () => leftoverDiscover(seen, enabled, couple?.id ?? "solo"),
+    [couple?.id, enabled, seen]
   );
 
   const current = restored ?? remaining[0] ?? null;
   const nextPeek = remaining.find((row) => row.id !== current?.id) ?? null;
 
   const vault = useMemo(
-    () => vaultEntries(curiosityAnswers, user?.id, partner?.id),
-    [curiosityAnswers, partner?.id, user?.id]
+    () => vaultEntries(curiosityAnswers),
+    [curiosityAnswers]
+  );
+
+  const talkedIds = useMemo(
+    () => new Set(vault.map((row) => row.question.id)),
+    [vault]
   );
 
   const mySkips = useMemo(() => {
@@ -108,8 +108,10 @@ export default function DiscoverScreen() {
         .filter((row) => row.userId === user?.id)
         .map((row) => row.questionId)
     );
-    return DISCOVER_QUESTIONS.filter((row) => ids.has(row.id));
-  }, [curiositySkips, user?.id]);
+    return DISCOVER_QUESTIONS.filter(
+      (row) => ids.has(row.id) && !talkedIds.has(row.id)
+    );
+  }, [curiositySkips, talkedIds, user?.id]);
 
   const resetCard = () => pan.setValue({ x: 0, y: 0 });
 
@@ -229,7 +231,6 @@ export default function DiscoverScreen() {
     extrapolate: "clamp",
   });
 
-  const partnerLabel = partner?.displayName ?? "your partner";
   const catalogCount = DISCOVER_QUESTION_COUNT;
   const onDeck = tab === "deck";
   const promptSize = current && current.prompt.length > 90 ? 18 : 20;
@@ -289,8 +290,8 @@ export default function DiscoverScreen() {
               color: T.muted,
             }}
           >
-            Talked cards live in the vault — yours and {partnerLabel}’s, side by
-            side.
+            Talked cards land in the vault for both of you. These are
+            discussion questions, not separate written answers.
           </Text>
         )}
 
@@ -607,7 +608,7 @@ export default function DiscoverScreen() {
                 }}
               >
                 The vault is empty. Swipe right when you’ve talked a card
-                through — it lands here, no writing.
+                through — it lands here for both of you.
               </Text>
             ) : (
               vault.map((row) => (
@@ -643,16 +644,17 @@ export default function DiscoverScreen() {
                   >
                     {row.question.prompt}
                   </Text>
-                  <AnswerBlock
-                    who="You"
-                    body={talkLabel(row.mine?.body)}
-                    waiting="You haven’t talked this one yet."
-                  />
-                  <AnswerBlock
-                    who={partnerLabel}
-                    body={talkLabel(row.theirs?.body)}
-                    waiting={`${partnerLabel} hasn’t talked this one yet.`}
-                  />
+                  <Text
+                    style={{
+                      marginTop: 10,
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                      letterSpacing: 0.6,
+                      color: T.muted,
+                    }}
+                  >
+                    Talked together · {formatLongDate(dateKeyFromIso(row.at))}
+                  </Text>
                 </View>
               ))
             )}
@@ -791,12 +793,6 @@ export default function DiscoverScreen() {
   );
 }
 
-function talkLabel(body: string | null | undefined): string | null {
-  if (body == null) return null;
-  const trimmed = body.trim();
-  return trimmed || "Talked about it.";
-}
-
 function RoundButton({
   icon,
   color,
@@ -865,48 +861,5 @@ function Chip({
         {label}
       </Text>
     </Pressable>
-  );
-}
-
-function AnswerBlock({
-  who,
-  body,
-  waiting,
-}: {
-  who: string;
-  body: string | null;
-  waiting: string;
-}) {
-  return (
-    <View
-      style={{
-        marginTop: 12,
-        borderRadius: 14,
-        backgroundColor: "#F4EEF8",
-        padding: 12,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 10,
-          letterSpacing: 1.2,
-          color: T.muted,
-        }}
-      >
-        {who.toUpperCase()}
-      </Text>
-      <Text
-        style={{
-          marginTop: 4,
-          color: body ? T.ink : T.dim,
-          fontSize: 15,
-          lineHeight: 21,
-          fontFamily: body ? SERIF : undefined,
-        }}
-      >
-        {body ?? waiting}
-      </Text>
-    </View>
   );
 }

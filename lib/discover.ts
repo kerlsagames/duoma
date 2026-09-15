@@ -192,45 +192,32 @@ export function seenDiscoverIds(
   skips: CuriositySkip[],
   userId: string | undefined
 ): string[] {
-  const ids: string[] = [];
+  const ids = new Set<string>();
   for (const row of answers) {
-    if (row.userId === userId && isDiscoverAnswered(row)) ids.push(row.questionId);
+    // Talked cards are shared — if either of you marked it, it leaves both decks.
+    if (isDiscoverAnswered(row)) ids.add(row.questionId);
   }
   for (const row of skips) {
-    if (row.userId === userId) ids.push(row.questionId);
+    if (row.userId === userId) ids.add(row.questionId);
   }
-  return ids;
+  return [...ids];
 }
 
-export function vaultEntries(
-  answers: CuriosityAnswer[],
-  myId: string | undefined,
-  partnerId: string | undefined
-): {
+export function vaultEntries(answers: CuriosityAnswer[]): {
   question: DiscoverQuestion;
-  mine: CuriosityAnswer | null;
-  theirs: CuriosityAnswer | null;
   at: string;
 }[] {
-  const mineByQ = new Map<string, CuriosityAnswer>();
-  const theirsByQ = new Map<string, CuriosityAnswer>();
+  const firstAt = new Map<string, string>();
   for (const row of answers) {
     if (!isDiscoverAnswered(row)) continue;
-    if (row.userId === myId) mineByQ.set(row.questionId, row);
-    if (partnerId && row.userId === partnerId) theirsByQ.set(row.questionId, row);
+    const prev = firstAt.get(row.questionId);
+    if (!prev || row.createdAt < prev) firstAt.set(row.questionId, row.createdAt);
   }
-  const ids = new Set([...mineByQ.keys(), ...theirsByQ.keys()]);
-  const rows = [...ids]
-    .map((id) => {
+  const rows = [...firstAt.entries()]
+    .map(([id, at]) => {
       const question = discoverQuestionById(id);
       if (!question) return null;
-      const mine = mineByQ.get(id) ?? null;
-      const theirs = theirsByQ.get(id) ?? null;
-      const at = [mine?.createdAt, theirs?.createdAt]
-        .filter(Boolean)
-        .sort()
-        .slice(-1)[0] as string;
-      return { question, mine, theirs, at };
+      return { question, at };
     })
     .filter((row): row is NonNullable<typeof row> => Boolean(row));
   return rows.sort((a, b) => b.at.localeCompare(a.at));
