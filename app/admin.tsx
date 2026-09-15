@@ -26,7 +26,7 @@ import {
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -63,9 +63,24 @@ export default function AdminScreen() {
   const [tab, setTab] = useState<Tab>("users");
   const [q, setQ] = useState("");
   const rev = useCatalogRevision();
-  const { allProfiles, allCouples, allCards, adminDb, ready, banAccount, unbanAccount } = useApp();
+  const {
+    allProfiles,
+    allCouples,
+    allCards,
+    adminDb,
+    ready,
+    usingCloud,
+    banAccount,
+    unbanAccount,
+    refreshCloudAccounts,
+  } = useApp();
   const { width } = useWindowDimensions();
   const stacked = width < 720;
+
+  useEffect(() => {
+    if (!unlocked || !usingCloud) return;
+    void refreshCloudAccounts();
+  }, [unlocked, usingCloud, refreshCloudAccounts]);
 
   if (!unlocked) {
     return (
@@ -215,12 +230,14 @@ export default function AdminScreen() {
 
 function SetupPane() {
   const cloud = isSupabaseConfigured;
+  const { user, usingCloud } = useApp();
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
       <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>How this scales</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
-        Right now every couple on duoma.vercel.app still shares this browser’s local store.
-        That is fine for you poking at cards. It is not 100 people on two phones each.
+        Pairing and catalog edits now live in Supabase when the keys are set. Each couple
+        gets their own email accounts and a six-character code. Hub play (jar, calendar,
+        games) still caches on the phone until that sync lands.
       </Text>
       <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 20 }}>Right now (no Supabase)</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
@@ -258,11 +275,12 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", marginTop: 22, fontSize: 12 }}>
         CLOUD KEYS · {cloud ? "present" : "missing"}
+        {usingCloud && user?.email ? ` · signed in as ${user.email}` : usingCloud ? " · not signed in" : ""}
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Couple play is still local until the live sync is switched on. Run SQL 001–006, then mark your profile is_admin."
-          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 006_accounts.sql. Turn on Auth → Email (magic link). Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then: update profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007_grants.sql if tables 404 or writes fail. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com'; Catalog edits and bans then apply for every couple."
+          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 007_grants.sql. Turn on Auth → Email (magic link). Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then: update profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"}
       </Text>
     </ScrollView>
   );
@@ -302,8 +320,9 @@ function UsersPane({
         Users · {shownProfiles.length}
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4 }}>
-        Maya and Jordan are a fake pair so you can click in. Real accounts from this
-        browser sit under them. Ban on the example is only a preview.
+        Maya and Jordan are a fake pair so you can click in. Real cloud accounts
+        appear under them once you are signed in as admin. Ban on the example is
+        only a preview.
       </Text>
       {shownProfiles.map((profile) => {
         const couple = shownCouples.find(

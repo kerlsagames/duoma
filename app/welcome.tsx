@@ -22,7 +22,7 @@ const LANES = HUBS.map((hub) => ({
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { savedPair, continueAsSaved } = useApp();
+  const { savedPair, continueAsSaved, usingCloud, pairError } = useApp();
 
   return (
     <Screen scroll>
@@ -39,7 +39,13 @@ export default function WelcomeScreen() {
         <Text className="mt-2 max-w-[340px] text-[16px] leading-6 text-mist/70">
           Pair once. Then the calendar, the talks, the games, and the spice all
           live in the same place.
+          {usingCloud
+            ? " Email is the account. The six-character code still links the two of you."
+            : ""}
         </Text>
+        {pairError ? (
+          <Text className="mt-3 text-[14px] leading-5 text-crimson">{pairError}</Text>
+        ) : null}
 
         <View
           style={{
@@ -100,7 +106,13 @@ export default function WelcomeScreen() {
                 onPress={() => {
                   void continueAsSaved()
                     .then(() => router.replace("/"))
-                    .catch(() => router.replace("/banned"));
+                    .catch((err: unknown) => {
+                      if (err instanceof Error && err.message === "CHECK_EMAIL") {
+                        router.replace("/check-email");
+                        return;
+                      }
+                      router.replace("/banned");
+                    });
                 }}
               />
             </>

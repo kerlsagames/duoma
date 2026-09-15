@@ -10,7 +10,7 @@ import { Text, TextInput, View } from "react-native";
 
 export default function CreateAccountScreen() {
   const router = useRouter();
-  const { createAccount } = useApp();
+  const { createAccount, usingCloud } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
@@ -20,6 +20,10 @@ export default function CreateAccountScreen() {
   const submit = async () => {
     if (!gender) return;
     const trimmedEmail = email.trim();
+    if (usingCloud && !trimmedEmail) {
+      setError("Email is how you get this pair back on a new phone.");
+      return;
+    }
     if (trimmedEmail && !looksLikeEmail(trimmedEmail)) {
       setError("That email does not look right.");
       return;
@@ -32,7 +36,7 @@ export default function CreateAccountScreen() {
         gender,
         email: trimmedEmail || undefined,
       });
-      router.replace("/waiting");
+      router.replace(usingCloud ? "/check-email" : "/waiting");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create account");
     } finally {
@@ -49,9 +53,8 @@ export default function CreateAccountScreen() {
         <Text className="mt-3 text-[34px] font-bold text-mist">Your name</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
           Your name, plus Male or Female so spicy cards, positions, and
-          roleplays speak to the right body. Email is how you get this pair
-          back on a new phone. The six-character code is still how you link
-          the two of you.
+          roleplays speak to the right body. Email is the account — a link, no
+          password. The six-character code is still how you link the two of you.
         </Text>
 
         <TextInput
@@ -66,7 +69,7 @@ export default function CreateAccountScreen() {
         <TextInput
           value={email}
           onChangeText={setEmail}
-          placeholder="Email (for this phone and the next one)"
+          placeholder={usingCloud ? "Email (required)" : "Email (for this phone and the next one)"}
           placeholderTextColor="rgba(244,244,246,0.35)"
           autoCapitalize="none"
           autoCorrect={false}
@@ -82,9 +85,9 @@ export default function CreateAccountScreen() {
 
         <View className="mt-8 gap-3">
           <PrimaryButton
-            label="Generate my code"
+            label={usingCloud ? "Email me the link" : "Generate my code"}
             loading={loading}
-            disabled={!name.trim() || !gender}
+            disabled={!name.trim() || !gender || (usingCloud && !email.trim())}
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />

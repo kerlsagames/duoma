@@ -30,7 +30,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 
-Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.
+When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing (email magic link + 6-character code) and creator catalog edits live in Supabase. Hub play still caches on the device until that sync lands. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
 
 ## Run it
 
@@ -47,9 +47,11 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 
 ### Pairing on web
 
-1. Tab A: **Create your pair** → copy the code.
-2. Tab B: **I have a code** → join with a *different* name.
-3. Or **Continue with a demo partner** (Riley) to try Us + games solo.
+1. **Create your pair** — name, email, Male/Female. We email a magic link. After you open it, copy the 6-character code.
+2. Their phone: **I have a code** — their name, their email, the code. They open their link.
+3. Or **Continue with a demo partner** (Riley) to try Us + games solo on one phone.
+
+Email is the account (new phone, bans). The code is still how two people become a pair.
 
 ## iPhone (iOS 16.4+)
 
@@ -76,11 +78,11 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
    - `EXPO_PUBLIC_DUOMA_ADMIN_KEY` — passphrase for the hidden creator tools. Set this before a public deploy.
 3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
-4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `006_accounts.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. Mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `007_grants.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 
 ## Accounts & scale
 
-Couple play is still local until those keys are set. 100 and 1,000 users both belong in Supabase Postgres (not in a phone’s localStorage). Keep the 6-character pair code. Email is the account — magic link, new phone, bans. Creator tools at `/admin` → Setup.
+100 and 1,000 users both belong in Supabase Postgres (not in a phone’s localStorage). Keep the 6-character pair code. Email is the account — magic link, new phone, bans. Creator tools at `/admin` → Setup.
 
 Vercel serverless functions live in `api/push/`. Netlify functions live in `netlify/functions/`.
 

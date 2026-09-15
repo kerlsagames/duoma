@@ -145,6 +145,13 @@ import {
 } from "@/lib/fantasy-matcher";
 import { subscribeCatalog } from "@/lib/catalog-overlay";
 import {
+  absorbCloudSession,
+  cloudAccountsOn,
+  loadCloudDirectory,
+  sendPairMagicLink,
+} from "@/lib/cloud-pair";
+import { supabase } from "@/lib/supabase";
+import {
   createContext,
   useCallback,
   useContext,
@@ -171,6 +178,46 @@ async function persist() {
   if (typeof BroadcastChannel !== "undefined") {
     new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now() });
   }
+}
+
+function mergeCloudPair(input: {
+  profile: Profile;
+  partner: Profile | null;
+  couple: Couple;
+}) {
+  const profiles = [...db.profiles];
+  const put = (next: Profile) => {
+    const index = profiles.findIndex((row) => row.id === next.id);
+    if (index >= 0) profiles[index] = { ...profiles[index], ...next };
+    else profiles.push(next);
+  };
+  put(input.profile);
+  if (input.partner) put(input.partner);
+  const couples = [...db.couples];
+  const coupleIndex = couples.findIndex((row) => row.id === input.couple.id);
+  if (coupleIndex >= 0) couples[coupleIndex] = { ...couples[coupleIndex], ...input.couple };
+  else couples.push(input.couple);
+  let cards = db.cards;
+  if (!cards.some((card) => card.coupleId === input.couple.id && card.isDefault)) {
+    cards = [...cards, ...cloneDefaultDeck(input.couple.id, input.profile.id)];
+  }
+  db = { ...db, profiles, couples, cards };
+}
+
+function mergeCloudDirectory(profiles: Profile[], couples: Couple[]) {
+  const nextProfiles = [...db.profiles];
+  for (const profile of profiles) {
+    const index = nextProfiles.findIndex((row) => row.id === profile.id);
+    if (index >= 0) nextProfiles[index] = { ...nextProfiles[index], ...profile };
+    else nextProfiles.push(profile);
+  }
+  const nextCouples = [...db.couples];
+  for (const couple of couples) {
+    const index = nextCouples.findIndex((row) => row.id === couple.id);
+    if (index >= 0) nextCouples[index] = { ...nextCouples[index], ...couple };
+    else nextCouples.push(couple);
+  }
+  db = { ...db, profiles: nextProfiles, couples: nextCouples };
 }
 
 function subscribe(listener: () => void) {
@@ -443,6 +490,7 @@ type AppContextValue = {
   allCouples: Couple[];
   allCards: Card[];
   adminDb: AppDB;
+  pairError: string | null;
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -450,6 +498,7 @@ type AppContextValue = {
   setProfileGender: (who: "you" | "partner", gender: Gender) => Promise<void>;
   banAccount: (profileId: string, reason: string) => Promise<void>;
   unbanAccount: (profileId: string) => Promise<void>;
+  refreshCloudAccounts: () => Promise<void>;
   signOut: () => Promise<void>;
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
@@ -675,6 +724,7 @@ function sessionFields(game: GameSession, extra: Partial<GameSession>): GameSess
 export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [version, setVersion] = useState(0);
+  const [pairError, setPairError] = useState<string | null>(null);
 
   const bump = useCallback(() => setVersion((value) => value + 1), []);
 
@@ -687,6 +737,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })();
     });
     let channel: BroadcastChannel | null = null;
+    let authSub: { unsubscribe: () => void } | null = null;
+
+    const applyCloudSession = async () => {
+      if (!cloudAccountsOn()) return false;
+      try {
+        const absorbed = await absorbCloudSession();
+        if (!absorbed) return false;
+        mergeCloudPair(absorbed);
+        sessionUserId = absorbed.profile.id;
+        lastUserId = absorbed.profile.id;
+        await writeSessionUserId(absorbed.profile.id);
+        await writeLastUserId(absorbed.profile.id);
+        setPairError(null);
+        return true;
+      } catch (err) {
+        setPairError(err instanceof Error ? err.message : "Could not open this pair.");
+        return false;
+      }
+    };
 
     (async () => {
       db = await readDb();
@@ -714,13 +783,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await writeLastUserId(resume);
         }
       }
-      if (syncDefaultCards()) {
+      const absorbed = await applyCloudSession();
+      if (syncDefaultCards() || absorbed) {
         await persist();
       } else {
         bump();
       }
       setReady(true);
     })();
+
+    if (supabase) {
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
+          void applyCloudSession().then((changed) => {
+            if (changed) void persist();
+          });
+        }
+        if (event === "SIGNED_OUT") {
+          sessionUserId = null;
+          void writeSessionUserId(null);
+          emit();
+        }
+      });
+      authSub = data.subscription;
+    }
 
     if (typeof BroadcastChannel !== "undefined") {
       channel = new BroadcastChannel(CHANNEL_NAME);
@@ -743,6 +829,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       unsub();
       unsubCatalog();
+      authSub?.unsubscribe();
       channel?.close();
       if (typeof window !== "undefined") {
         window.removeEventListener("storage", onStorage);
@@ -762,6 +849,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return db.profiles.find((profile) => profile.id === partnerId) ?? null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!ready || !cloudAccountsOn() || !couple?.id || !client) return;
+    let cancelled = false;
+    const pull = async () => {
+      try {
+        const absorbed = await absorbCloudSession();
+        if (cancelled || !absorbed) return;
+        mergeCloudPair(absorbed);
+        await persist();
+      } catch {
+        // Waiting screen keeps polling.
+      }
+    };
+    const channel = client
+      .channel(`duoma-couple-${couple.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "couples", filter: `id=eq.${couple.id}` },
+        () => {
+          void pull();
+        }
+      )
+      .subscribe();
+    const timer = couple.partnerB ? null : setInterval(() => void pull(), 4000);
+    return () => {
+      cancelled = true;
+      void client.removeChannel(channel);
+      if (timer) clearInterval(timer);
+    };
+  }, [ready, couple?.id, couple?.partnerB]);
   const allProfiles = useMemo(
     () => db.profiles,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1143,11 +1262,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const createAccount = useCallback(async ({ displayName, gender, email }: CreateAccountInput) => {
+    const trimmedEmail = email?.trim().toLowerCase() || "";
+    if (cloudAccountsOn()) {
+      if (!trimmedEmail) {
+        throw new Error("Email is required so you can open this pair on a new phone.");
+      }
+      setPairError(null);
+      await sendPairMagicLink(
+        { intent: "create", displayName: displayName.trim() || "You", gender },
+        trimmedEmail
+      );
+      return;
+    }
     const profile: Profile = {
       id: createId(),
       displayName: displayName.trim() || "You",
       gender,
-      email: email?.trim().toLowerCase() || null,
+      email: trimmedEmail || null,
       bannedAt: null,
       lastSeenAt: nowIso(),
       createdAt: nowIso(),
@@ -1172,6 +1303,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const joinWithCode = useCallback(async ({ displayName, gender, code, email }: JoinInput) => {
     const normalized = code.trim().toUpperCase();
+    const trimmedEmail = email?.trim().toLowerCase() || "";
+    if (cloudAccountsOn()) {
+      if (!trimmedEmail) {
+        throw new Error("Email is required so you can open this pair on a new phone.");
+      }
+      setPairError(null);
+      await sendPairMagicLink(
+        {
+          intent: "join",
+          displayName: displayName.trim() || "You",
+          gender,
+          code: normalized,
+        },
+        trimmedEmail
+      );
+      return;
+    }
     const match = db.couples.find((row) => row.inviteCode === normalized);
     if (!match) {
       throw new Error("That invite code was not found.");
@@ -1183,7 +1331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: createId(),
       displayName: displayName.trim() || "You",
       gender,
-      email: email?.trim().toLowerCase() || null,
+      email: trimmedEmail || null,
       bannedAt: null,
       lastSeenAt: nowIso(),
       createdAt: nowIso(),
@@ -1202,6 +1350,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const continueAsSaved = useCallback(async () => {
+    if (cloudAccountsOn()) {
+      try {
+        const absorbed = await absorbCloudSession();
+        if (absorbed) {
+          if (absorbed.profile.bannedAt) {
+            throw new Error(absorbed.profile.bannedReason || "This account is banned.");
+          }
+          mergeCloudPair(absorbed);
+          await rememberUser(absorbed.profile.id);
+          await persist();
+          setPairError(null);
+          return;
+        }
+      } catch (err) {
+        if (err instanceof Error && /banned/i.test(err.message)) throw err;
+      }
+      const saved = lastUserId
+        ? db.profiles.find((profile) => profile.id === lastUserId)
+        : null;
+      if (saved?.bannedAt) {
+        throw new Error(saved.bannedReason || "This account is banned.");
+      }
+      if (saved?.email && (saved.gender === "male" || saved.gender === "female")) {
+        const savedCouple = coupleForUser(saved.id);
+        await sendPairMagicLink(
+          {
+            intent: savedCouple?.partnerB ? "join" : "create",
+            displayName: saved.displayName,
+            gender: saved.gender,
+            code: savedCouple?.inviteCode,
+          },
+          saved.email
+        );
+        throw new Error("CHECK_EMAIL");
+      }
+      throw new Error("Open the email link, or create the pair again with your email.");
+    }
     if (!lastUserId) return;
     const saved = db.profiles.find((profile) => profile.id === lastUserId);
     if (saved?.bannedAt) {
@@ -1218,7 +1403,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
+  const refreshCloudAccounts = useCallback(async () => {
+    const directory = await loadCloudDirectory();
+    if (!directory) return;
+    mergeCloudDirectory(directory.profiles, directory.couples);
+    await persist();
+  }, []);
+
   const banAccount = useCallback(async (profileId: string, reason: string) => {
+    if (cloudAccountsOn() && supabase) {
+      const { error } = await supabase.rpc("ban_user", {
+        p_user_id: profileId,
+        p_reason: reason.trim() || "Banned",
+      });
+      if (error) {
+        throw new Error(
+          /admin only/i.test(error.message)
+            ? "Bans need your creator email signed in with is_admin. Run the SQL in Setup."
+            : error.message
+        );
+      }
+    }
     db = {
       ...db,
       profiles: db.profiles.map((profile) =>
@@ -1239,6 +1444,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const unbanAccount = useCallback(async (profileId: string) => {
+    if (cloudAccountsOn() && supabase) {
+      const { error } = await supabase.rpc("unban_user", { p_user_id: profileId });
+      if (error) {
+        throw new Error(
+          /admin only/i.test(error.message)
+            ? "Unban needs your creator email signed in with is_admin. Run the SQL in Setup."
+            : error.message
+        );
+      }
+    }
     db = {
       ...db,
       profiles: db.profiles.map((profile) =>
@@ -1462,6 +1677,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Local session still clears.
+      }
+    }
     sessionUserId = null;
     await writeSessionUserId(null);
     emit();
@@ -4976,7 +5198,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppContextValue = {
     ready,
-    usingCloud: false,
+    usingCloud: cloudAccountsOn(),
+    pairError,
     user,
     partner,
     couple,
@@ -5042,6 +5265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProfileGender,
     banAccount,
     unbanAccount,
+    refreshCloudAccounts,
     signOut,
     sendSpicyInvite,
     acceptInvite,

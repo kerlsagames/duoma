@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
@@ -158,6 +159,23 @@ export function subscribeCatalog(fn: (overlay: CatalogOverlay) => void): () => v
 
 export async function loadCatalog(): Promise<CatalogOverlay> {
   try {
+    if (supabase) {
+      const { data } = await supabase
+        .from("catalog_overlay")
+        .select("payload")
+        .eq("id", "v1")
+        .maybeSingle();
+      if (data?.payload) {
+        const next = hydrateOverlay(data.payload);
+        emit(next);
+        try {
+          await writeRaw(JSON.stringify(next));
+        } catch {
+          // Local cache is optional.
+        }
+        return next;
+      }
+    }
     const raw = await readRaw();
     const next = hydrateOverlay(raw ? JSON.parse(raw) : null);
     emit(next);
@@ -174,6 +192,17 @@ export async function writeCatalog(next: CatalogOverlay): Promise<void> {
     await writeRaw(JSON.stringify(next));
   } catch {
     // Keep memory even if disk fails.
+  }
+  if (supabase) {
+    try {
+      await supabase.from("catalog_overlay").upsert({
+        id: "v1",
+        payload: next,
+        updated_at: new Date().toISOString(),
+      });
+    } catch {
+      // Local write still holds until admin grants land.
+    }
   }
   if (typeof BroadcastChannel !== "undefined") {
     try {
@@ -269,6 +298,18 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void loadCatalog().then(() => setRev((n) => n + 1));
     const unsub = subscribeCatalog(() => setRev((n) => n + 1));
+    const cloud = supabase
+      ? supabase
+          .channel("duoma-catalog-overlay")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "catalog_overlay" },
+            () => {
+              void loadCatalog();
+            }
+          )
+          .subscribe()
+      : null;
     let channel: BroadcastChannel | null = null;
     if (typeof BroadcastChannel !== "undefined") {
       channel = new BroadcastChannel(CHANNEL);
@@ -285,6 +326,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     return () => {
       unsub();
       channel?.close();
+      if (cloud) void supabase?.removeChannel(cloud);
       if (Platform.OS === "web" && typeof window !== "undefined") {
         window.removeEventListener("storage", onStorage);
       }

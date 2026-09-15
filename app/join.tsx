@@ -10,7 +10,7 @@ import { Text, TextInput, View } from "react-native";
 
 export default function JoinScreen() {
   const router = useRouter();
-  const { joinWithCode } = useApp();
+  const { joinWithCode, usingCloud } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
@@ -21,6 +21,10 @@ export default function JoinScreen() {
   const submit = async () => {
     if (!gender) return;
     const trimmedEmail = email.trim();
+    if (usingCloud && !trimmedEmail) {
+      setError("Email is how you open this pair again if this phone dies.");
+      return;
+    }
     if (trimmedEmail && !looksLikeEmail(trimmedEmail)) {
       setError("That email does not look right.");
       return;
@@ -34,7 +38,7 @@ export default function JoinScreen() {
         code,
         email: trimmedEmail || undefined,
       });
-      router.replace("/(tabs)");
+      router.replace(usingCloud ? "/check-email" : "/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join");
     } finally {
@@ -50,8 +54,8 @@ export default function JoinScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Two of you. One code. Email is how you open this pair again if this
-          phone dies.
+          Two of you. One code. Email is the account on this phone and the next
+          one. The code is still how you become a pair.
         </Text>
 
         <TextInput
@@ -65,11 +69,11 @@ export default function JoinScreen() {
         <TextInput
           value={email}
           onChangeText={setEmail}
-          placeholder="Email (for a new phone later)"
-          placeholderTextColor="rgba(244,244,246,0.35)"
+          placeholder={usingCloud ? "Email (required)" : "Email (for a new phone later)"}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
+          placeholderTextColor="rgba(244,244,246,0.35)"
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
@@ -90,9 +94,14 @@ export default function JoinScreen() {
 
         <View className="mt-8 gap-3">
           <PrimaryButton
-            label="Link us"
+            label={usingCloud ? "Email me the link" : "Link us"}
             loading={loading}
-            disabled={!name.trim() || !gender || code.trim().length !== 6}
+            disabled={
+              !name.trim() ||
+              !gender ||
+              code.trim().length !== 6 ||
+              (usingCloud && !email.trim())
+            }
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />
