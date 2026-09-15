@@ -10,6 +10,8 @@ import {
   HOW_WORDS,
   keptTechniques,
   noteFor,
+  padHowNumber,
+  routineMinutes,
   statusLabel,
   techniquesInChapter,
   thisWeekKey,
@@ -82,7 +84,7 @@ export default function TheHowScreen() {
             color: T.ink,
           }}
         >
-          Named techniques. Shared words.
+          The book. A timed try.
         </Text>
         <Text
           style={{
@@ -93,9 +95,9 @@ export default function TheHowScreen() {
             color: T.muted,
           }}
         >
-          A workbook, not a dare. Learn one move, try it, keep the sentence that
-          actually works. {HOW_TECHNIQUES.length} techniques across seven
-          chapters.
+          {HOW_TECHNIQUES.length} techniques in four parts. Each one has why it
+          works, the variations, a guided try, and the signs to move on. Keep
+          the sentence you actually said.
         </Text>
 
         <View
@@ -176,7 +178,7 @@ export default function TheHowScreen() {
                   color: T.paperInk,
                 }}
               >
-                {week.name}
+                {padHowNumber(week.number)}. {week.name}
               </Text>
               <Text
                 style={{
@@ -197,7 +199,8 @@ export default function TheHowScreen() {
                   color: T.roseDeep,
                 }}
               >
-                {forLabel(week.for)} · {chapterMeta(week.chapter).label} →
+                {forLabel(week.for)} · {chapterMeta(week.chapter).label} ·{" "}
+                {routineMinutes(week)}-min try →
               </Text>
             </Pressable>
 
@@ -210,16 +213,9 @@ export default function TheHowScreen() {
                 color: T.rose,
               }}
             >
-              CHAPTERS
+              PARTS
             </Text>
-            <View
-              style={{
-                marginTop: 10,
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-              }}
-            >
+            <View style={{ marginTop: 10, gap: 12 }}>
               {HOW_CHAPTERS.map((row) => {
                 const count = techniquesInChapter(row.id).length;
                 return (
@@ -227,29 +223,45 @@ export default function TheHowScreen() {
                     key={row.id}
                     onPress={() => setChapterId(row.id)}
                     style={{
-                      width: "48%",
-                      marginBottom: 12,
                       borderRadius: 16,
                       backgroundColor: T.surfaceRaised,
                       borderWidth: 1,
                       borderColor: T.border,
-                      padding: 14,
+                      padding: 16,
                     }}
                   >
-                    <Text
+                    <View
                       style={{
-                        fontFamily: SERIF,
-                        fontSize: 18,
-                        color: T.ink,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
                       }}
                     >
-                      {row.label}
-                    </Text>
+                      <Text
+                        style={{
+                          fontFamily: SERIF,
+                          fontSize: 22,
+                          color: T.ink,
+                        }}
+                      >
+                        {row.label}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: "SpaceMono",
+                          fontSize: 11,
+                          letterSpacing: 1.2,
+                          color: T.rose,
+                        }}
+                      >
+                        {row.range}
+                      </Text>
+                    </View>
                     <Text
                       style={{
-                        marginTop: 4,
-                        fontSize: 12,
-                        lineHeight: 17,
+                        marginTop: 6,
+                        fontSize: 13,
+                        lineHeight: 19,
                         color: T.dim,
                       }}
                     >
@@ -271,7 +283,7 @@ export default function TheHowScreen() {
             </View>
             <Text
               style={{
-                marginTop: 4,
+                marginTop: 8,
                 fontFamily: SERIF,
                 fontSize: 13,
                 color: T.dim,
@@ -298,7 +310,7 @@ export default function TheHowScreen() {
                   color: T.rose,
                 }}
               >
-                ALL CHAPTERS
+                ALL PARTS
               </Text>
             </Pressable>
             <Text
@@ -319,7 +331,7 @@ export default function TheHowScreen() {
                 color: T.muted,
               }}
             >
-              {chapter.detail}
+              Techniques {chapter.range}. {chapter.detail}
             </Text>
             <View style={{ marginTop: 16, gap: 10 }}>
               {inChapter.map((row) => {
@@ -342,7 +354,7 @@ export default function TheHowScreen() {
                         color: T.roseDeep,
                       }}
                     >
-                      {forLabel(row.for).toUpperCase()}
+                      {padHowNumber(row.number)} · {forLabel(row.for).toUpperCase()}
                       {note?.status ? ` · ${statusLabel(note.status).toUpperCase()}` : ""}
                     </Text>
                     <Text
@@ -395,9 +407,9 @@ export default function TheHowScreen() {
                     color: T.paperMuted,
                   }}
                 >
-                  Open this week’s card, or a chapter. Mark Want to try or Keep
-                  this — they land here so you are not starting from zero next
-                  time.
+                  Open this week’s card, or a part. Run the timed try. Mark Want
+                  to try or Keep this — they land here so you are not starting
+                  from zero next time.
                 </Text>
               </View>
             ) : (
@@ -421,6 +433,7 @@ export default function TheHowScreen() {
                         letterSpacing: 1.2,
                       }}
                     >
+                      {padHowNumber(row.number)} ·{" "}
                       {statusLabel(note?.status ?? null).toUpperCase()} ·{" "}
                       {chapterMeta(row.chapter).label.toUpperCase()}
                     </Text>
@@ -463,8 +476,8 @@ export default function TheHowScreen() {
                 color: T.muted,
               }}
             >
-              Pin the sentences you will actually say. Vague coaching dies in
-              the dark. These do not.
+              Pin the sentences you will actually say. Signaling dies if it
+              turns into a speech. These do not.
             </Text>
             <View style={{ marginTop: 14, gap: 10 }}>
               {HOW_WORDS.map((row) => {

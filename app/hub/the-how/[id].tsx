@@ -4,15 +4,20 @@ import { HOW_TONE as T, SERIF } from "@/lib/app-themes";
 import {
   chapterMeta,
   forLabel,
+  formatClock,
   noteFor,
+  padHowNumber,
+  routineMinutes,
   statusLabel,
   techniqueById,
   upsertHowNote,
   type HowStatus,
+  type HowStep,
+  type HowTechnique,
 } from "@/lib/the-how";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const STATUSES: { id: HowStatus; label: string }[] = [
@@ -21,6 +26,13 @@ const STATUSES: { id: HowStatus; label: string }[] = [
   { id: "skip", label: "Not for us" },
 ];
 
+type Session = {
+  stepIndex: number;
+  remaining: number;
+  paused: boolean;
+  finished: boolean;
+};
+
 export default function HowTechniqueScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,6 +40,7 @@ export default function HowTechniqueScreen() {
   const technique = id ? techniqueById(id) : null;
   const saved = technique ? noteFor(data.howNotes, technique.id) : null;
   const [draft, setDraft] = useState(saved?.note ?? "");
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     setDraft(saved?.note ?? "");
@@ -72,6 +85,19 @@ export default function HowTechniqueScreen() {
   }
 
   const chapter = chapterMeta(technique.chapter);
+  const minutes = routineMinutes(technique);
+
+  if (session) {
+    return (
+      <SessionTry
+        technique={technique}
+        session={session}
+        setSession={setSession}
+        savedStatus={saved?.status ?? null}
+        onStatus={(status) => void setStatus(status)}
+      />
+    );
+  }
 
   return (
     <Screen scroll background={T.background}>
@@ -88,7 +114,8 @@ export default function HowTechniqueScreen() {
             color: T.rose,
           }}
         >
-          {chapter.label.toUpperCase()} · {forLabel(technique.for).toUpperCase()}
+          {padHowNumber(technique.number)} · {chapter.label.toUpperCase()} ·{" "}
+          {forLabel(technique.for).toUpperCase()}
         </Text>
         <Text
           style={{
@@ -113,42 +140,215 @@ export default function HowTechniqueScreen() {
           {technique.promise}
         </Text>
 
+        <Pressable
+          onPress={() =>
+            setSession({
+              stepIndex: 0,
+              remaining: technique.routine[0]!.durationSec,
+              paused: false,
+              finished: false,
+            })
+          }
+          style={{
+            marginTop: 18,
+            borderRadius: 18,
+            backgroundColor: T.rose,
+            paddingVertical: 16,
+            paddingHorizontal: 18,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              letterSpacing: 1.6,
+              color: T.paper,
+            }}
+          >
+            GUIDED TRY
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: SERIF,
+              fontSize: 20,
+              color: T.paper,
+            }}
+          >
+            Start the {minutes}-minute protocol
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontSize: 13,
+              lineHeight: 18,
+              color: "rgba(255,247,242,0.82)",
+            }}
+          >
+            {technique.routineLabel}. The phone holds the clock so your hands
+            don’t have to.
+          </Text>
+        </Pressable>
+
         <View
           style={{
             marginTop: 20,
             borderRadius: 20,
             backgroundColor: T.paper,
             padding: 18,
-            gap: 16,
+            gap: 18,
           }}
         >
-          <Block kicker="How" body={technique.how} />
-          <Block kicker="First try" body={technique.firstTry} />
-          <Block kicker="If you need to adjust" body={technique.adjust} />
-          <View>
-            <Text
+          <Block kicker="What" body={technique.what} />
+          <Block kicker="Why it works" body={technique.why} />
+        </View>
+
+        <Text
+          style={{
+            marginTop: 22,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.4,
+            color: T.rose,
+          }}
+        >
+          {technique.typesLabel.toUpperCase()}
+        </Text>
+        <View style={{ marginTop: 10, gap: 10 }}>
+          {technique.types.map((row) => (
+            <View
+              key={row.name}
               style={{
-                fontFamily: "SpaceMono",
-                fontSize: 10,
-                letterSpacing: 1.4,
-                color: T.roseDeep,
+                borderRadius: 16,
+                backgroundColor: T.surfaceRaised,
+                borderWidth: 1,
+                borderColor: T.border,
+                padding: 14,
               }}
             >
-              SAY THIS
-            </Text>
+              <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
+                {row.name}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontFamily: SERIF,
+                  fontSize: 14,
+                  lineHeight: 21,
+                  color: T.muted,
+                }}
+              >
+                {row.mechanics}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: "SpaceMono",
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  color: T.rose,
+                }}
+              >
+                EXECUTION
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontFamily: SERIF,
+                  fontSize: 15,
+                  lineHeight: 22,
+                  color: T.ink,
+                }}
+              >
+                {row.execution}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <Text
+          style={{
+            marginTop: 22,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.4,
+            color: T.rose,
+          }}
+        >
+          {technique.routineLabel.toUpperCase()}
+        </Text>
+        <View style={{ marginTop: 10, gap: 8 }}>
+          {technique.routine.map((row, index) => (
+            <RoutineRow key={`${row.title}-${index}`} step={row} />
+          ))}
+        </View>
+
+        <Text
+          style={{
+            marginTop: 22,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.4,
+            color: T.rose,
+          }}
+        >
+          {technique.signsLabel.toUpperCase()}
+        </Text>
+        <View
+          style={{
+            marginTop: 10,
+            borderRadius: 16,
+            backgroundColor: T.paper,
+            padding: 16,
+            gap: 10,
+          }}
+        >
+          {technique.signs.map((line) => (
             <Text
+              key={line}
               style={{
-                marginTop: 6,
                 fontFamily: SERIF,
-                fontSize: 20,
-                lineHeight: 28,
+                fontSize: 15,
+                lineHeight: 22,
                 color: T.paperInk,
               }}
             >
-              “{technique.sayThis}”
+              · {line}
             </Text>
-          </View>
-          <Block kicker="Notice" body={technique.notice} />
+          ))}
+        </View>
+
+        <View
+          style={{
+            marginTop: 18,
+            borderRadius: 16,
+            backgroundColor: T.surfaceRaised,
+            borderWidth: 1,
+            borderColor: T.border,
+            padding: 16,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              letterSpacing: 1.4,
+              color: T.rose,
+            }}
+          >
+            SAY THIS
+          </Text>
+          <Text
+            style={{
+              marginTop: 6,
+              fontFamily: SERIF,
+              fontSize: 22,
+              lineHeight: 30,
+              color: T.ink,
+            }}
+          >
+            “{technique.sayThis}”
+          </Text>
         </View>
 
         <Text
@@ -194,7 +394,7 @@ export default function HowTechniqueScreen() {
         <Text style={{ marginTop: 8, fontSize: 12, color: T.dim }}>
           {saved?.status
             ? `Marked: ${statusLabel(saved.status)}. Tap again to clear.`
-            : "Untried. Mark it after you talk, or after you try."}
+            : "Untried. Mark it after the protocol, or after you talk."}
         </Text>
 
         <Text
@@ -240,6 +440,311 @@ export default function HowTechniqueScreen() {
   );
 }
 
+function SessionTry({
+  technique,
+  session,
+  setSession,
+  savedStatus,
+  onStatus,
+}: {
+  technique: HowTechnique;
+  session: Session;
+  setSession: (next: Session | null | ((prev: Session | null) => Session | null)) => void;
+  savedStatus: HowStatus | null;
+  onStatus: (status: HowStatus) => void;
+}) {
+  const routine = technique.routine;
+  const step = routine[session.stepIndex] ?? routine[routine.length - 1]!;
+  const total = useMemo(
+    () => routine.reduce((sum, row) => sum + row.durationSec, 0),
+    [technique.id]
+  );
+  const elapsed = useMemo(() => {
+    const before = routine
+      .slice(0, session.stepIndex)
+      .reduce((sum, row) => sum + row.durationSec, 0);
+    const into = Math.max(0, step.durationSec - session.remaining);
+    return before + into;
+  }, [session.stepIndex, session.remaining, technique.id]);
+
+  useEffect(() => {
+    if (session.paused || session.finished) return;
+    const id = setInterval(() => {
+      setSession((prev) => {
+        if (!prev || prev.paused || prev.finished) return prev;
+        if (prev.remaining <= 1) {
+          const nextIndex = prev.stepIndex + 1;
+          if (nextIndex >= routine.length) {
+            return { ...prev, remaining: 0, finished: true };
+          }
+          return {
+            stepIndex: nextIndex,
+            remaining: routine[nextIndex]!.durationSec,
+            paused: false,
+            finished: false,
+          };
+        }
+        return { ...prev, remaining: prev.remaining - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [session.paused, session.finished, session.stepIndex]);
+
+  const goNext = () => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const nextIndex = prev.stepIndex + 1;
+      if (nextIndex >= routine.length) {
+        return { ...prev, remaining: 0, finished: true };
+      }
+      return {
+        stepIndex: nextIndex,
+        remaining: routine[nextIndex]!.durationSec,
+        paused: false,
+        finished: false,
+      };
+    });
+  };
+
+  return (
+    <Screen scroll background={T.background}>
+      <Stage background={T.background} fallback={"/hub/the-how" as Href} accent={T.rose}>
+        <Text
+          style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.8,
+            color: T.rose,
+          }}
+        >
+          {padHowNumber(technique.number)} · {technique.routineLabel.toUpperCase()}
+        </Text>
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: SERIF,
+            fontSize: 28,
+            lineHeight: 34,
+            color: T.ink,
+          }}
+        >
+          {technique.name}
+        </Text>
+
+        {session.finished ? (
+          <View
+            style={{
+              marginTop: 18,
+              borderRadius: 20,
+              backgroundColor: T.paper,
+              padding: 18,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 10,
+                letterSpacing: 1.4,
+                color: T.roseDeep,
+              }}
+            >
+              PROTOCOL COMPLETE
+            </Text>
+            <Text
+              style={{
+                marginTop: 8,
+                fontFamily: SERIF,
+                fontSize: 22,
+                lineHeight: 28,
+                color: T.paperInk,
+              }}
+            >
+              How was that for the two of you?
+            </Text>
+            <Text
+              style={{
+                marginTop: 8,
+                fontFamily: SERIF,
+                fontSize: 15,
+                lineHeight: 22,
+                color: T.paperMuted,
+              }}
+            >
+              Mark it now while the body still remembers. You can write a note
+              on the card after.
+            </Text>
+            <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {STATUSES.map((row) => {
+                const on = savedStatus === row.id;
+                return (
+                  <Pressable
+                    key={row.id}
+                    onPress={() => onStatus(row.id)}
+                    style={{
+                      borderRadius: 999,
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      backgroundColor: on ? T.rose : "rgba(255,247,242,0.08)",
+                      borderWidth: 1,
+                      borderColor: on ? T.rose : "rgba(255,247,242,0.18)",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: "700",
+                        fontSize: 13,
+                        color: on ? T.paper : T.paperInk,
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={() => setSession(null)}
+              style={{
+                marginTop: 18,
+                borderRadius: 14,
+                backgroundColor: T.rose,
+                paddingVertical: 14,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: T.paper, fontWeight: "700", fontSize: 15 }}>
+                Back to the card
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <View
+              style={{
+                marginTop: 16,
+                height: 6,
+                borderRadius: 99,
+                backgroundColor: T.surface,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  width: `${Math.min(100, (elapsed / Math.max(1, total)) * 100)}%`,
+                  height: 6,
+                  backgroundColor: T.rose,
+                }}
+              />
+            </View>
+            <Text style={{ marginTop: 8, fontSize: 12, color: T.dim }}>
+              Step {session.stepIndex + 1} of {routine.length}
+              {session.paused ? " · paused" : ""}
+            </Text>
+
+            <View
+              style={{
+                marginTop: 14,
+                borderRadius: 24,
+                backgroundColor: T.paper,
+                padding: 22,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 1.6,
+                  color: T.roseDeep,
+                }}
+              >
+                {step.minutes.toUpperCase()}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontFamily: SERIF,
+                  fontSize: 48,
+                  lineHeight: 54,
+                  color: T.paperInk,
+                }}
+              >
+                {formatClock(session.remaining)}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: SERIF,
+                  fontSize: 24,
+                  lineHeight: 30,
+                  color: T.paperInk,
+                  textAlign: "center",
+                }}
+              >
+                {step.title}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 10,
+                  fontFamily: SERIF,
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: T.paperMuted,
+                  textAlign: "center",
+                }}
+              >
+                {step.body}
+              </Text>
+            </View>
+
+            <View style={{ marginTop: 16, flexDirection: "row", gap: 8 }}>
+              <Pressable
+                onPress={() =>
+                  setSession((prev) =>
+                    prev ? { ...prev, paused: !prev.paused } : prev
+                  )
+                }
+                style={{
+                  flex: 1,
+                  borderRadius: 14,
+                  paddingVertical: 14,
+                  alignItems: "center",
+                  backgroundColor: T.surfaceRaised,
+                  borderWidth: 1,
+                  borderColor: T.border,
+                }}
+              >
+                <Text style={{ fontWeight: "700", color: T.ink }}>
+                  {session.paused ? "Resume" : "Pause"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={goNext}
+                style={{
+                  flex: 1,
+                  borderRadius: 14,
+                  paddingVertical: 14,
+                  alignItems: "center",
+                  backgroundColor: T.rose,
+                }}
+              >
+                <Text style={{ fontWeight: "700", color: T.paper }}>
+                  {session.stepIndex + 1 >= routine.length ? "Finish" : "Next step"}
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable onPress={() => setSession(null)} style={{ marginTop: 14 }}>
+              <Text style={{ color: T.dim, fontWeight: "700", textAlign: "center" }}>
+                Stop the try
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </Stage>
+    </Screen>
+  );
+}
+
 function Block({ kicker, body }: { kicker: string; body: string }) {
   return (
     <View>
@@ -264,6 +769,50 @@ function Block({ kicker, body }: { kicker: string; body: string }) {
       >
         {body}
       </Text>
+    </View>
+  );
+}
+
+function RoutineRow({ step }: { step: HowStep }) {
+  return (
+    <View
+      style={{
+        borderRadius: 14,
+        backgroundColor: T.surfaceRaised,
+        borderWidth: 1,
+        borderColor: T.border,
+        padding: 14,
+        flexDirection: "row",
+        gap: 12,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          color: T.rose,
+          width: 52,
+          marginTop: 2,
+        }}
+      >
+        {step.minutes}
+      </Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+          {step.title}
+        </Text>
+        <Text
+          style={{
+            marginTop: 4,
+            fontFamily: SERIF,
+            fontSize: 14,
+            lineHeight: 20,
+            color: T.muted,
+          }}
+        >
+          {step.body}
+        </Text>
+      </View>
     </View>
   );
 }

@@ -168,7 +168,7 @@ export const HUBS: HubDef[] = [
       {
         id: "the-how",
         label: "The How",
-        detail: "Named techniques. Try one. Keep the words that work.",
+        detail: "Four parts. Timed tries. Keep what actually works.",
         icon: "book",
         href: "/hub/the-how",
       },
