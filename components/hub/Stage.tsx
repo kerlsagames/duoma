@@ -10,16 +10,32 @@ export function Stage({
   background,
   fallback,
   accent,
+  right,
   children,
 }: {
   background: string;
   fallback: Href;
   accent: string;
+  right?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <View className="pt-3 pb-14">
-      <BackButton color={accent} fallback={fallback} style={{ marginBottom: 8 }} />
+      {right ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <BackButton color={accent} fallback={fallback} />
+          {right}
+        </View>
+      ) : (
+        <BackButton color={accent} fallback={fallback} style={{ marginBottom: 8 }} />
+      )}
       {children}
     </View>
   );

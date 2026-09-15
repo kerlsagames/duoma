@@ -1,10 +1,13 @@
+import { HowPlainToggle } from "@/components/hub/HowPlainToggle";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HOW_TONE as T, SERIF } from "@/lib/app-themes";
 import {
+  bodyWordsFor,
   chapterMeta,
   forLabel,
   formatClock,
+  howVoice,
   noteFor,
   padHowNumber,
   routineMinutes,
@@ -12,10 +15,10 @@ import {
   techniqueById,
   upsertHowNote,
   type HowStatus,
-  type HowStep,
   type HowTechnique,
 } from "@/lib/the-how";
 import { useMiniApps } from "@/lib/mini-apps";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -41,6 +44,7 @@ export default function HowTechniqueScreen() {
   const saved = technique ? noteFor(data.howNotes, technique.id) : null;
   const [draft, setDraft] = useState(saved?.note ?? "");
   const [session, setSession] = useState<Session | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     setDraft(saved?.note ?? "");
@@ -61,6 +65,10 @@ export default function HowTechniqueScreen() {
       ...state,
       howNotes: upsertHowNote(state.howNotes, technique.id, { note: draft }),
     }));
+  };
+
+  const togglePlain = async () => {
+    await patch((state) => ({ ...state, howPlainOn: !state.howPlainOn }));
   };
 
   if (!technique) {
@@ -86,6 +94,29 @@ export default function HowTechniqueScreen() {
 
   const chapter = chapterMeta(technique.chapter);
   const minutes = routineMinutes(technique);
+  const voice = howVoice(technique, data.howPlainOn);
+  const terms = bodyWordsFor(technique.terms);
+  const settingsCog = (
+    <Pressable
+      onPress={() => setSettingsOpen((value) => !value)}
+      hitSlop={10}
+      accessibilityLabel={settingsOpen ? "Close The How settings" : "The How settings"}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(255,255,255,0.06)",
+      }}
+    >
+      <Ionicons
+        name={settingsOpen ? "close" : "settings-outline"}
+        size={20}
+        color={T.rose}
+      />
+    </Pressable>
+  );
 
   if (session) {
     return (
@@ -105,6 +136,7 @@ export default function HowTechniqueScreen() {
         background={T.background}
         fallback={"/hub/the-how" as Href}
         accent={T.rose}
+        right={settingsCog}
       >
         <Text
           style={{
@@ -137,304 +169,363 @@ export default function HowTechniqueScreen() {
             color: T.muted,
           }}
         >
-          {technique.promise}
+          {voice.promise}
         </Text>
 
-        <Pressable
-          onPress={() =>
-            setSession({
-              stepIndex: 0,
-              remaining: technique.routine[0]!.durationSec,
-              paused: false,
-              finished: false,
-            })
-          }
-          style={{
-            marginTop: 18,
-            borderRadius: 18,
-            backgroundColor: T.rose,
-            paddingVertical: 16,
-            paddingHorizontal: 18,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: "SpaceMono",
-              fontSize: 10,
-              letterSpacing: 1.6,
-              color: T.paper,
-            }}
-          >
-            GUIDED TRY
-          </Text>
-          <Text
-            style={{
-              marginTop: 4,
-              fontFamily: SERIF,
-              fontSize: 20,
-              color: T.paper,
-            }}
-          >
-            Start the {minutes}-minute protocol
-          </Text>
-          <Text
-            style={{
-              marginTop: 4,
-              fontSize: 13,
-              lineHeight: 18,
-              color: "rgba(255,247,242,0.82)",
-            }}
-          >
-            {technique.routineLabel}. The phone holds the clock so your hands
-            don’t have to.
-          </Text>
-        </Pressable>
-
-        <View
-          style={{
-            marginTop: 20,
-            borderRadius: 20,
-            backgroundColor: T.paper,
-            padding: 18,
-            gap: 18,
-          }}
-        >
-          <Block kicker="What" body={technique.what} />
-          <Block kicker="Why it works" body={technique.why} />
-        </View>
-
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: T.rose,
-          }}
-        >
-          {technique.typesLabel.toUpperCase()}
-        </Text>
-        <View style={{ marginTop: 10, gap: 10 }}>
-          {technique.types.map((row) => (
-            <View
-              key={row.name}
+        {settingsOpen ? (
+          <View style={{ marginTop: 20 }}>
+            <HowPlainToggle on={data.howPlainOn} onToggle={() => void togglePlain()} />
+          </View>
+        ) : (
+          <>
+            <Pressable
+              onPress={() =>
+                setSession({
+                  stepIndex: 0,
+                  remaining: technique.routine[0]!.durationSec,
+                  paused: false,
+                  finished: false,
+                })
+              }
               style={{
-                borderRadius: 16,
-                backgroundColor: T.surfaceRaised,
-                borderWidth: 1,
-                borderColor: T.border,
-                padding: 14,
+                marginTop: 18,
+                borderRadius: 18,
+                backgroundColor: T.rose,
+                paddingVertical: 16,
+                paddingHorizontal: 18,
               }}
             >
-              <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
-                {row.name}
-              </Text>
               <Text
                 style={{
-                  marginTop: 6,
-                  fontFamily: SERIF,
-                  fontSize: 14,
-                  lineHeight: 21,
-                  color: T.muted,
-                }}
-              >
-                {row.mechanics}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 8,
                   fontFamily: "SpaceMono",
                   fontSize: 10,
-                  letterSpacing: 1.2,
-                  color: T.rose,
+                  letterSpacing: 1.6,
+                  color: T.paper,
                 }}
               >
-                EXECUTION
+                GUIDED TRY
               </Text>
               <Text
                 style={{
                   marginTop: 4,
                   fontFamily: SERIF,
-                  fontSize: 15,
-                  lineHeight: 22,
+                  fontSize: 20,
+                  color: T.paper,
+                }}
+              >
+                Start the {minutes}-minute try
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  color: "rgba(255,247,242,0.82)",
+                }}
+              >
+                {technique.routine.length} steps. The phone holds the clock.
+              </Text>
+            </Pressable>
+
+            <View
+              style={{
+                marginTop: 18,
+                borderRadius: 20,
+                backgroundColor: T.paper,
+                padding: 18,
+                gap: 14,
+              }}
+            >
+              <Block kicker="What" body={voice.what} />
+              <Block kicker="Why" body={voice.why} />
+            </View>
+
+            {terms.length ? (
+              <>
+                <Text
+                  style={{
+                    marginTop: 20,
+                    fontFamily: "SpaceMono",
+                    fontSize: 11,
+                    letterSpacing: 1.4,
+                    color: T.rose,
+                  }}
+                >
+                  BODY WORDS ON THIS CARD
+                </Text>
+                <View style={{ marginTop: 10, gap: 8 }}>
+                  {terms.map((row) => (
+                    <View
+                      key={row.id}
+                      style={{
+                        borderRadius: 14,
+                        backgroundColor: T.surfaceRaised,
+                        borderWidth: 1,
+                        borderColor: T.border,
+                        padding: 12,
+                      }}
+                    >
+                      <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+                        {row.word}
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 4,
+                          fontFamily: SERIF,
+                          fontSize: 14,
+                          lineHeight: 20,
+                          color: T.muted,
+                        }}
+                      >
+                        {row.meaning}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            ) : null}
+
+            <Text
+              style={{
+                marginTop: 20,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: T.rose,
+              }}
+            >
+              {technique.typesLabel.toUpperCase()}
+            </Text>
+            <View style={{ marginTop: 10, gap: 8 }}>
+              {technique.types.map((row) => (
+                <View
+                  key={row.name}
+                  style={{
+                    borderRadius: 14,
+                    backgroundColor: T.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: T.border,
+                    padding: 12,
+                  }}
+                >
+                  <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+                    {row.name}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      fontFamily: SERIF,
+                      fontSize: 14,
+                      lineHeight: 20,
+                      color: T.muted,
+                    }}
+                  >
+                    {row.line}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <Text
+              style={{
+                marginTop: 20,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: T.rose,
+              }}
+            >
+              THE TRY · {technique.routineLabel.toUpperCase()}
+            </Text>
+            <View style={{ marginTop: 10, gap: 6 }}>
+              {technique.routine.map((row, index) => (
+                <View
+                  key={`${row.title}-${index}`}
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    paddingVertical: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "SpaceMono",
+                      fontSize: 11,
+                      color: T.rose,
+                      width: 48,
+                      marginTop: 2,
+                    }}
+                  >
+                    {row.minutes}
+                  </Text>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontFamily: SERIF,
+                      fontSize: 15,
+                      color: T.ink,
+                    }}
+                  >
+                    {row.title}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <Text
+              style={{
+                marginTop: 20,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: T.rose,
+              }}
+            >
+              {technique.signsLabel.toUpperCase()}
+            </Text>
+            <View
+              style={{
+                marginTop: 10,
+                borderRadius: 16,
+                backgroundColor: T.paper,
+                padding: 16,
+                gap: 8,
+              }}
+            >
+              {voice.signs.map((line) => (
+                <Text
+                  key={line}
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 15,
+                    lineHeight: 22,
+                    color: T.paperInk,
+                  }}
+                >
+                  · {line}
+                </Text>
+              ))}
+            </View>
+
+            <View
+              style={{
+                marginTop: 16,
+                borderRadius: 16,
+                backgroundColor: T.surfaceRaised,
+                borderWidth: 1,
+                borderColor: T.border,
+                padding: 16,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  color: T.rose,
+                }}
+              >
+                SAY THIS
+              </Text>
+              <Text
+                style={{
+                  marginTop: 6,
+                  fontFamily: SERIF,
+                  fontSize: 22,
+                  lineHeight: 30,
                   color: T.ink,
                 }}
               >
-                {row.execution}
+                “{technique.sayThis}”
               </Text>
             </View>
-          ))}
-        </View>
 
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: T.rose,
-          }}
-        >
-          {technique.routineLabel.toUpperCase()}
-        </Text>
-        <View style={{ marginTop: 10, gap: 8 }}>
-          {technique.routine.map((row, index) => (
-            <RoutineRow key={`${row.title}-${index}`} step={row} />
-          ))}
-        </View>
-
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: T.rose,
-          }}
-        >
-          {technique.signsLabel.toUpperCase()}
-        </Text>
-        <View
-          style={{
-            marginTop: 10,
-            borderRadius: 16,
-            backgroundColor: T.paper,
-            padding: 16,
-            gap: 10,
-          }}
-        >
-          {technique.signs.map((line) => (
             <Text
-              key={line}
               style={{
-                fontFamily: SERIF,
-                fontSize: 15,
-                lineHeight: 22,
-                color: T.paperInk,
+                marginTop: 22,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: T.rose,
               }}
             >
-              · {line}
+              FOR THE TWO OF YOU
             </Text>
-          ))}
-        </View>
+            <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {STATUSES.map((row) => {
+                const on = saved?.status === row.id;
+                return (
+                  <Pressable
+                    key={row.id}
+                    onPress={() => void setStatus(row.id)}
+                    style={{
+                      borderRadius: 999,
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      backgroundColor: on ? T.rose : T.surfaceRaised,
+                      borderWidth: 1,
+                      borderColor: on ? T.rose : T.border,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: "700",
+                        fontSize: 13,
+                        color: on ? T.paper : T.ink,
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={{ marginTop: 8, fontSize: 12, color: T.dim }}>
+              {saved?.status
+                ? `Marked: ${statusLabel(saved.status)}. Tap again to clear.`
+                : "Untried. Mark it after the try, or after you talk."}
+            </Text>
 
-        <View
-          style={{
-            marginTop: 18,
-            borderRadius: 16,
-            backgroundColor: T.surfaceRaised,
-            borderWidth: 1,
-            borderColor: T.border,
-            padding: 16,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: "SpaceMono",
-              fontSize: 10,
-              letterSpacing: 1.4,
-              color: T.rose,
-            }}
-          >
-            SAY THIS
-          </Text>
-          <Text
-            style={{
-              marginTop: 6,
-              fontFamily: SERIF,
-              fontSize: 22,
-              lineHeight: 30,
-              color: T.ink,
-            }}
-          >
-            “{technique.sayThis}”
-          </Text>
-        </View>
-
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: T.rose,
-          }}
-        >
-          FOR THE TWO OF YOU
-        </Text>
-        <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {STATUSES.map((row) => {
-            const on = saved?.status === row.id;
-            return (
-              <Pressable
-                key={row.id}
-                onPress={() => void setStatus(row.id)}
-                style={{
-                  borderRadius: 999,
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  backgroundColor: on ? T.rose : T.surfaceRaised,
-                  borderWidth: 1,
-                  borderColor: on ? T.rose : T.border,
-                }}
-              >
-                <Text
-                  style={{
-                    fontWeight: "700",
-                    fontSize: 13,
-                    color: on ? T.paper : T.ink,
-                  }}
-                >
-                  {row.label}
-                </Text>
+            <Text
+              style={{
+                marginTop: 22,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.4,
+                color: T.rose,
+              }}
+            >
+              NOTE
+            </Text>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              onBlur={() => void saveNote()}
+              placeholder="What to repeat. What to skip. A word that worked."
+              placeholderTextColor={T.dim}
+              multiline
+              style={{
+                marginTop: 8,
+                minHeight: 96,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: T.border,
+                backgroundColor: T.surfaceRaised,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                color: T.ink,
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 22,
+              }}
+            />
+            {draft !== (saved?.note ?? "") ? (
+              <Pressable onPress={() => void saveNote()} style={{ marginTop: 10 }}>
+                <Text style={{ color: T.rose, fontWeight: "700" }}>Save note</Text>
               </Pressable>
-            );
-          })}
-        </View>
-        <Text style={{ marginTop: 8, fontSize: 12, color: T.dim }}>
-          {saved?.status
-            ? `Marked: ${statusLabel(saved.status)}. Tap again to clear.`
-            : "Untried. Mark it after the protocol, or after you talk."}
-        </Text>
-
-        <Text
-          style={{
-            marginTop: 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: T.rose,
-          }}
-        >
-          NOTE
-        </Text>
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          onBlur={() => void saveNote()}
-          placeholder="What to repeat. What to skip. A word that worked."
-          placeholderTextColor={T.dim}
-          multiline
-          style={{
-            marginTop: 8,
-            minHeight: 96,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: T.border,
-            backgroundColor: T.surfaceRaised,
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-            color: T.ink,
-            fontFamily: SERIF,
-            fontSize: 16,
-            lineHeight: 22,
-          }}
-        />
-        {draft !== (saved?.note ?? "") ? (
-          <Pressable onPress={() => void saveNote()} style={{ marginTop: 10 }}>
-            <Text style={{ color: T.rose, fontWeight: "700" }}>Save note</Text>
-          </Pressable>
-        ) : null}
+            ) : null}
+          </>
+        )}
       </Stage>
     </Screen>
   );
@@ -548,7 +639,7 @@ function SessionTry({
                 color: T.roseDeep,
               }}
             >
-              PROTOCOL COMPLETE
+              TRY COMPLETE
             </Text>
             <Text
               style={{
@@ -560,18 +651,6 @@ function SessionTry({
               }}
             >
               How was that for the two of you?
-            </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                fontFamily: SERIF,
-                fontSize: 15,
-                lineHeight: 22,
-                color: T.paperMuted,
-              }}
-            >
-              Mark it now while the body still remembers. You can write a note
-              on the card after.
             </Text>
             <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {STATUSES.map((row) => {
@@ -769,50 +848,6 @@ function Block({ kicker, body }: { kicker: string; body: string }) {
       >
         {body}
       </Text>
-    </View>
-  );
-}
-
-function RoutineRow({ step }: { step: HowStep }) {
-  return (
-    <View
-      style={{
-        borderRadius: 14,
-        backgroundColor: T.surfaceRaised,
-        borderWidth: 1,
-        borderColor: T.border,
-        padding: 14,
-        flexDirection: "row",
-        gap: 12,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: "SpaceMono",
-          fontSize: 11,
-          color: T.rose,
-          width: 52,
-          marginTop: 2,
-        }}
-      >
-        {step.minutes}
-      </Text>
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
-          {step.title}
-        </Text>
-        <Text
-          style={{
-            marginTop: 4,
-            fontFamily: SERIF,
-            fontSize: 14,
-            lineHeight: 20,
-            color: T.muted,
-          }}
-        >
-          {step.body}
-        </Text>
-      </View>
     </View>
   );
 }

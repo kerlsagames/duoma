@@ -47,8 +47,10 @@ import {
 import { emptyGifts, hydrateGifts, type GiftItem, type GiftPerson } from "@/lib/gifts";
 import {
   emptyHowNotes,
+  emptyHowPlainOn,
   emptyHowWords,
   hydrateHowNotes,
+  hydrateHowPlainOn,
   hydrateHowWordsOn,
   type HowNote,
 } from "@/lib/the-how";
@@ -477,6 +479,7 @@ export type MiniState = {
   giftItems: GiftItem[];
   howNotes: HowNote[];
   howWordsOn: string[];
+  howPlainOn: boolean;
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
@@ -854,6 +857,7 @@ export function emptyMiniState(): MiniState {
     giftItems: emptyGifts().items,
     howNotes: emptyHowNotes(),
     howWordsOn: emptyHowWords(),
+    howPlainOn: emptyHowPlainOn(),
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
@@ -967,6 +971,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     giftItems: hydrateGifts(row.giftPeople, row.giftItems).items,
     howNotes: hydrateHowNotes(row.howNotes),
     howWordsOn: hydrateHowWordsOn(row.howWordsOn),
+    howPlainOn: hydrateHowPlainOn(row.howPlainOn),
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),

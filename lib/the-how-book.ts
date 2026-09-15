@@ -1,7 +1,7 @@
-import type { HowFor, HowStep, HowTechnique, HowType } from "@/lib/the-how";
+import type { HowFor, HowStep, HowTechnique, HowType, HowVoice } from "@/lib/the-how";
 
-function kind(name: string, mechanics: string, execution: string): HowType {
-  return { name, mechanics, execution };
+function kind(name: string, line: string): HowType {
+  return { name, line };
 }
 
 function step(
@@ -13,22 +13,30 @@ function step(
   return { minutes, title, body, durationSec };
 }
 
+function voice(
+  promise: string,
+  what: string,
+  why: string,
+  signs: string[]
+): HowVoice {
+  return { promise, what, why, signs };
+}
+
 function tech(
   number: number,
   id: string,
   chapter: HowTechnique["chapter"],
   forWho: HowFor,
   name: string,
-  promise: string,
-  what: string,
-  why: string,
+  terms: string[],
   typesLabel: string,
   types: HowType[],
   routineLabel: string,
   routine: HowStep[],
   signsLabel: string,
-  signs: string[],
-  sayThis: string
+  sayThis: string,
+  plain: HowVoice,
+  science: HowVoice
 ): HowTechnique {
   return {
     id,
@@ -36,16 +44,15 @@ function tech(
     chapter,
     for: forWho,
     name,
-    promise,
-    what,
-    why,
+    terms,
     typesLabel,
     types,
     routineLabel,
     routine,
     signsLabel,
-    signs,
     sayThis,
+    plain,
+    science,
   };
 }
 
@@ -56,61 +63,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "both",
     "Framing",
-    "The brain rates touch before the body does.",
-    "Framing is the mental and emotional blueprint of pleasure. Touch is processed through the cerebral cortex, which evaluates context before assigning a sensation as pleasurable, neutral, or uncomfortable.",
-    "Without a buffer, the amygdala can read unexpected touch as stress. Framing primes the prefrontal cortex for safety, shifts the body toward rest-and-digest, and opens pelvic blood flow. Anticipation loops around exploration — not a forced orgasm — drop cortisol that otherwise blunts sensation.",
-    "The 3 types of Framing",
+    ["pelvic-floor"],
+    "Three ways to frame",
     [
-      kind(
-        "Temporal Framing",
-        "A clear cut between daily responsibility and intimate focus.",
-        "Take a non-negotiable 15-to-30-minute buffer — shower, change out of work clothes, devices off — before any touch."
-      ),
-      kind(
-        "Contextual Framing",
-        "Verbal, written, or atmospheric cues that set the session’s job.",
-        "Name the goal in advance: “Tonight is relaxing touch, zero pressure for anything else.” A descriptive text hours earlier counts."
-      ),
-      kind(
-        "Environmental Framing",
-        "Tune the room so unconscious stress triggers go quiet.",
-        "Warm, low light. Comfortable temperature — cold rooms clamp the pelvic floor. Kill intrusive noise."
-      ),
+      kind("A buffer", "Fifteen to thirty minutes off the day — shower, change, phones away — before any touch."),
+      kind("Name the night", "Say what this is: “Just slow touch. Nothing to finish.” A text hours earlier counts."),
+      kind("The room", "Warm light, comfortable temperature, quiet. Cold rooms make the body clamp."),
     ],
-    "10-minute Framing routine",
+    "10-minute start",
     [
-      step(
-        "0–3",
-        "Environment reset",
-        "Clear work clutter. Dim the lights. Add a neutral or soothing scent.",
-        180
-      ),
-      step(
-        "3–6",
-        "Somatic transition",
-        "Lie on your back. One hand on the chest, one on the lower belly. Ten breaths: 4-second inhale, 6-second exhale.",
-        180
-      ),
-      step(
-        "6–8",
-        "Intentional alignment",
-        "Say or think: there is nowhere to rush, nothing to accomplish, no specific outcome required.",
-        120
-      ),
-      step(
-        "8–10",
-        "Non-genital grounding",
-        "Slow, broad, pressure-free touch on arms, neck, or shoulders. Touch has begun. Nothing is being asked of it yet.",
-        120
-      ),
+      step("0–3", "Clear the space", "Dim lights. Move the laptop. A calm scent if you have one.", 180),
+      step("3–6", "Breathe down", "On your back. Hand on chest, hand on belly. Ten slow breaths.", 180),
+      step("6–8", "Say the job", "Nowhere to rush. Nothing to accomplish.", 120),
+      step("8–10", "Start far away", "Slow touch on arms, neck, or shoulders. No one is being asked for anything yet.", 120),
     ],
-    "Signs it’s time to move on from Framing",
-    [
-      "Jaw, shoulders, and pelvic floor drop and unlock.",
-      "Breathing leaves the chest and settles in the belly.",
-      "The day recedes. Attention lands on actual sensation.",
-    ],
-    "Nowhere to be. Nothing to finish."
+    "Ready when",
+    "Nowhere to be. Nothing to finish.",
+    voice(
+      "Get out of the day before anyone is touched.",
+      "Framing is the start. Mood, the room, and whether the to-do list is still shouting all decide if touch feels good or like “get off me.”",
+      "Jump in cold and the body stays braced. A short buffer lets the pelvis actually take the touch.",
+      ["Jaw and shoulders drop.", "Breath sits in the belly, not the chest."]
+    ),
+    voice(
+      "The brain rates touch before the body does.",
+      "Touch is judged for safety first. Context — time, words, the room — is what lets the brain file a sensation as pleasure instead of intrusion.",
+      "A buffer shifts the nervous system toward rest, so blood can reach the pelvis instead of staying locked in fight-or-flight.",
+      ["Pelvic floor unclenches.", "Intrusive day-thoughts fade and sensation takes over."]
+    )
   ),
   tech(
     2,
@@ -118,66 +98,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Surprise",
-    "Same stroke forever and the nerves go to sleep.",
-    "Surprise is the intentional disruption of physical predictability. Consistency builds momentum; static touch lets nerve endings adapt and stop firing with the same intensity.",
-    "Pacinian and Meissner corpuscles habituate to repetitive pressure. A sudden shift in texture, speed, or place fires fresh action potentials, spikes dopamine, and yanks attention back to the exact point of contact.",
-    "The 4 physical types of Surprise",
+    ["mons", "vulva"],
+    "Four surprises",
     [
-      kind(
-        "The Pressure Pivot",
-        "Jump from light tracing to a firm stationary press — or the reverse.",
-        "During a light circular glide, stop. Broad, firm downward pressure over the pubic bone for 5 seconds. Release."
-      ),
-      kind(
-        "The Texture Switch",
-        "Change the medium mid-motion.",
-        "Skin, silk, a cool object, a warm lubricated palm — swap without warning."
-      ),
-      kind(
-        "The Spatial Jump",
-        "Break a local loop by moving to a distant nerve site.",
-        "From the vulva, jump to inner knee, collarbone, or lower ribcage for a few seconds, then return."
-      ),
-      kind(
-        "The Freeze",
-        "Halt all motion mid-stroke while keeping contact.",
-        "At peak speed, freeze 3 to 5 seconds. Let the tissue throb against a still hand."
-      ),
+      kind("Pressure pivot", "Light tracing, then a firm still press on the mons for five seconds — or the reverse."),
+      kind("Texture switch", "Skin, silk, something cool, a warm wet palm. Change without warning."),
+      kind("Jump the map", "Leave the vulva for the inner knee, collarbone, or ribs, then come back."),
+      kind("The freeze", "At full speed, stop. Keep contact 3–5 seconds. Let her throb against a still hand."),
     ],
-    "10-minute Surprise integration",
+    "10-minute try",
     [
-      step(
-        "0–4",
-        "Establish baseline",
-        "Steady, predictable, low-speed vertical glides. Let the nervous system lock in.",
-        240
-      ),
-      step(
-        "4–6",
-        "Spatial Jump",
-        "Every 45 seconds, jump to inner thigh or lower abdomen for 3 seconds, then drop back into the exact rhythm.",
-        120
-      ),
-      step(
-        "6–8",
-        "Pressure Pivot",
-        "Press firmly on the pubic bone for 5 seconds on an exhale, then return to feather-light surface touch.",
-        120
-      ),
-      step(
-        "8–10",
-        "The Freeze",
-        "Bring speed up slightly. Freeze at highest momentum. Hold until a gasp or twitch.",
-        120
-      ),
+      step("0–4", "Same stroke", "Slow, boring up-and-down. Let her nervous system settle.", 240),
+      step("4–6", "Jump", "Every 45 seconds, hop to inner thigh or lower belly for 3 seconds, then the same stroke.", 120),
+      step("6–8", "Press", "Firm press on the mons for 5 seconds on an exhale, then feather-light again.", 120),
+      step("8–10", "Freeze", "Speed up a little. Stop at the fastest moment. Hold until a gasp or twitch.", 120),
     ],
-    "Signs it’s time to move on from Surprise",
-    [
-      "Dull patches suddenly feel hyper-reactive.",
-      "Micro-twitches in inner thighs or pelvis on a change.",
-      "The mind is hunting where the next touch will land.",
-    ],
-    "Don’t warn me. Just change it."
+    "Working when",
+    "Don’t warn me. Just change it.",
+    voice(
+      "Same stroke forever and the nerves go to sleep.",
+      "Surprise is a planned interruption. A body that knows exactly what’s coming next starts to ignore it.",
+      "A sudden change of pressure, texture, or place wakes the spot back up.",
+      ["A dull patch suddenly feels sharp.", "She’s waiting for where you’ll go next."]
+    ),
+    voice(
+      "Break the pattern so the nerves fire again.",
+      "Nerve endings adapt to a repeated stroke and stop sending a strong signal. A sudden change forces a fresh one.",
+      "Unexpected pleasant input also spikes dopamine — attention snaps back to the exact point of contact.",
+      ["Micro-twitches on a change.", "Places that had gone numb feel reactive again."]
+    )
   ),
   tech(
     3,
@@ -185,66 +134,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Hinting",
-    "Wake the neighbourhood. Don’t storm the house.",
-    "Hinting stimulates peripheral nerves around a high-sensitivity target to build arousal without overloading or desensitizing the target itself.",
-    "The clitoris extends internally into bulbs and crura. Adjacent touch vibrates those structures and fills them with blood before the glans is touched. Direct contact on a cold glans can cause guarding. Anticipation keeps dopamine high.",
-    "The 4 physical types of Hinting",
+    ["vulva", "mons", "hood", "glans", "labia", "clit-body"],
+    "Four ways to hint",
     [
-      kind(
-        "Air & Proximity Touch",
-        "Finger less than a millimetre above the skin — heat, not friction.",
-        "Trace the outer labia or pubic bone. Air currents alert fine hairs and peripheral nerves."
-      ),
-      kind(
-        "The Perimeter Circuit",
-        "A loop that never crosses the centre.",
-        "Clock face around the vulva: 12 (mons), 3 (inner thigh), 9. Never the glans."
-      ),
-      kind(
-        "Intermittent Indulgence",
-        "Brief incidental contact, then retreat.",
-        "Along the inner thigh, one finger brushes the hood for half a second, then 30–60 seconds away."
-      ),
-      kind(
-        "Fabric & Barrier Buffering",
-        "Materials that filter and diffuse direct touch.",
-        "Circles or vibration through underwear, sheets, or clothing so pressure spreads."
-      ),
+      kind("Hover", "Finger almost touching. Heat and air, not friction. Trace the outer lips and mons."),
+      kind("The clock", "Touch 12 (mons), 3 and 9 (inner thighs). Never the centre."),
+      kind("Brush and leave", "One light pass over the hood for half a second. Then 30–60 seconds away."),
+      kind("Through fabric", "Circles or a toy over underwear so the pressure spreads."),
     ],
-    "10-minute Hinting routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Far perimeter",
-        "Lower back, hips, outer thighs. Slow firm strokes outside, light tracing on inner thighs.",
-        180
-      ),
-      step(
-        "3–6",
-        "Near perimeter",
-        "Mons and pelvic folds with broad, flat-fingered pressure. Hover over the labia. Do not land.",
-        180
-      ),
-      step(
-        "6–8",
-        "The brush pass",
-        "Brush past the clitoral area once a minute for a fraction of a second. Do not stop there.",
-        120
-      ),
-      step(
-        "8–10",
-        "Transition to Staging",
-        "Full, steady contact on the inner labia and the area above the hood.",
-        120
-      ),
+      step("0–3", "Far away", "Lower back, hips, outer thighs. Light on the inner thighs.", 180),
+      step("3–6", "Closer", "Broad pressure on the mons. Hover over the lips. Don’t land.", 180),
+      step("6–8", "Brush", "Pass the clitoral area once a minute. Do not stop there.", 120),
+      step("8–10", "Land", "Steady contact on the inner lips and just above the hood.", 120),
     ],
-    "Signs it’s time to move on from Hinting",
-    [
-      "Labia and hood feel warm, firm, and swollen.",
-      "The pelvis tilts or arches toward the indirect touch.",
-      "Natural lubrication increases significantly.",
-    ],
-    "Around it. Not on it yet."
+    "Ready when",
+    "Around it. Not on it yet.",
+    voice(
+      "Wake the neighbourhood. Don’t storm the house.",
+      "Hinting is circling the most sensitive spot instead of going straight for it. The clitoris is mostly under the skin — touching around it still reaches it.",
+      "Going straight to the tip when she’s not ready often feels like too much. Nearby touch fills the tissue with blood first.",
+      ["Lips and hood feel warm and a bit swollen.", "Hips come toward your hand."]
+    ),
+    voice(
+      "Prime the internal clitoris before you touch the tip.",
+      "The visible tip is only part of the organ. Touch on the mons and lips vibrates the bulbs underneath and lets them fill with blood.",
+      "Direct contact on a cold glans can make muscles guard. Anticipation also keeps desire high.",
+      ["Clear lubrication.", "She arches toward indirect touch."]
+    )
   ),
   tech(
     4,
@@ -252,66 +170,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Staging",
-    "Match the touch to the blood, not the clock.",
-    "Staging is a phased progression of touch across zones over time. Instead of jumping to intense stimulation, it maps tiers that evolve with the body’s arousal stages.",
-    "Tissue needs time to engorge. Staging tracks excitement into plateau so high-intensity touch only arrives when tissue is full and self-lubricated. What feels too much at minute one is often perfect at minute fifteen. The pelvic floor gets time to unclench.",
-    "The 4 stages of touch",
+    ["mons", "labia", "hood", "glans", "vulva"],
+    "Four stages",
     [
-      kind(
-        "Stage 1 — Peripheral & Somatic",
-        "Broad, firm, sweeping strokes on non-genital zones.",
-        "Flat palms across back, shoulders, thighs, belly. Large surface. Calm the system."
-      ),
-      kind(
-        "Stage 2 — Structural & Bony Anchors",
-        "Firm grounding on the bones around the pelvis.",
-        "Steady downward pressure on hip bones, sacrum, and pubic bone."
-      ),
-      kind(
-        "Stage 3 — Outer Soft Tissue",
-        "Light glides, cupping, rolling across outer folds.",
-        "Cup the whole vulva with a warm lubricated palm, or glide the labia majora and perineum."
-      ),
-      kind(
-        "Stage 4 — Inner Soft Tissue & Hood",
-        "Precise touch on labia minora, hood, and surrounding structures.",
-        "Orbiting or Rhythm on or near the clitoral complex."
-      ),
+      kind("Far out", "Whole hands on back, thighs, belly. Not the pelvis yet."),
+      kind("Bones", "Steady weight on hip bones, lower spine, and the mons."),
+      kind("Outer lips", "A warm wet palm cupping everything, or slow glides on the outer lips."),
+      kind("Closer", "Inner lips and hood. Circles or a simple rhythm — still not stabbing the tip."),
     ],
-    "10-minute Staging routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Stage 1",
-        "Broad, firm palm strokes on lower back, hips, outer thighs. Do not touch the pelvis.",
-        180
-      ),
-      step(
-        "3–5",
-        "Stage 2",
-        "Hands to mons and hip bones. Warm, stationary, downward pressure. Anchor the pelvis.",
-        120
-      ),
-      step(
-        "5–8",
-        "Stage 3",
-        "Lubricate fully. Broad glides down the outer labia and inner thighs. Stay off the glans.",
-        180
-      ),
-      step(
-        "8–10",
-        "Stage 4",
-        "Fingers inside the labia folds. Continuous targeted touch along the hood and inner labia.",
-        120
-      ),
+      step("0–3", "Far", "Palms on lower back, hips, outer thighs. Skip the pelvis.", 180),
+      step("3–5", "Bones", "Warm still pressure on the mons and hip bones.", 120),
+      step("5–8", "Outer", "Lube. Glide the outer lips and inner thighs. Stay off the tip.", 180),
+      step("8–10", "Closer", "Fingers in the inner lips. Steady touch along the hood.", 120),
     ],
-    "Signs to move to the next stage",
-    [
-      "1 → 2: involuntary sighing, shoulders drop, skin warms.",
-      "2 → 3: hips unclamp, pelvic floor softens under stationary pressure.",
-      "3 → 4: inner labia flare and engorge; clear lubrication is present.",
-    ],
-    "Stay on this stage until I pull you closer."
+    "Move on when",
+    "Stay on this stage until I pull you closer.",
+    voice(
+      "Match the touch to how ready her body is.",
+      "Staging is not skipping ahead. Tissue needs time to swell. What feels like too much at minute one is often perfect at minute fifteen.",
+      "If you go to the most sensitive spot first, it often hurts or goes numb. Each stage buys the next one.",
+      ["Shoulders drop, skin warms.", "Inner lips look a bit more open and wet."]
+    ),
+    voice(
+      "Time touch to blood flow, not the clock.",
+      "Arousal fills tissue with blood in phases. High-intensity touch only feels good once that has happened.",
+      "Phased contact also lets the pelvic floor unclench instead of fighting you.",
+      ["Hips unclamp under still pressure.", "Lubrication is clearly there before you go precise."]
+    )
   ),
   tech(
     5,
@@ -319,61 +206,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "both",
     "Signaling",
-    "Guide without breaking the trance.",
-    "Signaling is real-time feedback during intimacy — clear channels for speed, pressure, and location that do not yank anyone into an awkward meeting.",
-    "Uncertainty loads the brain. Clear signals let the giver relax. Deep arousal is a sensory trance; “Wait, not like that!” dumps both of you into analysis. Micro-adjustments keep touch inside the narrow sweet spot.",
-    "The 3 channels of Signaling",
+    [],
+    "Three channels",
     [
-      kind(
-        "Hand-over-hand",
-        "Receiver’s hand on the giver’s, directing force, vector, and speed.",
-        "Press down to show weight. Speed or slow the wrist. Skip the speech."
-      ),
-      kind(
-        "Somatic cues",
-        "Body responses as pre-agreed language.",
-        "Hip press up = more pressure. Slow tilt away = too intense. Breath-hold or arm squeeze = stay exactly there."
-      ),
-      kind(
-        "Directional micro-verbals",
-        "Single-word adjustments, not sentences.",
-        "Yes. Lighter. Slower. Hold. Right there. Not “can you do that circular thing from earlier.”"
-      ),
+      kind("Hand on hand", "Her hand on yours, steering speed and pressure. Skip the speech."),
+      kind("Body codes", "Hips up = more. Hips away = too much. A squeeze or held breath = stay."),
+      kind("One word", "Yes. Lighter. Slower. Hold. Right there. Not a paragraph."),
     ],
-    "Signaling system for a session",
+    "Build the system",
     [
-      step(
-        "Setup",
-        "Calibrate",
-        "Before genital touch, press an arm or thigh at Light, Medium, and Firm so those words mean the same thing.",
-        120
-      ),
-      step(
-        "0–5",
-        "Tactile priority",
-        "First five minutes of direct touch: hand-over-hand only. The receiver steers.",
-        300
-      ),
-      step(
-        "5–8",
-        "Micro-verbal shift",
-        "Top hand comes off. Single-word adjustments only when something must change.",
-        180
-      ),
-      step(
-        "8–10",
-        "Somatic lock-in",
-        "High arousal: drop words. Hip tilts, breath, squeezes do the rest.",
-        120
-      ),
+      step("Setup", "Calibrate", "On an arm or thigh, show Light, Medium, Firm so the words match.", 120),
+      step("0–5", "Hands only", "First five minutes of direct touch: she steers your hand.", 300),
+      step("5–8", "One word", "Her hand comes off. Single words only if something must change.", 180),
+      step("8–10", "Body only", "Near the edge, drop talking. Hips and breath do it.", 120),
     ],
-    "Signs Signaling is working",
-    [
-      "Corrections land in under two seconds without stopping motion.",
-      "A vocal correction sounds like intimacy, not a complaint.",
-      "Touch stays inside the ideal threshold for the whole session.",
-    ],
-    "Lighter. Stay."
+    "Working when",
+    "Lighter. Stay.",
+    voice(
+      "Guide without turning it into a meeting.",
+      "Signaling is how you course-correct without killing the mood. Guessing is what makes people tense.",
+      "A full sentence (“can you do that circular thing”) yanks both brains into analysis. One word, or a hand, keeps you in it.",
+      ["A fix lands in a second and the motion never stops.", "A ‘lighter’ still sounds like sex."]
+    ),
+    voice(
+      "Keep the trance. Cut the cognitive load.",
+      "Uncertainty makes the giver overthink. Deep arousal is a narrow sensory state — a jarring correction dumps you out of it.",
+      "Tiny, pre-agreed signals keep touch inside the sweet spot without a debrief.",
+      ["Corrections don’t cause a pause or a flinch.", "Touch stays in the usable range the whole time."]
+    )
   ),
   tech(
     6,
@@ -381,65 +241,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Rhythm",
-    "One loop, long enough for the spine to add it up.",
-    "Rhythm is continuous, predictable loops of motion. Sensory processing needs repeated electrical signals to summate before they cross the threshold that can trigger orgasm.",
-    "One touch is a small impulse. The same pathway at a regular frequency stacks those impulses. Brainwaves entrain to the beat. Predictability tells the pelvic floor it is safe to stay soft.",
-    "The 4 core movement loops",
+    ["mons", "hood", "labia", "glans"],
+    "Four loops",
     [
-      kind(
-        "The Vertical Glide",
-        "Straight up-and-down along the sides of the hood or labia.",
-        "One or two fingers from mons to the base of the labia. Lift slightly or keep contact on the return."
-      ),
-      kind(
-        "The Figure-8",
-        "A continuous infinity sign over the pelvic structure.",
-        "Up the left labia, across the mons, down the right, under the clitoris. Fingers never lift."
-      ),
-      kind(
-        "The Pendulum",
-        "Side-to-side across the top of the hood.",
-        "0.5 to 1 inch width only. Directly above the glans."
-      ),
-      kind(
-        "The Pulse",
-        "Zero-displacement rhythm from muscle micro-tremors.",
-        "Flat finger pads, no sliding. Pulse downward with the forearm."
-      ),
+      kind("Up and down", "One or two fingers along the sides of the hood, mons to the base of the lips."),
+      kind("Figure-8", "Up one side, across the mons, down the other, under — fingers never lift."),
+      kind("Pendulum", "Tiny side-to-side just above the tip. Half an inch to an inch. That’s the whole width."),
+      kind("Pulse", "Fingers still on the skin. Pulse down from the forearm. No rubbing."),
     ],
-    "10-minute Rhythm routine",
+    "10-minute try",
     [
-      step(
-        "0–2",
-        "Select and lock",
-        "Pick one loop. About one stroke per second. Fully lubricate.",
-        120
-      ),
-      step(
-        "2–5",
-        "Pacing",
-        "Same path. Speed up about 20%. Do not change pressure or contact area.",
-        180
-      ),
-      step(
-        "5–8",
-        "Summation",
-        "Lock the speed. Do not stray off the track or skip beats.",
-        180
-      ),
-      step(
-        "8–10",
-        "Peak locking",
-        "Keep the identical rhythm through high arousal. Fatigue? Drive from wrist or forearm, not a new finger shape.",
-        120
-      ),
+      step("0–2", "Pick one", "One loop. About one stroke a second. Lots of lube.", 120),
+      step("2–5", "A bit faster", "Same path. Maybe 20% quicker. Same pressure, same contact.", 180),
+      step("5–8", "Hold it", "Do not wander or skip. This is the boring part that works.", 180),
+      step("8–10", "Keep it", "If your hand tires, drive from the wrist. Don’t change the shape.", 120),
     ],
-    "Signs to maintain or adjust Rhythm",
-    [
-      "Maintain: breathing matches the stroke, pelvic muscles pulse in time, arousal climbs steadily.",
-      "Adjust: wincing, hips pulling away, sudden dryness or friction.",
-    ],
-    "Same loop. Don’t get creative."
+    "Stay or adjust",
+    "Same loop. Don’t get creative.",
+    voice(
+      "One loop, long enough that it can add up.",
+      "Rhythm is the same motion, over and over. Orgasm is often just that — not a new trick every ten seconds.",
+      "The body needs a beat it can trust. Predictable also feels safe, so muscles stay soft.",
+      ["Breath matches the stroke.", "Wincing, hips away, or sudden dryness means slow down or stop changing."]
+    ),
+    voice(
+      "Repeat the same path so signals can stack.",
+      "One touch is a small blip. The same path at a steady tempo lets those blips add up in the spine until they cross a threshold.",
+      "Brainwaves also lock to a beat, which is why ‘creative’ mid-climb so often kills it.",
+      ["Pelvic muscles pulse in time.", "Arousal climbs without sudden dips."]
+    )
   ),
   tech(
     7,
@@ -447,60 +277,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Accenting",
-    "A beat inside the loop, not a new song.",
-    "Accenting adds a deliberate local emphasis — a pressure pulse, speed variation, or micro-pause — at one point inside an established continuous rhythm.",
-    "Pure rhythm habituates. Pure randomness never sums. Accenting keeps the background predictable and adds targeted novelty. Light-touch receptors stay on; the accent wakes deep-pressure receptors.",
-    "The 3 accent types",
+    ["mons", "hood"],
+    "Three accents",
     [
-      kind(
-        "The Pressure Pulse",
-        "Double the downward weight at one coordinate of the loop.",
-        "On a 4-count circle, press at “1” (top), light for 2, 3, 4."
-      ),
-      kind(
-        "The Micro-Pause",
-        "A fraction-of-a-second freeze at the peak of a stroke.",
-        "At the top of a vertical glide, pause 0.5 seconds in contact, then sweep down."
-      ),
-      kind(
-        "The Texture Flick",
-        "Fingertip or nail edge briefly changes the contact surface.",
-        "Pad loop, then roll onto the fingertip at the bottom for a firmer point."
-      ),
+      kind("The extra press", "On a 4-count circle, press at 1 (the top). Light for 2, 3, 4."),
+      kind("The hang", "At the top of an up-stroke, pause half a second in contact, then sweep down."),
+      kind("The edge", "Mostly the pad of the finger. At the bottom of the loop, roll onto the fingertip for a sharper point."),
     ],
-    "10-minute Accenting routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Baseline loop",
-        "Smooth 4-count circular rhythm around the hood. Even. Fluid.",
-        180
-      ),
-      step(
-        "3–6",
-        "Introduce the pulse",
-        "Pressure pulse at count 1, 12 o’clock on the mons. Counts 2–4 stay light.",
-        180
-      ),
-      step(
-        "6–8",
-        "Shift the accent",
-        "Move the pulse from 12 o’clock to 6 o’clock, below the clitoris.",
-        120
-      ),
-      step(
-        "8–10",
-        "Pulse and pause",
-        "Micro-pause at the accent as arousal peaks.",
-        120
-      ),
+      step("0–3", "Plain circle", "Smooth 4-count around the hood. Even. No extra anything.", 180),
+      step("3–6", "Press on 1", "Extra weight at the top / mons. The rest stays light.", 180),
+      step("6–8", "Move it", "Same pulse, now at the bottom, below the clitoris.", 120),
+      step("8–10", "Press and hang", "Add the half-second pause on the accent as she climbs.", 120),
     ],
-    "Signs Accenting is effective",
-    [
-      "A micro-inhale or pelvic twitch lands on the accent.",
-      "Arousal keeps climbing instead of going flat or monotone.",
-    ],
-    "That extra press at the top. Keep it."
+    "Working when",
+    "That extra press at the top. Keep it.",
+    voice(
+      "A beat inside the loop — not a new song.",
+      "Accenting is one extra on a stroke you already have: a press, a tiny pause, a sharper fingertip. The rest stays the same.",
+      "All rhythm gets dull. All randomness never builds. This is both.",
+      ["A small inhale or hip twitch lands on the accent.", "It keeps getting better instead of going flat."]
+    ),
+    voice(
+      "Novelty inside a pattern, so nothing habituates.",
+      "The background loop keeps light-touch nerves busy. The accent wakes deeper pressure nerves at one point.",
+      "That mix of ‘I know what’s coming’ and ‘wait, that’ is what keeps the climb alive.",
+      ["The body tracks the accent.", "Momentum holds without you inventing a new move."]
+    )
   ),
   tech(
     8,
@@ -508,55 +312,33 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Edging",
-    "Ride up to the line. Step back. Build a bigger wave.",
-    "Edging — surf-cycling — brings arousal to the high plateau near orgasm, drops pressure or speed so arousal falls slightly, then rebuilds.",
-    "Each cycle increases local vasocongestion and expands the clitoral footprint. Approaching the threshold repeatedly strengthens the reflex and extends the high-dopamine state. The eventual release is usually more intense.",
-    "The 3 steps of an edge cycle",
+    ["mons", "hood"],
+    "One cycle",
     [
-      kind(
-        "The Approach",
-        "Build to about 90% of the orgasmic threshold.",
-        "Direct, consistent rhythm or orbiting. Watch muscle tightening, rapid breath, involuntary sound."
-      ),
-      kind(
-        "The Back-Off",
-        "Drop stimulus instantly so you do not cross.",
-        "From fast direct touch to a still broad palm on the pubic bone, or broad inner-thigh strokes. Hold 20–40 seconds."
-      ),
-      kind(
-        "The Re-engagement",
-        "Resume at lower intensity once arousal settles to 60–70%.",
-        "Restart with Hinting or Staging. Do not jump back to fast and direct."
-      ),
+      kind("Climb", "Steady direct rhythm until she’s about 90% — tight muscles, fast breath, involuntary sound."),
+      kind("Back off", "Don’t leave. Still palm on the mons, or slow inner-thigh strokes, 20–40 seconds."),
+      kind("Rebuild", "Come back slower than you left. Don’t jump to fast and direct."),
     ],
-    "3-cycle Edging session",
+    "Three cycles",
     [
-      step(
-        "Cycle 1",
-        "Baseline edge",
-        "Build with direct rhythm. At the tipping point, still palm on the mons. Wait 30 seconds for the edge to recede.",
-        180
-      ),
-      step(
-        "Cycle 2",
-        "Expanded edge",
-        "Rebuild with Orbiting. Arousal will rise faster. At 90%, light tracing on inner thighs for 30–45 seconds.",
-        210
-      ),
-      step(
-        "Cycle 3",
-        "Final drive",
-        "Rebuild with locked Consistency. At 90%, stay. Let the body cross.",
-        210
-      ),
+      step("1", "First edge", "Build with a simple rhythm. At the tipping point, still palm on the mons. Wait 30 seconds.", 180),
+      step("2", "Second", "Rebuild with circles around the hood. She’ll climb faster. At 90%, inner thighs 30–45 seconds.", 210),
+      step("3", "Through", "Rebuild and stay. Same stroke over the line.", 210),
     ],
-    "Signs it’s time to back off",
-    [
-      "Pelvic floor locks into continuous contraction.",
-      "Involuntary breath-holding right before climax.",
-      "Voice goes high or rapid — threshold is here.",
-    ],
-    "Back off. Stay on me. Then come back."
+    "Back off when",
+    "Back off. Stay on me. Then come back.",
+    voice(
+      "Ride up to the line. Step back. Build a bigger wave.",
+      "Edging is getting close, easing off, then climbing again. Do it with consent — otherwise it’s just you grabbing the remote.",
+      "Each climb usually makes the next one bigger. The last one is allowed to go over.",
+      ["Pelvic muscles lock on.", "She holds her breath or her voice jumps — that’s the line."]
+    ),
+    voice(
+      "Approach the threshold, drop, rebuild.",
+      "Each cycle leaves more blood in the tissue, so the organ is physically bigger and more responsive.",
+      "Staying on the plateau also keeps dopamine high, which is why the eventual release often hits harder.",
+      ["Continuous pelvic clench.", "Voice goes high or rapid."]
+    )
   ),
   tech(
     9,
@@ -564,65 +346,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Orbiting",
-    "Circle the planet. Don’t land on the sun.",
-    "Orbiting traces circular or oval paths around the clitoral glans, stimulating the internal network without direct friction on the glans itself.",
-    "The glans is only the visible tip. Orbiting compresses bulbs, crura, and hood while protecting the glans from friction numbness. Direction keeps shifting, so input stays dynamic, and you stay on lubricated surrounding tissue.",
-    "The 4 variations of Orbiting",
+    ["hood", "glans", "mons", "labia", "clit-body", "vulva"],
+    "Four orbits",
     [
-      kind(
-        "The Wide Orbit",
-        "A 1.5–2 inch ring around the whole upper vulva.",
-        "Circle mons, outer labia, and the space above the perineum."
-      ),
-      kind(
-        "The Tight Orbit",
-        "A 0.5–1 inch ring around hood and base.",
-        "One lubricated finger, tight loops around the base of the glans. Not over the tip."
-      ),
-      kind(
-        "The Oval Orbit",
-        "A teardrop down the labia minora and back over the hood.",
-        "Down the left inner labia, across the entrance, up the right, around the top of the hood."
-      ),
-      kind(
-        "The Crescent Orbit",
-        "A half-moon across only the top or bottom half.",
-        "9 o’clock to 3 o’clock across the top arch of the hood, and back."
-      ),
+      kind("Wide", "A big circle — mons, outer lips, the space below. About two inches across."),
+      kind("Tight", "A small circle around the hood. Around the base of the tip, not over it."),
+      kind("Oval", "Down one inner lip, across the opening, up the other, over the top of the hood."),
+      kind("Crescent", "Just the top half of the hood, 9 o’clock to 3 o’clock and back."),
     ],
-    "10-minute Orbiting routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Wide Orbit",
-        "Fully lubricated. Broad 2-inch orbits. One rotation every 2 seconds.",
-        180
-      ),
-      step(
-        "3–6",
-        "Tight Orbit",
-        "Spiral inward to a 1-inch ring around the hood. Light-to-medium pressure.",
-        180
-      ),
-      step(
-        "6–8",
-        "Oval Orbit",
-        "Lengthen down the labia minora. Involve the whole inner structure.",
-        120
-      ),
-      step(
-        "8–10",
-        "Crescent locking",
-        "Rapid precise crescents across the top arch of the hood.",
-        120
-      ),
+      step("0–3", "Wide", "Lots of lube. Big slow circles, about one every two seconds.", 180),
+      step("3–6", "Tight", "Spiral in around the hood. Light to medium.", 180),
+      step("6–8", "Oval", "Lengthen down the inner lips.", 120),
+      step("8–10", "Crescent", "Smaller, quicker arcs across the top of the hood.", 120),
     ],
-    "Signs Orbiting is working",
-    [
-      "High arousal without sharp friction or oversensitivity.",
-      "Hood and inner labia become noticeably engorged.",
-    ],
-    "Around the hood. Not on the tip."
+    "Working when",
+    "Around the hood. Not on the tip.",
+    voice(
+      "Circle the planet. Don’t land on the sun.",
+      "Orbiting is circling the clitoris instead of rubbing the tip. You still reach the parts under the skin.",
+      "Direct rubbing on the tip is what goes raw or numb. The hood is the kinder surface.",
+      ["She’s climbing without wincing.", "The whole area looks fuller."]
+    ),
+    voice(
+      "Compress the internal clitoris without frying the glans.",
+      "Circles on the hood and lips press the bulbs and legs underneath while the visible tip stays protected.",
+      "The path also keeps changing direction, so the same nerves don’t go to sleep.",
+      ["High arousal without sharp friction.", "Hood and inner lips are clearly swollen."]
+    )
   ),
   tech(
     10,
@@ -630,54 +382,33 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Layering",
-    "Put something between you and the raw nerve.",
-    "Layering applies touch, pressure, or vibration through tissue or fabric, spreading force into soft, diffused pressure.",
-    "Direct touch focuses force on a tiny area. A layer spreads it, waking more low-threshold receptors without the friction that irritates. Ideal when tissue is hyper-sensitive or just after orgasm.",
-    "The 3 forms of Layering",
+    ["labia", "glans", "vulva", "hood"],
+    "Three layers",
     [
-      kind(
-        "Labial Folding",
-        "Outer or inner labia as a cushion over the glans.",
-        "Draw the labia majora inward over the clitoris. Circle or glide on the outside."
-      ),
-      kind(
-        "Fabric Buffering",
-        "Touch or vibration through clothing.",
-        "Leave cotton, silk, or lace in place. Hand, fingers, or vibrator on top of the fabric."
-      ),
-      kind(
-        "Palm Cushioning",
-        "A still hand on the tissue; movement happens on the back of that hand.",
-        "Non-dominant palm over the vulva. Dominant hand or toy taps, circles, or vibrates on top."
-      ),
+      kind("Fold the lips", "Bring the outer lips together over the clitoris. Touch the outside of that cushion."),
+      kind("Through fabric", "Leave underwear on. Hand or toy on top."),
+      kind("Hand on hand", "A still palm over everything. Movement happens on the back of that hand."),
     ],
-    "Layering protocol",
+    "Layering try",
     [
-      step(
-        "0–5",
-        "Fabric buffering",
-        "Build baseline arousal through fabric. No direct skin yet.",
-        300
-      ),
-      step(
-        "5–8",
-        "Active play",
-        "Fabric aside. If direct touch gets too sharp, fold the labia majora over the glans and keep going.",
-        180
-      ),
-      step(
-        "8–10",
-        "Post-orgasm multiples",
-        "After a climax, do not touch the glans. Palm cushioning over the whole area.",
-        120
-      ),
+      step("0–5", "Fabric", "Build through cloth. No bare skin yet.", 300),
+      step("5–8", "Skin, then fold", "If direct gets too sharp, fold the outer lips over the tip and keep going.", 180),
+      step("8–10", "After", "If she comes, don’t touch the tip. Whole-hand cushion.", 120),
     ],
-    "Signs Layering is needed",
-    [
-      "Wincing or pulling away from direct skin.",
-      "Dry friction — layering is an instant non-friction barrier.",
-    ],
-    "Through the lips. Not on the tip."
+    "Use this when",
+    "Through the lips. Not on the tip.",
+    voice(
+      "Put something between you and the raw nerve.",
+      "Layering is touch through lips, fabric, or another hand so the force spreads out.",
+      "Direct on the tip can feel like too much — especially after an orgasm, or if she’s naturally extra-sensitive.",
+      ["She winces or pulls away from skin-on-skin.", "It feels dry or scratchy — a layer fixes that instantly."]
+    ),
+    voice(
+      "Diffuse force so more nerves fire and fewer get irritated.",
+      "A tiny contact point concentrates pressure. A layer spreads it, which is often more pleasure and less sting.",
+      "It’s also how you stay in contact after a climax without triggering a withdrawal reflex.",
+      ["Hypersensitivity to direct skin.", "Friction without enough wetness."]
+    )
   ),
   tech(
     11,
@@ -685,65 +416,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Consistency",
-    "When it is working, become boring on purpose.",
-    "Consistency holds every variable of touch — speed, downward pressure, surface area, and trajectory — constant once high arousal is achieved.",
-    "At late plateau the spinal cord is summing hard. Changing speed or place breaks the build and forces a remap. A sudden new stimulus right before climax drops arousal. Uninterrupted prediction lets the body trigger the contractions of orgasm.",
-    "The 4 variables to lock in",
+    ["hood"],
+    "Lock these four",
     [
-      kind(
-        "Velocity",
-        "The exact same rhythm. No speeding up because you are excited.",
-        "If the impulse is to go faster, that is the cue to stay."
-      ),
-      kind(
-        "Pressure",
-        "The same downward force, continuously.",
-        "Think a steady 2 ounces. Not a fidget."
-      ),
-      kind(
-        "Trajectory",
-        "The same micro-path. No drifting.",
-        "If you lose the track, stop and let her put you back."
-      ),
-      kind(
-        "Contact area",
-        "The same part of the finger pad or palm.",
-        "Do not roll onto a nail or switch to two fingers because one got tired."
-      ),
+      kind("Speed", "The same beat. The urge to go faster is the cue to stay."),
+      kind("Pressure", "The same weight. Not a fidget."),
+      kind("Path", "The same tiny track. If you lose it, stop and let her put you back."),
+      kind("Surface", "The same bit of finger. Don’t roll onto a nail because you’re tired."),
     ],
-    "Consistency in real time",
+    "Hold it",
     [
-      step(
-        "Lock point",
-        "Identify it",
-        "Late plateau: rapid breathing, muscular tension, focused gaze, hips that have gone still.",
-        120
-      ),
-      step(
-        "Freeze",
-        "Lock the variable set",
-        "Wrist, fingers, arm. Do not speed up.",
-        180
-      ),
-      step(
-        "Drive",
-        "Use the body",
-        "If the hand tires, drive from core or shoulder so the contact point never changes.",
-        180
-      ),
-      step(
-        "Ride",
-        "Through climax",
-        "Identical stroke from the onset of climax until the contraction wave subsides.",
-        120
-      ),
+      step("Spot it", "Late climb", "Fast breath, still hips, that focused look. That’s the lock point.", 120),
+      step("Freeze", "Don’t improve it", "Wrist, fingers, arm. No speeding up.", 180),
+      step("Drive", "From the body", "Hand tired? Move from core or shoulder so the contact never changes.", 180),
+      step("Ride", "Through", "Same stroke from the first clench until it’s over.", 120),
     ],
-    "Signs Consistency is being held",
-    [
-      "Arousal builds in a smooth arch, no sudden dips.",
-      "Hips tilt up to lock against the still, consistent touch.",
-    ],
-    "Don’t you dare change that."
+    "Held when",
+    "Don’t you dare change that.",
+    voice(
+      "When it is working, become boring on purpose.",
+      "Consistency is freezing every variable once she’s close. Speed, pressure, path, which bit of your finger.",
+      "Most good things get stolen by a partner who means well and ‘helps’ by going faster.",
+      ["The climb is a smooth arch.", "Her hips push up to pin themselves against you."]
+    ),
+    voice(
+      "Don’t break the summation right before climax.",
+      "Late in the climb the spinal cord is adding signals. A new speed or place forces it to start over, and arousal drops.",
+      "Uninterrupted prediction is often what lets the contractions actually start.",
+      ["No sudden dips.", "She locks herself onto the same contact."]
+    )
   ),
   tech(
     12,
@@ -751,67 +452,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "essentials",
     "her",
     "Multiples",
-    "The second wave lives in the 90 seconds after the first.",
-    "Multiples is continuing gentle, low-pressure stimulation in the post-orgasm window so the nervous system can climb again before the refractory drop sets in.",
-    "Blood is still trapped in erectile tissue. Soft touch keeps it there. Hypersensitivity can convert back into arousal if intensity matches the new threshold. Sequential peaks stack oxytocin and endorphins.",
-    "The 3 phases of Multiples",
+    ["glans", "labia", "hood", "mons", "vulva"],
+    "Three phases after",
     [
-      kind(
-        "Immediate Soften — 0–15 seconds",
-        "Step down the second contractions finish. Do not leave.",
-        "Lighten pressure about 80%. Broad still palm, or Layering."
-      ),
-      kind(
-        "Sensitivity Glide — 15–60 seconds",
-        "Ultra-light, continuous, highly lubricated perimeter movement.",
-        "Extra lube. Wide Orbiting or Hinting on the far outer labia. Avoid the glans."
-      ),
-      kind(
-        "Secondary Drive — 1–3 minutes",
-        "Rebuild speed and directness as sharpness turns back into pleasure.",
-        "Spiral inward toward the hood. Rhythm or Consistency into the second peak."
-      ),
+      kind("Soften, don’t leave", "The second the clenches finish, drop the pressure a lot. Stay on her. Still palm."),
+      kind("Around, not on", "Extra lube. Feather circles on the outer lips. Avoid the tip while it stings."),
+      kind("Climb again", "When sharp becomes a warm throb, spiral back in."),
     ],
-    "Multiples protocol",
+    "Second-wave try",
     [
-      step(
-        "Peak",
-        "First climax",
-        "Drive the first peak with locked Consistency.",
-        180
-      ),
-      step(
-        "0–15s",
-        "Instant down-shift",
-        "Do not remove the hand. Broad still palm cushioning over the pubic bone.",
-        30
-      ),
-      step(
-        "15–60s",
-        "Re-lubricate & sweep",
-        "More lube without lifting the palm. Ultra-soft wide orbits around the far outer labia.",
-        90
-      ),
-      step(
-        "1–3m",
-        "Re-engage",
-        "When sensitivity normalizes, step speed and directness back up.",
-        180
-      ),
-      step(
-        "3–5m",
-        "Second peak",
-        "If the pelvis is pushing into touch, lock Consistency again.",
-        120
-      ),
+      step("Peak", "First one", "Ride the first orgasm with a locked stroke.", 180),
+      step("0–15s", "Downshift", "Hand stays. Broad still palm on the mons.", 30),
+      step("15–60s", "Sweep", "More lube. Soft wide circles on the far outer lips.", 90),
+      step("1–3m", "In again", "If she can take it, closer and a bit faster.", 180),
+      step("3–5m", "Second", "Hips pushing in? Lock the stroke again.", 120),
     ],
-    "Signs it’s safe to drive for a second peak",
-    [
-      "Sharp or ticklish shifts back to a warm throb.",
-      "Tissue stays swollen — it does not return to baseline size.",
-      "The pelvis pushes up into touch instead of pulling away.",
-    ],
-    "Don’t leave. Just go lighter."
+    "Safe to climb when",
+    "Don’t leave. Just go lighter.",
+    voice(
+      "The second wave lives in the 90 seconds after the first.",
+      "Multiples is staying with very light touch after she comes, instead of pulling away or going as hard as before.",
+      "The tissue is still full of blood. Soft contact can keep that, so a second peak is possible. Hard contact usually isn’t.",
+      ["Too-sharp turns back into a warm throb.", "Hips push into you instead of away."]
+    ),
+    voice(
+      "Stay in the post-climax window before blood drains.",
+      "Immediately after, erectile tissue is at its fullest. Soft touch keeps it there. Intensity has to match a new, lower threshold.",
+      "A second peak also stacks the feel-good chemistry — deeper drop afterward.",
+      ["Tissue stays swollen, not back to baseline.", "Hypersensitivity recedes."]
+    )
   ),
   tech(
     13,
@@ -819,60 +488,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Angling",
-    "Aim at a wall. Stop thrusting through empty space.",
-    "Angling adjusts entry angle and pelvic tilt so force hits specific internal structures — especially the anterior vaginal wall — instead of passing through the centre of a tented canal.",
-    "Internal clitoral bulbs and crura run along the front wall. Halban’s fascia and the periurethral sponge live there too. Straight centre-line thrusting often glides through open space with no continuous friction.",
-    "The 3 core positions for Angling",
+    ["front-wall", "entrance", "clit-body"],
+    "Three angles",
     [
-      kind(
-        "The Pelvic Lift",
-        "Pelvis up so entry presses the front wall.",
-        "Firm wedge or pillow under lower back and hips, 3 to 6 inches off the mattress."
-      ),
-      kind(
-        "The Lateral Tilt",
-        "Hips rotated so force hits a side wall.",
-        "One hip higher, or angle the entry about 30 degrees left or right."
-      ),
-      kind(
-        "The Posterior Press",
-        "Down toward the back wall and perineal body.",
-        "Aim the stroke toward the tailbone, not the belly button."
-      ),
+      kind("Hips up", "Pillow under her lower back. Entry aims toward her belly, dragging the front wall."),
+      kind("A little sideways", "One hip higher, or aim 30 degrees left or right."),
+      kind("Toward the tailbone", "Angle down, not at the belly. Some bodies want that more than the front wall."),
     ],
-    "10-minute Angling protocol",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Setup & elevation",
-        "Pillow under the hips. Full lubrication. Slow insert at a 45-degree angle toward the belly button until the front wall is felt.",
-        180
-      ),
-      step(
-        "3–6",
-        "Anterior engagement",
-        "Short 1–2 inch strokes that keep dragging contact on the front wall.",
-        180
-      ),
-      step(
-        "6–8",
-        "Lateral exploration",
-        "Without withdrawing, rotate left 60 seconds, then right 60 seconds. Notice which side sings.",
-        120
-      ),
-      step(
-        "8–10",
-        "Lock the vector",
-        "Return to the best angle. Lock the hips. Steady strokes through climax.",
-        120
-      ),
+      step("0–3", "Set up", "Pillow under hips. Lots of lube. Slow in until you feel the front wall.", 180),
+      step("3–6", "Short strokes", "One to two inches. Stay in contact with that wall. Don’t piston the middle.", 180),
+      step("6–8", "Sides", "Without pulling out, 60 seconds left, 60 seconds right. Notice which sings.", 120),
+      step("8–10", "Lock it", "The best angle. Hips still. Steady through if she wants that.", 120),
     ],
-    "Signs Angling is working",
-    [
-      "Sensation shifts from generic pressure to a distinct, targeted focus.",
-      "A smooth, firm drag — not gliding through empty space.",
-    ],
-    "Tilt up and stay. Don’t keep searching."
+    "Working when",
+    "Tilt up and stay. Don’t keep searching.",
+    voice(
+      "Aim at a wall. Stop thrusting through empty space.",
+      "Angling is tilting so what’s inside actually rubs a wall — usually the front one, toward the belly.",
+      "When she’s turned on, the canal opens up. Straight in-and-out can miss everything that feels like much.",
+      ["Generic pressure becomes a specific ‘there.’", "A smooth drag, not a glide through nothing."]
+    ),
+    voice(
+      "Direct force into the internal clitoris and front wall.",
+      "The clitoris’s hidden legs run along the front vaginal wall. A pillow tilt aims into that, plus the spongy tissue often called the G-spot.",
+      "A tented canal has dead space in the middle. Angle keeps wall friction continuous.",
+      ["Targeted internal focus.", "Firm tissue contact instead of empty thrusting."]
+    )
   ),
   tech(
     14,
@@ -880,60 +523,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Rocking",
-    "Stay in. Sway. Stop making a hallway of it.",
-    "Rocking inserts fully and keeps complete contact while the hips sway or roll. No back-and-forth thrusting. Continuous deep pressure instead.",
-    "The base stays on the external glans. Internal tissue stays compressed. You skip the withdrawal phase that empties the pressure, and you skip a lot of friction wear.",
-    "The 3 variations of Rocking",
+    ["mons", "glans", "hood"],
+    "Three rocks",
     [
-      kind(
-        "The Pelvic Roll",
-        "Small circular hip motion, fully inserted.",
-        "Lock the base against the pubic bone. 1-inch circular loops."
-      ),
-      kind(
-        "The Lateral Sway",
-        "Left-right hip sway, full depth.",
-        "Press the inserted body against left and right sides of the entrance and canal."
-      ),
-      kind(
-        "The Vertical Wave",
-        "Pelvis tilts to alternate front and back walls.",
-        "Tuck the tailbone for the front wall, slight arch for the back. Depth stays constant."
-      ),
+      kind("Circles", "All the way in. Base pressed to the mons. Tiny hip circles — about an inch."),
+      kind("Side to side", "Full depth. Sway so the sides of the opening get the pressure."),
+      kind("Tilt", "Tuck the tailbone to press the front wall, slight arch for the back. Don’t pull out."),
     ],
-    "10-minute Rocking routine",
+    "10-minute try",
     [
-      step(
-        "0–2",
-        "Full insertion & anchor",
-        "Comfortable full insert. Slide forward until the base is pressed to mons and clitoris.",
-        120
-      ),
-      step(
-        "2–5",
-        "Lateral sway",
-        "Slow side-to-side. Feel internal wall pressure, not depth.",
-        180
-      ),
-      step(
-        "5–8",
-        "Pelvic roll",
-        "Shift into continuous circular rolls. External base stays anchored.",
-        180
-      ),
-      step(
-        "8–10",
-        "High-pressure lock",
-        "Continuous downward weight into the pubic bone plus micro-rolls.",
-        120
-      ),
+      step("0–2", "In and parked", "Comfortable full in. Slide forward until you’re on the mons and clitoris.", 120),
+      step("2–5", "Sway", "Slow side to side. Feel the walls, not more depth.", 180),
+      step("5–8", "Circles", "Small rolls. The outside contact never leaves.", 180),
+      step("8–10", "Weight", "Keep the downward press on the mons plus micro-rolls.", 120),
     ],
-    "Signs Rocking is effective",
-    [
-      "Deep pelvic warmth without sharp friction.",
-      "Internal walls and external glans at once — no extra hand required.",
-    ],
-    "Grind on me. Don’t pull out."
+    "Working when",
+    "Grind on me. Don’t pull out.",
+    voice(
+      "Stay in. Sway. Stop making a hallway of it.",
+      "Rocking is all the way in, then hips moving, no in-and-out. The base of the body or toy stays on the clitoris.",
+      "Pulling out on every stroke takes the pressure off everything that was working. A grind keeps both inside and outside.",
+      ["Deep warm fullness, not a scrape.", "She doesn’t need a spare hand on the clitoris."]
+    ),
+    voice(
+      "Constant contact instead of a withdrawal stroke.",
+      "Staying fully in keeps compressing internal tissue and the pubic bone on the external clitoris at once.",
+      "You also skip a lot of friction wear. Deep pressure nerves like a still-ish load more than a piston.",
+      ["Pelvic warmth without sharp friction.", "Inside and the tip together without extra hands."]
+    )
   ),
   tech(
     15,
@@ -941,60 +558,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Pairing",
-    "Inside and the clit, on purpose, at the same time.",
-    "Pairing is simultaneous internal penetration and continuous external clitoral stimulation.",
-    "Internal sensation travels pelvic and vagus nerves; external clitoral touch travels the pudendal nerve. Firing both at once lowers the orgasmic threshold. Many women will not climax from penetration alone. Anatomically you sandwich the clitoral complex — glans outside, anterior wall inside.",
-    "The 3 methods of Pairing",
+    ["hood", "glans", "front-wall"],
+    "Three pairings",
     [
-      kind(
-        "Manual Pairing",
-        "Orbiting or Rhythm on the clitoris during penetration.",
-        "Steady internal strokes. Free hand, lubricated, on the hood."
-      ),
-      kind(
-        "Vibrational Pairing",
-        "A compact vibrator on the external clitoris during internal movement.",
-        "Bullet or air-pulse on the glans, low-to-medium, while inside stays steady."
-      ),
-      kind(
-        "Anatomic Body Pairing",
-        "Pubic bone or groin on the clitoris every stroke.",
-        "Grinding or prone positions where body contact never leaves the clit."
-      ),
+      kind("A hand", "Whatever is inside stays simple. A lubricated hand circles the hood."),
+      kind("A small toy", "Bullet or air-pulse on the clitoris, low to medium, while inside keeps a steady pace."),
+      kind("The body", "A position where the pubic bone stays on the clitoris every stroke — a grind, or her on top."),
     ],
-    "10-minute Pairing routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Internal baseline",
-        "Slow steady internal movement or Rocking. Build warmth and lubrication.",
-        180
-      ),
-      step(
-        "3–5",
-        "Introduce external",
-        "More lube on the hood. Gentle slow Orbiting. Do not change the internal pace.",
-        120
-      ),
-      step(
-        "5–8",
-        "Synchronize",
-        "Match external tempo to internal. One-to-one pulse between both points.",
-        180
-      ),
-      step(
-        "8–10",
-        "Lock and finish",
-        "Near threshold, lock both into Consistency through climax.",
-        120
-      ),
+      step("0–3", "Inside first", "Slow inside only. Let her get wet and warm.", 180),
+      step("3–5", "Add outside", "Lube on the hood. Gentle circles. Don’t change the inside pace.", 120),
+      step("5–8", "Match", "Same tempo inside and out.", 180),
+      step("8–10", "Lock both", "Near the edge, freeze both. Don’t drop the hand.", 120),
     ],
-    "Signs Pairing is working",
-    [
-      "Arousal climbs faster than either touch alone.",
-      "It feels complete — internal fullness linked to external intensity.",
-    ],
-    "Don’t stop the hand when you go in."
+    "Working when",
+    "Don’t stop the hand when you go in.",
+    voice(
+      "Inside and the clitoris, on purpose, at the same time.",
+      "Pairing is not ‘foreplay then penetration.’ Plenty of women need both, and the hand is not optional flavouring.",
+      "Get the outside rhythm first if you have to choose. Losing the clitoris when you go in is the usual miss.",
+      ["It builds faster than either alone.", "It feels complete, not like two unrelated jobs."]
+    ),
+    voice(
+      "Fire two nerve routes at once.",
+      "External clitoral touch and internal pressure travel different nerves. Together they lower the threshold for orgasm.",
+      "You also sandwich the clitoris — tip from outside, hidden body from the front wall.",
+      ["Faster climb than either channel alone.", "Full-spectrum sensation, inside linked to outside."]
+    )
   ),
   tech(
     16,
@@ -1002,60 +593,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Levering",
-    "Use what’s inside as a lever on the doorway.",
-    "Levering uses the inserted body or toy as a lever, pushing outward or laterally against the walls and rim of the entrance.",
-    "The outer third holds nearly all internal sensory nerve endings. Outward press stretch-reflexes the levator ani. The clitoral crura run along the sides of the opening — side-to-side levering presses those legs.",
-    "The 3 motions of Levering",
+    ["entrance", "clit-body", "perineum", "front-wall"],
+    "Three levers",
     [
-      kind(
-        "Anterior Levering",
-        "Press the stem up against the roof of the entrance.",
-        "Partial insert. Steady upward leverage through the movement."
-      ),
-      kind(
-        "Posterior Levering",
-        "Press down toward the perineum.",
-        "Dragging friction along the floor of the entrance."
-      ),
-      kind(
-        "Lateral Levering",
-        "Force left or right against the side walls.",
-        "Firm crescent arc, left wall then right."
-      ),
+      kind("Up", "Only an inch or two in. Press up against the top of the opening the whole time."),
+      kind("Down", "Press toward the perineum — the skin between vagina and anus."),
+      kind("Sides", "Push left, then right, in a firm crescent. The clitoris has legs along those walls."),
     ],
-    "10-minute Levering routine",
+    "10-minute try",
     [
-      step(
-        "0–2",
-        "Entry & anchor",
-        "Insert 1 to 2 inches. Pause. Comfort and lubrication first.",
-        120
-      ),
-      step(
-        "2–5",
-        "Anterior levering",
-        "Firm upward pressure on the top rim. Slow 1-inch glides, continuous upward force.",
-        180
-      ),
-      step(
-        "5–8",
-        "Lateral sweeps",
-        "Five strokes on the left wall, five on the right.",
-        180
-      ),
-      step(
-        "8–10",
-        "Levered outstroking",
-        "Upward leverage plus withdrawal strokes. Drag on the way out.",
-        120
-      ),
+      step("0–2", "Just in", "One to two inches. Pause. Lube and comfort first.", 120),
+      step("2–5", "Up", "Firm up-pressure. Slow one-inch slides, never dropping that lift.", 180),
+      step("5–8", "Sides", "Five strokes left, five right.", 180),
+      step("8–10", "Drag out", "Keep the upward press on the way out.", 120),
     ],
-    "Signs Levering is effective",
-    [
-      "Sensation is pronounced at the opening, not lost deep inside.",
-      "Involuntary pelvic floor pulsing against the outward stretch.",
-    ],
-    "Press up against the entrance. Stay shallow."
+    "Working when",
+    "Press up against the entrance. Stay shallow.",
+    voice(
+      "Use what’s inside as a lever on the doorway.",
+      "Levering is pressing out against the opening, not aiming for depth. The first inch is where most of the feeling is.",
+      "Deep isn’t automatically better. For a lot of bodies, the doorway is the instrument.",
+      ["Sensation is right at the opening, not lost inside.", "Muscles pulse against the stretch."]
+    ),
+    voice(
+      "Load the nerve-dense outer third and the clitoral legs.",
+      "Almost all vaginal touch receptors sit in the outer third. Side pressure also hits the crura running beside the opening.",
+      "An outward press stretch-reflexes the pelvic floor, which can make it more responsive.",
+      ["Focus at the introitus, not the vault.", "Involuntary pulsing against the stretch."]
+    )
   ),
   tech(
     17,
@@ -1063,60 +628,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Shallowing",
-    "The first two inches are the instrument.",
-    "Shallowing limits movement to the outermost entrance — the first 1 to 2 inches — and refuses deep penetration.",
-    "The outer third holds nearly all vaginal touch receptors. The inner two-thirds have far fewer. Shallowing puts 100% of movement where the nerves are, skips cervical bruising, and every stroke tugs labia minora and hood.",
-    "The 3 Shallowing strokes",
+    ["entrance", "labia", "hood", "vulva"],
+    "Three shallow strokes",
     [
-      kind(
-        "The Entrance Glide",
-        "Micro-strokes just past the threshold and back.",
-        "Less than an inch in, almost fully out. Fast or slow pulse."
-      ),
-      kind(
-        "Entrance Ringing",
-        "Circles around the inner circumference, no depth.",
-        "Finger pad just past the entrance, small circles on the inner ring."
-      ),
-      kind(
-        "The Flutter Stroke",
-        "Rapid light pulses at the threshold.",
-        "Shallow depth, low-amplitude flutters on the lower rim."
-      ),
+      kind("In and almost out", "Less than an inch in, almost fully out. That’s the whole stroke."),
+      kind("Circle the ring", "Fingertip just inside. Small circles around the inner rim. No depth."),
+      kind("Flutter", "Tiny fast pulses right at the opening."),
     ],
-    "10-minute Shallowing routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Boundary setup",
-        "Abundant lube. Tip only — first knuckle or first inch. All motion at the threshold.",
-        180
-      ),
-      step(
-        "3–6",
-        "Entrance glides",
-        "0.5 to 1.5 inches deep. Friction across the outer ring is the whole job.",
-        180
-      ),
-      step(
-        "6–8",
-        "Shallow levering",
-        "Glides plus upward pressure along the roof. Never past 1.5 inches.",
-        120
-      ),
-      step(
-        "8–10",
-        "Speed locking",
-        "Rapid shallow flutters at the entrance ring.",
-        120
-      ),
+      step("0–3", "Tip only", "Lots of lube. First knuckle or first inch. All motion at the doorway.", 180),
+      step("3–6", "Glides", "Half an inch to an inch and a half. The ring is the whole job.", 180),
+      step("6–8", "Plus up", "Same shallow glide, pressed up along the roof. Never past an inch and a half.", 120),
+      step("8–10", "Flutter", "Quick little pulses at the rim if she wants speed.", 120),
     ],
-    "Signs Shallowing is working",
-    [
-      "Light, sharp, pleasurable — no deep ache.",
-      "Outer labia and entrance ring swell from concentrated blood flow.",
-    ],
-    "Stay shallow. I will take more if I want it."
+    "Working when",
+    "Stay shallow. I will take more if I want it.",
+    voice(
+      "The first two inches are the instrument.",
+      "Shallowing is staying at the entrance on purpose. Deep is optional, and often less interesting than people think.",
+      "Every shallow stroke also tugs the inner lips and hood, so the clitoris gets a little pull without a second hand.",
+      ["Sharp and nice — no deep ache.", "The opening looks fuller."]
+    ),
+    voice(
+      "Put 100% of movement where the nerves actually are.",
+      "The inner two-thirds of the vagina have far fewer touch receptors. Shallowing also avoids slamming the cervix.",
+      "Entrance movement traction the hood, so you get indirect clitoral input for free.",
+      ["No cervical ache.", "Outer lips and the ring swell from local blood flow."]
+    )
   ),
   tech(
     18,
@@ -1124,60 +663,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Outstroking",
-    "The good part is the way out.",
-    "Outstroking puts speed, pressure, and attention on the withdrawal, not the inward push.",
-    "Entrance nerves detect directional stretch. Inward compresses; outward opens a different pathway. Heavy inward thrusts often trigger guarding. Outward drag pulls tissue across the nerve-dense ring.",
-    "The 3 elements of Outstroking",
+    ["entrance", "front-wall"],
+    "Three outstrokes",
     [
-      kind(
-        "The Asymmetric Stroke",
-        "Slow in with zero pressure, faster out with firm contact.",
-        "3 seconds in. Half-second pause. 1 second out with dragging pressure."
-      ),
-      kind(
-        "The Hooked Exit",
-        "Hook up against the front wall on the way out.",
-        "Insert smoothly. Withdraw with upward drag until the tip almost exits."
-      ),
-      kind(
-        "Pause-at-the-Exit",
-        "Stop at the outer ring before going back in.",
-        "Withdraw with drag. Still for 2 seconds at the threshold. Slide in gently."
-      ),
+      kind("Slow in, drag out", "Three seconds in with almost no pressure. One second out with a firm drag."),
+      kind("Hook on the way out", "In easy. Out with an upward pull along the front wall until you almost leave."),
+      kind("Pause at the door", "Stop two seconds at the opening before going back in."),
     ],
-    "10-minute Outstroking routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Tempo calibration",
-        "Strip pressure from the inward stroke. Inward is a light reset.",
-        180
-      ),
-      step(
-        "3–6",
-        "Asymmetric execution",
-        "3 seconds in, 1 second out with firm drag.",
-        180
-      ),
-      step(
-        "6–8",
-        "Hooked exit",
-        "Every outward stroke hooks up against the anterior wall and the front rim.",
-        120
-      ),
-      step(
-        "8–10",
-        "Threshold locking",
-        "Add a 1-second pause at the exit on every stroke.",
-        120
-      ),
+      step("0–3", "Strip the in-stroke", "Inward is a light reset. All the meaning is on the way out.", 180),
+      step("3–6", "Uneven timing", "Three seconds in, one second out with drag.", 180),
+      step("6–8", "Hook", "Every exit pulls up along the front wall and the front of the opening.", 120),
+      step("8–10", "Pause", "One-second stop at the exit each time.", 120),
     ],
-    "Signs Outstroking is working",
-    [
-      "Anticipation lives on the outward movement.",
-      "The outward pull draws lubrication across the entrance ring.",
-    ],
-    "Slow in. Drag out."
+    "Working when",
+    "Slow in. Drag out.",
+    voice(
+      "The good part is the way out.",
+      "Outstroking puts the attention on withdrawal. Inward can be almost nothing. Outward is the stroke.",
+      "Pushing in hard often makes muscles brace. A drag out stretches the opening instead, which a lot of people feel more.",
+      ["She’s waiting for the exit, not the thrust.", "The pull draws wetness across the opening."]
+    ),
+    voice(
+      "Stretch the entrance nerves instead of compressing them.",
+      "Inward compresses tissue; outward opens it — different receptors. Heavy inward thrusts also trigger guarding.",
+      "A hooked exit keeps front-wall contact on the way out, which is where a lot of internal feeling lives.",
+      ["Anticipation lives on withdrawal.", "Lubrication drag across the rim."]
+    )
   ),
   tech(
     19,
@@ -1185,60 +698,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "penetration",
     "her",
     "Adding",
-    "Width after the tissue has asked for it.",
-    "Adding slowly introduces more static width — fingers or contact points — once tissues are fully relaxed and engorged, for a feeling of internal fullness.",
-    "Arousal expands pelvic tissue and relaxes walls. Extra width presses left and right, or front and back, at once, and wakes deep stretch receptors that register saturation. Never as a first move.",
-    "The 3 phases of Adding",
+    ["entrance", "front-wall", "pelvic-floor"],
+    "Three widths",
     [
-      kind(
-        "Single-point Anchor",
-        "One finger or slim object until tightness dissolves.",
-        "Well-lubricated. Steady, low-speed movement."
-      ),
-      kind(
-        "Side-by-side Slide",
-        "A second contact alongside the first, without withdrawing.",
-        "Extra lube at the entrance. Slide the second in. Hold still 30 seconds."
-      ),
-      kind(
-        "Radial Spread",
-        "Gently separate inside for multi-directional pressure.",
-        "A V-shape stretch once two points are comfortable. No thrusting required."
-      ),
+      kind("One first", "One well-lubed finger or a slim toy until everything is soft and wet."),
+      kind("Slide a second", "Extra lube. Second finger beside the first. Hold still 30 seconds. Don’t thrust."),
+      kind("Open a little", "Once that’s easy, a gentle V to press more than one wall at once."),
     ],
-    "Adding protocol",
+    "Adding try",
     [
-      step(
-        "0–4",
-        "Single anchor",
-        "One finger or slim toy. Light, steady. Wait for high arousal and full lubrication.",
-        240
-      ),
-      step(
-        "4–6",
-        "Second contact",
-        "Pause. Extra lube. Second finger alongside. Motionless 30 seconds.",
-        120
-      ),
-      step(
-        "6–8",
-        "Static expansion",
-        "Do not thrust. Rock or Angle with both points.",
-        120
-      ),
-      step(
-        "8–10",
-        "Fullness drive",
-        "Keep the expanded width. Steady upward pressure on the anterior wall.",
-        120
-      ),
+      step("0–4", "One", "Light, steady, one point. Wait until she’s clearly ready.", 240),
+      step("4–6", "Two", "Pause. Extra lube. Second point in. Still for 30 seconds.", 120),
+      step("6–8", "Fill, don’t pump", "Rock or angle. No in-and-out required.", 120),
+      step("8–10", "Stay wide", "Keep the extra width. Steady press toward the belly if she likes it.", 120),
     ],
-    "Signs it is safe to Add",
-    [
-      "Initial penetration glides with abundant lubrication and zero resistance.",
-      "The entrance ring feels soft, relaxed, and open.",
-    ],
-    "Stay. Let me take the extra."
+    "Safe when",
+    "Stay. Let me take the extra.",
+    voice(
+      "Width after the body has asked for it.",
+      "Adding is more fullness — another finger, more girth — only once she’s already open and wet. Never as a first move.",
+      "Fullness is a different feeling from thrusting. A lot of people want the stretch, not more speed.",
+      ["The first thing glides in with no fight.", "The opening feels soft, not a clenched ring."]
+    ),
+    voice(
+      "Meet tissue after it has expanded.",
+      "Arousal relaxes the walls and fills them with blood, so more width can be comfortable later that wouldn’t be at the start.",
+      "Extra girth loads stretch receptors on more than one wall at once — fullness, not just in-and-out friction.",
+      ["Zero resistance and plenty of lubrication.", "The entrance ring is open under touch."]
+    )
   ),
   tech(
     20,
@@ -1246,60 +733,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "both",
     "Breath-Sensation Syncing",
-    "Put the stroke on the breath so the pelvic floor can follow.",
-    "Breath-Sensation Syncing lines inhalation, hold, and exhalation up with specific touches, movements, or pressure changes.",
-    "Inhale leans sympathetic (readiness). Exhale leans parasympathetic (blood flow, less clamp). Diaphragm and pelvic floor move together — inhale drops and opens the floor, exhale gently tones it. Rhythmic breathing also turns the sensory volume up.",
-    "The 3 core breathing frameworks",
+    ["pelvic-floor"],
+    "Three breaths",
     [
-      kind(
-        "The Expansion Breath",
-        "Inhale as pressure or depth increases.",
-        "4-second nose inhale as a stroke begins. Belly and pelvic floor expand around the touch."
-      ),
-      kind(
-        "The Release Breath",
-        "Exhale on the primary stroke or climax phase.",
-        "6-second slow mouth exhale as outward movement or static pressure happens."
-      ),
-      kind(
-        "The Wave Breath",
-        "2–3 second hold at peak sensation.",
-        "Inhale on buildup, hold at maximum contact, release smoothly."
-      ),
+      kind("In with the press", "Four-second nose inhale as a stroke or pressure starts. Let the belly go."),
+      kind("Out with the release", "Six-second mouth exhale as you ease or pull back. A sigh is allowed."),
+      kind("Hold at the top", "At the strongest moment, hold two seconds, then let it go."),
     ],
-    "10-minute Breath Sync protocol",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Diaphragmatic calibration",
-        "No movement yet. Hand on chest, hand on belly. 4 in, 6 out, until the pelvic floor dissolves.",
-        180
-      ),
-      step(
-        "3–6",
-        "1-to-1 matching",
-        "Light external touch or slow penetration. Inward = 4-second inhale. Outward = 4-second exhale.",
-        180
-      ),
-      step(
-        "6–8",
-        "Release emphasis",
-        "Exhales 6–8 seconds. Static pressure or slow Rocking. Sigh or low tone on the out-breath.",
-        120
-      ),
-      step(
-        "8–10",
-        "Peak wave",
-        "Rapid deep inhale on buildup, 2-second hold at max pressure, slow release as sensation peaks.",
-        120
-      ),
+      step("0–3", "Just breath", "No sex yet. Hand on chest, hand on belly. Four in, six out.", 180),
+      step("3–6", "Match", "Light touch or slow inside. In on the in-stroke, out on the out-stroke.", 180),
+      step("6–8", "Longer sighs", "Exhales 6–8 seconds. Still pressure or a slow rock.", 120),
+      step("8–10", "Hold", "Deep inhale on the climb, two-second hold at max, slow out.", 120),
     ],
-    "Signs Breath Syncing is working",
-    [
-      "Pelvic floor unclenches on its own. Contact goes frictionless.",
-      "Spreading pelvic warmth and skin tingling on the exhales.",
-    ],
-    "Breathe me in. Sigh me out."
+    "Working when",
+    "Breathe me in. Sigh me out.",
+    voice(
+      "Put the stroke on the breath so the body can follow.",
+      "You line up inhales and exhales with the movement. It sounds soft. It actually changes how tight the pelvis is.",
+      "People often hold their breath when it feels good, which makes muscles clamp. A long exhale is the unlock.",
+      ["The pelvic floor lets go on its own.", "Warmth spreading on the out-breath."]
+    ),
+    voice(
+      "Use breath to switch the autonomic gear.",
+      "Inhale leans the body toward arousal-readiness. Exhale leans it toward blood flow and less clamp. The diaphragm and pelvic floor move together.",
+      "Steady breathing also turns tactile volume up — the brain gates sensation less aggressively.",
+      ["Frictionless, unclenched contact.", "Pelvic warmth and skin tingling on exhales."]
+    )
   ),
   tech(
     21,
@@ -1307,60 +768,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "her",
     "Dynamic Tension & Relaxation",
-    "Squeeze, then melt. The melt is the trick.",
-    "Deliberately contract pelvic floor, thighs, glutes, or abdomen for brief intervals, then fully relax, so release itself becomes the hypersensitivity.",
-    "After a voluntary contraction, muscle drops below its previous baseline and capillaries open. Alternating engagement and drop resets sensory nerves. The squeeze siphons blood; the release lets a fresh wave flood clitoral and vaginal tissue.",
-    "The 3 muscle tension vectors",
+    ["pelvic-floor", "vulva"],
+    "Three squeezes",
     [
-      kind(
-        "The Kegel Pulse",
-        "Squeeze levator ani around finger, toy, or body, then drop.",
-        "Firm 3-second contract, then a 6-second “push out” / full drop while touch continues."
-      ),
-      kind(
-        "Glute & Thigh Drive",
-        "Glutes and inner thighs compress the vulva from outside.",
-        "Flex 5 seconds during static internal pressure, then melt the lower body flat."
-      ),
-      kind(
-        "The Abdominal Wave",
-        "Brace the lower abs to tilt the pelvis into contact.",
-        "Gentle sit-up brace to push internal structures onto the touch, then release on the exhale."
-      ),
+      kind("Pelvic pulse", "Squeeze inside for 3 seconds, then fully drop for 6. Touch never stops."),
+      kind("Thighs and glutes", "Squeeze legs and bum 5 seconds during a still press, then melt flat."),
+      kind("Low belly", "A gentle brace, like the start of a sit-up, to push herself onto the touch — then release on the exhale."),
     ],
-    "Dynamic Tension protocol",
+    "Tension try",
     [
-      step(
-        "0–3",
-        "Baseline touch",
-        "Steady Orbiting or continuous shallow penetration.",
-        180
-      ),
-      step(
-        "3–6",
-        "3-to-6 pulses",
-        "Every 30 seconds: 3-second pelvic squeeze, 6-second full release. Touch stays constant.",
-        180
-      ),
-      step(
-        "6–8",
-        "Macro-body squeezes",
-        "Pelvic, glute, and thigh together. 5 seconds at peak pressure, then drop everything. Contact stays.",
-        120
-      ),
-      step(
-        "8–10",
-        "Micro-pulses",
-        "Near climax, 1-second pulse-and-release, mirroring oncoming orgasmic reflexes.",
-        120
-      ),
+      step("0–3", "Baseline", "Steady circles or shallow inside. No squeezing yet.", 180),
+      step("3–6", "3 and 6", "Every 30 seconds: 3-second squeeze, 6-second drop. Touch stays.", 180),
+      step("6–8", "Whole lower body", "Pelvis, glutes, thighs together 5 seconds, then everything goes.", 120),
+      step("8–10", "Little pulses", "Near the edge, one-second squeeze-and-drop, matching what’s coming.", 120),
     ],
-    "Signs Dynamic Tension is working",
-    [
-      "Sensation doubles the instant the tension drops.",
-      "Labia and clitoral structures feel firmer and warmer after each release.",
-    ],
-    "Squeeze. Now let the whole thing go."
+    "Working when",
+    "Squeeze. Now let the whole thing go.",
+    voice(
+      "Squeeze, then melt. The melt is the trick.",
+      "She tenses on purpose — pelvic floor, thighs, bum — then drops it all while you keep touching.",
+      "The second the squeeze lets go, the same touch often feels twice as much. That’s the point.",
+      ["A surge right as she releases.", "Everything feels warmer and fuller after a drop."]
+    ),
+    voice(
+      "Post-squeeze, the muscle goes slacker than baseline.",
+      "A brief voluntary clench is followed by extra relaxation and a fresh blood rush into the tissue.",
+      "The on/off also stops nerves going numb from a single steady state.",
+      ["Intensity jumps on release.", "Labia and clitoris feel firmer afterward."]
+    )
   ),
   tech(
     22,
@@ -1368,66 +803,35 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "her",
     "Edging & Temperature/Texture",
-    "Stop at the cliff. Change the weather. Climb again.",
-    "Arousal management — stopping or slowing right before orgasm — combined with thermal shifts or tactile materials to expand capacity and sensitivity.",
-    "Repeated plateaus keep dopamine high. Skin has separate cold and heat channels; alternating them is a multi-sensory cascade. Soft vs firm vs textured surfaces wake different mechanoreceptors. This is not the same technique as Edging in Essentials — contrast is the second instrument.",
-    "The 3 contrast variations",
+    ["hood", "mons", "vulva"],
+    "Three contrasts",
     [
-      kind(
-        "Thermal Contrast",
-        "Warm tools or hands, then cool metal, glass, air, or lube.",
-        "Warm lube or wand for 2 minutes, then a brief chilled touch on hood or inner thighs."
-      ),
-      kind(
-        "Texture Cycling",
-        "Soft broad materials into firm or ribbed ones.",
-        "Silk or ultra-smooth silicone first. Micro-texture or ridges after engorgement."
-      ),
-      kind(
-        "Speed/Pressure Contrast",
-        "Drive to 85–90%, then zero movement or feather touch.",
-        "Fast and intense to the edge, then one motionless cool or light contact for 30 seconds."
-      ),
+      kind("Warm then cool", "Warm hand or lube, then a brief cool touch on the hood or inner thighs."),
+      kind("Smooth then textured", "Silk or very smooth first. Something with a bit of ridge once she’s swollen."),
+      kind("Fast then nothing", "Up to 85–90%, then one still, light (or cool) contact for 30 seconds."),
     ],
-    "10-minute Edging & Contrast protocol",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "First buildup",
-        "Warm, smooth, steady. About 70% capacity.",
-        180
-      ),
-      step(
-        "3–5",
-        "First edge & thermal drop",
-        "At 85%, halt. Cool element or cool breath for 30 seconds, down to about 50%.",
-        120
-      ),
-      step(
-        "5–7",
-        "Second buildup",
-        "Textured surface or firmer pressure, up to 90%.",
-        120
-      ),
-      step(
-        "7–8",
-        "Second edge & stillness",
-        "Stop at the threshold. Warm static palm on the pubic mound, 45 seconds.",
-        60
-      ),
-      step(
-        "8–10",
-        "Unrestricted release",
-        "Intense, fast, warm, smooth. Let it go through.",
-        120
-      ),
+      step("0–3", "Warm and smooth", "Steady. About 70%.", 180),
+      step("3–5", "Stop and cool", "At 85%, halt. Cool breath or cool object 30 seconds.", 120),
+      step("5–7", "Different texture", "A bit firmer or more textured, up toward 90%.", 120),
+      step("7–8", "Still palm", "Stop. Warm hand on the mons, 45 seconds.", 60),
+      step("8–10", "Through", "Warm, wet, fast enough. Let it finish.", 120),
     ],
-    "Signs Edging & Contrast is working",
-    [
-      "Sensation feels whole-body, not stuck at the point of touch.",
-      "Flush of heat across chest, neck, lower abdomen.",
-    ],
-    "Stop. Cool. Come back warmer."
+    "Working when",
+    "Stop. Cool. Come back warmer.",
+    voice(
+      "Stop at the cliff. Change the weather. Climb again.",
+      "This is edging plus contrast — warm/cool, smooth/textured, fast/still. Not the same as the simpler Edging card.",
+      "The stop keeps her close. The new temperature or texture makes the next climb feel like a different body.",
+      ["It feels bigger than the one spot you’re touching.", "A flush on chest or neck."]
+    ),
+    voice(
+      "Plateau plus new sensory channels.",
+      "Repeated near-orgasm holds dopamine up. Heat and cold use different skin channels; textures wake different touch receptors.",
+      "Dropping to stillness at the edge, then returning, is a second instrument on top of ordinary edging.",
+      ["Whole-body sensation.", "Visible sex flush."]
+    )
   ),
   tech(
     23,
@@ -1435,60 +839,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "both",
     "Erogenous Mapping & Linking",
-    "The clit is not the only map. Link another country to it.",
-    "Systematic exploration of non-genital sensory zones, then touching a secondary zone at the same time as genital stimulation.",
-    "In the somatosensory cortex, feet, inner thighs, lower back, and genitals sit next to each other — cross-stimulation overflows. Shared sacral nerves (S2–S4) innervate genitals, perineum, backs of legs, soles. Neck and inner-arm touch via C-tactile nerves drops cortisol so genital nerves listen better.",
-    "The 3 core non-genital zones",
+    ["sacrum", "vulva", "hood"],
+    "Three other maps",
     [
-      kind(
-        "Sacral-Pelvic Zone",
-        "Firm rhythmic pressure or warmth on lower spine and tailbone.",
-        "Warm palm, thumb, or massager on the sacrum while genital touch happens."
-      ),
-      kind(
-        "Inner Pathway Zone",
-        "Delicate skin of upper inner thighs toward the labia.",
-        "Fingertip or light nail glides along the inner-thigh lines. Don’t hop to the clitoris yet."
-      ),
-      kind(
-        "Upper Axis Zone",
-        "Earlobe, neck, collarbone — vagal and cervical pathways.",
-        "Clitoral or internal touch plus warm breath, light bite, or stroke along the side of the neck."
-      ),
+      kind("Lower back", "Firm warm circles on the sacrum — the bone just above the tailbone — while genital touch happens."),
+      kind("Inner thighs", "Light traces up the inner thigh lines, toward the vulva, without hopping to the clitoris yet."),
+      kind("Neck", "Clitoral or inside touch plus breath, a light bite, or a stroke along the side of the neck."),
     ],
-    "10-minute Mapping & Linking routine",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Non-genital mapping",
-        "Do not touch genitals. Neck, lower back, inner arms, inner thighs. Find what lights up.",
-        180
-      ),
-      step(
-        "3–6",
-        "Secondary anchor",
-        "Hold steady warm pressure on the most responsive non-genital zone.",
-        180
-      ),
-      step(
-        "6–8",
-        "Genital linking",
-        "Keep the secondary zone. Add slow Orbiting or gentle penetration with the other hand.",
-        120
-      ),
-      step(
-        "8–10",
-        "Synchronized drive",
-        "Match tempos 1-to-1. Both inputs through climax.",
-        120
-      ),
+      step("0–3", "No genitals", "Neck, lower back, inner arms, inner thighs. Find what lights up.", 180),
+      step("3–6", "Hold the winner", "Steady warm pressure on the best non-genital spot.", 180),
+      step("6–8", "Add the clit", "Keep that hand. Other hand starts slow circles or gentle inside.", 120),
+      step("8–10", "Same beat", "Both hands, same tempo, through if she wants.", 120),
     ],
-    "Signs Mapping & Linking is working",
-    [
-      "Goosebumps along arms, back, or legs from genital touch.",
-      "Genital sensation echoes or radiates through the secondary zone.",
-    ],
-    "Keep your hand on my lower back. Don’t leave that."
+    "Working when",
+    "Keep your hand on my lower back. Don’t leave that.",
+    voice(
+      "The clitoris is not the only map. Link another country to it.",
+      "Mapping is finding a second place that wakes her up — lower back, inner thigh, neck — then touching it at the same time as the genitals.",
+      "The brain files those body parts next to each other. Touch both and the genital feeling often spreads.",
+      ["Goosebumps from genital touch.", "The clit feeling seems to echo in the other spot."]
+    ),
+    voice(
+      "Overflow across neighbouring sensory maps.",
+      "Genitals, inner thighs, and lower back sit beside each other on the brain’s body map, and they share sacral nerves.",
+      "Soft skin touch (neck, inner arms) also drops stress chemistry so genital nerves listen better.",
+      ["Piloerection along arms or back.", "Less localised genital sensation — it radiates."]
+    )
   ),
   tech(
     24,
@@ -1496,60 +874,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "both",
     "Vocalization & Biofeedback",
-    "Open the throat so the pelvic floor can open too.",
-    "Low-frequency sound — groaning, humming, sighing — plus active sensory monitoring. The voice is not performance. It is a muscle strategy.",
-    "Vocal cords ride a vagus-nerve branch; low pitch raises parasympathetic tone. Jaw and throat clench reflexively tightens the pelvic floor; an open vowel unclenches it. Vocalizing also kills the unconscious breath-hold that dumps adrenaline into the room.",
-    "The 3 vocalization modes",
+    ["pelvic-floor"],
+    "Three sounds",
     [
-      kind(
-        "The Low-Frequency Hum",
-        "Sustained low “mmm” with closed lips, relaxed jaw.",
-        "Belly inhale. Lowest comfortable pitch on the exhale. Feel it in the chest."
-      ),
-      kind(
-        "The Open-Vowel Exhale",
-        "Soft resonant “ah” or “oh” on the stroke.",
-        "Drop the jaw. Teeth do not touch. Sigh on every exhalation."
-      ),
-      kind(
-        "The Motor-Pulse",
-        "Short sounds matched to the physical tempo.",
-        "“Ah… ah… ah…” at the exact beat of the movement."
-      ),
+      kind("Low hum", "Mouth closed, jaw soft. Lowest comfortable ‘mmm’ on the exhale. Feel it in the chest."),
+      kind("Open ah", "Jaw dropped, teeth apart. A real sigh, not a performance."),
+      kind("On the beat", "Short sounds matching the stroke. Not a show — a metronome."),
     ],
-    "Vocalization protocol",
+    "Voice try",
     [
-      step(
-        "0–2",
-        "Jaw & throat unlock",
-        "Before touch: jaw open, head rolls, three deep open-mouth sighs.",
-        120
-      ),
-      step(
-        "2–5",
-        "Low hum",
-        "Baseline touch. Every exhale, a 5-second low hum. Vibration in the chest.",
-        180
-      ),
-      step(
-        "5–8",
-        "Open vowels",
-        "Shift to “ahhh.” Jaw unclenched. Teeth apart.",
-        180
-      ),
-      step(
-        "8–10",
-        "Uninhibited drive",
-        "Let sound go automatic through climax. Volume is a pressure-release valve, not a show.",
-        120
-      ),
+      step("0–2", "Unlock the jaw", "Before touch: mouth open, three deep sighs.", 120),
+      step("2–5", "Hum", "Baseline touch. Five-second low hum every exhale.", 180),
+      step("5–8", "Open", "Switch to ‘ah.’ Teeth don’t touch.", 180),
+      step("8–10", "Let it", "Sound can get louder through a peak. That’s a valve, not a review.", 120),
     ],
-    "Signs Vocalization is working",
-    [
-      "No jaw clench, grinding, or neck tightness at high arousal.",
-      "Movement stays continuous — no sharp, tense interruptions.",
-    ],
-    "Don’t swallow the sound. Let it out."
+    "Working when",
+    "Don’t swallow the sound. Let it out.",
+    voice(
+      "Open the throat so the pelvic floor can open too.",
+      "Sound is not for the audience. A clenched jaw reflexively clenches the pelvis. A low voice unclenches both.",
+      "People also hold their breath when they’re close. Making a sound forces the air out.",
+      ["No grinding teeth or tight neck.", "The movement stays smooth."]
+    ),
+    voice(
+      "Vagus-linked voice, pelvic-floor co-regulation.",
+      "Low-pitched vibration stimulates a calming nerve that also serves the throat. Embryologically, throat and pelvic sphincters are linked — jaw clamp, pelvic clamp.",
+      "Vocalising also prevents arousal apnea, which otherwise dumps adrenaline into the climb.",
+      ["Jaw and neck stay soft at high arousal.", "No tense interruptions in the rhythm."]
+    )
   ),
   tech(
     25,
@@ -1557,60 +909,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "amplify",
     "both",
     "Post-Peak Sustained Touch",
-    "The two minutes after teach the body whether to come back.",
-    "Ultra-gentle, mostly static contact immediately after orgasm, so the drop is not a cliff — and so a second wave has somewhere to live.",
-    "Post-climax nerves are exquisite. Yanking the hand away jars; heavy rubbing hurts. Warm still contact keeps pelvic blood from dumping all at once and rides the oxytocin peak instead of wasting it.",
-    "The 3 post-peak touch states",
+    ["vulva", "glans", "mons", "hood"],
+    "Three afters",
     [
-      kind(
-        "The Static Palm Shield",
-        "Flat warm palm over the whole vulva and mound. Zero sliding.",
-        "The instant contractions finish, stop rubbing. Open hand, light steady weight."
-      ),
-      kind(
-        "Feather Glides",
-        "Off the glans, onto outer labia, inner thighs, lower belly.",
-        "Barely-there fingertip pressure along the borders."
-      ),
-      kind(
-        "Micro-Vibration Hold",
-        "Lowest setting, motionless, on pubic bone or lower entrance — not the glans.",
-        "Broad vibrator or smooth tool parked on bone structure above the clitoris."
-      ),
+      kind("Still palm", "The instant the clenches finish, stop rubbing. Open hand, light weight, over everything."),
+      kind("Feathers", "Off the tip. Barely-there strokes on outer lips, inner thighs, lower belly."),
+      kind("Parked buzz", "If you use a toy, lowest setting, still, on the pubic bone — not on the tip."),
     ],
-    "Post-Peak integration protocol",
+    "After try",
     [
-      step(
-        "0–30s",
-        "Immediate transition",
-        "Contractions finish: freeze. Do not pull away. Full flat palm over the vulva.",
-        30
-      ),
-      step(
-        "0.5–3m",
-        "Static warm shield",
-        "Hand still. Slow diaphragmatic breaths together. Let the pelvic floor settle.",
-        150
-      ),
-      step(
-        "3–6m",
-        "Peripheral feathering",
-        "Lift off the clitoris. Extremely light strokes on inner thighs, hip bones, lower abdomen.",
-        180
-      ),
-      step(
-        "6–10m",
-        "Re-explore or rest",
-        "If hypersensitivity fades and a second wave starts, light Orbiting or Shallowing. If not, stay in the hold.",
-        240
-      ),
+      step("0–30s", "Freeze", "Contractions done: don’t pull away. Full palm.", 30),
+      step("0.5–3m", "Hold", "Hand still. Slow belly breaths together.", 150),
+      step("3–6m", "Around", "Lift off the clitoris. Light strokes on thighs and hip bones.", 180),
+      step("6–10m", "Again or rest", "If a second wave shows up, tiny circles or shallow. If not, stay in the hold.", 240),
     ],
-    "Signs Post-Peak touch was executed correctly",
-    [
-      "Deep melting relaxation — no flinch, no sharp drop-off.",
-      "Pelvis stays warm, engorged, and comfortable for 10–15 minutes.",
-    ],
-    "Don’t go yet. Just your hand."
+    "Done well when",
+    "Don’t go yet. Just your hand.",
+    voice(
+      "The two minutes after teach the body whether to come back.",
+      "Post-peak touch is staying, softly, after she comes. Yanking the hand away can feel like a slap. Rubbing harder usually hurts.",
+      "Still warmth lets the drop be a slide, not a cliff — and sometimes a second wave has somewhere to live.",
+      ["A melt, not a flinch.", "The pelvis stays warm and comfortable."]
+    ),
+    voice(
+      "Ease hypersensitivity and keep pelvic blood from dumping.",
+      "Right after climax the nerves are exquisite. Abrupt zero is jarring; heavy friction overshoots. Warm static contact rides the oxytocin peak instead of wasting it.",
+      "It also slows detumescence — the draining of blood — so the afterglow lasts.",
+      ["No sharp drop-off.", "Pelvis stays engorged and easy for 10–15 minutes."]
+    )
   ),
   tech(
     26,
@@ -1618,60 +944,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "release",
     "her",
     "Clitoral Glans & Complex Orgasms",
-    "Most orgasms start here. Learn the three shapes of that peak.",
-    "Localized or whole-body releases driven by direct or indirect stimulation of the external glans, body, and hood — high-density superficial mechanoreceptors.",
-    "The glans packs enormous innervation into a tiny surface. Signals travel the pudendal nerve into S2–S4 and fire rapid levator ani pulses. Engorged bulbs lift the glans; the hood is the safe friction surface. Going raw on the tip is usually why it feels “too sensitive.”",
-    "The 3 clitoral orgasm variations",
+    ["glans", "hood", "mons", "labia", "clit-body", "front-wall"],
+    "Three shapes",
     [
-      kind(
-        "Glans-Focused Peak",
-        "Fast rhythmic near-direct stimulation. Intense, localized, rhythmic contractions.",
-        "Orbiting or Rhythm over the hood, ample lube, absolute Consistency at threshold."
-      ),
-      kind(
-        "Broad-Complex Peak",
-        "Labia minora, hood, and mound — a wider, warmer whole-vulva release.",
-        "Flat fingers or a wide vibrator across mons and labia, compressing internal bulbs from outside."
-      ),
-      kind(
-        "Blended Clitoral-Internal Peak",
-        "Pudendal plus pelvic/vagus at once.",
-        "Continuous external touch plus static internal pressure on the anterior wall. Both steady through release."
-      ),
+      kind("On the hood", "Steady circles or a simple rhythm over the hood — not dry, not on the raw tip. Same beat through the clenches."),
+      kind("The whole vulva", "A flat hand or wide toy across the mons and lips. Broader, warmer, less pinpoint."),
+      kind("Both", "Outside stays going while something inside presses the front wall. Neither stops at the end."),
     ],
-    "10-minute Clitoral orgasm protocol",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Lube & hood mapping",
-        "Generous lube on the hood. Light broad circles around the outer perimeter. Not the centre.",
-        180
-      ),
-      step(
-        "3–6",
-        "Targeted rhythm",
-        "Onto the hood. 1–2 strokes per second, Orbiting or low-amplitude vibration. Pressure rises with engorgement.",
-        180
-      ),
-      step(
-        "6–8",
-        "Build the edge",
-        "Lock tempo and pressure. No sudden shifts.",
-        120
-      ),
-      step(
-        "8–10",
-        "Consistency through contraction",
-        "When involuntary pulses start, do not stop or speed up. Identical friction through the whole sequence.",
-        120
-      ),
+      step("0–3", "Around first", "Lube on the hood. Broad circles around, not on, the centre.", 180),
+      step("3–6", "On the hood", "One or two strokes a second. Pressure only as she swells.", 180),
+      step("6–8", "Lock", "Same tempo, same place. No ‘helpful’ changes.", 120),
+      step("8–10", "Through", "When pulsing starts, identical friction until it’s over.", 120),
     ],
-    "Signs of an approaching clitoral orgasm",
-    [
-      "Rhythmic pulsing of vulva and anus, about every 0.8 seconds.",
-      "Glans retracts slightly under the hood at peak engorgement.",
-    ],
-    "Same beat. Through it."
+    "Close when",
+    "Same beat. Through it.",
+    voice(
+      "Most orgasms start here. Learn the three shapes of that peak.",
+      "A clitoral orgasm is the common one: the visible clitoris and the skin around it. The hood is usually the right surface. The raw tip is often too much.",
+      "Going straight to the tip is why a lot of women say they’re ‘too sensitive.’ The tissue was never warmed, or the contact was too small and dry.",
+      ["Rhythmic pulsing, including the anus, about once a second.", "The tip may tuck back under the hood right before."]
+    ),
+    voice(
+      "High-density surface nerves, pudendal pathway.",
+      "The glans is extremely nerve-rich. Signals run the pudendal nerve into the sacral cord and fire quick pelvic-floor pulses.",
+      "Engorged bulbs lift the glans; the hood is the safe friction surface. Direct glans rubbing is what reads as ‘too sensitive.’",
+      ["~0.8s rhythmic vulvar/anal pulses.", "Slight glans retraction at peak engorgement."]
+    )
   ),
   tech(
     27,
@@ -1679,60 +979,34 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "release",
     "her",
     "Deep Vaginal / G-Spot & Cervical",
-    "A heavier wave. It needs arousal first, then patience.",
-    "Deep, visceral releases from sustained pressure, friction, or compression on the anterior wall (G-spot area) and the deep posterior fornix near the cervix.",
-    "Deep input travels pelvic plexus and vagus — sometimes even when spinal routes are damaged. The “G-spot” is the nerve-rich meeting of internal clitoral bulbs, urethral sponge, and front wall. Cervical pressure can release high oxytocin and rolling uterine contractions rather than quick vulvar pulses.",
-    "The 3 deep internal orgasm vectors",
+    ["front-wall", "entrance", "clit-body", "pelvic-floor"],
+    "Three insides",
     [
-      kind(
-        "Anterior Wall / G-Spot Peak",
-        "Sustained upward firm pressure 1–2 inches in. Heavy pelvic fullness into systemic contractions.",
-        "Two fingers or a curved wand, palm-up. “Come hither” toward the belly button. Steady compression."
-      ),
-      kind(
-        "Cervical / Posterior Fornix Peak",
-        "Gentle static or slow press into the deep vault.",
-        "Full slow depth only in a highly relaxed, already-aroused state. Broad pressure, no aggressive thrusting."
-      ),
-      kind(
-        "The Full-Canal Siphon",
-        "Shallow entrance pressure plus deep wall compression along the whole length.",
-        "Long dragging outstrokes with continuous upward leverage on the front wall."
-      ),
+      kind("Front wall", "One to two inches in, toward the belly. A ‘come here’ hook. Slow, firm, not frantic."),
+      kind("Deep and still", "Only once she’s already very turned on. Broad pressure at the far end. No slamming."),
+      kind("The long drag", "A long outstroke that stays hooked up along the whole front wall."),
     ],
-    "10-minute Deep vaginal protocol",
+    "10-minute try",
     [
-      step(
-        "0–3",
-        "Arousal & tenting",
-        "High baseline arousal first. Inner canal expands and the cervix lifts. Deep touch before that is often just ache.",
-        180
-      ),
-      step(
-        "3–6",
-        "Anterior wall",
-        "Curved tool or fingers 1.5–2 inches in. Find the spongy front-wall tissue. Firm slow upward presses or micro-rolls.",
-        180
-      ),
-      step(
-        "6–8",
-        "The fullness / urge",
-        "A “need to pee” feeling is common. Do not stop. Relax the pelvic floor. Deep exhales.",
-        120
-      ),
-      step(
-        "8–10",
-        "Sustained compression",
-        "Less sliding. Continuous firm static pressure or deep micro-rocking until rolling lower-abdomen waves arrive.",
-        120
-      ),
+      step("0–3", "Warm first", "Do not start here cold. She needs to be clearly aroused or deep just aches.", 180),
+      step("3–6", "Find the spongy bit", "Fingers or a curved toy 1.5–2 inches in, toward the belly. Slow upward presses.", 180),
+      step("6–8", "The pee feeling", "Common. Don’t panic, don’t stop unless she says. Long exhales. Soften the pelvic floor.", 120),
+      step("8–10", "Stay", "Less sliding. Firm still pressure or tiny rocks until the wave is low and heavy.", 120),
     ],
-    "Signs of an approaching deep vaginal orgasm",
-    [
-      "Heavy spreading warmth deep in the pelvis, not a surface tickle.",
-      "Longer internal core waves rather than entrance pulses.",
-    ],
-    "Press up and stay. I’ll tell you if I need you to ease."
+    "Close when",
+    "Press up and stay. I’ll tell you if I need you to ease.",
+    voice(
+      "A heavier wave. It needs arousal first, then patience.",
+      "This is pressure inside — usually the front wall a couple of inches in, sometimes deeper toward the cervix. It is not a hunt for a magic button.",
+      "The ‘I need to pee’ feeling is often the nearby sponge, not a full bladder. If she hates it, stop. If she’s willing, relaxing into it is the technique.",
+      ["A heavy warmth low in the belly, not a surface tickle.", "Longer, rolling waves rather than quick flutters at the opening."]
+    ),
+    voice(
+      "Front-wall bulbs plus, sometimes, vagus-level deep pressure.",
+      "The G-spot area is where internal clitoris, urethral sponge, and front wall meet — not a separate organ. Cervical pressure can trigger slower uterine contractions.",
+      "Deep input uses different nerves than the external clitoris. It only feels good after tenting — the canal expanding with arousal.",
+      ["Spreading deep pelvic warmth.", "Longer core waves, not just entrance pulses."]
+    )
   ),
   tech(
     28,
@@ -1740,59 +1014,33 @@ export const HOW_TECHNIQUES: HowTechnique[] = [
     "release",
     "her",
     "Blended, Squirting & Waves",
-    "Two nerves at once. Then don’t drop the contact.",
-    "Advanced multi-system releases: blended orgasms, ejaculatory or squirting release, and successive waves without a full refractory drop.",
-    "Blended work recruits pudendal and pelvic/vagus together — more cortex, longer whole-body states. Female ejaculation is a small milky Skene’s-gland release; squirting is a larger clear volume from the bladder during intense anterior-wall compression. Unlike a typical male refractory period, steady low-friction touch can carry remaining vasocongestion into the next wave.",
-    "The 3 advanced release frameworks",
+    ["glans", "hood", "front-wall", "pelvic-floor"],
+    "Three advanced releases",
     [
-      kind(
-        "The Blended Fusion",
-        "Peak on external glans and internal anterior wall at the same time.",
-        "Lock external vibrator or finger rhythm. Firm upward G-spot pressure. Hold both until they merge."
-      ),
-      kind(
-        "Ejaculatory / Squirting Trigger",
-        "Intense sustained anterior-wall compression plus a fully released pelvic floor.",
-        "Firm continuous G-spot strokes. When the urge to push arrives, do not squeeze. Bear down gently, exhale, let fluid happen."
-      ),
-      kind(
-        "The Multi-Wave Cascade",
-        "Re-initiate light steady stimulation as the first release subsides.",
-        "Post-Peak touch for 15 seconds, then slow Shallowing or Orbiting on the remaining engorgement."
-      ),
+      kind("Blended", "Outside rhythm on the clitoris and a firm inside press on the front wall. Both locked. Let them merge."),
+      kind("If fluid happens", "Steady front-wall work. When she wants to push, she does not squeeze shut — she exhales and lets it. Towel down. No shame, no requirement."),
+      kind("The next wave", "First orgasm ends: 15 seconds still and light, then slow circles or shallow. Don’t drop contact."),
     ],
-    "Blended & Wave protocol",
+    "Blended try",
     [
-      step(
-        "0–4",
-        "Dual-zone setup",
-        "High baseline arousal. Absorbent towel. Extra lube inside and out.",
-        240
-      ),
-      step(
-        "4–7",
-        "Dual-zone sync",
-        "Steady G-spot pressure plus light consistent external clitoral touch. One shared rhythm.",
-        180
-      ),
-      step(
-        "7–9",
-        "Push / release",
-        "Lean into internal fullness. Belly breaths, jaw soft, pelvic holding gone. If fluid comes, do not stop movement.",
-        120
-      ),
-      step(
-        "9–12",
-        "Ride the cascade",
-        "Primary release finishes: drop speed 50%, lighten, stay in contact 20 seconds, then slowly rebuild.",
-        180
-      ),
+      step("0–4", "Set up", "She’s already highly aroused. Towel. Extra lube inside and out.", 240),
+      step("4–7", "Both", "Steady inside on the front wall, light steady outside. One shared beat.", 180),
+      step("7–9", "Let go", "Jaw soft, belly breath, pelvic holding gone. If fluid comes, keep moving unless she says stop.", 120),
+      step("9–12", "Stay", "After the first peak: half speed, lighter, 20 seconds still, then rebuild if she wants.", 180),
     ],
-    "Signs of an imminent blended or ejaculatory release",
-    [
-      "Heavy fullness behind the pubic bone and an impulse to push outward.",
-      "Trembling in thighs, glutes, abdomen before a widespread autonomic release.",
-    ],
-    "If I push, don’t stop. Just stay with me."
+    "Close when",
+    "If I push, don’t stop. Just stay with me.",
+    voice(
+      "Two things at once. Then don’t drop the contact.",
+      "Blended is inside and the clitoris peaking together. Squirting or ejaculation might happen with strong front-wall pressure — it also might not, and that’s not a grade. Waves are simply not leaving after the first one.",
+      "None of this is a test. Towel, lube, and permission to stop are the technique as much as the hands.",
+      ["A heavy fullness behind the pubic bone, sometimes an urge to push.", "Trembling in thighs or belly before a big release."]
+    ),
+    voice(
+      "Two nerve routes, optional fluid, a non-refractory window.",
+      "Blended work recruits external and internal pathways at once. Some fluid is a small gland release; a larger clear gush is often bladder fluid from pelvic spasm — both are normal, neither is required.",
+      "Unlike a typical male refractory period, steady low-friction contact can carry remaining blood-fill into another wave.",
+      ["Anterior fullness plus a push impulse.", "Whole-body shivering before autonomic release."]
+    )
   ),
 ];

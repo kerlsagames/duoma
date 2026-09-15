@@ -1,3 +1,4 @@
+import { HowPlainToggle } from "@/components/hub/HowPlainToggle";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HOW_TONE as T, SERIF } from "@/lib/app-themes";
@@ -5,9 +6,11 @@ import { formatWeekRange } from "@/lib/dates";
 import {
   chapterMeta,
   forLabel,
+  HOW_BODY_WORDS,
   HOW_CHAPTERS,
   HOW_TECHNIQUES,
   HOW_WORDS,
+  howVoice,
   keptTechniques,
   noteFor,
   padHowNumber,
@@ -31,6 +34,7 @@ export default function TheHowScreen() {
   const { data, patch } = useMiniApps();
   const [tab, setTab] = useState<Tab>("studio");
   const [chapterId, setChapterId] = useState<HowChapterId | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const weekKey = thisWeekKey();
   const week = useMemo(
     () => weekTechnique(data.howNotes, weekKey),
@@ -57,12 +61,39 @@ export default function TheHowScreen() {
     });
   };
 
+  const togglePlain = async () => {
+    await patch((state) => ({ ...state, howPlainOn: !state.howPlainOn }));
+  };
+
+  const weekVoice = howVoice(week, data.howPlainOn);
+
   return (
     <Screen scroll background={T.background}>
       <Stage
         background={T.background}
         fallback={"/hub/desire" as Href}
         accent={T.rose}
+        right={
+          <Pressable
+            onPress={() => setSettingsOpen((value) => !value)}
+            hitSlop={10}
+            accessibilityLabel={settingsOpen ? "Close The How settings" : "The How settings"}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.06)",
+            }}
+          >
+            <Ionicons
+              name={settingsOpen ? "close" : "settings-outline"}
+              size={20}
+              color={T.rose}
+            />
+          </Pressable>
+        }
       >
         <Text
           style={{
@@ -95,11 +126,29 @@ export default function TheHowScreen() {
             color: T.muted,
           }}
         >
-          {HOW_TECHNIQUES.length} techniques in four parts. Each one has why it
-          works, the variations, a guided try, and the signs to move on. Keep
-          the sentence you actually said.
+          {HOW_TECHNIQUES.length} short cards. A timed try on each. Body words
+          like hood and mons are translated on the card.
         </Text>
 
+        {settingsOpen ? (
+          <View style={{ marginTop: 22, gap: 14 }}>
+            <HowPlainToggle on={data.howPlainOn} onToggle={() => void togglePlain()} />
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 14,
+                lineHeight: 21,
+                color: T.dim,
+              }}
+            >
+              The try itself does not change — only the reading. Open Words for
+              the full body map.
+            </Text>
+          </View>
+        ) : null}
+
+        {!settingsOpen ? (
+        <>
         <View
           style={{
             marginTop: 20,
@@ -189,7 +238,7 @@ export default function TheHowScreen() {
                   color: T.paperMuted,
                 }}
               >
-                {week.promise}
+                {weekVoice.promise}
               </Text>
               <Text
                 style={{
@@ -376,7 +425,7 @@ export default function TheHowScreen() {
                         color: T.paperMuted,
                       }}
                     >
-                      {row.promise}
+                      {howVoice(row, data.howPlainOn).promise}
                     </Text>
                   </Pressable>
                 );
@@ -476,10 +525,61 @@ export default function TheHowScreen() {
                 color: T.muted,
               }}
             >
-              Pin the sentences you will actually say. Signaling dies if it
-              turns into a speech. These do not.
+              Pin the sentences you will actually say. Below that, the body
+              map — hood, mons, and the rest.
             </Text>
-            <View style={{ marginTop: 14, gap: 10 }}>
+            <Text
+              style={{
+                marginTop: 18,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.6,
+                color: T.rose,
+              }}
+            >
+              BODY WORDS
+            </Text>
+            <View style={{ marginTop: 10, gap: 10 }}>
+              {HOW_BODY_WORDS.map((row) => (
+                <View
+                  key={row.id}
+                  style={{
+                    borderRadius: 16,
+                    backgroundColor: T.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: T.border,
+                    padding: 14,
+                  }}
+                >
+                  <Text style={{ fontFamily: SERIF, fontSize: 18, color: T.ink }}>
+                    {row.word}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      fontFamily: SERIF,
+                      fontSize: 14,
+                      lineHeight: 21,
+                      color: T.dim,
+                    }}
+                  >
+                    {row.meaning}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text
+              style={{
+                marginTop: 22,
+                fontFamily: "SpaceMono",
+                fontSize: 11,
+                letterSpacing: 1.6,
+                color: T.rose,
+              }}
+            >
+              SAY THIS
+            </Text>
+            <View style={{ marginTop: 10, gap: 10 }}>
               {HOW_WORDS.map((row) => {
                 const on = data.howWordsOn.includes(row.id);
                 return (
@@ -529,6 +629,8 @@ export default function TheHowScreen() {
               })}
             </View>
           </View>
+        ) : null}
+        </>
         ) : null}
       </Stage>
     </Screen>

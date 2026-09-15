@@ -10,8 +10,7 @@ export type HowStatus = "want" | "keep" | "skip";
 
 export type HowType = {
   name: string;
-  mechanics: string;
-  execution: string;
+  line: string;
 };
 
 export type HowStep = {
@@ -21,22 +20,28 @@ export type HowStep = {
   durationSec: number;
 };
 
+export type HowVoice = {
+  promise: string;
+  what: string;
+  why: string;
+  signs: string[];
+};
+
 export type HowTechnique = {
   id: string;
   number: number;
   chapter: HowChapterId;
   for: HowFor;
   name: string;
-  promise: string;
-  what: string;
-  why: string;
+  terms: string[];
   typesLabel: string;
   types: HowType[];
   routineLabel: string;
   routine: HowStep[];
   signsLabel: string;
-  signs: string[];
   sayThis: string;
+  plain: HowVoice;
+  science: HowVoice;
 };
 
 export type HowChapter = {
@@ -59,30 +64,36 @@ export type HowWord = {
   meaning: string;
 };
 
+export type HowBodyWord = {
+  id: string;
+  word: string;
+  meaning: string;
+};
+
 export const HOW_CHAPTERS: HowChapter[] = [
   {
     id: "essentials",
     label: "Essentials",
     range: "1–12",
-    detail: "Mental set, communication, and clitoral touch before anyone goes inside",
+    detail: "Warm-up, talking, and clitoral touch before anyone goes inside",
   },
   {
     id: "penetration",
     label: "Penetration",
     range: "13–19",
-    detail: "Angle, depth, and pairing — not just thrusting through empty space",
+    detail: "Angle, depth, and pairing — not just thrusting",
   },
   {
     id: "amplify",
     label: "Amplify",
     range: "20–25",
-    detail: "Breath, tension, mapping, voice, and the minutes after a peak",
+    detail: "Breath, tension, mapping, voice, and the minutes after",
   },
   {
     id: "release",
     label: "Release",
     range: "26–28",
-    detail: "Clitoral, deep vaginal, blended, and the wave that follows",
+    detail: "Clitoral, deep inside, blended, and the wave that follows",
   },
 ];
 
@@ -103,7 +114,85 @@ export const HOW_WORDS: HowWord[] = [
   { id: "again", word: "Again later", meaning: "Good. File it. We can repeat it." },
 ];
 
+export const HOW_BODY_WORDS: HowBodyWord[] = [
+  {
+    id: "vulva",
+    word: "Vulva",
+    meaning:
+      "Everything on the outside: lips, hood, clitoris, opening. The vagina is the inside canal.",
+  },
+  {
+    id: "mons",
+    word: "Mons",
+    meaning:
+      "The soft padded mound above the vulva — where pubic hair grows. Pressing here is grounding, not ‘the clit.’",
+  },
+  {
+    id: "hood",
+    word: "Hood",
+    meaning:
+      "The fold of skin covering the clitoris, like a built-in sleeve. Touch here is usually kinder than going straight for the tip.",
+  },
+  {
+    id: "glans",
+    word: "The tip / glans",
+    meaning:
+      "The small, very sensitive head of the clitoris you can see. Easy to overdo. Most of the clitoris lives under the skin.",
+  },
+  {
+    id: "labia",
+    word: "Labia / lips",
+    meaning:
+      "The folds of skin around the opening. Outer lips are fuller; inner lips are thinner and sit inside.",
+  },
+  {
+    id: "perineum",
+    word: "Perineum",
+    meaning: "The stretch of skin between the vaginal opening and the anus.",
+  },
+  {
+    id: "entrance",
+    word: "Entrance",
+    meaning:
+      "The first inch or two of the vagina. Most of the feeling lives here, not deep inside.",
+  },
+  {
+    id: "front-wall",
+    word: "Front wall",
+    meaning:
+      "The vaginal wall toward the belly button, a couple of inches in. Often spongy. Can feel like you need to pee — that’s nearby tissue, not a mistake.",
+  },
+  {
+    id: "clit-body",
+    word: "The rest of the clitoris",
+    meaning:
+      "Most of it you cannot see — legs and bulbs under the lips. Circling the hood still reaches them.",
+  },
+  {
+    id: "pelvic-floor",
+    word: "Pelvic floor",
+    meaning:
+      "The sling of muscle between the pubic bone and tailbone. It clenches in orgasm and clamps when someone is tense or cold.",
+  },
+  {
+    id: "sacrum",
+    word: "Sacrum",
+    meaning:
+      "The triangular bone at the base of the spine, just above the tailbone. Firm pressure here often echoes in the pelvis.",
+  },
+];
+
 export { HOW_TECHNIQUES };
+
+export function howVoice(technique: HowTechnique, plainOn: boolean): HowVoice {
+  return plainOn ? technique.plain : technique.science;
+}
+
+export function bodyWordsFor(ids: string[]): HowBodyWord[] {
+  return ids
+    .map((id) => HOW_BODY_WORDS.find((row) => row.id === id))
+    .filter((row): row is HowBodyWord => Boolean(row));
+}
 
 export function chapterMeta(id: HowChapterId) {
   return HOW_CHAPTERS.find((row) => row.id === id) ?? HOW_CHAPTERS[0]!;
@@ -212,6 +301,14 @@ export function emptyHowNotes(): HowNote[] {
 
 export function emptyHowWords(): string[] {
   return [];
+}
+
+export function emptyHowPlainOn(): boolean {
+  return true;
+}
+
+export function hydrateHowPlainOn(raw: unknown): boolean {
+  return raw !== false;
 }
 
 export function hydrateHowNote(raw: unknown): HowNote | null {
