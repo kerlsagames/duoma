@@ -276,7 +276,7 @@ export default function DiscoverScreen() {
               color: T.muted,
             }}
           >
-            Right = talked about it. Left = skip.
+            Right = talked about it. No typing. Left = skip.
           </Text>
         ) : (
           <Text
@@ -567,20 +567,24 @@ export default function DiscoverScreen() {
               disabled={!lastMove || busy}
               style={{
                 alignSelf: "center",
-                marginTop: 8,
-                paddingVertical: 6,
-                paddingHorizontal: 10,
-                opacity: lastMove && !busy ? 1 : 0.35,
+                marginTop: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderRadius: 999,
+                backgroundColor: lastMove ? T.accentSoft : "transparent",
+                borderWidth: 1,
+                borderColor: lastMove ? T.accent : "rgba(61,46,74,0.12)",
+                opacity: lastMove && !busy ? 1 : 0.4,
               }}
             >
               <Text
                 style={{
                   fontSize: 13,
-                  fontWeight: "600",
-                  color: T.muted,
+                  fontWeight: "700",
+                  color: T.ink,
                 }}
               >
-                Undo
+                Undo last card
               </Text>
             </Pressable>
           </View>

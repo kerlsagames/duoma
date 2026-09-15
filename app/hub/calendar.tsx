@@ -148,9 +148,9 @@ export default function CalendarScreen() {
   const emptyCopy =
     lane === "together"
       ? "Nothing recorded this day."
-      : lane === "cycle"
+        : lane === "cycle"
         ? "No cycle notes this day. Open Period Tracker to log flow or symptoms."
-        : "No birthdays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
+        : "No birthdays, holidays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
 
   return (
     <HubScreen
@@ -182,6 +182,10 @@ export default function CalendarScreen() {
             setLane(next);
             setExpanded(false);
           }}
+        />
+        <ViewModeBar
+          layout={layout}
+          onChange={(next) => savePrefs({ ...prefs, layout: next })}
         />
 
         {layout === "agenda" ? (
@@ -693,7 +697,7 @@ export default function CalendarScreen() {
                   ? "Play, talks, and nights you already logged."
                   : lane === "cycle"
                     ? "Logged days, predicted period, fertile window, and ovulation from Home Base."
-                    : "Birthdays, trips, jobs, and notes you add yourself."}
+                    : "Birthdays, holidays, trips, jobs, and notes you add yourself."}
               </Text>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_KIND_OPTIONS.filter(
@@ -872,6 +876,60 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
+function ViewModeBar({
+  layout,
+  onChange,
+}: {
+  layout: CalendarLayout;
+  onChange: (layout: CalendarLayout) => void;
+}) {
+  const chips: { id: CalendarLayout; label: string }[] = [
+    { id: "stack", label: "Month" },
+    { id: "week", label: "Week" },
+    { id: "agenda", label: "Agenda" },
+  ];
+  return (
+    <View
+      style={{
+        marginBottom: 14,
+        flexDirection: "row",
+        gap: 8,
+      }}
+    >
+      {chips.map((chip) => {
+        const on =
+          chip.id === "stack"
+            ? layout === "stack" || layout === "split"
+            : layout === chip.id;
+        return (
+          <Pressable
+            key={chip.id}
+            onPress={() => onChange(chip.id)}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: on ? "#C23B55" : "rgba(22,24,29,0.12)",
+              backgroundColor: on ? "rgba(194,59,85,0.12)" : "#FFFFFF",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "700",
+                color: on ? "#C23B55" : "#16181D",
+              }}
+            >
+              {chip.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function LaneTabs({
   lane,
   showPeriod,
@@ -899,7 +957,7 @@ function LaneTabs({
     {
       id: "life" as const,
       label: "General",
-      hint: "Birthdays, trips",
+      hint: "Birthdays, holidays",
     },
   ];
 
@@ -1110,7 +1168,8 @@ function DayActivityCard({
         item.kind === "birthday" ||
         item.kind === "trip" ||
         item.kind === "job" ||
-        item.kind === "period"
+        item.kind === "period" ||
+        item.kind === "holiday"
           ? "All day"
           : formatClockTime(item.at) || "—"}
       </Text>

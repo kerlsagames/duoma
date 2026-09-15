@@ -6,6 +6,7 @@ import {
 } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
+import { holidaysAround } from "@/lib/holidays";
 import type { MaintTask, Trip } from "@/lib/mini-content";
 import {
   FLOW_OPTIONS,
@@ -57,7 +58,8 @@ export type CalendarMark =
   | "period"
   | "predicted"
   | "fertile"
-  | "ovulation";
+  | "ovulation"
+  | "holiday";
 
 export type CalendarActivityKind =
   | "spicy_night"
@@ -74,7 +76,8 @@ export type CalendarActivityKind =
   | "birthday"
   | "trip"
   | "job"
-  | "period";
+  | "period"
+  | "holiday";
 
 export type CalendarLane = "together" | "life" | "cycle";
 
@@ -129,6 +132,7 @@ const LIFE_KINDS = new Set<CalendarActivityKind>([
   "trip",
   "job",
   "custom",
+  "holiday",
 ]);
 
 export function laneForKind(kind: CalendarActivityKind): CalendarLane {
@@ -517,6 +521,20 @@ export function buildCalendarActivities(
   }
 
   items.push(...periodActivities(input.period));
+
+  for (const row of holidaysAround()) {
+    items.push({
+      id: row.id,
+      kind: "holiday",
+      dateKey: row.dateKey,
+      at: `${row.dateKey}T12:00:00.000Z`,
+      title: row.title,
+      subtitle: "Holiday",
+      mark: "holiday",
+      href: `/hub/calendar-item?kind=holiday&id=${encodeURIComponent(row.id)}`,
+      allDay: true,
+    });
+  }
 
   return items.sort((a, b) => {
     if (a.dateKey !== b.dateKey) return b.dateKey.localeCompare(a.dateKey);

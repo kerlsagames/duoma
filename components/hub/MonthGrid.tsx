@@ -32,6 +32,7 @@ const MARK_COLOR: Record<CalendarMark, string> = {
   predicted: "#E8B4C4",
   fertile: "#D48CA3",
   ovulation: "#6F8F6E",
+  holiday: "#B4532A",
 };
 
 export const CALENDAR_MARK_COLOR = MARK_COLOR;

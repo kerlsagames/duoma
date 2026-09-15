@@ -70,6 +70,7 @@ export const CALENDAR_KIND_OPTIONS: {
   { kind: "trip", label: "Trips" },
   { kind: "job", label: "Household jobs" },
   { kind: "period", label: "Period Tracker" },
+  { kind: "holiday", label: "Holidays" },
 ];
 
 const TARGET_KINDS: ReminderTargetKind[] = [

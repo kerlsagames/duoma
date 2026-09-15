@@ -46,8 +46,8 @@ const STEPS = [
   },
   {
     kicker: "Calendar",
-    title: "Two tabs, one month",
-    body: "Desire & Connect shows nights, talks, and dares you already did. General shows birthdays, trips, jobs, and notes you add. The cog switches stacked, split, or agenda, and lets you set reminders (15 minutes before, a day before, and so on) for birthdays and the rest of General.",
+    title: "General, a week view, holidays",
+    body: "Calendar opens on General (birthdays, holidays, trips, jobs). Desire & Connect is on the right. Month / Week / Agenda sit under the tabs. The cog can add Period Tracker from Home Base, and reminders for birthdays and notes.",
   },
   {
     kicker: "Get Spicy",

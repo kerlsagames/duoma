@@ -6,6 +6,7 @@ import {
   formatLongDate,
   isoFromDateAndTime,
 } from "@/lib/dates";
+import { holidaysAround } from "@/lib/holidays";
 import { HUB_TONES } from "@/lib/app-themes";
 import { ItemReminders } from "@/components/hub/ReminderLeads";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -407,6 +408,24 @@ export default function CalendarItemScreen() {
               );
             })
           )}
+        </Block>
+      </Screen>
+    );
+  }
+
+  if (kind === "holiday") {
+    const row = holidaysAround().find((item) => item.id === id);
+    if (!row) {
+      return (
+        <Screen scroll background={T.background}>
+          <Block kicker="Holiday" title="Not found" />
+        </Screen>
+      );
+    }
+    return (
+      <Screen scroll background={T.background}>
+        <Block kicker="Holiday" title={row.title}>
+          <Meta>{formatLongDate(row.dateKey)} · every year</Meta>
         </Block>
       </Screen>
     );
