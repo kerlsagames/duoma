@@ -345,6 +345,11 @@ export default function CouponsScreen() {
   const [tab, setTab] = useState<Tab>("give");
   const [categoryId, setCategoryId] = useState<CouponCategoryId | null>(null);
   const [idea, setIdea] = useState<CouponIdea | null>(null);
+  const [writingOwn, setWritingOwn] = useState(false);
+  const [customTitle, setCustomTitle] = useState("");
+  const [writeOrigin, setWriteOrigin] = useState<"sections" | "category">(
+    "sections"
+  );
   const [reason, setReason] = useState("");
   const [useOption, setUseOption] = useState<CouponUseOptionId>("7d");
   const [customWhen, setCustomWhen] = useState(defaultCustomDateTime);
@@ -356,7 +361,7 @@ export default function CouponsScreen() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [tab, categoryId, idea]);
+  }, [tab, categoryId, idea, writingOwn]);
 
   const received = useMemo(
     () =>
@@ -393,11 +398,27 @@ export default function CouponsScreen() {
   );
 
   const ideas = categoryId ? ideasInCategory(categoryId) : [];
-  const focused = tab === "give" && Boolean(categoryId || idea);
+  const composing = Boolean(idea || writingOwn);
+  const focused = tab === "give" && Boolean(categoryId || composing);
+
+  const startWriting = (
+    from: "sections" | "category",
+    cat: CouponCategoryId | null
+  ) => {
+    setWriteOrigin(from);
+    setWritingOwn(true);
+    setIdea(null);
+    setCustomTitle("");
+    setCategoryId(cat ?? "wildcard");
+    setError(null);
+  };
 
   const send = async () => {
-    if (!idea) {
-      setError("Pick a coupon first.");
+    const title = (writingOwn ? customTitle : idea?.title ?? "").trim();
+    if (!title) {
+      setError(
+        writingOwn ? "Write what the coupon is for." : "Pick a coupon first."
+      );
       return;
     }
     if (useOption === "custom") {
@@ -415,14 +436,17 @@ export default function CouponsScreen() {
     setLoading(true);
     try {
       await createCoupon({
-        title: idea.title,
+        title,
         reason,
-        categoryId: idea.category,
-        ideaId: idea.id,
+        categoryId: idea?.category ?? categoryId,
+        ideaId: idea?.id ?? null,
         useOption,
         expiresAt: expiresAtForUseOption(useOption, customWhen),
       });
       setIdea(null);
+      setWritingOwn(false);
+      setCustomTitle("");
+      setWriteOrigin("sections");
       setReason("");
       setUseOption("7d");
       setCustomWhen(defaultCustomDateTime());
@@ -488,21 +512,24 @@ export default function CouponsScreen() {
                     color: T.onCoverMuted,
                   }}
                 >
-                  Pick a favor, scribble why if you want, set when it expires.
-                  Their booklet keeps the live ones — stubs hold the used.
+                  Pick a favor, write your own, scribble why if you want, set
+                  when it expires. Their booklet keeps the live ones — stubs
+                  hold the used.
                 </Text>
               </View>
             </View>
           </View>
         ) : null}
 
-        {!idea ? (
+        {!composing ? (
           <PageTabs
             tab={tab}
             onChange={(next) => {
               setTab(next);
               setCategoryId(null);
               setIdea(null);
+              setWritingOwn(false);
+              setCustomTitle("");
               setError(null);
             }}
           />
@@ -510,16 +537,16 @@ export default function CouponsScreen() {
 
         <View
           style={{
-            backgroundColor: idea ? "transparent" : T.paper,
+            backgroundColor: composing ? "transparent" : T.paper,
             borderBottomLeftRadius: 8,
             borderBottomRightRadius: 8,
-            borderTopRightRadius: idea ? 8 : 0,
-            borderTopLeftRadius: idea ? 8 : 0,
-            padding: idea ? 0 : 14,
-            borderWidth: idea ? 0 : 1,
-            borderTopWidth: idea ? 0 : 0,
+            borderTopRightRadius: composing ? 8 : 0,
+            borderTopLeftRadius: composing ? 8 : 0,
+            padding: composing ? 0 : 14,
+            borderWidth: composing ? 0 : 1,
+            borderTopWidth: composing ? 0 : 0,
             borderColor: T.paperEdge,
-            marginTop: idea ? 12 : 0,
+            marginTop: composing ? 12 : 0,
           }}
         >
           {sentFlash ? (
@@ -537,8 +564,60 @@ export default function CouponsScreen() {
 
           {tab === "give" ? (
             <View>
-              {!categoryId && !idea ? (
+              {!categoryId && !composing ? (
                 <>
+                  <Pressable
+                    onPress={() => startWriting("sections", null)}
+                    accessibilityLabel="Write your own coupon"
+                    style={{
+                      marginBottom: 16,
+                      borderRadius: 4,
+                      borderWidth: 1.5,
+                      borderStyle: "dashed",
+                      borderColor: "rgba(201,162,74,0.55)",
+                      backgroundColor: T.accentSoft,
+                      paddingVertical: 16,
+                      paddingHorizontal: 14,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 4,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: T.paper,
+                        borderWidth: 1,
+                        borderColor: "rgba(201,162,74,0.35)",
+                      }}
+                    >
+                      <Ionicons name="create-outline" size={20} color={T.spine} />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text
+                        style={{
+                          fontFamily: SERIF,
+                          fontSize: 18,
+                          color: T.ink,
+                        }}
+                      >
+                        Write your own
+                      </Text>
+                      <Text
+                        style={{
+                          marginTop: 3,
+                          fontSize: 13,
+                          lineHeight: 18,
+                          color: T.muted,
+                        }}
+                      >
+                        Skip the booklet. Tear a blank and fill it in.
+                      </Text>
+                    </View>
+                  </Pressable>
                   <Text
                     style={{
                       fontFamily: "SpaceMono",
@@ -606,7 +685,7 @@ export default function CouponsScreen() {
                 </>
               ) : null}
 
-              {categoryId && !idea ? (
+              {categoryId && !composing ? (
                 <>
                   <Pressable
                     onPress={() => setCategoryId(null)}
@@ -636,6 +715,35 @@ export default function CouponsScreen() {
                     {categoryMeta(categoryId)?.label}
                   </Text>
                   <View className="mt-4 gap-2">
+                    <Pressable
+                      onPress={() => startWriting("category", categoryId)}
+                      accessibilityLabel="Write your own coupon"
+                      style={{
+                        borderRadius: 4,
+                        borderWidth: 1.5,
+                        borderStyle: "dashed",
+                        borderColor: "rgba(201,162,74,0.55)",
+                        backgroundColor: T.accentSoft,
+                        paddingHorizontal: 14,
+                        paddingVertical: 14,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <Ionicons name="create-outline" size={18} color={T.spine} />
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontFamily: SERIF,
+                          fontSize: 16,
+                          lineHeight: 22,
+                          color: T.ink,
+                        }}
+                      >
+                        Write your own
+                      </Text>
+                    </Pressable>
                     {ideas.map((row) => (
                       <Pressable
                         key={row.id}
@@ -666,12 +774,15 @@ export default function CouponsScreen() {
                 </>
               ) : null}
 
-              {idea ? (
+              {composing ? (
                 <>
                   <Pressable
                     onPress={() => {
                       setIdea(null);
+                      setWritingOwn(false);
+                      setCustomTitle("");
                       setError(null);
+                      if (writeOrigin === "sections") setCategoryId(null);
                     }}
                     className="mb-4 flex-row items-center"
                   >
@@ -686,7 +797,9 @@ export default function CouponsScreen() {
                         color: T.onCover,
                       }}
                     >
-                      Back to list
+                      {writeOrigin === "sections" && writingOwn
+                        ? "All sections"
+                        : "Back to list"}
                     </Text>
                   </Pressable>
 
@@ -713,19 +826,90 @@ export default function CouponsScreen() {
                       >
                         Giving {partnerName}
                       </Text>
-                      <Text
-                        style={{
-                          marginTop: 10,
-                          fontFamily: SERIF,
-                          fontSize: 24,
-                          lineHeight: 30,
-                          color: T.ink,
-                        }}
-                      >
-                        {idea.title}
-                      </Text>
+                      {writingOwn ? (
+                        <TextInput
+                          value={customTitle}
+                          onChangeText={setCustomTitle}
+                          placeholder="One free breakfast in bed…"
+                          placeholderTextColor="rgba(26,18,12,0.35)"
+                          multiline
+                          autoFocus
+                          style={{
+                            marginTop: 10,
+                            fontFamily: SERIF,
+                            fontSize: 24,
+                            lineHeight: 30,
+                            color: T.ink,
+                            padding: 0,
+                            minHeight: 64,
+                          }}
+                        />
+                      ) : (
+                        <Text
+                          style={{
+                            marginTop: 10,
+                            fontFamily: SERIF,
+                            fontSize: 24,
+                            lineHeight: 30,
+                            color: T.ink,
+                          }}
+                        >
+                          {idea?.title}
+                        </Text>
+                      )}
                     </View>
                   </View>
+
+                  {writingOwn ? (
+                    <>
+                      <Text
+                        style={{
+                          marginTop: 22,
+                          fontFamily: "SpaceMono",
+                          fontSize: 11,
+                          letterSpacing: 1.4,
+                          textTransform: "uppercase",
+                          color: T.onCover,
+                        }}
+                      >
+                        File under
+                      </Text>
+                      <View
+                        className="mt-3 flex-row flex-wrap"
+                        style={{ gap: 8 }}
+                      >
+                        {COUPON_CATEGORIES.map((cat) => {
+                          const on = categoryId === cat.id;
+                          return (
+                            <Pressable
+                              key={cat.id}
+                              onPress={() => setCategoryId(cat.id)}
+                              style={{
+                                borderRadius: 4,
+                                borderWidth: 1,
+                                borderColor: on
+                                  ? T.accent
+                                  : "rgba(247,231,200,0.18)",
+                                backgroundColor: on ? T.accentSoft : T.cover,
+                                paddingHorizontal: 12,
+                                paddingVertical: 8,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontFamily: SERIF,
+                                  fontSize: 14,
+                                  color: T.onCover,
+                                }}
+                              >
+                                {cat.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </>
+                  ) : null}
 
                   <Text
                     style={{
