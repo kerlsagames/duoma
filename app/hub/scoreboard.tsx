@@ -18,7 +18,7 @@ const amber = () => sectionAccent("play", "#FFB000");
 type Icon = ComponentProps<typeof Ionicons>["name"];
 
 export default function ScoreboardScreen() {
-  const { user, partner } = useApp();
+  const { user, partner, chickenPlays } = useApp();
   const { data, ready, patch } = useMiniApps();
   const you = user?.displayName || "YOU";
   const them = partner?.displayName || "THEM";
@@ -42,8 +42,9 @@ export default function ScoreboardScreen() {
       },
       { id: "dinner", label: "KITCHEN", icon: "restaurant", earned: data.meals.some((m) => m.eliminated) },
       { id: "fair", label: "CHORES", icon: "sync", earned: data.fairSpins.length > 0 || data.whoLast.length > 0 },
+      { id: "chicken", label: "COOP", icon: "egg", earned: chickenPlays.some((row) => row.status === "done") },
     ],
-    [crosswordWon, data]
+    [crosswordWon, data, chickenPlays]
   );
   const earned = badges.filter((b) => b.earned).length;
   const cheers = ["MVP OF DISHES", "SOFTEST LANDING", "PLOT TWIST", "CLUTCH SNACK"];

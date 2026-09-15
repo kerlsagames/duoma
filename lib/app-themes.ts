@@ -498,3 +498,34 @@ export const GIFTS_TONE = liveTone(
   GIFTS_TONE_BASE,
   GIFTS_TONE_BASE.gold
 );
+
+/** Rubber-chicken carnival booth — barn red, yolk tickets, comb stamp. */
+const CHICKEN_TONE_BASE = {
+  background: "#7A1410",
+  barn: "#5C0E0C",
+  yolk: "#FFD028",
+  comb: "#FF3B2E",
+  cream: "#FFF4CC",
+  creamInk: "#2A1408",
+  creamMuted: "rgba(42,20,8,0.58)",
+  ink: "#FFF6D6",
+  muted: "rgba(255,246,214,0.72)",
+  dim: "rgba(255,246,214,0.42)",
+  surface: "#8E1C16",
+  surfaceRaised: "#A3221A",
+  border: "rgba(255,208,40,0.38)",
+  check: "#FFF8DC",
+} as const;
+
+export const CHICKEN_TONE = liveTone(
+  "play",
+  CHICKEN_TONE_BASE,
+  CHICKEN_TONE_BASE.yolk
+);
+
+export const CHICKEN_DISPLAY: TextStyle["fontFamily"] = Platform.select({
+  ios: "Avenir Next Condensed",
+  android: "sans-serif-condensed",
+  default:
+    '"Avenir Next Condensed", "Trebuchet MS", "Segoe UI Condensed", Impact, sans-serif',
+});

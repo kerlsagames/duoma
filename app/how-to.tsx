@@ -37,7 +37,7 @@ const STEPS = [
   {
     kicker: "Fun",
     title: "Play without a plan",
-    body: "Coupons, LoveBetz, photo memory (one shot a week — shuffle until you lock it), How Well Do You Know Me (rip a card pack, then guess theirs before the next one opens), Draw It, Daily Word (same five letters, who lands it first), Fair Share (spin a chore or tap who did it last), and the rest of the games. Nothing here has to lead to bed.",
+    body: "Coupons, Chicken (silly non-sexy dares — send one, they cluck or commit), LoveBetz, photo memory (one shot a week — shuffle until you lock it), How Well Do You Know Me (rip a card pack, then guess theirs before the next one opens), Draw It, Daily Word (same five letters, who lands it first), Fair Share (spin a chore or tap who did it last), and the rest of the games. Nothing here has to lead to bed.",
   },
   {
     kicker: "Home Base",

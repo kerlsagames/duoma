@@ -261,6 +261,7 @@ export function hubAppsOnCount(prefs: NotificationPrefs, hubId: HubId) {
 export function featureFromStatusId(id: string): string | null {
   if (id === "game" || id.startsWith("game")) return "spicy";
   if (id.startsWith("dare")) return "up-for-it";
+  if (id.startsWith("chicken")) return "chicken";
   if (id.startsWith("fantasy")) return "fantasy-matcher";
   if (id.startsWith("sexy")) return "sexy-vault";
   if (id.startsWith("checkin")) return "check-in";

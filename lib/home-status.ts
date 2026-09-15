@@ -1,3 +1,4 @@
+import type { ChickenPlay } from "@/lib/chicken";
 import { isCuriosityComplete } from "@/lib/curiosity";
 import { fantasyById } from "@/lib/fantasy-matcher";
 import { isSexyVaultLocked, sexyVaultUnlockLabel, type SexyVaultItem } from "@/lib/sexy-vault";
@@ -138,6 +139,7 @@ export function buildHomeNotifications(input: {
   scratches?: ScratchReveal[];
   listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
+  chickenPlays?: ChickenPlay[];
   fantasyTonightAsks?: FantasyTonightAsk[];
   dateNightAsks?: DateNightAsk[];
   positionInvites?: PositionInvite[];
@@ -317,6 +319,29 @@ export function buildHomeNotifications(input: {
         line,
         when: recentWhen(play.answeredAt ?? play.createdAt),
         href: "/hub/up-for-it",
+        sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
+      });
+    });
+
+  (input.chickenPlays ?? [])
+    .filter((row) => row.status === "offered" || row.status === "accepted")
+    .forEach((play) => {
+      const incoming = play.toUserId === myId;
+      const outgoing = play.fromUserId === myId;
+      if (!incoming && !outgoing) return;
+      const line =
+        play.status === "offered" && incoming
+          ? "Chicken · a dare for you"
+          : play.status === "offered"
+            ? "Chicken · waiting on them"
+            : incoming
+              ? "Chicken · you’re in. Do it."
+              : "Chicken · they’re in";
+      items.push({
+        id: `chicken-${play.id}`,
+        line,
+        when: recentWhen(play.answeredAt ?? play.createdAt),
+        href: "/hub/chicken",
         sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
       });
     });

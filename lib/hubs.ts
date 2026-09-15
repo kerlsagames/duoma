@@ -207,6 +207,13 @@ export const HUBS: HubDef[] = [
     href: "/hub/play",
     features: [
       {
+        id: "chicken",
+        label: "Chicken",
+        detail: "Silly dares. Send one. Cluck or commit.",
+        icon: "egg",
+        href: "/hub/chicken",
+      },
+      {
         id: "coupons",
         label: "Coupons",
         detail: "Tear a favor from the booklet and gift it",

@@ -1,3 +1,4 @@
+import { hydrateChickenPlay } from "@/lib/chicken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { defaultEnabledFlavorTags } from "@/games/get-spicy/flavor-tags";
@@ -34,6 +35,7 @@ const hubEmpty = () => ({
   talkDraws: [],
   talkVault: [],
   spicyDares: [],
+  chickenPlays: [],
   positionInvites: [],
   roleplayInvites: [],
   roleplaySaves: [],
@@ -185,6 +187,9 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     })),
     talkVault: raw.talkVault ?? [],
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
+    chickenPlays: (raw.chickenPlays ?? [])
+      .map(hydrateChickenPlay)
+      .filter((row): row is NonNullable<typeof row> => Boolean(row)),
     positionInvites: raw.positionInvites ?? [],
     roleplayInvites: raw.roleplayInvites ?? [],
     roleplaySaves: (raw.roleplaySaves ?? []).map(hydrateRoleplaySave),

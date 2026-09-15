@@ -1,3 +1,7 @@
+import type { ChickenPlay } from "@/lib/chicken";
+
+export type { ChickenPlay };
+
 export const STAGES = [
   "pre_foreplay",
   "foreplay",
@@ -667,6 +671,7 @@ export type AppDB = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  chickenPlays: ChickenPlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   roleplaySaves: RoleplaySave[];

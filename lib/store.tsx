@@ -18,6 +18,7 @@ import {
   defaultEnabledFlavorTags,
   normalizeFlavorTags,
 } from "@/games/get-spicy/flavor-tags";
+import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { localDateKey } from "@/lib/dates";
 import {
@@ -104,6 +105,7 @@ import type {
   PositionSave,
   PlayItemRating,
   CalendarCustomEvent,
+  ChickenPlay,
   ErrandItem,
   ErrandKind,
   CustomMeal,
@@ -424,6 +426,7 @@ type AppContextValue = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  chickenPlays: ChickenPlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   roleplaySaves: RoleplaySave[];
@@ -502,6 +505,13 @@ type AppContextValue = {
   }) => Promise<void>;
   respondSpicyDare: (id: string, status: "accepted" | "declined") => Promise<void>;
   completeSpicyDare: (id: string) => Promise<void>;
+  sendChickenDare: (input: {
+    dareId: string | null;
+    text: string;
+    packId?: string | null;
+  }) => Promise<void>;
+  respondChickenDare: (id: string, status: "accepted" | "declined") => Promise<void>;
+  completeChickenDare: (id: string) => Promise<void>;
   sendPositionInvite: (positionId: string) => Promise<void>;
   respondPositionInvite: (
     id: string,
@@ -989,6 +999,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const spicyDares = useMemo(
     () => db.spicyDares.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const chickenPlays = useMemo(
+    () => (db.chickenPlays ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -3120,6 +3135,101 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [partner, user]
   );
 
+  const sendChickenDare = useCallback(
+    async (input: { dareId: string | null; text: string; packId?: string | null }) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then send a dare.");
+      }
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("Pair up before sending a dare.");
+      }
+      const text = input.text.trim();
+      if (!text) throw new Error("Write the dare, or pick one from the coop.");
+      const catalog = input.dareId ? chickenDareById(input.dareId) : null;
+      const pack = catalog
+        ? chickenPackById(catalog.pack)
+        : input.packId
+          ? chickenPackById(input.packId as ChickenPackId)
+          : null;
+      const row: ChickenPlay = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        dareId: catalog?.id ?? input.dareId,
+        packId: catalog?.pack ?? pack?.id ?? null,
+        yardId: catalog?.yard ?? pack?.yard ?? null,
+        text,
+        status: "offered",
+        createdAt: nowIso(),
+        answeredAt: null,
+        completedAt: null,
+      };
+      db = { ...db, chickenPlays: [...(db.chickenPlays ?? []), row] };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Chicken",
+        body: `${user.displayName} dared you. Cluck or commit.`,
+        url: "/hub/chicken",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const respondChickenDare = useCallback(
+    async (id: string, status: "accepted" | "declined") => {
+      if (!user) return;
+      const existing = (db.chickenPlays ?? []).find((row) => row.id === id);
+      if (!existing || existing.status !== "offered") return;
+      const demoHold = Boolean(partner?.isDemo && existing.toUserId === partner.id);
+      if (existing.toUserId !== user.id && !demoHold) return;
+      db = {
+        ...db,
+        chickenPlays: (db.chickenPlays ?? []).map((row) =>
+          row.id === id ? { ...row, status, answeredAt: nowIso() } : row
+        ),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Chicken",
+        body:
+          status === "accepted"
+            ? `${user.displayName} is in. No clucking.`
+            : `${user.displayName} chickened out.`,
+        url: "/hub/chicken",
+      });
+    },
+    [couple, partner, user]
+  );
+
+  const completeChickenDare = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      db = {
+        ...db,
+        chickenPlays: (db.chickenPlays ?? []).map((row) => {
+          const involved = row.fromUserId === user.id || row.toUserId === user.id;
+          const demoHold = Boolean(
+            partner?.isDemo &&
+              (row.toUserId === partner.id || row.fromUserId === partner.id)
+          );
+          if (row.id === id && row.status === "accepted" && (involved || demoHold)) {
+            return { ...row, status: "done" as const, completedAt: nowIso() };
+          }
+          return row;
+        }),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Chicken",
+        body: `${user.displayName} did the dare. Egg on the board.`,
+        url: "/hub/chicken",
+      });
+    },
+    [couple, partner, user]
+  );
+
   const sendPositionInvite = useCallback(
     async (positionId: string) => {
       if (!user || !couple) {
@@ -4822,6 +4932,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     talkDraws,
     talkVault,
     spicyDares,
+    chickenPlays,
     positionInvites,
     positionSaves,
     dateNightAsks,
@@ -4883,6 +4994,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendSpicyDare,
     respondSpicyDare,
     completeSpicyDare,
+    sendChickenDare,
+    respondChickenDare,
+    completeChickenDare,
     sendPositionInvite,
     respondPositionInvite,
     completePositionInvite,
