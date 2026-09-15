@@ -12,12 +12,13 @@ export const CALENDAR_PREFS_KEY = "duoma:calendarPrefs";
 
 export type CalendarListMode = "all" | "preview";
 
-export type CalendarLayout = "stack" | "split" | "agenda";
+export type CalendarLayout = "stack" | "split" | "agenda" | "week";
 
 export type CalendarPrefs = {
   enabledKinds: Record<CalendarActivityKind, boolean>;
   listMode: CalendarListMode;
   layout: CalendarLayout;
+  showPeriodLane: boolean;
   defaultLeads: Record<ReminderTargetKind, ReminderLead[]>;
   itemLeads: Record<string, ReminderLead[]>;
 };
@@ -42,6 +43,11 @@ export const CALENDAR_LAYOUT_OPTIONS: {
     label: "Agenda",
     hint: "This month as a running list of notes, grouped by day.",
   },
+  {
+    id: "week",
+    label: "Week",
+    hint: "Seven days across, then that day's notes underneath.",
+  },
 ];
 
 export const CALENDAR_KIND_OPTIONS: {
@@ -63,6 +69,7 @@ export const CALENDAR_KIND_OPTIONS: {
   { kind: "birthday", label: "Birthdays" },
   { kind: "trip", label: "Trips" },
   { kind: "job", label: "Household jobs" },
+  { kind: "period", label: "Period Tracker" },
 ];
 
 const TARGET_KINDS: ReminderTargetKind[] = [
@@ -81,6 +88,7 @@ export function defaultCalendarPrefs(): CalendarPrefs {
     enabledKinds,
     listMode: "preview",
     layout: "stack",
+    showPeriodLane: false,
     defaultLeads: {
       birthday: [...DEFAULT_REMINDER_LEADS.birthday],
       custom: [...DEFAULT_REMINDER_LEADS.custom],
@@ -129,7 +137,12 @@ export function hydrateCalendarPrefs(
     enabledKinds,
     listMode: raw.listMode === "all" ? "all" : "preview",
     layout:
-      raw.layout === "split" || raw.layout === "agenda" ? raw.layout : "stack",
+      raw.layout === "split" ||
+      raw.layout === "agenda" ||
+      raw.layout === "week"
+        ? raw.layout
+        : "stack",
+    showPeriodLane: raw.showPeriodLane === true,
     defaultLeads,
     itemLeads,
   };

@@ -115,3 +115,31 @@ export function addMonths(year: number, month: number, delta: number) {
   const date = new Date(year, month + delta, 1);
   return { year: date.getFullYear(), month: date.getMonth() };
 }
+
+/** Sunday of the week that contains `key`, matching the month grid. */
+export function startOfWeek(key: string): string {
+  const date = parseDateKey(key);
+  date.setDate(date.getDate() - date.getDay());
+  return localDateKey(date);
+}
+
+export function weekDays(startKey: string): { date: string; day: number }[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDaysToDateKey(startKey, index);
+    return { date, day: parseDateKey(date).getDate() };
+  });
+}
+
+export function formatWeekRange(startKey: string): string {
+  const start = parseDateKey(startKey);
+  const end = parseDateKey(addDaysToDateKey(startKey, 6));
+  const startMonth = start.toLocaleDateString(undefined, { month: "short" });
+  const endMonth = end.toLocaleDateString(undefined, { month: "short" });
+  if (start.getFullYear() === end.getFullYear()) {
+    if (start.getMonth() === end.getMonth()) {
+      return `${startMonth} ${start.getDate()}–${end.getDate()}, ${end.getFullYear()}`;
+    }
+    return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
+  }
+  return `${startMonth} ${start.getDate()}, ${start.getFullYear()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
+}

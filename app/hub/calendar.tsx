@@ -1,4 +1,5 @@
 import { MonthGrid } from "@/components/hub/MonthGrid";
+import { WeekGrid } from "@/components/hub/WeekGrid";
 import { HubScreen } from "@/components/hub/HubScreen";
 import {
   activitiesForDate,
@@ -28,6 +29,10 @@ import {
   localDateKey,
   monthGrid,
   addMonths,
+  addDaysToDateKey,
+  startOfWeek,
+  weekDays,
+  formatWeekRange,
 } from "@/lib/dates";
 import { useCalendarActivities } from "@/lib/useCalendarActivities";
 import { Ionicons } from "@expo/vector-icons";
@@ -66,12 +71,16 @@ export default function CalendarScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { prefs, save: savePrefs } = useCalendarPrefs();
   const [expanded, setExpanded] = useState(false);
-  const [lane, setLane] = useState<CalendarLane>("together");
+  const [lane, setLane] = useState<CalendarLane>("life");
   const allActivities = useCalendarActivities();
 
   useEffect(() => {
     setExpanded(false);
   }, [selected, prefs.listMode, lane, prefs.layout]);
+
+  useEffect(() => {
+    if (!prefs.showPeriodLane && lane === "cycle") setLane("life");
+  }, [prefs.showPeriodLane, lane]);
 
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
@@ -93,6 +102,8 @@ export default function CalendarScreen() {
 
   const layout = prefs.layout;
   const fillPage = layout !== "stack";
+  const weekStart = startOfWeek(selected);
+  const weekCells = weekDays(weekStart);
   const showAll =
     layout !== "stack" ||
     prefs.listMode === "all" ||
@@ -126,10 +137,20 @@ export default function CalendarScreen() {
     router.push(`/hub/calendar-add?date=${encodeURIComponent(date)}` as Href);
   };
 
+  const handleAdd = (date = selected) => {
+    if (lane === "cycle") {
+      router.push("/hub/period" as Href);
+      return;
+    }
+    openAdd(date);
+  };
+
   const emptyCopy =
     lane === "together"
       ? "Nothing recorded this day."
-      : "No birthdays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
+      : lane === "cycle"
+        ? "No cycle notes this day. Open Period Tracker to log flow or symptoms."
+        : "No birthdays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
 
   return (
     <HubScreen
@@ -156,6 +177,7 @@ export default function CalendarScreen() {
       <View style={fillPage ? { flex: 1, minHeight: 0 } : undefined}>
         <LaneTabs
           lane={lane}
+          showPeriod={prefs.showPeriodLane}
           onChange={(next) => {
             setLane(next);
             setExpanded(false);
@@ -185,13 +207,15 @@ export default function CalendarScreen() {
                     label={
                       selectedIsToday ? "Today" : formatLongDate(selected)
                     }
-                    onAdd={() => openAdd()}
+                    onAdd={() => handleAdd()}
                   />
                   {monthGroups.length === 0 ? (
                     <Text style={{ fontSize: 15, color: "rgba(22,24,29,0.5)" }}>
                       {lane === "together"
                         ? "Nothing on this month yet."
-                        : "No birthdays, trips, or jobs this month. Tap + to add one."}
+                        : lane === "cycle"
+                          ? "No cycle notes this month."
+                          : "No birthdays, trips, or jobs this month. Tap + to add one."}
                     </Text>
                   ) : null}
                 </View>
@@ -205,7 +229,7 @@ export default function CalendarScreen() {
                           ? "Today"
                           : formatLongDate(group.dateKey)
                       }
-                      onAdd={() => openAdd(group.dateKey)}
+                      onAdd={() => handleAdd(group.dateKey)}
                     />
                     {group.items.map((item) => (
                       <DayActivityCard
@@ -217,6 +241,41 @@ export default function CalendarScreen() {
                   </View>
                 ))
               )}
+            </ScrollView>
+          </View>
+        ) : layout === "week" ? (
+          <View style={{ flex: 1, minHeight: 0 }}>
+            <MonthNav
+              label={formatWeekRange(weekStart)}
+              compact
+              onPrev={() => selectDay(addDaysToDateKey(selected, -7))}
+              onNext={() => selectDay(addDaysToDateKey(selected, 7))}
+              onOpenPicker={() => {
+                setPickerYear(cursor.year);
+                setPickerOpen(true);
+              }}
+            />
+            <WeekGrid
+              days={weekCells}
+              marks={marks}
+              selected={selected}
+              today={today}
+              onSelect={selectDay}
+            />
+            <DayHeader
+              label={selectedIsToday ? "Today" : formatLongDate(selected)}
+              onAdd={() => handleAdd()}
+            />
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 12, gap: 8 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <DayNotes
+                items={dayItems}
+                emptyCopy={emptyCopy}
+                onOpen={(item) => router.push(item.href as Href)}
+              />
             </ScrollView>
           </View>
         ) : layout === "split" ? (
@@ -255,7 +314,7 @@ export default function CalendarScreen() {
             <View style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
               <DayHeader
                 label={selectedIsToday ? "Today" : formatLongDate(selected)}
-                onAdd={() => openAdd()}
+                onAdd={() => handleAdd()}
               />
               <ScrollView
                 style={{ flex: 1 }}
@@ -290,7 +349,7 @@ export default function CalendarScreen() {
             />
             <DayHeader
               label={selectedIsToday ? "Today" : formatLongDate(selected)}
-              onAdd={() => openAdd()}
+              onAdd={() => handleAdd()}
               spaced
             />
             <View style={{ marginTop: 12, gap: 8 }}>
@@ -383,6 +442,10 @@ export default function CalendarScreen() {
                     key={name}
                     onPress={() => {
                       setCursor({ year: pickerYear, month: index });
+                      if (layout === "week") {
+                        const first = `${pickerYear}-${String(index + 1).padStart(2, "0")}-01`;
+                        setSelected(first);
+                      }
                       setPickerOpen(false);
                     }}
                     style={{
@@ -543,10 +606,79 @@ export default function CalendarScreen() {
                 })}
               </View>
 
+              <SectionLabel>Calendar buttons</SectionLabel>
+              <Text
+                style={{
+                  marginTop: -4,
+                  marginBottom: 10,
+                  fontSize: 13,
+                  color: "rgba(22,24,29,0.5)",
+                  lineHeight: 18,
+                }}
+              >
+                Desire & Connect and General stay on the right. Turn Period
+                Tracker on to add a third calendar from Home Base.
+              </Text>
+              <Pressable
+                onPress={() =>
+                  savePrefs({
+                    ...prefs,
+                    showPeriodLane: !prefs.showPeriodLane,
+                  })
+                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingVertical: 12,
+                  paddingHorizontal: 14,
+                  marginBottom: 22,
+                  borderWidth: 1,
+                  borderColor: prefs.showPeriodLane
+                    ? "#C23B55"
+                    : "rgba(22,24,29,0.1)",
+                  backgroundColor: prefs.showPeriodLane
+                    ? "rgba(194,59,85,0.08)"
+                    : "#FFFFFF",
+                }}
+              >
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "600",
+                      color: "#16181D",
+                    }}
+                  >
+                    Period Tracker
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "rgba(22,24,29,0.5)",
+                    }}
+                  >
+                    Third button — cycle, symptoms, next period.
+                  </Text>
+                </View>
+                <Ionicons
+                  name={
+                    prefs.showPeriodLane ? "checkmark-circle" : "ellipse-outline"
+                  }
+                  size={22}
+                  color={
+                    prefs.showPeriodLane ? "#C23B55" : "rgba(22,24,29,0.35)"
+                  }
+                />
+              </Pressable>
+
               <SectionLabel>
                 {lane === "together"
                   ? "Show on Desire & Connect"
-                  : "Show on General"}
+                  : lane === "cycle"
+                    ? "Show on Period"
+                    : "Show on General"}
               </SectionLabel>
               <Text
                 style={{
@@ -559,7 +691,9 @@ export default function CalendarScreen() {
               >
                 {lane === "together"
                   ? "Play, talks, and nights you already logged."
-                  : "Birthdays, trips, jobs, and notes you add yourself."}
+                  : lane === "cycle"
+                    ? "Logged days, predicted period, fertile window, and ovulation from Home Base."
+                    : "Birthdays, trips, jobs, and notes you add yourself."}
               </Text>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_KIND_OPTIONS.filter(
@@ -740,72 +874,92 @@ function SectionLabel({ children }: { children: string }) {
 
 function LaneTabs({
   lane,
+  showPeriod,
   onChange,
 }: {
   lane: CalendarLane;
+  showPeriod: boolean;
   onChange: (lane: CalendarLane) => void;
 }) {
+  const tabs = [
+    ...(showPeriod
+      ? [
+          {
+            id: "cycle" as const,
+            label: "Period",
+            hint: "Cycle",
+          },
+        ]
+      : []),
+    {
+      id: "together" as const,
+      label: "Desire & Connect",
+      hint: "Nights, talks",
+    },
+    {
+      id: "life" as const,
+      label: "General",
+      hint: "Birthdays, trips",
+    },
+  ];
+
   return (
     <View
       style={{
         marginBottom: 16,
         flexDirection: "row",
-        padding: 4,
-        backgroundColor: "rgba(22,24,29,0.05)",
-        borderWidth: 1,
-        borderColor: "rgba(22,24,29,0.1)",
+        justifyContent: "flex-end",
       }}
     >
-      {(
-        [
-          {
-            id: "together" as const,
-            label: "Desire & Connect",
-            hint: "Nights, talks, dares",
-          },
-          {
-            id: "life" as const,
-            label: "General",
-            hint: "Birthdays, trips, jobs",
-          },
-        ] as const
-      ).map((tab) => {
-        const on = lane === tab.id;
-        return (
-          <Pressable
-            key={tab.id}
-            onPress={() => onChange(tab.id)}
-            style={{
-              flex: 1,
-              alignItems: "center",
-              paddingVertical: 10,
-              paddingHorizontal: 6,
-              backgroundColor: on ? "#C23B55" : "transparent",
-            }}
-          >
-            <Text
+      <View
+        style={{
+          flexDirection: "row",
+          padding: 3,
+          backgroundColor: "rgba(22,24,29,0.05)",
+          borderWidth: 1,
+          borderColor: "rgba(22,24,29,0.1)",
+          maxWidth: "100%",
+        }}
+      >
+        {tabs.map((tab) => {
+          const on = lane === tab.id;
+          return (
+            <Pressable
+              key={tab.id}
+              onPress={() => onChange(tab.id)}
               style={{
-                fontSize: 13,
-                fontWeight: "700",
-                color: on ? "#FFFFFF" : "#16181D",
-                textAlign: "center",
+                alignItems: "center",
+                paddingVertical: 8,
+                paddingHorizontal: showPeriod ? 8 : 10,
+                backgroundColor: on ? "#C23B55" : "transparent",
               }}
             >
-              {tab.label}
-            </Text>
-            <Text
-              style={{
-                marginTop: 2,
-                fontSize: 10,
-                color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
-                textAlign: "center",
-              }}
-            >
-              {tab.hint}
-            </Text>
-          </Pressable>
-        );
-      })}
+              <Text
+                style={{
+                  fontSize: showPeriod ? 11 : 13,
+                  fontWeight: "700",
+                  color: on ? "#FFFFFF" : "#16181D",
+                  textAlign: "center",
+                }}
+                numberOfLines={1}
+              >
+                {tab.label}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontSize: 9,
+                  color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
+                  textAlign: "center",
+                }}
+                numberOfLines={1}
+              >
+                {tab.hint}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -955,7 +1109,8 @@ function DayActivityCard({
         {item.allDay ||
         item.kind === "birthday" ||
         item.kind === "trip" ||
-        item.kind === "job"
+        item.kind === "job" ||
+        item.kind === "period"
           ? "All day"
           : formatClockTime(item.at) || "—"}
       </Text>

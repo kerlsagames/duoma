@@ -28,7 +28,13 @@ const MARK_COLOR: Record<CalendarMark, string> = {
   birthday: "#E07A8A",
   trip: "#1E4D8C",
   job: "#C4A574",
+  period: "#C45C7A",
+  predicted: "#E8B4C4",
+  fertile: "#D48CA3",
+  ovulation: "#6F8F6E",
 };
+
+export const CALENDAR_MARK_COLOR = MARK_COLOR;
 
 export function MonthGrid({
   cells,

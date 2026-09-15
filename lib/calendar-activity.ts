@@ -7,6 +7,19 @@ import {
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import type { MaintTask, Trip } from "@/lib/mini-content";
+import {
+  FLOW_OPTIONS,
+  MOOD_OPTIONS,
+  SYMPTOM_OPTIONS,
+  cycleForDate,
+  dateRange,
+  daysBetween,
+  logForDate,
+  markForDate,
+  snapshot,
+  addDays as shiftPeriodDate,
+  type PeriodState,
+} from "@/lib/period";
 import { categoryById, questionById } from "@/lib/talk";
 import type {
   BucketItem,
@@ -40,7 +53,11 @@ export type CalendarMark =
   | "custom"
   | "birthday"
   | "trip"
-  | "job";
+  | "job"
+  | "period"
+  | "predicted"
+  | "fertile"
+  | "ovulation";
 
 export type CalendarActivityKind =
   | "spicy_night"
@@ -56,9 +73,10 @@ export type CalendarActivityKind =
   | "custom"
   | "birthday"
   | "trip"
-  | "job";
+  | "job"
+  | "period";
 
-export type CalendarLane = "together" | "life";
+export type CalendarLane = "together" | "life" | "cycle";
 
 export type CalendarActivity = {
   id: string;
@@ -88,6 +106,7 @@ export type CalendarActivityInput = {
   birthdays?: Birthday[];
   trips?: Trip[];
   maintenance?: MaintTask[];
+  period?: PeriodState;
   partner: Profile | null;
   user: Profile | null;
 };
@@ -113,6 +132,7 @@ const LIFE_KINDS = new Set<CalendarActivityKind>([
 ]);
 
 export function laneForKind(kind: CalendarActivityKind): CalendarLane {
+  if (kind === "period") return "cycle";
   return LIFE_KINDS.has(kind) ? "life" : "together";
 }
 
@@ -492,9 +512,11 @@ export function buildCalendarActivities(
           : `Job due · every ${row.everyDays} days`,
       mark: "job",
       href: `/hub/calendar-item?kind=job&id=${encodeURIComponent(row.id)}`,
-      allDay: true,
+        allDay: true,
     });
   }
+
+  items.push(...periodActivities(input.period));
 
   return items.sort((a, b) => {
     if (a.dateKey !== b.dateKey) return b.dateKey.localeCompare(a.dateKey);
@@ -586,4 +608,80 @@ export function defaultHappenedAt(dateKey: string): string {
   const [year, month, day] = dateKey.split("-").map(Number);
   const date = new Date(year, (month || 1) - 1, day || 1, 12, 0, 0, 0);
   return date.toISOString();
+}
+
+function periodActivities(state: PeriodState | undefined): CalendarActivity[] {
+  if (!state || (!state.cycles.length && !state.logs.length)) return [];
+  const snap = snapshot(state);
+  const dates = new Set<string>();
+  for (const cycle of state.cycles) {
+    const last =
+      cycle.end ?? shiftPeriodDate(cycle.start, state.settings.typicalPeriod - 1);
+    for (const key of dateRange(cycle.start, last)) dates.add(key);
+  }
+  for (const log of state.logs) dates.add(log.date);
+  for (const row of snap.forecast) {
+    const from = row.fertileStart < row.start ? row.fertileStart : row.start;
+    const to = row.end > row.fertileEnd ? row.end : row.fertileEnd;
+    for (const key of dateRange(from, to)) dates.add(key);
+  }
+
+  const items: CalendarActivity[] = [];
+  for (const date of dates) {
+    const mark = markForDate(state, date, snap);
+    const log = logForDate(state, date);
+    if (mark === "none" && !log) continue;
+    const cycle = cycleForDate(state.cycles, date, state.settings.typicalPeriod);
+    const calMark =
+      mark === "period"
+        ? "period"
+        : mark === "ovulation"
+          ? "ovulation"
+          : mark === "fertile"
+            ? "fertile"
+            : mark === "predicted"
+              ? "predicted"
+              : "period";
+    let title = "Cycle";
+    if (mark === "period") {
+      title = cycle
+        ? `Period · day ${daysBetween(cycle.start, date) + 1}`
+        : "Period";
+    } else if (mark === "ovulation") {
+      title = "Ovulation";
+    } else if (mark === "fertile") {
+      title = "Fertile window";
+    } else if (mark === "predicted") {
+      title = "Predicted period";
+    } else if (log) {
+      title = "Cycle note";
+    }
+    const bits: string[] = [];
+    if (log?.flow) {
+      bits.push(FLOW_OPTIONS.find((row) => row.id === log.flow)?.label ?? log.flow);
+    }
+    if (log?.mood) {
+      bits.push(MOOD_OPTIONS.find((row) => row.id === log.mood)?.label ?? log.mood);
+    }
+    if (log?.symptoms.length) {
+      bits.push(
+        log.symptoms
+          .map((id) => SYMPTOM_OPTIONS.find((row) => row.id === id)?.label ?? id)
+          .join(", ")
+      );
+    }
+    if (log?.note.trim()) bits.push(log.note.trim());
+    items.push({
+      id: `period:${date}`,
+      kind: "period",
+      dateKey: date,
+      at: `${date}T12:00:00.000Z`,
+      title,
+      subtitle: bits.join(" · ") || undefined,
+      mark: calMark,
+      href: "/hub/period",
+      allDay: true,
+    });
+  }
+  return items;
 }

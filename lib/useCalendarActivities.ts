@@ -43,6 +43,7 @@ export function useCalendarActivities(): CalendarActivity[] {
         birthdays: data.birthdays,
         trips: data.trips,
         maintenance: data.maintenance,
+        period: data.period,
         partner,
         user,
       }),
@@ -62,6 +63,7 @@ export function useCalendarActivities(): CalendarActivity[] {
       data.birthdays,
       data.trips,
       data.maintenance,
+      data.period,
       partner,
       user,
     ]
