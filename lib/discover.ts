@@ -184,7 +184,7 @@ export function leftoverDiscover(
 export function isDiscoverAnswered(
   row: CuriosityAnswer | null | undefined
 ): boolean {
-  return Boolean(row?.body?.trim());
+  return Boolean(row && discoverQuestionById(row.questionId));
 }
 
 export function seenDiscoverIds(

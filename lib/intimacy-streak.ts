@@ -183,7 +183,8 @@ export function deriveAutoLogs(input: Omit<IntimacyFuelInput, "stored">): Intima
     const started =
       isCuriosityComplete(row) ||
       row.answerIndex != null ||
-      Boolean(row.body?.trim());
+      Boolean(row.body?.trim()) ||
+      row.questionId.startsWith("disc-");
     if (!started) continue;
     logs.push(
       autoLog({

@@ -485,9 +485,10 @@ type AppContextValue = {
     answerIndex: number;
     guessIndex: number;
   }) => Promise<void>;
-  submitDiscoverAnswer: (questionId: string, body: string) => Promise<void>;
+  submitDiscoverAnswer: (questionId: string, body?: string) => Promise<void>;
   skipDiscover: (questionId: string) => Promise<void>;
   restoreDiscoverSkip: (questionId: string) => Promise<void>;
+  undoDiscover: (questionId: string) => Promise<void>;
   drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
   shuffleTalkQuestion: () => Promise<TalkDraw>;
   submitTalkAnswer: (input?: { categoryId?: string }) => Promise<void>;
@@ -2608,14 +2609,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const submitDiscoverAnswer = useCallback(
-    async (questionId: string, body: string) => {
+    async (questionId: string, body?: string) => {
       if (!user || !couple) {
         throw new Error("Pair first, then Discover.");
       }
       const question = discoverQuestionById(questionId);
       if (!question) throw new Error("That card isn’t in the deck.");
-      const text = body.trim();
-      if (!text) throw new Error("Write something — even a sentence.");
+      const text = (body ?? "").trim();
       const today = localDateKey();
       const existing = db.curiosityAnswers.find(
         (row) =>
@@ -2635,13 +2635,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: existing?.createdAt ?? nowIso(),
       };
       const extra: CuriosityAnswer[] = [];
-      if (partner?.isDemo) {
+      if (partner?.isDemo && text) {
         const already = db.curiosityAnswers.some(
           (row) =>
             row.coupleId === couple.id &&
             row.userId === partner.id &&
-            row.questionId === questionId &&
-            Boolean(row.body?.trim())
+            row.questionId === questionId
         );
         if (!already) {
           extra.push({
@@ -2682,7 +2681,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ritualChecks: upsertRitual(couple.id, user.id, "curiosity", today),
       };
       await persist();
-      if (!partner?.isDemo) {
+      if (text && !partner?.isDemo) {
         pingPartner(couple, user, partner, {
           title: "Discover",
           body: `${user.displayName} answered a Discover card. Your turn if you want it.`,
@@ -2729,6 +2728,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) return;
       db = {
         ...db,
+        curiositySkips: (db.curiositySkips ?? []).filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.userId === user.id &&
+              row.questionId === questionId
+            )
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
+  );
+
+  const undoDiscover = useCallback(
+    async (questionId: string) => {
+      if (!user || !couple) return;
+      db = {
+        ...db,
+        curiosityAnswers: db.curiosityAnswers.filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.userId === user.id &&
+              row.questionId === questionId
+            )
+        ),
         curiositySkips: (db.curiositySkips ?? []).filter(
           (row) =>
             !(
@@ -4850,6 +4876,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitDiscoverAnswer,
     skipDiscover,
     restoreDiscoverSkip,
+    undoDiscover,
     drawTalkQuestion,
     shuffleTalkQuestion,
     submitTalkAnswer,

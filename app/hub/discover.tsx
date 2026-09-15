@@ -14,6 +14,7 @@ import {
   seenDiscoverIds,
   vaultEntries,
   type DiscoverCategoryId,
+  type DiscoverQuestion,
 } from "@/lib/discover";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,7 +26,6 @@ import {
   PanResponder,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -35,6 +35,7 @@ const SCREEN_W = Dimensions.get("window").width;
 const CATS_KEY = "duoma:discover-cats-v2";
 
 type Tab = "deck" | "vault" | "passed";
+type LastMove = { type: "talk" | "skip"; questionId: string };
 
 export default function DiscoverScreen() {
   const {
@@ -46,6 +47,7 @@ export default function DiscoverScreen() {
     submitDiscoverAnswer,
     skipDiscover,
     restoreDiscoverSkip,
+    undoDiscover,
   } = useApp();
 
   const [tab, setTab] = useState<Tab>("deck");
@@ -53,10 +55,10 @@ export default function DiscoverScreen() {
     ...ALL_DISCOVER_CATEGORY_IDS,
   ]);
   const [catsOpen, setCatsOpen] = useState(false);
-  const [answerOpen, setAnswerOpen] = useState(false);
-  const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastMove, setLastMove] = useState<LastMove | null>(null);
+  const [restored, setRestored] = useState<DiscoverQuestion | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -92,8 +94,8 @@ export default function DiscoverScreen() {
     [couple?.id, enabled, seen, user?.id]
   );
 
-  const current = remaining[0] ?? null;
-  const nextPeek = remaining[1] ?? null;
+  const current = restored ?? remaining[0] ?? null;
+  const nextPeek = remaining.find((row) => row.id !== current?.id) ?? null;
 
   const vault = useMemo(
     () => vaultEntries(curiosityAnswers, user?.id, partner?.id),
@@ -113,10 +115,13 @@ export default function DiscoverScreen() {
 
   const commitSkip = async () => {
     if (!current || busy) return;
+    const questionId = current.id;
     setBusy(true);
     setError(null);
     try {
-      await skipDiscover(current.id);
+      await skipDiscover(questionId);
+      setLastMove({ type: "skip", questionId });
+      setRestored(null);
       resetCard();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not skip");
@@ -129,6 +134,44 @@ export default function DiscoverScreen() {
     }
   };
 
+  const commitTalk = async () => {
+    if (!current || busy) return;
+    const questionId = current.id;
+    setBusy(true);
+    setError(null);
+    try {
+      await submitDiscoverAnswer(questionId);
+      setLastMove({ type: "talk", questionId });
+      setRestored(null);
+      resetCard();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+      Animated.spring(pan, {
+        toValue: { x: 0, y: 0 },
+        useNativeDriver: true,
+      }).start();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const undoLast = async () => {
+    if (!lastMove || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await undoDiscover(lastMove.questionId);
+      const card = DISCOVER_QUESTIONS.find((row) => row.id === lastMove.questionId) ?? null;
+      setRestored(card);
+      setLastMove(null);
+      resetCard();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not undo");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const flyOff = (talk: boolean) => {
     if (!current || busy) return;
     Animated.timing(pan, {
@@ -136,13 +179,8 @@ export default function DiscoverScreen() {
       duration: 220,
       useNativeDriver: true,
     }).start(() => {
-      if (talk) {
-        resetCard();
-        setDraft("");
-        setAnswerOpen(true);
-      } else {
-        void commitSkip();
-      }
+      if (talk) void commitTalk();
+      else void commitSkip();
     });
   };
 
@@ -190,33 +228,26 @@ export default function DiscoverScreen() {
     extrapolate: "clamp",
   });
 
-  const saveAnswer = async () => {
-    if (!current) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await submitDiscoverAnswer(current.id, draft);
-      setAnswerOpen(false);
-      setDraft("");
-      resetCard();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const partnerLabel = partner?.displayName ?? "your partner";
   const catalogCount = DISCOVER_QUESTION_COUNT;
+  const onDeck = tab === "deck";
+  const promptSize = current && current.prompt.length > 90 ? 18 : 20;
 
   return (
-    <Screen scroll background={T.background}>
-      <View style={{ paddingBottom: 28, paddingTop: 4 }}>
+    <Screen scroll={!onDeck} background={T.background}>
+      <View
+        style={{
+          flex: onDeck ? 1 : undefined,
+          paddingBottom: onDeck ? 8 : 28,
+          paddingTop: 4,
+          minHeight: 0,
+        }}
+      >
         <BackButton color={T.accent} fallback="/hub/connect" />
 
         <Text
           style={{
-            marginTop: 8,
+            marginTop: 4,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2.4,
@@ -228,32 +259,43 @@ export default function DiscoverScreen() {
         </Text>
         <Text
           style={{
-            marginTop: 10,
+            marginTop: 6,
             fontFamily: SERIF,
-            fontSize: 32,
-            lineHeight: 38,
+            fontSize: 26,
+            lineHeight: 30,
             color: T.ink,
           }}
         >
           Swipe a question
         </Text>
-        <Text
-          style={{
-            marginTop: 8,
-            fontFamily: SERIF,
-            fontSize: 15,
-            lineHeight: 22,
-            color: T.muted,
-          }}
-        >
-          Shuffled cards, as many as you want today. Right = discuss it. Left =
-          skip. Answers live in the vault — yours and {partnerLabel}’s, side by
-          side.
-        </Text>
+        {onDeck ? (
+          <Text
+            style={{
+              marginTop: 4,
+              fontSize: 13,
+              color: T.muted,
+            }}
+          >
+            Right = talked about it. Left = skip.
+          </Text>
+        ) : (
+          <Text
+            style={{
+              marginTop: 6,
+              fontFamily: SERIF,
+              fontSize: 15,
+              lineHeight: 22,
+              color: T.muted,
+            }}
+          >
+            Talked cards live in the vault — yours and {partnerLabel}’s, side by
+            side.
+          </Text>
+        )}
 
         <View
           style={{
-            marginTop: 18,
+            marginTop: 12,
             borderRadius: 16,
             backgroundColor: T.surface,
             padding: 4,
@@ -287,13 +329,13 @@ export default function DiscoverScreen() {
         ) : null}
 
         {tab === "deck" ? (
-          <View style={{ marginTop: 8 }}>
+          <View style={{ flex: 1, minHeight: 0, marginTop: 8 }}>
             <Pressable
               onPress={() => setCatsOpen(true)}
               style={{
                 alignSelf: "center",
-                paddingHorizontal: 14,
-                paddingVertical: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
                 borderRadius: 999,
                 backgroundColor: T.accentSoft,
                 borderWidth: 1,
@@ -307,34 +349,42 @@ export default function DiscoverScreen() {
 
             <Text
               style={{
-                marginTop: 14,
-                marginBottom: 12,
+                marginTop: 8,
+                marginBottom: 8,
                 fontSize: 12,
                 color: T.muted,
                 textAlign: "center",
               }}
             >
               {remaining.length
-                ? `${remaining.length} left in these filters · ${catalogCount} in the whole deck`
+                ? `${remaining.length} left · ${catalogCount} in the deck`
                 : seen.length
                   ? "Nothing left in these categories"
                   : `${catalogCount} questions ready`}
             </Text>
 
-            <View style={{ height: 430, alignItems: "center" }}>
+            <View
+              style={{
+                flex: 1,
+                minHeight: 0,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               {nextPeek ? (
                 <View
                   pointerEvents="none"
                   style={{
                     position: "absolute",
                     width: "100%",
-                    maxWidth: 360,
-                    height: 360,
-                    borderRadius: 28,
+                    maxWidth: 340,
+                    height: "92%",
+                    maxHeight: 240,
+                    borderRadius: 22,
                     backgroundColor: T.surfaceRaised,
                     borderWidth: 1,
                     borderColor: T.border,
-                    transform: [{ scale: 0.96 }, { translateY: 14 }],
+                    transform: [{ scale: 0.96 }, { translateY: 10 }],
                     opacity: 0.7,
                   }}
                 />
@@ -345,29 +395,30 @@ export default function DiscoverScreen() {
                   {...panResponder.panHandlers}
                   style={{
                     width: "100%",
-                    maxWidth: 360,
-                    height: 360,
-                    borderRadius: 28,
+                    maxWidth: 340,
+                    height: "92%",
+                    maxHeight: 240,
+                    borderRadius: 22,
                     backgroundColor: T.surface,
                     borderWidth: 1,
                     borderColor: T.border,
-                    padding: 22,
+                    padding: 16,
                     transform: [
                       { translateX: pan.x },
                       { translateY: pan.y },
                       { rotate },
                     ],
                     shadowColor: "#C084D4",
-                    shadowOpacity: 0.22,
-                    shadowRadius: 18,
-                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.18,
+                    shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 8 },
                   }}
                 >
                   <Animated.View
                     style={{
                       position: "absolute",
-                      top: 22,
-                      left: 22,
+                      top: 14,
+                      left: 14,
                       opacity: talkOpacity,
                       borderWidth: 3,
                       borderColor: T.talk,
@@ -390,8 +441,8 @@ export default function DiscoverScreen() {
                   <Animated.View
                     style={{
                       position: "absolute",
-                      top: 22,
-                      right: 22,
+                      top: 14,
+                      right: 14,
                       opacity: skipOpacity,
                       borderWidth: 3,
                       borderColor: T.skip,
@@ -417,8 +468,8 @@ export default function DiscoverScreen() {
                       alignSelf: "flex-start",
                       borderRadius: 999,
                       backgroundColor: `${discoverCategoryMeta(current.category).tint}55`,
-                      paddingHorizontal: 12,
-                      paddingVertical: 5,
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
                     }}
                   >
                     <Text
@@ -435,46 +486,38 @@ export default function DiscoverScreen() {
 
                   <Text
                     style={{
-                      marginTop: 22,
+                      marginTop: 12,
                       fontFamily: SERIF,
-                      fontSize: current.prompt.length > 110 ? 22 : 26,
-                      lineHeight: current.prompt.length > 110 ? 28 : 32,
+                      fontSize: promptSize,
+                      lineHeight: promptSize + 6,
                       color: T.ink,
                     }}
                   >
                     {current.prompt}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: "auto",
-                      fontSize: 12,
-                      color: T.muted,
-                    }}
-                  >
-                    Right to discuss · left to skip
                   </Text>
                 </Animated.View>
               ) : (
                 <View
                   style={{
                     width: "100%",
-                    maxWidth: 360,
-                    height: 360,
-                    borderRadius: 28,
+                    maxWidth: 340,
+                    maxHeight: 240,
+                    flex: 1,
+                    borderRadius: 22,
                     backgroundColor: T.surface,
                     borderWidth: 1,
                     borderColor: T.border,
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 28,
+                    padding: 22,
                   }}
                 >
-                  <Ionicons name="sparkles" size={42} color={T.accent} />
+                  <Ionicons name="sparkles" size={36} color={T.accent} />
                   <Text
                     style={{
-                      marginTop: 16,
+                      marginTop: 12,
                       fontFamily: SERIF,
-                      fontSize: 24,
+                      fontSize: 22,
                       color: T.ink,
                       textAlign: "center",
                     }}
@@ -483,10 +526,9 @@ export default function DiscoverScreen() {
                   </Text>
                   <Text
                     style={{
-                      marginTop: 10,
-                      fontFamily: SERIF,
-                      fontSize: 15,
-                      lineHeight: 22,
+                      marginTop: 8,
+                      fontSize: 14,
+                      lineHeight: 20,
                       color: T.muted,
                       textAlign: "center",
                     }}
@@ -499,10 +541,10 @@ export default function DiscoverScreen() {
 
             <View
               style={{
-                marginTop: 8,
+                marginTop: 10,
                 flexDirection: "row",
                 justifyContent: "center",
-                gap: 22,
+                gap: 18,
               }}
             >
               <RoundButton
@@ -517,9 +559,30 @@ export default function DiscoverScreen() {
                 color={T.talk}
                 onPress={() => flyOff(true)}
                 disabled={!current || busy}
-                label="Discuss"
+                label="Talked"
               />
             </View>
+            <Pressable
+              onPress={() => void undoLast()}
+              disabled={!lastMove || busy}
+              style={{
+                alignSelf: "center",
+                marginTop: 8,
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                opacity: lastMove && !busy ? 1 : 0.35,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "600",
+                  color: T.muted,
+                }}
+              >
+                Undo
+              </Text>
+            </Pressable>
           </View>
         ) : null}
 
@@ -536,8 +599,8 @@ export default function DiscoverScreen() {
                   lineHeight: 26,
                 }}
               >
-                The vault is empty. Swipe right on a card, write your take, and
-                it lands here.
+                The vault is empty. Swipe right when you’ve talked a card
+                through — it lands here, no writing.
               </Text>
             ) : (
               vault.map((row) => (
@@ -575,13 +638,13 @@ export default function DiscoverScreen() {
                   </Text>
                   <AnswerBlock
                     who="You"
-                    body={row.mine?.body ?? null}
-                    waiting="You haven’t answered this one yet."
+                    body={talkLabel(row.mine?.body)}
+                    waiting="You haven’t talked this one yet."
                   />
                   <AnswerBlock
                     who={partnerLabel}
-                    body={row.theirs?.body ?? null}
-                    waiting={`${partnerLabel} hasn’t answered yet.`}
+                    body={talkLabel(row.theirs?.body)}
+                    waiting={`${partnerLabel} hasn’t talked this one yet.`}
                   />
                 </View>
               ))
@@ -717,69 +780,14 @@ export default function DiscoverScreen() {
           ))}
         </SheetOverlay>
       ) : null}
-
-      {answerOpen && current ? (
-        <SheetOverlay
-          kicker="DISCUSS"
-          title="Your take"
-          onClose={() => {
-            setAnswerOpen(false);
-            setDraft("");
-          }}
-          background={T.surface}
-          ink={T.ink}
-          muted={T.muted}
-        >
-          <Text
-            style={{
-              fontFamily: SERIF,
-              fontSize: 18,
-              lineHeight: 24,
-              color: T.ink,
-            }}
-          >
-            {current.prompt}
-          </Text>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Say it plain. They’ll see this in the vault."
-            placeholderTextColor="rgba(61,46,74,0.32)"
-            multiline
-            style={{
-              marginTop: 14,
-              minHeight: 120,
-              borderRadius: 16,
-              padding: 14,
-              backgroundColor: "#F4EEF8",
-              color: T.ink,
-              fontSize: 16,
-              lineHeight: 22,
-              textAlignVertical: "top",
-            }}
-          />
-          {error ? (
-            <Text style={{ marginTop: 8, color: "#C45C7A" }}>{error}</Text>
-          ) : null}
-          <Pressable
-            onPress={() => void saveAnswer()}
-            disabled={busy}
-            style={{
-              marginTop: 16,
-              height: 52,
-              borderRadius: 26,
-              backgroundColor: T.accent,
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: busy ? 0.6 : 1,
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "800" }}>Save to vault</Text>
-          </Pressable>
-        </SheetOverlay>
-      ) : null}
     </Screen>
   );
+}
+
+function talkLabel(body: string | null | undefined): string | null {
+  if (body == null) return null;
+  const trimmed = body.trim();
+  return trimmed || "Talked about it.";
 }
 
 function RoundButton({
@@ -801,9 +809,9 @@ function RoundButton({
       disabled={disabled}
       accessibilityLabel={label}
       style={{
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        width: 52,
+        height: 52,
+        borderRadius: 26,
         backgroundColor: "#FFFBFE",
         borderWidth: 1.5,
         borderColor: color,
@@ -812,7 +820,7 @@ function RoundButton({
         opacity: disabled ? 0.35 : 1,
       }}
     >
-      <Ionicons name={icon} size={26} color={color} />
+      <Ionicons name={icon} size={22} color={color} />
     </Pressable>
   );
 }
