@@ -1,6 +1,7 @@
 import { HubColorPicker, HubColorSectionLabel } from "@/components/home/HubColorPicker";
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeConnectButton } from "@/components/home/HomeConnectButton";
+import { HomeForgotPassword } from "@/components/home/HomeForgotPassword";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
@@ -219,6 +220,7 @@ export default function HomeScreen() {
         ) : null}
 
         <HomeConnectButton />
+        <HomeForgotPassword />
 
         <Text
           style={{

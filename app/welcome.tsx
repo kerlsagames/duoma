@@ -129,7 +129,7 @@ export default function WelcomeScreen() {
           />
           {usingCloud ? (
             <PrimaryButton
-              label="Open with email"
+              label="Forgot password"
               tone="ghost"
               onPress={() => router.push("/check-email")}
             />

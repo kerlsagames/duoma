@@ -7,7 +7,7 @@ const STEPS = [
   {
     kicker: "Pair once",
     title: "One code, then you stay linked",
-    body: "Email yourself a 6-digit code to open the app. On Home, Connect sends them the six-character pair code. That button leaves when they join. Sign out does not unpair you. Do not make a new pair just to come back.",
+    body: "Email yourself a 6-digit code to open the app. On Home, Connect sends them the six-character pair code — that button leaves when they join. Forgot password on Home emails a sign-in link. Sign out does not unpair you. Do not make a new pair just to come back.",
   },
   {
     kicker: "Names",
