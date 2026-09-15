@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -19,7 +20,72 @@ const T = LISTS_TONE;
 
 type Tab = "lists" | "vault";
 
-const EMOJI_PICKS = ["✨", "🌟", "🎈", "🧭", "🎢", "🧁", "🏕️", "🎧", "🚲", "🎨"];
+const EMOJI_PICKS = [
+  "✨",
+  "🌟",
+  "💫",
+  "🌈",
+  "🌙",
+  "☀️",
+  "🌸",
+  "🔥",
+  "🎬",
+  "📺",
+  "🍿",
+  "🎭",
+  "🎧",
+  "🎵",
+  "🎤",
+  "🎸",
+  "📚",
+  "📝",
+  "🎨",
+  "📷",
+  "🎮",
+  "🎲",
+  "🧩",
+  "🎯",
+  "🍜",
+  "🍕",
+  "🍣",
+  "🧁",
+  "🍰",
+  "☕",
+  "🍷",
+  "🥂",
+  "🗺️",
+  "✈️",
+  "🏕️",
+  "🏖️",
+  "🏔️",
+  "🏝️",
+  "🚗",
+  "🚂",
+  "🎢",
+  "🚲",
+  "⚽",
+  "🏊",
+  "🧘",
+  "🎿",
+  "🏠",
+  "🪴",
+  "🕯️",
+  "🎁",
+  "💍",
+  "🧸",
+  "💕",
+  "🫶",
+  "💐",
+  "🐶",
+  "🐱",
+  "🐾",
+  "🎈",
+  "🧭",
+  "🚀",
+  "🏆",
+  "🪄",
+  "💎",
+];
 
 export default function ListsScreen() {
   const router = useRouter();
@@ -98,65 +164,35 @@ export default function ListsScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pb-10 pt-2">
-        <BackButton color={T.teal} style={{ marginBottom: 8 }} />
-        <View className="mb-1 flex-row items-start justify-between">
-          <View className="flex-1 pr-3">
-            <Text
-              style={{
-                fontFamily: LISTS_ROUNDED,
-                fontSize: 12,
-                letterSpacing: 2.4,
-                textTransform: "uppercase",
-                color: T.teal,
-                fontWeight: "700",
-              }}
-            >
-              Bucket list
-            </Text>
-            <Text
-              style={{
-                marginTop: 4,
-                fontFamily: LISTS_DISPLAY,
-                fontSize: 36,
-                lineHeight: 40,
-                color: T.ink,
-                fontWeight: "700",
-              }}
-            >
-              Lists
-            </Text>
-          </View>
-          <View style={{ alignItems: "flex-end", gap: 8 }}>
-            <Pressable
-              onPress={() => setSettingsOpen(true)}
-              accessibilityLabel="List settings"
-              style={{
-                height: 44,
-                width: 44,
-                borderRadius: 16,
-                backgroundColor: T.sky,
-                borderWidth: 1,
-                borderColor: T.border,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name="settings-outline" size={20} color={T.teal} />
-            </Pressable>
-            <View
-              style={{
-                height: 54,
-                width: 54,
-                borderRadius: 18,
-                backgroundColor: T.sticky,
-                alignItems: "center",
-                justifyContent: "center",
-                transform: [{ rotate: "6deg" }],
-              }}
-            >
-              <Text style={{ fontSize: 26 }}>🗺️</Text>
-            </View>
-          </View>
+        <BackButton color={T.teal} style={{ marginBottom: 6 }} />
+        <View className="mb-1 flex-row items-center justify-between">
+          <Text
+            style={{
+              fontFamily: LISTS_DISPLAY,
+              fontSize: 36,
+              lineHeight: 40,
+              color: T.ink,
+              fontWeight: "700",
+            }}
+          >
+            Lists
+          </Text>
+          <Pressable
+            onPress={() => setSettingsOpen(true)}
+            accessibilityLabel="List settings"
+            style={{
+              height: 44,
+              width: 44,
+              borderRadius: 16,
+              backgroundColor: T.sky,
+              borderWidth: 1,
+              borderColor: T.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="settings-outline" size={20} color={T.teal} />
+          </Pressable>
         </View>
 
         <View
@@ -651,7 +687,17 @@ export default function ListsScreen() {
             >
               Pick a sticker
             </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            <ScrollView
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+              style={{ maxHeight: 196 }}
+              contentContainerStyle={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                paddingBottom: 4,
+              }}
+            >
               {EMOJI_PICKS.map((item) => {
                 const on = emoji === item;
                 return (
@@ -673,7 +719,7 @@ export default function ListsScreen() {
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
 
             <TextInput
               value={title}
