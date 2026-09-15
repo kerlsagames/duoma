@@ -34,6 +34,8 @@ export type HowTechnique = {
   for: HowFor;
   name: string;
   terms: string[];
+  /** Who does what, on which part of the body. Shown above the try. */
+  where: string;
   typesLabel: string;
   types: HowType[];
   routineLabel: string;

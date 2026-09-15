@@ -223,7 +223,8 @@ export default function HowTechniqueScreen() {
                   color: "rgba(255,247,242,0.82)",
                 }}
               >
-                {technique.routine.length} steps. The phone holds the clock.
+                {technique.routine.length} steps, written out below. The phone
+                holds the clock.
               </Text>
             </Pressable>
 
@@ -236,6 +237,7 @@ export default function HowTechniqueScreen() {
                 gap: 14,
               }}
             >
+              <Block kicker="Where this happens" body={technique.where} />
               <Block kicker="What" body={voice.what} />
               <Block kicker="Why" body={voice.why} />
             </View>
@@ -337,14 +339,17 @@ export default function HowTechniqueScreen() {
             >
               THE TRY · {technique.routineLabel.toUpperCase()}
             </Text>
-            <View style={{ marginTop: 10, gap: 6 }}>
+            <View style={{ marginTop: 10, gap: 10 }}>
               {technique.routine.map((row, index) => (
                 <View
                   key={`${row.title}-${index}`}
                   style={{
                     flexDirection: "row",
                     gap: 10,
-                    paddingVertical: 6,
+                    paddingVertical: 8,
+                    borderBottomWidth:
+                      index === technique.routine.length - 1 ? 0 : 1,
+                    borderBottomColor: T.border,
                   }}
                 >
                   <Text
@@ -353,21 +358,33 @@ export default function HowTechniqueScreen() {
                       fontSize: 11,
                       color: T.rose,
                       width: 48,
-                      marginTop: 2,
+                      marginTop: 3,
                     }}
                   >
                     {row.minutes}
                   </Text>
-                  <Text
-                    style={{
-                      flex: 1,
-                      fontFamily: SERIF,
-                      fontSize: 15,
-                      color: T.ink,
-                    }}
-                  >
-                    {row.title}
-                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontFamily: SERIF,
+                        fontSize: 16,
+                        color: T.ink,
+                      }}
+                    >
+                      {row.title}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        fontFamily: SERIF,
+                        fontSize: 14,
+                        lineHeight: 20,
+                        color: T.muted,
+                      }}
+                    >
+                      {row.body}
+                    </Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -621,6 +638,17 @@ function SessionTry({
         >
           {technique.name}
         </Text>
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: SERIF,
+            fontSize: 15,
+            lineHeight: 22,
+            color: T.muted,
+          }}
+        >
+          {technique.where}
+        </Text>
 
         {session.finished ? (
           <View
@@ -726,7 +754,6 @@ function SessionTry({
                 borderRadius: 24,
                 backgroundColor: T.paper,
                 padding: 22,
-                alignItems: "center",
               }}
             >
               <Text
@@ -735,6 +762,7 @@ function SessionTry({
                   fontSize: 11,
                   letterSpacing: 1.6,
                   color: T.roseDeep,
+                  textAlign: "center",
                 }}
               >
                 {step.minutes.toUpperCase()}
@@ -746,6 +774,7 @@ function SessionTry({
                   fontSize: 48,
                   lineHeight: 54,
                   color: T.paperInk,
+                  textAlign: "center",
                 }}
               >
                 {formatClock(session.remaining)}
@@ -769,7 +798,6 @@ function SessionTry({
                   fontSize: 16,
                   lineHeight: 24,
                   color: T.paperMuted,
-                  textAlign: "center",
                 }}
               >
                 {step.body}

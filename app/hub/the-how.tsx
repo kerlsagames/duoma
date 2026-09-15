@@ -126,8 +126,9 @@ export default function TheHowScreen() {
             color: T.muted,
           }}
         >
-          {HOW_TECHNIQUES.length} short cards. A timed try on each. Body words
-          like hood and mons are translated on the card.
+          {HOW_TECHNIQUES.length} techniques. Each card says who does what, on
+          which part of the body, then a timed try. Body words like hood and
+          mons are translated on the card.
         </Text>
 
         {settingsOpen ? (

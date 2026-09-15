@@ -500,7 +500,7 @@ export const GIFTS_TONE = liveTone(
 );
 
 /** Rubber-chicken carnival booth — barn red, yolk tickets, comb stamp. */
-const CHICKEN_TONE_BASE = {
+export const CHICKEN_TONE_BASE = {
   background: "#7A1410",
   barn: "#5C0E0C",
   yolk: "#FFD028",

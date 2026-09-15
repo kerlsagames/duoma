@@ -1,7 +1,12 @@
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { CHICKEN_DISPLAY as DISPLAY, CHICKEN_TONE as T, SERIF } from "@/lib/app-themes";
+import {
+  CHICKEN_DISPLAY as DISPLAY,
+  CHICKEN_TONE as T,
+  CHICKEN_TONE_BASE,
+  SERIF,
+} from "@/lib/app-themes";
 import {
   CHICKEN_BADGES,
   CHICKEN_PACKS,
@@ -603,15 +608,15 @@ const chipStyle = {
   borderRadius: 999,
   paddingHorizontal: 12,
   paddingVertical: 8,
-  backgroundColor: T.barn,
+  backgroundColor: CHICKEN_TONE_BASE.barn,
   borderWidth: 1,
-  borderColor: T.border,
+  borderColor: CHICKEN_TONE_BASE.border,
 } as const;
 
 const chipText = {
   fontFamily: DISPLAY,
   fontSize: 14,
-  color: T.yolk,
+  color: CHICKEN_TONE_BASE.yolk,
 } as const;
 
 function EggCard({

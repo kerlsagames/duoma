@@ -218,17 +218,17 @@ export function themedTone<T>(hubId: HubId, tone: T, fromHex: string): T {
 
 export function liveTone<T extends object>(hubId: HubId, base: T, fromHex: string): T {
   return new Proxy(base, {
-      get(target, prop) {
+    get(target, prop) {
       if (prop === "__base") return target;
-      const painted = themedTone(hubId, target, fromHex);
+      const painted = themedTone(hubId, target, fromHex) ?? target;
       return Reflect.get(painted as object, prop, painted);
     },
     ownKeys(target) {
       return Reflect.ownKeys(target);
     },
     getOwnPropertyDescriptor(target, prop) {
-      const painted = themedTone(hubId, target, fromHex);
-      return Object.getOwnPropertyDescriptor(painted, prop);
+      const painted = themedTone(hubId, target, fromHex) ?? target;
+      return Object.getOwnPropertyDescriptor(painted as object, prop);
     },
   });
 }
