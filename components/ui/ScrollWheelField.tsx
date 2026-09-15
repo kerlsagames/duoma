@@ -1,16 +1,15 @@
 import { useEffect, useRef } from "react";
 import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   View,
+  type ViewStyle,
 } from "react-native";
 
-const ITEM = 40;
-const VISIBLE = 3;
-const PAD = ((VISIBLE - 1) / 2) * ITEM;
+const ROW = 40;
+const VISIBLE = 4;
 
 type ColumnProps = {
   options: string[];
@@ -18,7 +17,7 @@ type ColumnProps = {
   onChange: (value: string) => void;
   ink?: string;
   muted?: string;
-  accent?: string;
+  flex?: number;
 };
 
 function WheelColumn({
@@ -27,75 +26,75 @@ function WheelColumn({
   onChange,
   ink = "#E8EEF4",
   muted = "rgba(232,238,244,0.35)",
-  accent = "#3D8BDB",
+  flex = 1,
 }: ColumnProps) {
   const ref = useRef<ScrollView>(null);
   const index = Math.max(0, options.indexOf(value));
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
-      ref.current?.scrollTo({ y: index * ITEM, animated: false });
+      ref.current?.scrollTo({ y: index * ROW, animated: false });
     });
     return () => cancelAnimationFrame(id);
   }, [index, options.length]);
 
-  const onEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = event.nativeEvent.contentOffset.y;
-    const next = Math.max(0, Math.min(options.length - 1, Math.round(y / ITEM)));
-    ref.current?.scrollTo({ y: next * ITEM, animated: true });
-    const picked = options[next];
-    if (picked && picked !== value) onChange(picked);
-  };
+  const webScroll: ViewStyle | undefined =
+    Platform.OS === "web"
+      ? ({
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          scrollSnapType: "y mandatory",
+        } as ViewStyle)
+      : undefined;
 
   return (
-    <View style={{ flex: 1, height: ITEM * VISIBLE, overflow: "hidden" }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: "absolute",
-          left: 4,
-          right: 4,
-          top: PAD,
-          height: ITEM,
-          borderRadius: 10,
-          borderWidth: 1,
-          borderColor: accent,
-          backgroundColor: "rgba(61,139,219,0.12)",
-          zIndex: 1,
-        }}
-      />
+    <View
+      style={{ flex, height: ROW * VISIBLE }}
+      // @ts-expect-error RN web — keep the sheet from stealing the wheel
+      onWheel={(event: { stopPropagation?: () => void }) => {
+        event.stopPropagation?.();
+      }}
+    >
       <ScrollView
         ref={ref}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM}
-        decelerationRate="fast"
         nestedScrollEnabled
-        onMomentumScrollEnd={onEnd}
-        onScrollEndDrag={Platform.OS === "web" ? onEnd : undefined}
-        contentContainerStyle={{ paddingVertical: PAD }}
+        keyboardShouldPersistTaps="handled"
+        snapToInterval={ROW}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        showsVerticalScrollIndicator={false}
+        style={webScroll}
       >
         {options.map((option) => {
           const on = option === value;
           return (
-            <View
+            <Pressable
               key={option}
+              onPress={() => onChange(option)}
               style={{
-                height: ITEM,
-                alignItems: "center",
+                height: ROW,
                 justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 8,
+                borderRadius: 10,
+                backgroundColor: on ? "rgba(232,238,244,0.10)" : "transparent",
+                ...(Platform.OS === "web"
+                  ? ({ scrollSnapAlign: "start" } as ViewStyle)
+                  : null),
               }}
             >
               <Text
                 style={{
                   color: on ? ink : muted,
-                  fontSize: on ? 18 : 15,
+                  fontSize: 16,
                   fontWeight: on ? "700" : "500",
                   fontVariant: ["tabular-nums"],
                 }}
+                numberOfLines={1}
               >
                 {option}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </ScrollView>
@@ -138,7 +137,9 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
-function parseDateKey(value: string): { year: number; month: number; day: number } | null {
+function parseDateKey(
+  value: string
+): { year: number; month: number; day: number } | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return null;
   const year = Number(match[1]);
@@ -178,7 +179,6 @@ export function ScrollDateField({
   const day = Math.min(parsed?.day ?? now.getDate(), daysInMonth(year, month));
 
   const years = Array.from({ length: 8 }, (_, i) => String(now.getFullYear() - 1 + i));
-  const monthOptions = MONTHS;
   const dayOptions = Array.from({ length: daysInMonth(year, month) }, (_, i) =>
     String(i + 1).padStart(2, "0")
   );
@@ -195,13 +195,16 @@ export function ScrollDateField({
           borderRadius: 14,
           backgroundColor: background,
           paddingHorizontal: 6,
-          paddingVertical: 4,
+          paddingVertical: 6,
           flexDirection: "row",
-          gap: 4,
+          alignItems: "stretch",
+          height: ROW * VISIBLE + 12,
+          gap: 10,
         }}
       >
         <WheelColumn
-          options={monthOptions}
+          flex={1.4}
+          options={MONTHS}
           value={MONTHS[month - 1]!}
           onChange={(labelValue) => {
             const nextMonth = MONTHS.indexOf(labelValue) + 1;
@@ -209,23 +212,22 @@ export function ScrollDateField({
           }}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
         <WheelColumn
+          flex={0.8}
           options={dayOptions}
           value={String(day).padStart(2, "0")}
           onChange={(next) => set(year, month, Number(next))}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
         <WheelColumn
+          flex={1}
           options={years}
           value={String(year)}
           onChange={(next) => set(Number(next), month, day)}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
       </View>
       <PressClear value={value} onClear={() => onChange("")} muted={muted} accent={accent} />
@@ -259,7 +261,9 @@ export function ScrollTimeField({
     onChange(`${hour}:${String(minute).padStart(2, "0")} ${ampm}`);
   };
 
-  const minuteValue = String(Math.round(parsed.minute / 5) * 5).padStart(2, "0");
+  const minuteValue = String(
+    Math.min(55, Math.max(0, Math.round(parsed.minute / 5) * 5))
+  ).padStart(2, "0");
 
   return (
     <View style={{ marginTop: 12 }}>
@@ -269,9 +273,11 @@ export function ScrollTimeField({
           borderRadius: 14,
           backgroundColor: background,
           paddingHorizontal: 6,
-          paddingVertical: 4,
+          paddingVertical: 6,
           flexDirection: "row",
-          gap: 4,
+          alignItems: "stretch",
+          height: ROW * VISIBLE + 12,
+          gap: 10,
         }}
       >
         <WheelColumn
@@ -280,7 +286,6 @@ export function ScrollTimeField({
           onChange={(next) => emit(Number(next), parsed.minute, parsed.ampm)}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
         <WheelColumn
           options={minutes}
@@ -288,7 +293,6 @@ export function ScrollTimeField({
           onChange={(next) => emit(parsed.hour, Number(next), parsed.ampm)}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
         <WheelColumn
           options={ampmOptions}
@@ -296,7 +300,6 @@ export function ScrollTimeField({
           onChange={(next) => emit(parsed.hour, parsed.minute, next as "AM" | "PM")}
           ink={ink}
           muted={muted}
-          accent={accent}
         />
       </View>
       <PressClear value={value} onClear={() => onChange("")} muted={muted} accent={accent} />
@@ -318,7 +321,7 @@ function PressClear({
   if (!value) {
     return (
       <Text style={{ marginTop: 6, color: muted, fontSize: 12 }}>
-        Scroll the wheels — leave blank if you want.
+        Tap a row — leave blank if you want.
       </Text>
     );
   }

@@ -262,7 +262,7 @@ export default function TravelScreen() {
             background="#0F1822"
           />
           <Text style={{ marginTop: 6, color: MUTED, fontSize: 12, lineHeight: 17 }}>
-            Scroll the date wheels. Clear either one if dates are still TBD —
+            Tap a month, day, and year. Clear either date if it is still TBD —
             you can always add day pages later.
           </Text>
           {error ? (
