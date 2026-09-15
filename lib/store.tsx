@@ -364,8 +364,8 @@ function pingPartner(
   void notifyUser(target, db.pushSubscriptions, payload);
 }
 
-type CreateAccountInput = { displayName: string; gender: Gender };
-type JoinInput = { displayName: string; gender: Gender; code: string };
+type CreateAccountInput = { displayName: string; gender: Gender; email?: string };
+type JoinInput = { displayName: string; gender: Gender; code: string; email?: string };
 
 export type BestCard = {
   card: Card;
@@ -442,11 +442,14 @@ type AppContextValue = {
   allProfiles: Profile[];
   allCouples: Couple[];
   allCards: Card[];
+  adminDb: AppDB;
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
   addDemoPartner: (name?: string, gender?: Gender) => Promise<void>;
   setProfileGender: (who: "you" | "partner", gender: Gender) => Promise<void>;
+  banAccount: (profileId: string, reason: string) => Promise<void>;
+  unbanAccount: (profileId: string) => Promise<void>;
   signOut: () => Promise<void>;
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
@@ -1139,11 +1142,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await writeLastUserId(userId);
   };
 
-  const createAccount = useCallback(async ({ displayName, gender }: CreateAccountInput) => {
+  const createAccount = useCallback(async ({ displayName, gender, email }: CreateAccountInput) => {
     const profile: Profile = {
       id: createId(),
       displayName: displayName.trim() || "You",
       gender,
+      email: email?.trim().toLowerCase() || null,
+      bannedAt: null,
+      lastSeenAt: nowIso(),
       createdAt: nowIso(),
     };
     const coupleRow: Couple = {
@@ -1164,7 +1170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
-  const joinWithCode = useCallback(async ({ displayName, gender, code }: JoinInput) => {
+  const joinWithCode = useCallback(async ({ displayName, gender, code, email }: JoinInput) => {
     const normalized = code.trim().toUpperCase();
     const match = db.couples.find((row) => row.inviteCode === normalized);
     if (!match) {
@@ -1177,6 +1183,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: createId(),
       displayName: displayName.trim() || "You",
       gender,
+      email: email?.trim().toLowerCase() || null,
+      bannedAt: null,
+      lastSeenAt: nowIso(),
       createdAt: nowIso(),
     };
     db = {
@@ -1194,9 +1203,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const continueAsSaved = useCallback(async () => {
     if (!lastUserId) return;
+    const saved = db.profiles.find((profile) => profile.id === lastUserId);
+    if (saved?.bannedAt) {
+      throw new Error(saved.bannedReason || "This account is banned.");
+    }
     sessionUserId = lastUserId;
     await writeSessionUserId(lastUserId);
-    emit();
+    db = {
+      ...db,
+      profiles: db.profiles.map((profile) =>
+        profile.id === lastUserId ? { ...profile, lastSeenAt: nowIso() } : profile
+      ),
+    };
+    await persist();
+  }, []);
+
+  const banAccount = useCallback(async (profileId: string, reason: string) => {
+    db = {
+      ...db,
+      profiles: db.profiles.map((profile) =>
+        profile.id === profileId
+          ? {
+              ...profile,
+              bannedAt: nowIso(),
+              bannedReason: reason.trim() || "Banned",
+            }
+          : profile
+      ),
+    };
+    if (sessionUserId === profileId) {
+      sessionUserId = null;
+      await writeSessionUserId(null);
+    }
+    await persist();
+  }, []);
+
+  const unbanAccount = useCallback(async (profileId: string) => {
+    db = {
+      ...db,
+      profiles: db.profiles.map((profile) =>
+        profile.id === profileId
+          ? { ...profile, bannedAt: null, bannedReason: null }
+          : profile
+      ),
+    };
+    await persist();
   }, []);
 
   const addDemoPartner = useCallback(async (name = "Riley", gender: Gender = "female") => {
@@ -4944,6 +4995,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     allProfiles,
     allCouples,
     allCards,
+    adminDb: db,
     calendarEvents,
     errandItems,
     mealRounds,
@@ -4988,6 +5040,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     continueAsSaved,
     addDemoPartner,
     setProfileGender,
+    banAccount,
+    unbanAccount,
     signOut,
     sendSpicyInvite,
     acceptInvite,

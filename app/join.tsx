@@ -1,3 +1,4 @@
+import { looksLikeEmail } from "@/lib/account-usage";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -11,6 +12,7 @@ export default function JoinScreen() {
   const router = useRouter();
   const { joinWithCode } = useApp();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,10 +20,20 @@ export default function JoinScreen() {
 
   const submit = async () => {
     if (!gender) return;
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !looksLikeEmail(trimmedEmail)) {
+      setError("That email does not look right.");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
-      await joinWithCode({ displayName: name, gender, code });
+      await joinWithCode({
+        displayName: name,
+        gender,
+        code,
+        email: trimmedEmail || undefined,
+      });
       router.replace("/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join");
@@ -38,8 +50,8 @@ export default function JoinScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Six characters. No zeros, no ones. Name and Male/Female land on the
-          pair so the spicy rooms can speak to both of you.
+          Two of you. One code. Email is how you open this pair again if this
+          phone dies.
         </Text>
 
         <TextInput
@@ -48,6 +60,17 @@ export default function JoinScreen() {
           placeholder="Your name"
           placeholderTextColor="rgba(244,244,246,0.35)"
           className="mt-8 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+        />
+
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email (for a new phone later)"
+          placeholderTextColor="rgba(244,244,246,0.35)"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
         <View className="mt-4">

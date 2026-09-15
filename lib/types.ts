@@ -40,6 +40,10 @@ export type Profile = {
   id: string;
   displayName: string;
   gender: Gender | null;
+  email?: string | null;
+  bannedAt?: string | null;
+  bannedReason?: string | null;
+  lastSeenAt?: string | null;
   isDemo?: boolean;
   createdAt: string;
 };

@@ -137,6 +137,10 @@ function hydrateProfile(row: AppDB["profiles"][number]): AppDB["profiles"][numbe
     ...row,
     displayName: row.displayName?.trim() || "You",
     gender: row.gender === "male" || row.gender === "female" ? row.gender : null,
+    email: row.email?.trim() || null,
+    bannedAt: row.bannedAt ?? null,
+    bannedReason: row.bannedReason ?? null,
+    lastSeenAt: row.lastSeenAt ?? null,
   };
 }
 

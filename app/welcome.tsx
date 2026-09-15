@@ -88,7 +88,7 @@ export default function WelcomeScreen() {
         </Text>
 
         <View className="mt-8 gap-3">
-          {savedPair ? (
+          {savedPair && !savedPair.user.bannedAt ? (
             <>
               <Text className="text-center text-[14px] leading-5 text-mist/60">
                 {savedPair.partner
@@ -98,16 +98,16 @@ export default function WelcomeScreen() {
               <PrimaryButton
                 label={`Continue as ${savedPair.user.displayName}`}
                 onPress={() => {
-                  void continueAsSaved().then(() => {
-                    router.replace("/");
-                  });
+                  void continueAsSaved()
+                    .then(() => router.replace("/"))
+                    .catch(() => router.replace("/banned"));
                 }}
               />
             </>
           ) : null}
           <PrimaryButton
-            label={savedPair ? "Start a new pair" : "Create your pair"}
-            tone={savedPair ? "ghost" : "neon"}
+            label={savedPair && !savedPair.user.bannedAt ? "Start a new pair" : "Create your pair"}
+            tone={savedPair && !savedPair.user.bannedAt ? "ghost" : "neon"}
             onPress={() => router.push("/create")}
           />
           <PrimaryButton

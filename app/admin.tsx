@@ -16,6 +16,8 @@ import {
   rowInGroup,
 } from "@/lib/catalog-rows";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { usageForProfile } from "@/lib/account-usage";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
 import { useState } from "react";
@@ -28,9 +30,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type Tab = "users" | CatalogKey | "spicyLive";
+type Tab = "setup" | "users" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
+  { id: "setup", label: "Setup" },
   { id: "users", label: "Users" },
   { id: "spicyLive", label: "Copies" },
   { id: "fantasy", label: "Fantasy" },
@@ -51,10 +54,10 @@ export default function AdminScreen() {
   const [unlocked, setUnlocked] = useState(isAdminUnlocked());
   const [pass, setPass] = useState("");
   const [gateError, setGateError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("users");
+  const [tab, setTab] = useState<Tab>("setup");
   const [q, setQ] = useState("");
   const rev = useCatalogRevision();
-  const { allProfiles, allCouples, allCards, ready } = useApp();
+  const { allProfiles, allCouples, allCards, adminDb, ready, banAccount, unbanAccount } = useApp();
   const { width } = useWindowDimensions();
   const stacked = width < 720;
 
@@ -184,8 +187,16 @@ export default function AdminScreen() {
           <View style={{ flex: 1, justifyContent: "center", padding: 24 }}>
             <Text style={{ color: "rgba(244,244,246,0.55)" }}>Loading store…</Text>
           </View>
+        ) : tab === "setup" ? (
+          <SetupPane />
         ) : tab === "users" ? (
-          <UsersPane profiles={allProfiles} couples={allCouples} />
+          <UsersPane
+            profiles={allProfiles}
+            couples={allCouples}
+            db={adminDb}
+            onBan={banAccount}
+            onUnban={unbanAccount}
+          />
         ) : tab === "spicyLive" ? (
           <LiveSpicyPane cards={allCards} profiles={allProfiles} couples={allCouples} />
         ) : (
@@ -196,20 +207,73 @@ export default function AdminScreen() {
   );
 }
 
+function SetupPane() {
+  const cloud = isSupabaseConfigured;
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>How this scales</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
+        Right now every couple on duoma.vercel.app still shares this browser’s local store.
+        That is fine for you poking at cards. It is not 100 people on two phones each.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 20 }}>100 users</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        Yes. Vercel + a free Supabase project holds accounts, pairs, play, and your global
+        card overlay. Photos later use a Storage bucket.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>1,000 users</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        Still yes. Same database. Move to Supabase Pro when the free row/storage limits get
+        tight — usually photos and vault video, not the card text.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Where data lives</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        Postgres on Supabase: profiles, emails, pair codes, bans, which apps they opened,
+        which cards they played. Catalog edits you make in Backstage write to a single
+        overlay row so every couple gets them. Phones keep a cache. You keep this /admin.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Email + code</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        Keep the six-character code — that is how two people become a pair. Add email as
+        the account (magic link, no password to forget). New phone? Same email. Ban? You
+        shut the email, not a random device id.
+      </Text>
+      <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", marginTop: 22, fontSize: 12 }}>
+        CLOUD KEYS · {cloud ? "present" : "missing"}
+      </Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
+        {cloud
+          ? "URL and anon key are in the env. Couple play is still local until the live sync is switched on. Run SQL 001–006, then mark your profile is_admin."
+          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 006_accounts.sql. Turn on Auth → Email (magic link). Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then: update profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"}
+      </Text>
+    </ScrollView>
+  );
+}
+
 function UsersPane({
   profiles,
   couples,
+  db,
+  onBan,
+  onUnban,
 }: {
   profiles: ReturnType<typeof useApp>["allProfiles"];
   couples: ReturnType<typeof useApp>["allCouples"];
+  db: ReturnType<typeof useApp>["adminDb"];
+  onBan: ReturnType<typeof useApp>["banAccount"];
+  onUnban: ReturnType<typeof useApp>["unbanAccount"];
 }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [reason, setReason] = useState("Used inappropriately");
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
       <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>
         Users · {profiles.length}
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4 }}>
-        Everyone in this app’s local store. Two browser tabs are two partners sharing this list.
+        {isSupabaseConfigured
+          ? "Once live sync is on, this list is every couple in Postgres. Today it is this site’s store."
+          : "This site’s store only until Supabase is connected. Ban still locks them out of the app."}
       </Text>
       {profiles.length === 0 ? (
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 16 }}>
@@ -223,13 +287,16 @@ function UsersPane({
         const otherId =
           couple?.partnerA === profile.id ? couple.partnerB : couple?.partnerA ?? null;
         const other = profiles.find((row) => row.id === otherId);
+        const usage = usageForProfile(db, profile);
+        const open = openId === profile.id;
+        const banned = Boolean(profile.bannedAt);
         return (
           <View
             key={profile.id}
             style={{
               marginTop: 12,
               borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.1)",
+              borderColor: banned ? "rgba(255,138,138,0.5)" : "rgba(255,255,255,0.1)",
               borderRadius: 10,
               padding: 12,
             }}
@@ -237,16 +304,75 @@ function UsersPane({
             <Text style={{ color: "#F4F4F6", fontWeight: "800", fontSize: 16 }}>
               {profile.displayName}
               {profile.isDemo ? " · demo" : ""}
+              {banned ? " · BANNED" : ""}
             </Text>
             <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 4, fontSize: 12 }}>
-              id {profile.id}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 2, fontSize: 12 }}>
-              gender {profile.gender ?? "unset"} · created {profile.createdAt}
+              {profile.email || "no email"} · {profile.gender ?? "unset"}
             </Text>
             <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 2, fontSize: 12 }}>
               couple {couple?.inviteCode ?? "none"} · partner {other?.displayName ?? "waiting"}
             </Text>
+            <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 2, fontSize: 11 }}>
+              last seen {profile.lastSeenAt ?? "never"} · id {profile.id}
+            </Text>
+            <Text style={{ color: "rgba(244,244,246,0.7)", marginTop: 8, fontSize: 12 }}>
+              {usage.apps.length
+                ? usage.apps.map((row) => `${row.label} ${row.count}`).join(" · ")
+                : "No app use yet"}
+            </Text>
+            <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+              <Pressable onPress={() => setOpenId(open ? null : profile.id)}>
+                <Text style={{ color: "#FF007F", fontWeight: "700", fontSize: 12 }}>
+                  {open ? "Hide detail" : "See apps & cards"}
+                </Text>
+              </Pressable>
+              {banned ? (
+                <Pressable onPress={() => void onUnban(profile.id)}>
+                  <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>
+                </Pressable>
+              ) : (
+                <Pressable onPress={() => void onBan(profile.id, reason)}>
+                  <Text style={{ color: "#FF8A8A", fontWeight: "700", fontSize: 12 }}>Ban</Text>
+                </Pressable>
+              )}
+            </View>
+            {open ? (
+              <View style={{ marginTop: 10 }}>
+                {usage.apps.map((row) => (
+                  <Text key={row.id} style={{ color: "rgba(244,244,246,0.75)", fontSize: 12, marginTop: 2 }}>
+                    {row.label} · {row.count}
+                  </Text>
+                ))}
+                {usage.cards.length ? (
+                  <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11, marginTop: 10 }}>
+                    CARDS
+                  </Text>
+                ) : null}
+                {usage.cards.map((row, index) => (
+                  <Text
+                    key={`${row.label}-${index}`}
+                    style={{ color: "rgba(244,244,246,0.7)", fontSize: 12, marginTop: 4 }}
+                  >
+                    {row.label}
+                    {"\n"}
+                    <Text style={{ color: "rgba(244,244,246,0.4)" }}>{row.detail}</Text>
+                  </Text>
+                ))}
+                {!banned ? (
+                  <TextInput
+                    value={reason}
+                    onChangeText={setReason}
+                    placeholder="Ban reason"
+                    placeholderTextColor="rgba(244,244,246,0.35)"
+                    style={field}
+                  />
+                ) : (
+                  <Text style={{ color: "#FF8A8A", marginTop: 8, fontSize: 12 }}>
+                    {profile.bannedReason}
+                  </Text>
+                )}
+              </View>
+            ) : null}
           </View>
         );
       })}

@@ -5,12 +5,12 @@ import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
 import { CatalogProvider } from "@/lib/catalog-overlay";
-import { AppProvider } from "@/lib/store";
+import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
 import { useFonts } from "expo-font";
 import Head from "expo-router/head";
-import { Stack, usePathname } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -74,7 +74,17 @@ export default function RootLayout() {
 
 function RootChrome() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, ready } = useApp();
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const banned = Boolean(user?.bannedAt);
+
+  useEffect(() => {
+    if (!ready || admin) return;
+    if (banned && pathname !== "/banned") {
+      router.replace("/banned");
+    }
+  }, [ready, banned, admin, pathname, router]);
 
   return (
     <PhoneShell>
@@ -97,9 +107,10 @@ function RootChrome() {
             <Stack.Screen name="hub" />
             <Stack.Screen name="game" />
             <Stack.Screen name="admin" />
+            <Stack.Screen name="banned" />
           </Stack>
         </View>
-        {admin ? null : (
+        {admin || pathname === "/banned" ? null : (
           <>
             <HomeBar />
             <GameInvitationModal />
