@@ -17,6 +17,12 @@ import {
 } from "@/lib/catalog-rows";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 import { usageForProfile } from "@/lib/account-usage";
+import {
+  EXAMPLE_COUPLE,
+  EXAMPLE_PROFILES,
+  exampleUsage,
+  isExampleAccount,
+} from "@/lib/admin-example";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
@@ -54,7 +60,7 @@ export default function AdminScreen() {
   const [unlocked, setUnlocked] = useState(isAdminUnlocked());
   const [pass, setPass] = useState("");
   const [gateError, setGateError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("setup");
+  const [tab, setTab] = useState<Tab>("users");
   const [q, setQ] = useState("");
   const rev = useCatalogRevision();
   const { allProfiles, allCouples, allCards, adminDb, ready, banAccount, unbanAccount } = useApp();
@@ -216,15 +222,27 @@ function SetupPane() {
         Right now every couple on duoma.vercel.app still shares this browser’s local store.
         That is fine for you poking at cards. It is not 100 people on two phones each.
       </Text>
-      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 20 }}>100 users</Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 20 }}>Right now (no Supabase)</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
-        Yes. Vercel + a free Supabase project holds accounts, pairs, play, and your global
-        card overlay. Photos later use a Storage bucket.
+        One browser. Effectively one couple (two people) on this computer. Not 100. Not
+        two real phones.
       </Text>
-      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>1,000 users</Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Supabase Free · $0</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
-        Still yes. Same database. Move to Supabase Pro when the free row/storage limits get
-        tight — usually photos and vault video, not the card text.
+        50,000 monthly active users. 500 MB database. 1 GB file storage. 5 GB bandwidth.
+        Project pauses after a week of no traffic. For Duoma text (accounts, cards, play)
+        that is thousands of couples. Photos and vault video eat the 1 GB first.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Supabase Pro · $25 / month</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        100,000 monthly active users, then about $0.003 each. 8 GB database. 100 GB files.
+        250 GB bandwidth. Daily backups. Does not pause. One live project is usually just
+        the $25 — Pro includes $10 of compute credit that covers the default server.
+      </Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Best free path</Text>
+      <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
+        Vercel Hobby + Supabase Free. Same app, same /admin. Flip the project to Pro when
+        you need backups, it would otherwise pause, or photos outgrow 1 GB. No rewrite.
       </Text>
       <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Where data lives</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
@@ -263,31 +281,39 @@ function UsersPane({
   onBan: ReturnType<typeof useApp>["banAccount"];
   onUnban: ReturnType<typeof useApp>["unbanAccount"];
 }) {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(EXAMPLE_PROFILES[0]!.id);
   const [reason, setReason] = useState("Used inappropriately");
+  const [exampleBanned, setExampleBanned] = useState<Record<string, string | null>>({});
+  const shownProfiles = [
+    ...EXAMPLE_PROFILES.map((profile) => ({
+      ...profile,
+      bannedAt: exampleBanned[profile.id] ? profile.createdAt : null,
+      bannedReason: exampleBanned[profile.id] ?? null,
+    })),
+    ...profiles.filter((profile) => !isExampleAccount(profile.id)),
+  ];
+  const shownCouples = [
+    EXAMPLE_COUPLE,
+    ...couples.filter((couple) => !isExampleAccount(couple.id)),
+  ];
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
       <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>
-        Users · {profiles.length}
+        Users · {shownProfiles.length}
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4 }}>
-        {isSupabaseConfigured
-          ? "Once live sync is on, this list is every couple in Postgres. Today it is this site’s store."
-          : "This site’s store only until Supabase is connected. Ban still locks them out of the app."}
+        Maya and Jordan are a fake pair so you can click in. Real accounts from this
+        browser sit under them. Ban on the example is only a preview.
       </Text>
-      {profiles.length === 0 ? (
-        <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 16 }}>
-          No profiles yet. Create a pair in the app and they show up here.
-        </Text>
-      ) : null}
-      {profiles.map((profile) => {
-        const couple = couples.find(
+      {shownProfiles.map((profile) => {
+        const couple = shownCouples.find(
           (row) => row.partnerA === profile.id || row.partnerB === profile.id
         );
         const otherId =
           couple?.partnerA === profile.id ? couple.partnerB : couple?.partnerA ?? null;
-        const other = profiles.find((row) => row.id === otherId);
-        const usage = usageForProfile(db, profile);
+        const other = shownProfiles.find((row) => row.id === otherId);
+        const usage = exampleUsage(profile.id) ?? usageForProfile(db, profile);
+        const example = isExampleAccount(profile.id);
         const open = openId === profile.id;
         const banned = Boolean(profile.bannedAt);
         return (
@@ -303,6 +329,7 @@ function UsersPane({
           >
             <Text style={{ color: "#F4F4F6", fontWeight: "800", fontSize: 16 }}>
               {profile.displayName}
+              {example ? " · example" : ""}
               {profile.isDemo ? " · demo" : ""}
               {banned ? " · BANNED" : ""}
             </Text>
@@ -327,11 +354,23 @@ function UsersPane({
                 </Text>
               </Pressable>
               {banned ? (
-                <Pressable onPress={() => void onUnban(profile.id)}>
+                <Pressable
+                  onPress={() =>
+                    example
+                      ? setExampleBanned((row) => ({ ...row, [profile.id]: null }))
+                      : void onUnban(profile.id)
+                  }
+                >
                   <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>
                 </Pressable>
               ) : (
-                <Pressable onPress={() => void onBan(profile.id, reason)}>
+                <Pressable
+                  onPress={() =>
+                    example
+                      ? setExampleBanned((row) => ({ ...row, [profile.id]: reason }))
+                      : void onBan(profile.id, reason)
+                  }
+                >
                   <Text style={{ color: "#FF8A8A", fontWeight: "700", fontSize: 12 }}>Ban</Text>
                 </Pressable>
               )}
@@ -377,14 +416,9 @@ function UsersPane({
         );
       })}
       <Text style={{ color: "#F4F4F6", fontSize: 18, fontWeight: "800", marginTop: 28 }}>
-        Couples · {couples.length}
+        Couples · {shownCouples.length}
       </Text>
-      {couples.length === 0 ? (
-        <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 12 }}>
-          No couples in this store yet.
-        </Text>
-      ) : null}
-      {couples.map((couple) => (
+      {shownCouples.map((couple) => (
         <View
           key={couple.id}
           style={{
@@ -395,7 +429,10 @@ function UsersPane({
             padding: 12,
           }}
         >
-          <Text style={{ color: "#FF007F", fontFamily: "SpaceMono" }}>{couple.inviteCode}</Text>
+          <Text style={{ color: "#FF007F", fontFamily: "SpaceMono" }}>
+            {couple.inviteCode}
+            {isExampleAccount(couple.id) ? " · example" : ""}
+          </Text>
           <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 4, fontSize: 12 }}>
             {couple.id}
           </Text>
