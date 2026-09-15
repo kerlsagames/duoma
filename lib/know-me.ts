@@ -1097,8 +1097,36 @@ export function tallyKnowMeGuesses(
   };
 }
 
+export type PackFaceOff = {
+  myScore: number | null;
+  myCards: number;
+  theirScore: number | null;
+  theirCards: number;
+};
+
+export function packFaceOff(
+  guesses: { packId: string; ownerId: string; guesserId: string; score: number; guesses: number[] }[],
+  packId: string,
+  userId: string | null | undefined,
+  partnerId: string | null | undefined
+): PackFaceOff {
+  const mine = latestGuess(guesses, packId, partnerId, userId);
+  const theirs = latestGuess(guesses, packId, userId, partnerId);
+  return {
+    myScore: mine ? mine.score : null,
+    myCards: mine?.guesses.length || KNOW_ME_CARDS,
+    theirScore: theirs ? theirs.score : null,
+    theirCards: theirs?.guesses.length || KNOW_ME_CARDS,
+  };
+}
+
+export function scoreLine(hits: number | null, cards: number): string {
+  if (hits == null) return `—/${cards}`;
+  return `${hits}/${cards}`;
+}
+
 export function latestGuess<
-  T extends { packId: string; ownerId: string; guesserId: string; createdAt: string },
+  T extends { packId: string; ownerId: string; guesserId: string },
 >(
   guesses: T[],
   packId: string,

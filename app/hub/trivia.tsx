@@ -11,12 +11,15 @@ import {
   knowMePackById,
   laneLabel,
   latestGuess,
+  packFaceOff,
   packLane,
   scoreKnowMe,
+  scoreLine,
   sheetFor,
   tallyKnowMeGuesses,
   type KnowMeLane,
   type KnowMePack,
+  type PackFaceOff,
 } from "@/lib/know-me";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -48,6 +51,8 @@ export default function TriviaScreen() {
     guesses: number[];
     answers: number[];
     score: number;
+    theirScore: number | null;
+    theirCards: number;
   } | null>(null);
 
   const sheets = data.knowMeSheets;
@@ -67,6 +72,10 @@ export default function TriviaScreen() {
   const myStats = useMemo(
     () => tallyKnowMeGuesses(guesses, user?.id),
     [guesses, user?.id]
+  );
+  const theirStats = useMemo(
+    () => tallyKnowMeGuesses(guesses, partner?.id),
+    [guesses, partner?.id]
   );
 
   const go = useCallback((next: ViewMode) => {
@@ -88,6 +97,7 @@ export default function TriviaScreen() {
     const row = knowMePackById(id);
     const theirs = sheetFor(sheets, partner?.id, id);
     const mine = user ? latestGuess(guesses, id, partner?.id, user.id) : null;
+    const themGuess = latestGuess(guesses, id, user?.id, partner?.id);
     if (!row || !theirs || !mine) return;
     setPackId(id);
     setResult({
@@ -95,6 +105,8 @@ export default function TriviaScreen() {
       guesses: [...mine.guesses],
       answers: [...theirs.answers],
       score: mine.score,
+      theirScore: themGuess ? themGuess.score : null,
+      theirCards: themGuess?.guesses.length || row.questions.length,
     });
     go("result");
   };
@@ -199,6 +211,8 @@ export default function TriviaScreen() {
       guesses: [...picks],
       answers: [...sheet.answers],
       score,
+      theirScore: demoGuess[0]?.score ?? latestGuess(guesses, pack.id, user.id, partner.id)?.score ?? null,
+      theirCards: pack.questions.length,
     });
     go("result");
   };
@@ -260,7 +274,8 @@ export default function TriviaScreen() {
           <Shop
             you={you}
             them={them}
-            stats={myStats}
+            myStats={myStats}
+            theirStats={theirStats}
             gate={gate}
             onOpen={openRip}
             onResult={openResult}
@@ -312,17 +327,26 @@ export default function TriviaScreen() {
 function Shop({
   you,
   them,
-  stats,
+  myStats,
+  theirStats,
   gate,
   onOpen,
   onResult,
 }: {
   you: string;
   them: string;
-  stats: ReturnType<typeof tallyKnowMeGuesses>;
+  myStats: ReturnType<typeof tallyKnowMeGuesses>;
+  theirStats: ReturnType<typeof tallyKnowMeGuesses>;
   gate: {
     sheets: { packId: string; userId: string }[];
-    guesses: { packId: string; ownerId: string; guesserId: string; createdAt: string }[];
+    guesses: {
+      packId: string;
+      ownerId: string;
+      guesserId: string;
+      createdAt: string;
+      score: number;
+      guesses: number[];
+    }[];
     userId: string | undefined;
     partnerId: string | undefined;
   };
@@ -330,6 +354,8 @@ function Shop({
   onResult: (id: string) => void;
 }) {
   const finished = KNOW_ME_PACKS.filter((row) => packLane({ ...gate, pack: row }) === "done").length;
+  const youAhead = myStats.correct !== theirStats.correct;
+  const leader = myStats.correct >= theirStats.correct ? you : them;
   return (
     <View>
       <Text
@@ -370,31 +396,94 @@ function Shop({
       <View
         style={{
           marginTop: 16,
-          flexDirection: "row",
-          gap: 10,
+          backgroundColor: T.felt,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: T.border,
+          overflow: "hidden",
         }}
       >
-        <StatChip label="You" value={you} />
-        <StatChip
-          label="Hits"
-          value={stats.asked ? `${stats.correct}/${stats.asked}` : "—"}
+        <View
+          style={{
+            paddingHorizontal: 14,
+            paddingTop: 12,
+            paddingBottom: 8,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: T.foil,
+            }}
+          >
+            Leaderboard
+          </Text>
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              color: T.dim,
+            }}
+          >
+            Binder {finished}/{KNOW_ME_PACK_COUNT}
+          </Text>
+        </View>
+        <BoardRow
+          rank={myStats.correct >= theirStats.correct ? 1 : 2}
+          name={you}
+          hits={myStats.correct}
+          asked={myStats.asked || 0}
+          caption="you guessing them"
+          lead={myStats.correct >= theirStats.correct && myStats.asked > 0}
         />
-        <StatChip label="Binder" value={`${finished}/${KNOW_ME_PACK_COUNT}`} />
+        <View style={{ height: 1, backgroundColor: "rgba(246,238,216,0.08)", marginHorizontal: 14 }} />
+        <BoardRow
+          rank={theirStats.correct > myStats.correct ? 1 : 2}
+          name={them}
+          hits={theirStats.correct}
+          asked={theirStats.asked || 0}
+          caption="them guessing you"
+          lead={theirStats.correct > myStats.correct && theirStats.asked > 0}
+        />
+        <Text
+          style={{
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            fontFamily: SERIF,
+            fontSize: 13,
+            color: T.muted,
+          }}
+        >
+          {!myStats.asked && !theirStats.asked
+            ? "Scores land here as soon as a pack is guessed."
+            : youAhead
+              ? `${leader} is ahead.`
+              : `Tied. ${finished ? "Keep ripping." : "Rip pack 1."}`}
+        </Text>
       </View>
 
       <View style={{ marginTop: 18, gap: 14 }}>
         {KNOW_ME_PACKS.map((item) => {
           const lane = packLane({ ...gate, pack: item });
+          const face = packFaceOff(gate.guesses, item.id, gate.userId, gate.partnerId);
           return (
             <PackSleeve
               key={item.id}
               pack={item}
               lane={lane}
               them={them}
+              you={you}
+              face={face}
               onPress={() => {
-                if (lane === "locked" || lane === "wait" || lane === "waitGuess") return;
-                if (lane === "done") {
-                  onResult(item.id);
+                if (lane === "locked" || lane === "wait") return;
+                if (lane === "done" || lane === "waitGuess") {
+                  if (face.myScore != null) onResult(item.id);
                   return;
                 }
                 onOpen(item.id, lane === "guess" ? "guess" : "fill");
@@ -407,40 +496,75 @@ function Shop({
   );
 }
 
-function StatChip({ label, value }: { label: string; value: string }) {
+function BoardRow({
+  rank,
+  name,
+  hits,
+  asked,
+  caption,
+  lead,
+}: {
+  rank: number;
+  name: string;
+  hits: number;
+  asked: number;
+  caption: string;
+  lead: boolean;
+}) {
   return (
     <View
       style={{
-        flex: 1,
-        backgroundColor: T.felt,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: T.border,
-        paddingVertical: 10,
-        paddingHorizontal: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
       }}
     >
       <Text
         style={{
-          fontFamily: "SpaceMono",
-          fontSize: 9,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          color: T.dim,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        numberOfLines={1}
-        style={{
-          marginTop: 4,
           fontFamily: KNOW_ME_DISPLAY,
-          fontSize: 16,
-          color: T.cream,
+          fontSize: 18,
+          width: 22,
+          color: lead ? T.foil : T.dim,
         }}
       >
-        {value}
+        {rank}
+      </Text>
+      <View style={{ flex: 1 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontFamily: KNOW_ME_DISPLAY,
+            fontSize: 20,
+            color: T.cream,
+          }}
+        >
+          {name}
+        </Text>
+        <Text
+          style={{
+            marginTop: 2,
+            fontFamily: "SpaceMono",
+            fontSize: 10,
+            letterSpacing: 0.6,
+            textTransform: "uppercase",
+            color: T.dim,
+          }}
+        >
+          {caption}
+        </Text>
+      </View>
+      <Text
+        style={{
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 28,
+          lineHeight: 32,
+          color: lead ? T.foil : T.cream,
+        }}
+      >
+        {asked ? `${hits}` : "—"}
+        <Text style={{ fontSize: 16, color: T.dim }}>/{asked || KNOW_ME_CARDS}</Text>
       </Text>
     </View>
   );
@@ -450,16 +574,21 @@ function PackSleeve({
   pack,
   lane,
   them,
+  you,
+  face,
   onPress,
 }: {
   pack: KnowMePack;
   lane: KnowMeLane;
   them: string;
+  you: string;
+  face: PackFaceOff;
   onPress: () => void;
 }) {
   const locked = lane === "locked";
-  const waiting = lane === "wait" || lane === "waitGuess";
+  const waiting = lane === "wait";
   const live = lane === "fill" || lane === "guess";
+  const scored = face.myScore != null || face.theirScore != null;
   return (
     <Pressable
       onPress={onPress}
@@ -504,7 +633,7 @@ function PackSleeve({
         />
         <View style={{ padding: 16, paddingTop: 22 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <View>
+            <View style={{ flex: 1, paddingRight: 8 }}>
               <Text
                 style={{
                   fontFamily: KNOW_ME_DISPLAY,
@@ -533,7 +662,6 @@ function PackSleeve({
                   fontSize: 14,
                   lineHeight: 20,
                   color: "rgba(255,248,236,0.78)",
-                  maxWidth: 220,
                 }}
               >
                 {locked
@@ -555,6 +683,17 @@ function PackSleeve({
             >
               {locked ? (
                 <Ionicons name="lock-closed" size={20} color={pack.foil} />
+              ) : scored ? (
+                <Text
+                  style={{
+                    fontFamily: KNOW_ME_DISPLAY,
+                    fontSize: 16,
+                    color: pack.foil,
+                    fontWeight: "800",
+                  }}
+                >
+                  {scoreLine(face.myScore, face.myCards).split("/")[0]}
+                </Text>
               ) : (
                 <Text
                   style={{
@@ -569,38 +708,132 @@ function PackSleeve({
               )}
             </View>
           </View>
-          <View
-            style={{
-              marginTop: 14,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text
+          {scored ? (
+            <View
               style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.1,
-                textTransform: "uppercase",
-                color: pack.foil,
+                marginTop: 14,
+                flexDirection: "row",
+                gap: 8,
               }}
             >
-              {laneLabel(lane, them)}
-            </Text>
-            <Text
+              <ScorePill
+                label={you}
+                detail="guessed them"
+                value={scoreLine(face.myScore, face.myCards)}
+                foil={pack.foil}
+                ahead={
+                  face.myScore != null &&
+                  (face.theirScore == null || face.myScore >= face.theirScore)
+                }
+              />
+              <ScorePill
+                label={them}
+                detail="guessed you"
+                value={scoreLine(face.theirScore, face.theirCards)}
+                foil={pack.foil}
+                ahead={
+                  face.theirScore != null &&
+                  (face.myScore == null || face.theirScore > face.myScore)
+                }
+              />
+            </View>
+          ) : (
+            <View
               style={{
-                fontFamily: "SpaceMono",
-                fontSize: 10,
-                color: "rgba(255,248,236,0.7)",
+                marginTop: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
               }}
             >
-              {KNOW_ME_CARDS} CARDS
-            </Text>
-          </View>
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 1.1,
+                  textTransform: "uppercase",
+                  color: pack.foil,
+                }}
+              >
+                {laneLabel(lane, them)}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "SpaceMono",
+                  fontSize: 10,
+                  color: "rgba(255,248,236,0.7)",
+                }}
+              >
+                {KNOW_ME_CARDS} CARDS
+              </Text>
+            </View>
+          )}
         </View>
       </LinearGradient>
     </Pressable>
+  );
+}
+
+function ScorePill({
+  label,
+  detail,
+  value,
+  foil,
+  ahead,
+}: {
+  label: string;
+  detail: string;
+  value: string;
+  foil: string;
+  ahead: boolean;
+}) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        backgroundColor: ahead ? "rgba(12,8,6,0.45)" : "rgba(12,8,6,0.28)",
+        borderWidth: 1,
+        borderColor: ahead ? foil : "rgba(255,248,236,0.12)",
+      }}
+    >
+      <Text
+        numberOfLines={1}
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 9,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
+          color: "rgba(255,248,236,0.7)",
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          marginTop: 2,
+          fontFamily: KNOW_ME_DISPLAY,
+          fontSize: 22,
+          lineHeight: 26,
+          color: "#FFF8EC",
+        }}
+      >
+        {value}
+      </Text>
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 9,
+          letterSpacing: 0.4,
+          textTransform: "uppercase",
+          color: foil,
+        }}
+      >
+        {detail}
+      </Text>
+    </View>
   );
 }
 
@@ -945,18 +1178,24 @@ function ResultBinder({
     guesses: number[];
     answers: number[];
     score: number;
+    theirScore: number | null;
+    theirCards: number;
   };
   onShop: () => void;
 }) {
-  const win = result.score >= KNOW_ME_WIN;
+  const cards = result.pack.questions.length;
+  const myLine = scoreLine(result.score, cards);
+  const theirLine = scoreLine(result.theirScore, result.theirCards);
+  const youLead =
+    result.theirScore == null || result.score >= result.theirScore;
   const line =
-    result.score === result.pack.questions.length
-      ? "Foil hit. You live here."
-      : win
-        ? "That’s a binder-worthy pack."
-        : result.score >= 3
-          ? "Close. Next pack will tell."
-          : "Tough pull. You still learned something.";
+    result.theirScore == null
+      ? `You guessed ${them} ${myLine}. Waiting on their pull of yours.`
+      : result.score === result.theirScore
+        ? `Tied ${myLine}. Same read on each other.`
+        : result.score > result.theirScore
+          ? `You know ${them} better this pack.`
+          : `${them} knew you better this pack.`;
   const next = KNOW_ME_PACKS.find((row) => row.number === result.pack.number + 1);
   return (
     <View>
@@ -969,7 +1208,7 @@ function ResultBinder({
           color: T.foil,
         }}
       >
-        Pack {String(result.pack.number).padStart(2, "0")} · {you} vs {them}
+        Pack {String(result.pack.number).padStart(2, "0")} · leaderboard
       </Text>
       <Text
         style={{
@@ -981,19 +1220,85 @@ function ResultBinder({
       >
         {result.pack.title}
       </Text>
+
+      <View style={{ marginTop: 16, flexDirection: "row", gap: 10 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: T.felt,
+            borderRadius: 16,
+            borderWidth: 1.5,
+            borderColor: youLead ? T.foil : T.border,
+            padding: 12,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 9,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: T.dim,
+            }}
+          >
+            {you} guessed {them}
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: KNOW_ME_DISPLAY,
+              fontSize: 40,
+              lineHeight: 44,
+              color: youLead ? T.foil : T.cream,
+            }}
+          >
+            {myLine}
+          </Text>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: T.felt,
+            borderRadius: 16,
+            borderWidth: 1.5,
+            borderColor: !youLead ? T.foil : T.border,
+            padding: 12,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 9,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: T.dim,
+            }}
+          >
+            {them} guessed {you}
+          </Text>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: KNOW_ME_DISPLAY,
+              fontSize: 40,
+              lineHeight: 44,
+              color: !youLead ? T.foil : T.cream,
+            }}
+          >
+            {theirLine}
+          </Text>
+        </View>
+      </View>
+
       <Text
         style={{
-          marginTop: 6,
-          fontFamily: KNOW_ME_DISPLAY,
-          fontSize: 72,
-          lineHeight: 76,
-          color: win ? T.win : T.foil,
+          marginTop: 12,
+          fontFamily: SERIF,
+          fontSize: 18,
+          lineHeight: 26,
+          color: T.muted,
         }}
       >
-        {result.score}
-        <Text style={{ fontSize: 24, color: T.dim }}>/{result.pack.questions.length}</Text>
-      </Text>
-      <Text style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 26, color: T.muted }}>
         {line}
       </Text>
       {next ? (
