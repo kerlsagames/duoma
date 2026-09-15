@@ -32,18 +32,19 @@ export function PlayTabs<T extends string>({
               minHeight: 40,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: on ? accent : "rgba(255,255,255,0.12)",
-              backgroundColor: on ? `${accent}22` : "rgba(255,255,255,0.04)",
+              borderColor: on ? accent : ink,
+              backgroundColor: on ? `${accent}22` : "transparent",
               alignItems: "center",
               justifyContent: "center",
               paddingHorizontal: 6,
+              opacity: on ? 1 : 0.45,
             }}
           >
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: "700",
-                color: on ? ink : "rgba(244,244,246,0.62)",
+                color: ink,
                 textAlign: "center",
               }}
             >
