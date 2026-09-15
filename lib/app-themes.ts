@@ -36,29 +36,30 @@ export const COUPONS_TONE = liveTone(
   COUPONS_TONE_BASE.accent
 );
 
-/** TV game-show studio for How Well Do You Know Me. */
+/** Hobby-shop felt table for How Well Do You Know Me packs. */
 const KNOW_ME_TONE_BASE = {
-  background: "#05040A",
-  stage: "#0C0814",
-  panel: "#140C1C",
-  panelRaised: "#1A1024",
-  gold: "#FFE566",
-  goldSoft: "rgba(255,229,102,0.16)",
-  cyan: "#3DFFF0",
-  magenta: "#FF2D8A",
-  magentaSoft: "rgba(255,45,138,0.16)",
-  ink: "#FFF8E8",
-  muted: "rgba(255,248,232,0.58)",
-  dim: "rgba(255,248,232,0.34)",
-  border: "rgba(255,229,102,0.28)",
-  win: "#7CFFB2",
-  miss: "#FF6B8A",
+  background: "#14261C",
+  felt: "#1C3326",
+  feltDark: "#0E1C14",
+  wood: "#3A2416",
+  pack: "#F4E6C8",
+  packInk: "#1C140C",
+  foil: "#E8C56A",
+  foilSoft: "rgba(232,197,106,0.18)",
+  cream: "#FBF3E0",
+  ink: "#F6EED8",
+  muted: "rgba(246,238,216,0.64)",
+  dim: "rgba(246,238,216,0.38)",
+  border: "rgba(232,197,106,0.28)",
+  win: "#8FDE9A",
+  miss: "#E07A6A",
+  lock: "rgba(14,28,20,0.72)",
 } as const;
 
 export const KNOW_ME_TONE = liveTone(
   "play",
   KNOW_ME_TONE_BASE,
-  KNOW_ME_TONE_BASE.gold
+  KNOW_ME_TONE_BASE.foil
 );
 
 export const KNOW_ME_DISPLAY: TextStyle["fontFamily"] = Platform.select({

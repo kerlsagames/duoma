@@ -209,7 +209,7 @@ export const HUBS: HubDef[] = [
       {
         id: "trivia",
         label: "How Well Do You Know Me?",
-        detail: "Game-show packs. Answer yours. Guess theirs.",
+        detail: "Rip a pack. Answer yours. Guess theirs. Next pack stays sealed.",
         icon: "help-circle",
         href: "/hub/trivia",
       },

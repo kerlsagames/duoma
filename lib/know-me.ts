@@ -6,16 +6,28 @@ export type KnowMeQuestion = {
 
 export type KnowMePack = {
   id: string;
+  number: number;
   title: string;
   blurb: string;
   accent: string;
+  foil: string;
   questions: KnowMeQuestion[];
 };
 
-export const KNOW_ME_WIN = 7;
+export type KnowMeLane =
+  | "locked"
+  | "fill"
+  | "wait"
+  | "guess"
+  | "waitGuess"
+  | "done";
+
+export const KNOW_ME_CARDS = 8;
+export const KNOW_ME_WIN = 6;
+export const KNOW_ME_PACK_COUNT = 20;
 
 export const KNOW_ME_PACKS: KnowMePack[] = [
-  pack("everyday", "Everyday me", "Habits, mornings, tiny tells.", "#F6E27A", [
+  pack(1, "everyday", "Everyday tells", "Mornings, phones, tiny habits.", "#C45C4A", "#E8A090", [
     q("coffee", "My coffee order if nobody's watching", [
       "Whatever’s strongest",
       "Something sweet with too much foam",
@@ -52,18 +64,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Notifications off, on purpose",
       "I check it more than I’ll admit",
     ]),
-    q("shower", "Shower length, honestly", [
-      "In and out",
-      "A whole season of a show",
-      "Depends on the day",
-      "I sing. That’s the delay.",
-    ]),
-    q("shoes", "Leaving the house, I forget", [
-      "Keys",
-      "My water bottle",
-      "What I just stood up to do",
-      "Nothing. I’m the organised one.",
-    ]),
     q("night", "My real bedtime", [
       "Early and proud",
       "“Just one more episode”",
@@ -77,7 +77,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "The snacks I start hunting",
     ]),
   ]),
-  pack("food", "Food & drink", "Orders, cravings, fridge politics.", "#FF7A45", [
+  pack(2, "food", "Food & drink", "Orders, cravings, fridge politics.", "#E06A32", "#F0A070", [
     q("comfort", "My secret comfort food", [
       "Something fried and unholy",
       "Cereal for dinner",
@@ -108,12 +108,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Suggest takeout creatively",
       "Make the same three things",
     ]),
-    q("drink", "My default drink", [
-      "Water, I’m boring",
-      "Something fizzy",
-      "Coffee until it’s a problem",
-      "Whatever you’re having",
-    ]),
     q("hungry", "When I’m hungry I get", [
       "Quiet and dangerous",
       "Dramatic",
@@ -126,12 +120,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Want to share everything",
       "Guard my plate",
     ]),
-    q("breakfast", "Real breakfast, if I had time", [
-      "Eggs and something fried",
-      "Sweet — toast, yoghurt, fruit",
-      "Just coffee",
-      "I skip it and call lunch breakfast",
-    ]),
     q("snack", "The snack I will always say yes to", [
       "Chips",
       "Chocolate",
@@ -139,7 +127,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Fruit if you cut it up for me",
     ]),
   ]),
-  pack("us", "You & me", "How I love, fight, and cling.", "#FF3D8B", [
+  pack(3, "us", "You & me", "How I love, fight, and cling.", "#D44878", "#F090B0", [
     q("loved", "The thing that actually makes me feel loved", [
       "A surprise plan",
       "Being left alone on purpose",
@@ -164,12 +152,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "A walk with no plan",
       "Something slightly new",
     ]),
-    q("jealous", "I get jealous when", [
-      "You go quiet on your phone",
-      "Someone is obviously into you",
-      "I don’t, I just get thoughtful",
-      "You make plans without me",
-    ]),
     q("need", "When I’ve had a bad day I want", [
       "To vent, then be done",
       "Silence and your shoulder",
@@ -181,12 +163,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Kiss me anyway",
       "Depends who’s watching",
       "I’m the one who starts it",
-    ]),
-    q("future", "When we talk about the future I", [
-      "Want details",
-      "Want the feeling, not the spreadsheet",
-      "Get itchy if it’s too far out",
-      "Already have a list",
     ]),
     q("pet", "My most extra couple habit", [
       "Sending you photos of nothing",
@@ -201,7 +177,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Time, no phones",
     ]),
   ]),
-  pack("comfort", "Comfort & stress", "What steadies me and what doesn’t.", "#7C5CFF", [
+  pack(4, "comfort", "Comfort & stress", "What steadies me — and what doesn’t.", "#6B5CFF", "#A898F0", [
     q("stress", "When I’m stressed you can see it in", [
       "My sleep",
       "My tone",
@@ -220,12 +196,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Work / being enough",
       "Health, mine or yours",
     ]),
-    q("cry", "I cry", [
-      "At ads, easily",
-      "Only when it’s serious",
-      "When I’m angry, weirdly",
-      "Almost never, which is its own thing",
-    ]),
     q("sick", "When I’m sick I want", [
       "To be left in a nest",
       "You checking on me every hour",
@@ -237,12 +207,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Push through and crash",
       "Need you to pick the next step",
       "Clean something aggressively",
-    ]),
-    q("comfort-show", "My comfort watch", [
-      "A show I’ve seen twelve times",
-      "Something dumb and new",
-      "You picking is the comfort",
-      "I don’t watch, I scroll",
     ]),
     q("touch", "When I’m anxious, touch should be", [
       "A full hug",
@@ -263,7 +227,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "A plan for tomorrow",
     ]),
   ]),
-  pack("weekends", "Weekends & travel", "Days off, trips, and how I wander.", "#3ECFBF", [
+  pack(5, "weekends", "Weekends & travel", "Days off, trips, and how I wander.", "#2FA89A", "#7ED4C8", [
     q("saturday", "If we had a free Saturday I’d pick", [
       "A long walk with no destination",
       "A project around the house",
@@ -287,12 +251,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Forget a charger",
       "Make a list and still miss something",
       "Throw it in 20 minutes before",
-    ]),
-    q("beach", "Beach day, my truth", [
-      "In the water immediately",
-      "Towel, book, don’t splash me",
-      "I’ll go if there’s food nearby",
-      "I burn. I know. I’ll still forget sunscreen.",
     ]),
     q("flight", "At the airport I", [
       "Want to be hours early",
@@ -318,14 +276,8 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Never. I need a plan.",
       "Always. Please kidnap me kindly.",
     ]),
-    q("souvenir", "I bring home", [
-      "Something useful",
-      "Something ugly and beloved",
-      "Photos, that’s it",
-      "Fridge magnets, unironically",
-    ]),
   ]),
-  pack("home", "At home", "Chores, nests, and the remote.", "#E4C37A", [
+  pack(6, "home", "At home", "Chores, nests, and the remote.", "#C4A056", "#E8D090", [
     q("nest", "My favourite spot in the house", [
       "The couch corner",
       "The bed, always",
@@ -356,12 +308,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Don’t care",
       "Panic-cook",
     ]),
-    q("plants", "House plants", [
-      "I keep them alive",
-      "I love them and they die",
-      "They’re yours",
-      "We shouldn’t have plants",
-    ]),
     q("temp", "The house temperature I want", [
       "Warm, almost too warm",
       "Cold, duvet weather",
@@ -374,12 +320,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Quiet, please",
       "A podcast I half listen to",
     ]),
-    q("morning-home", "First thing I do at home after work", [
-      "Change clothes",
-      "Find you",
-      "Snack",
-      "Zone out for twenty minutes",
-    ]),
     q("sleep-side", "In bed I", [
       "Steal the duvet",
       "Run hot and kick it off",
@@ -387,7 +327,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Need space or I overheat",
     ]),
   ]),
-  pack("childhood", "Growing up", "Kid me, still in here.", "#F0A46A", [
+  pack(7, "childhood", "Growing up", "Kid me, still in here.", "#D4894A", "#F0C090", [
     q("kid", "As a kid I was", [
       "Shy until I knew you",
       "The loud one",
@@ -424,23 +364,11 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Not doing homework",
       "I was suspiciously well-behaved",
     ]),
-    q("dream", "Kid-me’s job fantasy", [
-      "Something on a stage",
-      "Something heroic",
-      "Something with animals",
-      "I had no idea, still don’t",
-    ]),
     q("sibling", "Sibling energy (or only-child)", [
       "I was the bossy one",
       "I was the baby",
       "Only child, full main character",
       "Peacemaker",
-    ]),
-    q("scare", "Things that scared kid-me", [
-      "The dark",
-      "Being left out",
-      "Disappointing someone",
-      "Loud adults",
     ]),
     q("proud", "Something I was secretly proud of", [
       "A sport",
@@ -449,7 +377,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Being kind when it was uncool",
     ]),
   ]),
-  pack("social", "Friends & nights out", "Rooms, plans, and when I leave.", "#5B8CFF", [
+  pack(8, "social", "Friends & nights out", "Rooms, plans, and when I leave.", "#4A78D4", "#90B0F0", [
     q("party", "At a party I", [
       "Find one person and camp",
       "Work the room",
@@ -480,23 +408,11 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Absolutely not",
       "Only if you do it first",
     ]),
-    q("photo", "Group photos I", [
-      "Hide",
-      "Take them",
-      "Care about the angle",
-      "Don’t care, post anything",
-    ]),
     q("home-time", "I want to go home when", [
       "I hit a quiet wall",
       "The food’s gone",
       "You look tired",
       "They start suggesting a second venue",
-    ]),
-    q("friend-fight", "If a friend upset me I’d", [
-      "Talk it out fast",
-      "Go quiet for a week",
-      "Tell you first, then them",
-      "Pretend I’m fine",
     ]),
     q("gift", "I give gifts that are", [
       "Useful",
@@ -511,7 +427,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Prefer we go to theirs",
     ]),
   ]),
-  pack("taste", "Guilty pleasures", "What I pretend I don’t like.", "#C084FC", [
+  pack(9, "taste", "Guilty pleasures", "What I pretend I don’t like.", "#9B6AD4", "#C8A8F0", [
     q("music-secret", "Music I won’t put on first", [
       "Embarrassing pop",
       "Country",
@@ -554,26 +470,14 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Mornings are a scam",
       "Pineapple belongs / doesn’t — you know which",
     ]),
-    q("celeb", "Celebrity I’d lose my mind meeting", [
-      "A musician",
-      "An actor from a comfort show",
-      "An athlete",
-      "I wouldn’t. I’d be weird and quiet.",
-    ]),
     q("food-wrong", "A food I like “wrong”", [
       "Cold leftovers",
       "A dipping crime",
       "Something burnt",
       "A mix you find disgusting",
     ]),
-    q("superstition", "I’m secretly superstitious about", [
-      "Numbers / dates",
-      "Don’t jinx it",
-      "A lucky object",
-      "I’m not, I just knock wood",
-    ]),
   ]),
-  pack("wild", "Would you rather", "Pick my real lean, not the cool one.", "#FB7185", [
+  pack(10, "wild", "Would you rather", "My real lean, not the cool one.", "#E06A7A", "#F0A0B0", [
     q("wyr-night", "I’d rather", [
       "A big night out",
       "A tiny perfect night in",
@@ -598,12 +502,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Perfect timing at lights",
       "Recall every lyric",
     ]),
-    q("wyr-pet", "Dream extra pet", [
-      "Dog",
-      "Cat",
-      "Something ridiculous",
-      "A plant I name. That’s the pet.",
-    ]),
     q("wyr-live", "I’d rather live", [
       "By the water",
       "In a city that doesn’t sleep",
@@ -622,12 +520,6 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Hear my inner monologue for a day",
       "Meet every version of teenage me",
     ]),
-    q("wyr-time", "Free hour, no phone", [
-      "Nap",
-      "Walk",
-      "Make out / fool around",
-      "Finally do the admin",
-    ]),
     q("wyr-end", "End of a good day I want", [
       "To talk it to death",
       "To sit in it quietly",
@@ -635,16 +527,518 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Dessert. Then sleep.",
     ]),
   ]),
+  pack(11, "work", "Work & money", "Jobs, spending, Sunday-night brain.", "#4A8B6A", "#90C8A8", [
+    q("job", "About work I am", [
+      "I talk about it too much",
+      "I leave it at the door",
+      "I complain, then I love it",
+      "I don’t want to think about it at home",
+    ]),
+    q("money-feel", "Money conversations make me", [
+      "Calm if there’s a plan",
+      "Avoidant, then suddenly intense",
+      "The spreadsheet person",
+      "The “it’ll be fine” person",
+    ]),
+    q("splurge", "If I splurge, it’s on", [
+      "Us — a night out",
+      "Something for the house",
+      "A little treat for me",
+      "I don’t. I feel it later.",
+    ]),
+    q("cheap", "I’m cheap about", [
+      "Coffee out",
+      "Clothes",
+      "Utilities / lights",
+      "I’m not cheap, I’m “intentional”",
+    ]),
+    q("ambition", "The ambition that still nips me", [
+      "A title / promotion",
+      "Making something of my own",
+      "Having more time, not more status",
+      "I don’t care about climbing",
+    ]),
+    q("payday", "Payday energy is", [
+      "Quiet relief",
+      "Let’s spend a bit",
+      "I forget until the account pings",
+      "I already spent it in my head",
+    ]),
+    q("advice", "Work advice from you lands if", [
+      "You ask first",
+      "You’re blunt",
+      "You just listen",
+      "You distract me instead",
+    ]),
+    q("retire", "Dream version of “made it”", [
+      "A house that feels finished",
+      "Travel without counting",
+      "A job I don’t dread",
+      "Days that aren’t rushed",
+    ]),
+  ]),
+  pack(12, "body", "Sleep & body", "Energy, gyms, and the 4pm slump.", "#7A9BB8", "#B8D0E0", [
+    q("sleep-need", "I actually need", [
+      "Eight hours or I’m a problem",
+      "I can run on six and lie about it",
+      "Naps are a personality",
+      "Sleep is a negotiation every night",
+    ]),
+    q("gym", "Moving my body, honestly", [
+      "I like a real workout",
+      "Walks count and I will die on that hill",
+      "I start routines and ghost them",
+      "I move if it’s fun, not if it’s a plan",
+    ]),
+    q("energy", "My energy peaks", [
+      "Morning",
+      "Late afternoon",
+      "Night, unfortunately",
+      "Unpredictable. Weather, food, vibes.",
+    ]),
+    q("mirror", "Looking in the mirror I", [
+      "Clock the outfit, move on",
+      "Find one thing to hate",
+      "Need a pep talk, then I’m fine",
+      "I avoid it more than I’ll admit",
+    ]),
+    q("sick-tell", "You know I’m rundown when I", [
+      "Go quiet",
+      "Get snappy",
+      "Sleep at weird hours",
+      "Start researching vitamins",
+    ]),
+    q("food-body", "How food and mood connect for me", [
+      "Skip a meal and I unravel",
+      "I eat my feelings, named",
+      "I forget to eat, then crash",
+      "Pretty steady, annoyingly",
+    ]),
+    q("touch-body", "The body stuff I actually like", [
+      "A proper massage",
+      "Hair / scalp",
+      "Feet, don’t knock it",
+      "Just hold me, skip the technique",
+    ]),
+    q("age", "Thinking about getting older I", [
+      "I’m into it",
+      "I joke so I don’t spiral",
+      "I don’t think about it",
+      "I want us to be cute about it",
+    ]),
+  ]),
+  pack(13, "media", "Music & screens", "Aux, algorithms, and one more episode.", "#C44A6A", "#E890A8", [
+    q("aux", "In the car the aux goes to", [
+      "Me, obviously",
+      "You, I trust you",
+      "Whoever didn’t pick last time",
+      "A shared playlist we both pretend to like",
+    ]),
+    q("song", "A song that still gets me", [
+      "A high-school one",
+      "Whatever was on when we met",
+      "Something embarrassing and catchy",
+      "I don’t have a song. I have 40.",
+    ]),
+    q("movie", "Movie night I want", [
+      "Comfort rewatch",
+      "Something new and good",
+      "Trash, proudly",
+      "I talk through it. Sorry.",
+    ]),
+    q("phone-bed", "Phone in bed I", [
+      "Shouldn’t, still do",
+      "Charge it across the room",
+      "Scroll until you sigh",
+      "Use it as a flashlight and a clock",
+    ]),
+    q("podcast", "Podcasts", [
+      "I’m in too deep",
+      "Only on walks / chores",
+      "You put them on, I half listen",
+      "Can’t. Need music or silence.",
+    ]),
+    q("game-screen", "Games / apps I disappear into", [
+      "A real video game",
+      "A stupid phone game",
+      "Socials, which is worse",
+      "I don’t. I watch you play.",
+    ]),
+    q("photo", "Photos of us I", [
+      "Take too many",
+      "Never take, then regret",
+      "Want them printed, actually",
+      "Live for a story, then they’re gone",
+    ]),
+    q("mute", "When I need quiet I", [
+      "Headphones",
+      "Leave the room",
+      "Ask, nicely then less nicely",
+      "Turn into a statue on the couch",
+    ]),
+  ]),
+  pack(14, "after-dark", "After dark", "Want, timing, and how I ask.", "#8B3A5A", "#D080A0", [
+    q("initiate", "I usually start something by", [
+      "Saying it",
+      "A look / a touch",
+      "Waiting for you, then lighting up",
+      "A joke that isn’t really a joke",
+    ]),
+    q("timing", "The time of day I’m actually in the mood", [
+      "Morning, before the day lands",
+      "After dinner, lights low",
+      "Late, when the house is quiet",
+      "Unscheduled. Catch me.",
+    ]),
+    q("turn-on", "The thing that actually works on me", [
+      "Attention all day, not a sudden switch",
+      "You looking done-up / smelling good",
+      "A direct text",
+      "Laughter, then it tips",
+    ]),
+    q("turn-off", "Instant freeze for me is", [
+      "Feeling rushed",
+      "A messy room / to-do list in my head",
+      "Being teased in the wrong tone",
+      "If we just argued and skipped the repair",
+    ]),
+    q("after", "Right after, I want", [
+      "To talk",
+      "To be held and not talk",
+      "A snack, I’m not kidding",
+      "Sleep. Immediately.",
+    ]),
+    q("ask", "If I want something new I", [
+      "Just say it",
+      "Hint until you guess",
+      "Need you to ask me questions",
+      "Write it down somewhere we both see",
+    ]),
+    q("frequency", "My honest frequency wish", [
+      "More than we do",
+      "About where we are",
+      "Quality over calendar",
+      "I go through seasons",
+    ]),
+    q("morning-after", "The morning after a good night I", [
+      "Get shy",
+      "Get clingy",
+      "Act normal on purpose",
+      "Want round two of breakfast, not that",
+    ]),
+  ]),
+  pack(15, "future", "The long game", "Houses, kids-or-not, five-year fog.", "#3A6A8B", "#88B4D0", [
+    q("house", "Dream home energy is", [
+      "A project we fix up",
+      "Already nice, please",
+      "Small and ours",
+      "I care more about the street than the kitchen",
+    ]),
+    q("kids", "Kids, my real temperature", [
+      "Yes, I can see it",
+      "Maybe, later, don’t pin me",
+      "No, and I need that respected",
+      "I change depending on the week, which is annoying",
+    ]),
+    q("city", "In five years I see us", [
+      "Still here, deeper roots",
+      "A new city",
+      "More travel than address",
+      "I don’t see it. I feel it.",
+    ]),
+    q("old", "Old-us, if we’re lucky", [
+      "Still bickering in a kitchen",
+      "Quiet and weirdly stylish",
+      "On a porch bothering neighbours",
+      "I can’t picture it and that scares me a bit",
+    ]),
+    q("risk", "A risk I’d actually take with you", [
+      "A move",
+      "A job change",
+      "A year of less plan, more try",
+      "I’m the seatbelt. You’re the risk.",
+    ]),
+    q("name", "If we named something after us it would be", [
+      "A playlist",
+      "A recipe",
+      "A terrible indoor plant",
+      "A running joke, not an object",
+    ]),
+    q("fight-future", "The future fight I want us to skip", [
+      "Money scorekeeping",
+      "Who sacrificed more",
+      "Becoming roommates",
+      "Never going anywhere new",
+    ]),
+    q("promise", "A promise that would actually land", [
+      "I’ll tell you the hard thing sooner",
+      "I’ll keep making plans",
+      "I’ll keep wanting you on purpose",
+      "I’ll remember the small stuff",
+    ]),
+  ]),
+  pack(16, "people", "People I love", "Family, friends, and who I call.", "#B86A3A", "#E0A878", [
+    q("call", "When something good happens I call", [
+      "You first, always",
+      "A parent",
+      "A specific friend",
+      "I sit with it, then I tell you",
+    ]),
+    q("family-now", "My family, currently", [
+      "Close, for better and worse",
+      "Love them from a distance",
+      "Complicated, don’t simplify it",
+      "You’re the family I picked",
+    ]),
+    q("friend", "My closest friend is", [
+      "Someone from years ago",
+      "Someone new-ish who gets it",
+      "A group, not a person",
+      "Mostly you. That’s a lot. I know.",
+    ]),
+    q("intro", "Introducing you to people I", [
+      "Show you off",
+      "Get nervous they’ll be weird",
+      "Want it small and controlled",
+      "Forget names. Help me.",
+    ]),
+    q("advice-who", "Advice about us I would take from", [
+      "Almost nobody",
+      "One friend who knows me",
+      "A parent, selectively",
+      "A stranger on the internet, unfortunately",
+    ]),
+    q("alone", "Time with other people vs us", [
+      "I need friends or I get odd",
+      "You are plenty",
+      "I need both, scheduled",
+      "I overbook, then I miss you",
+    ]),
+    q("text-them", "I go quiet on friends when", [
+      "I’m in a hole",
+      "We’re in a good us-bubble",
+      "I have nothing fun to report",
+      "I don’t. I’m the reliable one.",
+    ]),
+    q("hurt", "If someone I love hurt me you’d see", [
+      "Anger",
+      "A shutdown",
+      "Jokes",
+      "I’d need you to hate them a little with me",
+    ]),
+  ]),
+  pack(17, "holidays", "Holidays & seasons", "Traditions I actually keep.", "#C43A3A", "#E87878", [
+    q("xmas", "Christmas I want", [
+      "Big, decorated, extra",
+      "Small, just us",
+      "Family obligation, then we escape",
+      "I like the food and the lights. That’s it.",
+    ]),
+    q("birthday", "On my birthday I want", [
+      "A fuss",
+      "One perfect thing, not a circus",
+      "To be surprised",
+      "To pretend I don’t care, then I do",
+    ]),
+    q("nye", "New Year’s Eve I", [
+      "Want a plan",
+      "Want pajamas",
+      "Want to kiss you at midnight, corny",
+      "Fall asleep before the ball drops",
+    ]),
+    q("summer", "Peak summer me is", [
+      "Outside, slightly sunburnt",
+      "In the AC with a drink",
+      "A trip, any trip",
+      "Complaining about heat, still outside",
+    ]),
+    q("winter", "Peak winter me is", [
+      "Nesting",
+      "Still dragging us out",
+      "Soup and early nights",
+      "Sad in a cute way until January 15",
+    ]),
+    q("tradition", "A tradition I want us to keep", [
+      "A specific meal",
+      "A yearly trip",
+      "A stupid movie",
+      "We don’t have one yet. That’s the task.",
+    ]),
+    q("gift-day", "Holiday gifts I", [
+      "Plan months out",
+      "Panic-buy and somehow nail it",
+      "Want experiences",
+      "Want you to tell me exactly",
+    ]),
+    q("off", "A day off that isn’t a holiday I spend", [
+      "Errands, unfortunately",
+      "Doing nothing on purpose",
+      "A project",
+      "Whatever you pick if you pick it",
+    ]),
+  ]),
+  pack(18, "memory", "Memory lane", "Firsts, tells, and what I keep.", "#6A5A9B", "#B0A0D8", [
+    q("meet", "When we met I", [
+      "Knew pretty fast",
+      "Was cautious, then all in",
+      "Played it cooler than I felt",
+      "Don’t remember the details, remember the feeling",
+    ]),
+    q("first-date", "Our kind of first date, in my head, was", [
+      "Talking too much",
+      "Awkward then good",
+      "Easy, like we’d done it",
+      "I was performing a little",
+    ]),
+    q("keep", "I keep mementos", [
+      "Ticket stubs, notes, junk with a story",
+      "Photos, that’s the archive",
+      "In my head, I swear",
+      "I throw things away and then miss them",
+    ]),
+    q("song-us", "A song that’s ours", [
+      "We have one",
+      "We should",
+      "I have one, you might not know",
+      "Every song we ruin in the car",
+    ]),
+    q("fight-first", "Our first real fight was about", [
+      "Something small that wasn’t small",
+      "Time / attention",
+      "A misread text",
+      "I remember the feeling more than the topic",
+    ]),
+    q("proud-us", "A moment I was proud of us", [
+      "A hard conversation we didn’t dodge",
+      "A trip that worked",
+      "Showing up for each other’s people",
+      "An ordinary Tuesday that felt like a win",
+    ]),
+    q("tell", "A tell I had at the start you might’ve missed", [
+      "I asked a lot of questions",
+      "I went quiet when I liked you",
+      "I made plans too fast",
+      "I teased instead of saying it",
+    ]),
+    q("rewrite", "If I could redo one early thing", [
+      "Say the real thing sooner",
+      "Slow down",
+      "Be less cool, more honest",
+      "Nothing. The mess is the plot.",
+    ]),
+  ]),
+  pack(19, "petty", "Petty opinions", "Hills I will die on.", "#3A8B7A", "#88D0C0", [
+    q("food-hill", "A food hill I die on", [
+      "That sauce doesn’t belong there",
+      "Coriander is a crime / a gift",
+      "Well-done steak is a tragedy",
+      "Cereal is a valid dinner",
+    ]),
+    q("drive", "As a passenger I", [
+      "Backseat drive, I know",
+      "Fall asleep",
+      "Need to pick the music",
+      "I’m a delight. Don’t look at me like that.",
+    ]),
+    q("cold", "I am too cold in this house because", [
+      "You are a furnace",
+      "The windows",
+      "I refuse a jumper on principle",
+      "I’m not. You’re too hot.",
+    ]),
+    q("show", "A show/movie you like that I", [
+      "Tolerate for you",
+      "Secretly like now",
+      "Will never get",
+      "Will quote ironically forever",
+    ]),
+    q("chore-petty", "The chore I think you overrate", [
+      "How often the sheets need doing",
+      "How empty the dishwasher is",
+      "“I’ll do it later” as a system",
+      "The way you fold",
+    ]),
+    q("correct", "I am annoyingly correct about", [
+      "Directions",
+      "What we said yesterday",
+      "How long something will take",
+      "Whether that’ll fit in the fridge",
+    ]),
+    q("leave", "Leaving a party I", [
+      "Do a slow Irish goodbye",
+      "Announce it three times",
+      "Need you to start the exit",
+      "I’m in the car already",
+    ]),
+    q("right", "When I’m wrong I", [
+      "Admit it fast",
+      "Need a minute, then I admit it",
+      "Make a joke and hope that counts",
+      "You know. I double down first.",
+    ]),
+  ]),
+  pack(20, "chaos", "Wildcard", "The pack with no genre.", "#D4A02A", "#F0D878", [
+    q("superstition", "I’m secretly superstitious about", [
+      "Numbers / dates",
+      "Don’t jinx it",
+      "A lucky object",
+      "I’m not, I just knock wood",
+    ]),
+    q("celeb", "Celebrity I’d lose my mind meeting", [
+      "A musician",
+      "An actor from a comfort show",
+      "An athlete",
+      "I wouldn’t. I’d be weird and quiet.",
+    ]),
+    q("pet-dream", "Dream extra pet", [
+      "Dog",
+      "Cat",
+      "Something ridiculous",
+      "A plant I name. That’s the pet.",
+    ]),
+    q("time-off", "Free hour, no phone", [
+      "Nap",
+      "Walk",
+      "Make out / fool around",
+      "Finally do the admin",
+    ]),
+    q("secret-skill", "A useless skill I have", [
+      "Remembering lyrics",
+      "Guessing the time",
+      "Impressions / bits",
+      "Finding things you lost",
+    ]),
+    q("apocalypse", "In a mild apocalypse I", [
+      "Would be surprisingly useful",
+      "Would panic, then be useful",
+      "Would be the morale",
+      "Would need you to be the plan",
+    ]),
+    q("tattoo", "A tattoo of us would be", [
+      "Cute if small",
+      "Never, don’t",
+      "A joke only we get",
+      "I already thought about it",
+    ]),
+    q("last", "The last card: what I want you to remember", [
+      "I like you even on the boring days",
+      "Please keep surprising me a little",
+      "Tell me the true thing",
+      "Keep making the house feel like ours",
+    ]),
+  ]),
 ];
 
 function pack(
+  number: number,
   id: string,
   title: string,
   blurb: string,
   accent: string,
+  foil: string,
   questions: KnowMeQuestion[]
 ): KnowMePack {
-  return { id, title, blurb, accent, questions };
+  return { id, number, title, blurb, accent, foil, questions };
 }
 
 function q(
@@ -664,8 +1058,6 @@ export function demoAnswersForPack(packId: string): number[] {
   if (!packItem) return [];
   return packItem.questions.map((_, index) => (packId.charCodeAt(0) + index * 3) % 4);
 }
-
-export const DEMO_KNOW_ME_PACKS = ["everyday", "food", "us", "home"] as const;
 
 export type KnowMeStatLine = {
   correct: number;
@@ -705,12 +1097,15 @@ export function tallyKnowMeGuesses(
   };
 }
 
-export function latestGuess<T extends { packId: string; ownerId: string; guesserId: string; createdAt: string }>(
+export function latestGuess<
+  T extends { packId: string; ownerId: string; guesserId: string; createdAt: string },
+>(
   guesses: T[],
   packId: string,
-  ownerId: string,
-  guesserId: string
+  ownerId: string | null | undefined,
+  guesserId: string | null | undefined
 ): T | null {
+  if (!ownerId || !guesserId) return null;
   return (
     guesses.find(
       (row) =>
@@ -720,3 +1115,46 @@ export function latestGuess<T extends { packId: string; ownerId: string; guesser
     ) ?? null
   );
 }
+
+export function packLane(input: {
+  pack: KnowMePack;
+  sheets: { packId: string; userId: string }[];
+  guesses: { packId: string; ownerId: string; guesserId: string; createdAt: string }[];
+  userId: string | null | undefined;
+  partnerId: string | null | undefined;
+}): KnowMeLane {
+  const { pack: current, sheets, guesses, userId, partnerId } = input;
+  const index = KNOW_ME_PACKS.findIndex((row) => row.id === current.id);
+  if (index < 0) return "locked";
+  if (index > 0) {
+    const prev = KNOW_ME_PACKS[index - 1]!;
+    if (packLane({ ...input, pack: prev }) !== "done") return "locked";
+  }
+  const mine = sheetFor(sheets, userId, current.id);
+  const theirs = sheetFor(sheets, partnerId, current.id);
+  const myGuess = latestGuess(guesses, current.id, partnerId, userId);
+  const theirGuess = latestGuess(guesses, current.id, userId, partnerId);
+  if (!mine) return "fill";
+  if (!theirs) return "wait";
+  if (!myGuess) return "guess";
+  if (!theirGuess) return "waitGuess";
+  return "done";
+}
+
+export function laneLabel(lane: KnowMeLane, them: string): string {
+  switch (lane) {
+    case "locked":
+      return "Sealed";
+    case "fill":
+      return "Rip yours";
+    case "wait":
+      return `Waiting on ${them}`;
+    case "guess":
+      return `Guess ${them}`;
+    case "waitGuess":
+      return `${them} still guessing`;
+    case "done":
+      return "In the binder";
+  }
+}
+
