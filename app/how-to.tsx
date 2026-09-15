@@ -47,7 +47,7 @@ const STEPS = [
   {
     kicker: "Calendar",
     title: "General, a week view, holidays",
-    body: "Calendar opens on General (birthdays, holidays, trips, jobs). Desire & Connect is on the right. Month / Week / Agenda sit under the tabs. The cog can add Period Tracker from Home Base, and reminders for birthdays and notes.",
+    body: "Calendar opens on General — the big tab on the left (birthdays, holidays, trips, jobs). Desire & Connect is beside it. Month / Week / Agenda sit under the tabs. The cog can add Period Tracker from Home Base, and reminders for birthdays and notes.",
   },
   {
     kicker: "Get Spicy",

@@ -620,7 +620,7 @@ export default function CalendarScreen() {
                   lineHeight: 18,
                 }}
               >
-                Desire & Connect and General stay on the right. Turn Period
+                Desire & Connect sits beside General. Turn Period
                 Tracker on to add a third calendar from Home Base.
               </Text>
               <Pressable
@@ -940,25 +940,28 @@ function LaneTabs({
   onChange: (lane: CalendarLane) => void;
 }) {
   const tabs = [
+    {
+      id: "life" as const,
+      label: "General",
+      hint: "Birthdays, holidays, trips",
+      grow: 1.7,
+    },
+    {
+      id: "together" as const,
+      label: "Desire & Connect",
+      hint: "Nights, talks",
+      grow: 1,
+    },
     ...(showPeriod
       ? [
           {
             id: "cycle" as const,
             label: "Period",
             hint: "Cycle",
+            grow: 0.85,
           },
         ]
       : []),
-    {
-      id: "together" as const,
-      label: "Desire & Connect",
-      hint: "Nights, talks",
-    },
-    {
-      id: "life" as const,
-      label: "General",
-      hint: "Birthdays, holidays",
-    },
   ];
 
   return (
@@ -966,58 +969,53 @@ function LaneTabs({
       style={{
         marginBottom: 16,
         flexDirection: "row",
-        justifyContent: "flex-end",
+        padding: 4,
+        backgroundColor: "rgba(22,24,29,0.05)",
+        borderWidth: 1,
+        borderColor: "rgba(22,24,29,0.1)",
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          padding: 3,
-          backgroundColor: "rgba(22,24,29,0.05)",
-          borderWidth: 1,
-          borderColor: "rgba(22,24,29,0.1)",
-          maxWidth: "100%",
-        }}
-      >
-        {tabs.map((tab) => {
-          const on = lane === tab.id;
-          return (
-            <Pressable
-              key={tab.id}
-              onPress={() => onChange(tab.id)}
+      {tabs.map((tab) => {
+        const on = lane === tab.id;
+        const isGeneral = tab.id === "life";
+        return (
+          <Pressable
+            key={tab.id}
+            onPress={() => onChange(tab.id)}
+            style={{
+              flex: tab.grow,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: isGeneral ? 14 : 10,
+              paddingHorizontal: isGeneral ? 12 : 8,
+              backgroundColor: on ? "#C23B55" : "transparent",
+            }}
+          >
+            <Text
               style={{
-                alignItems: "center",
-                paddingVertical: 8,
-                paddingHorizontal: showPeriod ? 8 : 10,
-                backgroundColor: on ? "#C23B55" : "transparent",
+                fontSize: isGeneral ? 16 : 12,
+                fontWeight: "800",
+                color: on ? "#FFFFFF" : "#16181D",
+                textAlign: "center",
               }}
+              numberOfLines={1}
             >
-              <Text
-                style={{
-                  fontSize: showPeriod ? 11 : 13,
-                  fontWeight: "700",
-                  color: on ? "#FFFFFF" : "#16181D",
-                  textAlign: "center",
-                }}
-                numberOfLines={1}
-              >
-                {tab.label}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 2,
-                  fontSize: 9,
-                  color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
-                  textAlign: "center",
-                }}
-                numberOfLines={1}
-              >
-                {tab.hint}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+              {tab.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 3,
+                fontSize: isGeneral ? 11 : 9,
+                color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
+                textAlign: "center",
+              }}
+              numberOfLines={1}
+            >
+              {tab.hint}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
