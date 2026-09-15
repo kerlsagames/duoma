@@ -35,7 +35,7 @@ const SCREEN_W = Dimensions.get("window").width;
 const CATS_KEY = "duoma:discover-cats-v2";
 
 type Tab = "deck" | "vault" | "passed";
-type LastMove = { type: "talk" | "skip"; questionId: string };
+type DeckMove = { type: "talk" | "skip"; questionId: string };
 
 export default function DiscoverScreen() {
   const {
@@ -57,7 +57,7 @@ export default function DiscoverScreen() {
   const [catsOpen, setCatsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastMove, setLastMove] = useState<LastMove | null>(null);
+  const [history, setHistory] = useState<DeckMove[]>([]);
   const [restored, setRestored] = useState<DiscoverQuestion | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -120,7 +120,7 @@ export default function DiscoverScreen() {
     setError(null);
     try {
       await skipDiscover(questionId);
-      setLastMove({ type: "skip", questionId });
+      setHistory((prev) => [...prev, { type: "skip", questionId }]);
       setRestored(null);
       resetCard();
     } catch (err) {
@@ -141,7 +141,7 @@ export default function DiscoverScreen() {
     setError(null);
     try {
       await submitDiscoverAnswer(questionId);
-      setLastMove({ type: "talk", questionId });
+      setHistory((prev) => [...prev, { type: "talk", questionId }]);
       setRestored(null);
       resetCard();
     } catch (err) {
@@ -156,14 +156,15 @@ export default function DiscoverScreen() {
   };
 
   const undoLast = async () => {
-    if (!lastMove || busy) return;
+    const move = history[history.length - 1];
+    if (!move || busy) return;
     setBusy(true);
     setError(null);
     try {
-      await undoDiscover(lastMove.questionId);
-      const card = DISCOVER_QUESTIONS.find((row) => row.id === lastMove.questionId) ?? null;
+      await undoDiscover(move.questionId);
+      const card = DISCOVER_QUESTIONS.find((row) => row.id === move.questionId) ?? null;
       setRestored(card);
-      setLastMove(null);
+      setHistory((prev) => prev.slice(0, -1));
       resetCard();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not undo");
@@ -564,17 +565,17 @@ export default function DiscoverScreen() {
             </View>
             <Pressable
               onPress={() => void undoLast()}
-              disabled={!lastMove || busy}
+              disabled={!history.length || busy}
               style={{
                 alignSelf: "center",
                 marginTop: 10,
                 paddingVertical: 8,
                 paddingHorizontal: 16,
                 borderRadius: 999,
-                backgroundColor: lastMove ? T.accentSoft : "transparent",
+                backgroundColor: history.length ? T.accentSoft : "transparent",
                 borderWidth: 1,
-                borderColor: lastMove ? T.accent : "rgba(61,46,74,0.12)",
-                opacity: lastMove && !busy ? 1 : 0.4,
+                borderColor: history.length ? T.accent : "rgba(61,46,74,0.12)",
+                opacity: history.length && !busy ? 1 : 0.4,
               }}
             >
               <Text
@@ -584,7 +585,9 @@ export default function DiscoverScreen() {
                   color: T.ink,
                 }}
               >
-                Undo last card
+                {history.length > 1
+                  ? `Undo · ${history.length}`
+                  : "Undo last card"}
               </Text>
             </Pressable>
           </View>
