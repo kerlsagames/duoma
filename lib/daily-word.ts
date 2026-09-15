@@ -151,8 +151,6 @@ export function emptyWordle(): WordleState {
   };
 }
 
-const WORD_SET = new Set(DAILY_WORDS);
-
 export function hydrateWordle(raw: unknown): WordleState {
   const base = emptyWordle();
   if (!raw || typeof raw !== "object") return base;
@@ -291,9 +289,6 @@ export function applyGuess(
   }
   if (!/^[A-Z]{5}$/.test(word)) {
     return { state: next, error: "Five letters." };
-  }
-  if (!WORD_SET.has(word)) {
-    return { state: next, error: "Not in the word list." };
   }
   if (player.guesses.includes(word)) {
     return { state: next, error: "Already tried that." };
