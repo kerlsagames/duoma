@@ -453,3 +453,28 @@ export const DISCOVER_TONE = liveTone(
   DISCOVER_TONE_BASE,
   DISCOVER_TONE_BASE.accent
 );
+
+/** Kraft tags and cranberry ribbon for Gifts. */
+const GIFTS_TONE_BASE = {
+  background: "#17110E",
+  pine: "#1E2A22",
+  paper: "#F3E4C4",
+  paperInk: "#2A1C12",
+  paperMuted: "rgba(42,28,18,0.56)",
+  ribbon: "#C43C4A",
+  gold: "#D4A45A",
+  goldSoft: "rgba(212,164,90,0.18)",
+  ink: "#F6EEDC",
+  muted: "rgba(246,238,220,0.62)",
+  dim: "rgba(246,238,220,0.4)",
+  surface: "#211A16",
+  surfaceRaised: "#2B221C",
+  border: "rgba(212,164,90,0.28)",
+  tag: "#E7C9A0",
+} as const;
+
+export const GIFTS_TONE = liveTone(
+  "home-base",
+  GIFTS_TONE_BASE,
+  GIFTS_TONE_BASE.gold
+);

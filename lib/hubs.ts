@@ -283,6 +283,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/birthdays",
       },
       {
+        id: "gifts",
+        label: "Gifts",
+        detail: "Wish lists, what to buy, and what they got each year",
+        icon: "ribbon",
+        href: "/hub/gifts",
+      },
+      {
         id: "meal-plan",
         label: "Meal Plan",
         detail: "Seven post-its. What’s for dinner?",

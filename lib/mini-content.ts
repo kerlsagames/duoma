@@ -44,6 +44,7 @@ import {
   type BudgetState,
   type MoneyGoal,
 } from "@/lib/money";
+import { emptyGifts, hydrateGifts, type GiftItem, type GiftPerson } from "@/lib/gifts";
 
 export type { BudgetState, MoneyGoal } from "@/lib/money";
 
@@ -465,6 +466,8 @@ export type MiniState = {
   cheers: Cheer[];
   period: PeriodState;
   birthdays: Birthday[];
+  giftPeople: GiftPerson[];
+  giftItems: GiftItem[];
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
@@ -838,6 +841,8 @@ export function emptyMiniState(): MiniState {
     cheers: [],
     period: emptyPeriodState(),
     birthdays: emptyBirthdays(),
+    giftPeople: emptyGifts().people,
+    giftItems: emptyGifts().items,
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
@@ -947,6 +952,8 @@ export function hydrateMiniState(raw: unknown): MiniState {
     cheers: asArray(row.cheers, base.cheers),
     period: hydratePeriodState(row.period),
     birthdays: hydrateBirthdays(row.birthdays),
+    giftPeople: hydrateGifts(row.giftPeople, row.giftItems).people,
+    giftItems: hydrateGifts(row.giftPeople, row.giftItems).items,
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),
