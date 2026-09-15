@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type PositionCategoryId =
   | "face-to-face"
   | "from-behind"
@@ -946,18 +948,43 @@ export const SEX_POSITIONS: SexPosition[] = [
   ),
 ];
 
+export function sexPositions(includeHidden = false): SexPosition[] {
+  return applyOverlay(
+    "positions",
+    SEX_POSITIONS,
+    (row, edit) => ({
+      ...row,
+      name: edit.title?.trim() || row.name,
+      blurb: edit.body?.trim() || row.blurb,
+      category: (POSITION_CATEGORIES.some((item) => item.id === edit.group)
+        ? edit.group
+        : row.category) as PositionCategoryId,
+    }),
+    (row) => ({
+      id: row.id,
+      name: row.title.trim() || "Untitled",
+      category: (POSITION_CATEGORIES.some((item) => item.id === row.group)
+        ? row.group
+        : "face-to-face") as PositionCategoryId,
+      blurb: row.body.trim() || row.title,
+    }),
+    includeHidden
+  );
+}
+
 export const POSITION_COUNT = SEX_POSITIONS.length;
 
 export function positionsInCategory(id: PositionCategoryId): SexPosition[] {
-  return SEX_POSITIONS.filter((row) => row.category === id);
+  return sexPositions().filter((row) => row.category === id);
 }
 
 export function positionsInCategories(
   enabled: PositionCategoryId[] | "all"
 ): SexPosition[] {
-  if (enabled === "all" || enabled.length === 0) return SEX_POSITIONS;
+  const live = sexPositions();
+  if (enabled === "all" || enabled.length === 0) return live;
   const set = new Set(enabled);
-  return SEX_POSITIONS.filter((row) => set.has(row.category));
+  return live.filter((row) => set.has(row.category));
 }
 
 export function searchPositions(
@@ -974,7 +1001,7 @@ export function searchPositions(
 }
 
 export function positionById(id: string): SexPosition | null {
-  return SEX_POSITIONS.find((row) => row.id === id) ?? null;
+  return sexPositions().find((row) => row.id === id) ?? null;
 }
 
 export function categoryMeta(id: PositionCategoryId): PositionCategory | null {

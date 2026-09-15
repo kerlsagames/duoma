@@ -13,6 +13,7 @@ import {
   leftoverDiscover,
   normalizeEnabledCategories,
   seenDiscoverIds,
+  discoverQuestions,
   vaultEntries,
   type DiscoverCategoryId,
   type DiscoverQuestion,
@@ -108,7 +109,7 @@ export default function DiscoverScreen() {
         .filter((row) => row.userId === user?.id)
         .map((row) => row.questionId)
     );
-    return DISCOVER_QUESTIONS.filter(
+    return discoverQuestions().filter(
       (row) => ids.has(row.id) && !talkedIds.has(row.id)
     );
   }, [curiositySkips, talkedIds, user?.id]);
@@ -164,7 +165,7 @@ export default function DiscoverScreen() {
     setError(null);
     try {
       await undoDiscover(move.questionId);
-      const card = DISCOVER_QUESTIONS.find((row) => row.id === move.questionId) ?? null;
+      const card = discoverQuestions().find((row) => row.id === move.questionId) ?? null;
       setRestored(card);
       setHistory((prev) => prev.slice(0, -1));
       resetCard();

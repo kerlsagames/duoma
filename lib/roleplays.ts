@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type RoleplayCategoryId =
   | "professional"
   | "workplace"
@@ -800,13 +802,37 @@ export const ROLEPLAYS: Roleplay[] = [
   },
 ];
 
+export function roleplays(includeHidden = false): Roleplay[] {
+  return applyOverlay(
+    "roleplays",
+    ROLEPLAYS,
+    (row, edit) => ({
+      ...row,
+      name: edit.title?.trim() || row.name,
+      blurb: edit.body?.trim() || row.blurb,
+      category: (ROLEPLAY_CATEGORIES.some((item) => item.id === edit.group)
+        ? edit.group
+        : row.category) as RoleplayCategoryId,
+    }),
+    (row) => ({
+      id: row.id,
+      name: row.title.trim() || "Untitled",
+      category: (ROLEPLAY_CATEGORIES.some((item) => item.id === row.group)
+        ? row.group
+        : "fantasy") as RoleplayCategoryId,
+      blurb: row.body.trim() || row.title,
+    }),
+    includeHidden
+  );
+}
+
 export function roleplaysInCategories(ids: RoleplayCategoryId[]): Roleplay[] {
   const set = new Set(ids);
-  return ROLEPLAYS.filter((row) => set.has(row.category));
+  return roleplays().filter((row) => set.has(row.category));
 }
 
 export function roleplayById(id: string): Roleplay | null {
-  return ROLEPLAYS.find((row) => row.id === id) ?? null;
+  return roleplays().find((row) => row.id === id) ?? null;
 }
 
 export function categoryMeta(id: RoleplayCategoryId): RoleplayCategory | null {

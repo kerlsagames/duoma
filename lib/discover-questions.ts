@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type DiscoverCategoryId =
   | "have-flirty"
   | "have-spicy"
@@ -551,8 +553,26 @@ export const DISCOVER_QUESTIONS: DiscoverQuestion[] = BANK.map(
   })
 );
 
+export function discoverQuestions(includeHidden = false): DiscoverQuestion[] {
+  return applyOverlay(
+    "discover",
+    DISCOVER_QUESTIONS,
+    (row, edit) => ({
+      ...row,
+      prompt: edit.title?.trim() || edit.body?.trim() || row.prompt,
+      category: (edit.group as DiscoverCategoryId) || row.category,
+    }),
+    (row) => ({
+      id: row.id,
+      prompt: row.title.trim() || row.body,
+      category: (row.group as DiscoverCategoryId) || "us",
+    }),
+    includeHidden
+  );
+}
+
 export const DISCOVER_QUESTION_COUNT: number = DISCOVER_QUESTIONS.length;
 
 export function discoverQuestionById(id: string): DiscoverQuestion | null {
-  return DISCOVER_QUESTIONS.find((row) => row.id === id) ?? null;
+  return discoverQuestions().find((row) => row.id === id) ?? null;
 }

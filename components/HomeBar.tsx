@@ -3,7 +3,7 @@ import { usePathname, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const HIDDEN = new Set(["/welcome", "/create", "/join", "/waiting"]);
+const HIDDEN = new Set(["/welcome", "/create", "/join", "/waiting", "/admin"]);
 
 function isHomePath(pathname: string) {
   return (

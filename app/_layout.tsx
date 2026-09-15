@@ -4,12 +4,13 @@ import { GameInvitationModal } from "@/components/GameInvitationModal";
 import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
+import { CatalogProvider } from "@/lib/catalog-overlay";
 import { AppProvider } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
 import { useFonts } from "expo-font";
 import Head from "expo-router/head";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -55,41 +56,57 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507" }}>
       <SafeAreaProvider>
-        <AppProvider>
-          <HubThemeProvider>
-          <Head>
-            <title>Duoma</title>
-          </Head>
-          <PhoneShell>
-            <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
-              <View style={{ flex: 1 }}>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: "#0B0B0E" },
-                    animation: "fade",
-                  }}
-                >
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="welcome" />
-                  <Stack.Screen name="create" />
-                  <Stack.Screen name="join" />
-                  <Stack.Screen name="waiting" />
-                  <Stack.Screen name="how-to" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="hub" />
-                  <Stack.Screen name="game" />
-                </Stack>
-              </View>
-              <HomeBar />
-              <GameInvitationModal />
-              <CalendarReminderWatch />
-            </View>
-          </PhoneShell>
-          </HubThemeProvider>
-          <StatusBar style="light" />
-        </AppProvider>
+        <CatalogProvider>
+          <AppProvider>
+            <HubThemeProvider>
+              <Head>
+                <title>Duoma</title>
+              </Head>
+              <RootChrome />
+            </HubThemeProvider>
+            <StatusBar style="light" />
+          </AppProvider>
+        </CatalogProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function RootChrome() {
+  const pathname = usePathname();
+  const admin = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  return (
+    <PhoneShell>
+      <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
+        <View style={{ flex: 1 }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#0B0B0E" },
+              animation: "fade",
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="welcome" />
+            <Stack.Screen name="create" />
+            <Stack.Screen name="join" />
+            <Stack.Screen name="waiting" />
+            <Stack.Screen name="how-to" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="hub" />
+            <Stack.Screen name="game" />
+            <Stack.Screen name="admin" />
+          </Stack>
+        </View>
+        {admin ? null : (
+          <>
+            <HomeBar />
+            <GameInvitationModal />
+            <CalendarReminderWatch />
+          </>
+        )}
+      </View>
+    </PhoneShell>
   );
 }

@@ -1,3 +1,4 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
 import type { ComponentProps } from "react";
 import type { Ionicons } from "@expo/vector-icons";
 
@@ -349,12 +350,34 @@ export {
   useTimingLabel as useOptionLabel,
 } from "@/lib/useTiming";
 
+export function couponIdeas(includeHidden = false): CouponIdea[] {
+  return applyOverlay(
+    "coupons",
+    COUPON_IDEAS,
+    (row, edit) => ({
+      ...row,
+      title: edit.title?.trim() || row.title,
+      category: (COUPON_CATEGORIES.some((item) => item.id === edit.group)
+        ? edit.group
+        : row.category) as CouponCategoryId,
+    }),
+    (row) => ({
+      id: row.id,
+      title: row.title.trim() || "Untitled",
+      category: (COUPON_CATEGORIES.some((item) => item.id === row.group)
+        ? row.group
+        : "wildcard") as CouponCategoryId,
+    }),
+    includeHidden
+  );
+}
+
 export function couponIdeaById(id: string): CouponIdea | null {
-  return COUPON_IDEAS.find((row) => row.id === id) ?? null;
+  return couponIdeas().find((row) => row.id === id) ?? null;
 }
 
 export function ideasInCategory(category: CouponCategoryId): CouponIdea[] {
-  return COUPON_IDEAS.filter((row) => row.category === category);
+  return couponIdeas().filter((row) => row.category === category);
 }
 
 export function categoryMeta(id: string | null | undefined): CouponCategory | null {

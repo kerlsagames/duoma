@@ -1,3 +1,4 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
 import {
   expiresAtForTiming,
   formatExactWhen,
@@ -1208,18 +1209,47 @@ export const SPICY_DARES: SpicyDare[] = [
 
 export const SPICY_DARES_CATEGORIES = SPICY_DARE_CATEGORIES;
 
+function asSpicyCat(value: string | undefined): SpicyDareCategory {
+  return (SPICY_DARE_CATEGORIES as readonly string[]).includes(value ?? "")
+    ? (value as SpicyDareCategory)
+    : "Quick & Playful";
+}
+
+export function spicyDares(includeHidden = false): SpicyDare[] {
+  return applyOverlay(
+    "spicyDares",
+    SPICY_DARES,
+    (row, edit) => ({
+      ...row,
+      text: edit.body?.trim() || edit.title?.trim() || row.text,
+      categories: edit.group
+        ? edit.group
+            .split(",")
+            .map((item) => asSpicyCat(item.trim()))
+            .filter(Boolean)
+        : row.categories,
+    }),
+    (row) => ({
+      id: row.id,
+      text: row.body.trim() || row.title,
+      categories: [asSpicyCat(row.group)],
+    }),
+    includeHidden
+  );
+}
+
 export function dareById(id: string): SpicyDare | null {
-  return SPICY_DARES.find((row) => row.id === id) ?? null;
+  return spicyDares().find((row) => row.id === id) ?? null;
 }
 
 export function daresInCategory(tag: SpicyDareCategory | "all"): SpicyDare[] {
-  if (tag === "all") return SPICY_DARES;
-  return SPICY_DARES.filter((row) => row.categories.includes(tag));
+  if (tag === "all") return spicyDares();
+  return spicyDares().filter((row) => row.categories.includes(tag));
 }
 
 export function withPlayStatus(playedIds: string[]): SpicyDare[] {
   const played = new Set(playedIds);
-  return SPICY_DARES.map((row) => ({
+  return spicyDares().map((row) => ({
     ...row,
     status: played.has(row.id) ? "played" : "unplayed",
   }));

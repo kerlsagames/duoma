@@ -28,6 +28,8 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture.
 - **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings.
 
+Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
+
 Until Supabase keys are set, everything syncs locally (`localStorage` + `BroadcastChannel`). Two real iPhones need the optional free Supabase table so each phone can find the other’s push endpoint.
 
 ## Run it
@@ -72,6 +74,7 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
    - `VAPID_PRIVATE_KEY`
    - `VAPID_SUBJECT` (a `mailto:` you own)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
+   - `EXPO_PUBLIC_DUOMA_ADMIN_KEY` — passphrase for the hidden creator tools. Set this before a public deploy.
 3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
 4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `005_push.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 

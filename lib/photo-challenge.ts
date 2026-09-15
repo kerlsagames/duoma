@@ -3,6 +3,7 @@ import { createId, nowIso } from "@/lib/ids";
 import {
   PHOTO_CATEGORIES,
   PHOTO_PROMPTS,
+  photoPrompts,
   type PhotoPrompt,
   type PhotoPromptCategory,
 } from "@/lib/photo-prompts";
@@ -24,6 +25,7 @@ export function refreshUnknownPrompt(
 export {
   PHOTO_CATEGORIES,
   PHOTO_PROMPTS,
+  photoPrompts,
   photoPromptsIn,
 } from "@/lib/photo-prompts";
 export type { PhotoPrompt, PhotoPromptCategory } from "@/lib/photo-prompts";
@@ -170,7 +172,7 @@ export const POLAROID_TINTS = [
 ];
 
 export function photoPromptById(id: string): PhotoPrompt | null {
-  return PHOTO_PROMPTS.find((row) => row.id === id) ?? null;
+  return photoPrompts().find((row) => row.id === id) ?? null;
 }
 
 export function photoPromptTitle(id: string): string {
@@ -207,9 +209,10 @@ export function pickPhotoPrompt(
 ): PhotoPrompt {
   const avoid = new Set(avoidIds);
   const allowed = new Set(enabled.length ? enabled : PHOTO_CATEGORIES.map((row) => row.id));
-  const inCats = PHOTO_PROMPTS.filter((row) => allowed.has(row.category));
+  const live = photoPrompts();
+  const inCats = live.filter((row) => allowed.has(row.category));
   const pool = inCats.filter((row) => !avoid.has(row.id));
-  const source = pool.length ? pool : inCats.length ? inCats : PHOTO_PROMPTS;
+  const source = pool.length ? pool : inCats.length ? inCats : live;
   return source[Math.floor(Math.random() * source.length)]!;
 }
 

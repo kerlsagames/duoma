@@ -1,4 +1,4 @@
-import { cloneDefaultDeck, GET_SPICY_SEEDS } from "@/games/get-spicy";
+import { cloneDefaultDeck, getSpicySeeds } from "@/games/get-spicy";
 import {
   buildRandomDeck,
   dealHandFromBank,
@@ -140,9 +140,10 @@ import {
 } from "@/lib/spicy-dares";
 import {
   demoLikedFantasyIds,
-  FANTASY_IDEAS,
   fantasyById,
+  fantasyIdeas,
 } from "@/lib/fantasy-matcher";
+import { subscribeCatalog } from "@/lib/catalog-overlay";
 import {
   createContext,
   useCallback,
@@ -198,7 +199,7 @@ function referencedCardIds(): Set<string> {
 function syncDefaultCards(): boolean {
   let changed = false;
   const usedIds = referencedCardIds();
-  const seedByTitle = new Map(GET_SPICY_SEEDS.map((seed) => [seed.title, seed]));
+  const seedByTitle = new Map(getSpicySeeds().map((seed) => [seed.title, seed]));
   const seedTitles = new Set(seedByTitle.keys());
 
   for (const couple of db.couples) {
@@ -230,7 +231,7 @@ function syncDefaultCards(): boolean {
       }),
     };
 
-    const missing = GET_SPICY_SEEDS.filter((seed) => !byTitle.has(seed.title));
+    const missing = getSpicySeeds().filter((seed) => !byTitle.has(seed.title));
     if (missing.length) {
       changed = true;
       db = {
@@ -438,6 +439,9 @@ type AppContextValue = {
   hiddenMeals: HiddenMeal[];
   /** Full deck history (all games) for calendar night detail. */
   allDeck: DeckCard[];
+  allProfiles: Profile[];
+  allCouples: Couple[];
+  allCards: Card[];
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
@@ -673,6 +677,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsub = subscribe(bump);
+    const unsubCatalog = subscribeCatalog(() => {
+      void (async () => {
+        if (syncDefaultCards()) await persist();
+        else bump();
+      })();
+    });
     let channel: BroadcastChannel | null = null;
 
     (async () => {
@@ -729,6 +739,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => {
       unsub();
+      unsubCatalog();
       channel?.close();
       if (typeof window !== "undefined") {
         window.removeEventListener("storage", onStorage);
@@ -748,6 +759,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return db.profiles.find((profile) => profile.id === partnerId) ?? null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
+  const allProfiles = useMemo(
+    () => db.profiles,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const allCouples = useMemo(
+    () => db.couples,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const allCards = useMemo(
+    () => db.cards,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
   const cards = useMemo(
     () =>
       db.cards
@@ -4192,7 +4218,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .map((row) => row.fantasyId)
         );
         const likedIds = new Set(demoLikedFantasyIds());
-        const missing = FANTASY_IDEAS.filter((idea) => !demoSeen.has(idea.id));
+        const missing = fantasyIdeas().filter((idea) => !demoSeen.has(idea.id));
         if (missing.length) {
           next = [
             ...next,
@@ -4915,6 +4941,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savedPair,
     nights,
     allDeck,
+    allProfiles,
+    allCouples,
+    allCards,
     calendarEvents,
     errandItems,
     mealRounds,

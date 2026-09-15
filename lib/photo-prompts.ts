@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type PhotoPromptCategory = "dramatic" | "domestic" | "outdoor" | "wholesome";
 
 export type PhotoPrompt = {
@@ -134,6 +136,30 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   p("wholesome", "year-1-vs-now", "The Year 1 vs. Now", "Recreating the very first photo you ever took together as a couple."),
 ];
 
+export function photoPrompts(includeHidden = false): PhotoPrompt[] {
+  return applyOverlay(
+    "photo",
+    PHOTO_PROMPTS,
+    (row, edit) => ({
+      ...row,
+      title: edit.title?.trim() || row.title,
+      label: edit.body?.trim() || row.label,
+      category: (PHOTO_CATEGORIES.some((item) => item.id === edit.group)
+        ? edit.group
+        : row.category) as PhotoPromptCategory,
+    }),
+    (row) => ({
+      id: row.id,
+      category: (PHOTO_CATEGORIES.some((item) => item.id === row.group)
+        ? row.group
+        : "wholesome") as PhotoPromptCategory,
+      title: row.title.trim() || "Untitled",
+      label: row.body.trim() || row.title,
+    }),
+    includeHidden
+  );
+}
+
 export function photoPromptsIn(category: PhotoPromptCategory): PhotoPrompt[] {
-  return PHOTO_PROMPTS.filter((row) => row.category === category);
+  return photoPrompts().filter((row) => row.category === category);
 }

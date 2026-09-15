@@ -2,6 +2,7 @@ import {
   DISCOVER_QUESTION_COUNT,
   DISCOVER_QUESTIONS,
   discoverQuestionById,
+  discoverQuestions,
   type DiscoverCategoryId,
   type DiscoverQuestion,
 } from "@/lib/discover-questions";
@@ -15,6 +16,7 @@ export {
   DISCOVER_QUESTIONS,
   DISCOVER_QUESTION_COUNT,
   discoverQuestionById,
+  discoverQuestions,
 };
 
 export type DiscoverCategory = {
@@ -153,7 +155,7 @@ function shuffleInPlace<T>(items: T[], rand: () => number): T[] {
 
 function shuffledDiscoverDeck(seed: string): DiscoverQuestion[] {
   const rand = seededRand(seed);
-  const bag = shuffleInPlace([...DISCOVER_QUESTIONS], rand);
+  const bag = shuffleInPlace([...discoverQuestions()], rand);
   const mixed: DiscoverQuestion[] = [];
   while (bag.length) {
     const last = mixed[mixed.length - 1]?.category;

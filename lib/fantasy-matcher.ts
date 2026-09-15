@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 import type { Ionicons } from "@expo/vector-icons";
+import { applyOverlay } from "@/lib/catalog-overlay";
 import { localDateKey } from "@/lib/dates";
 import type { FantasyTonightAsk } from "@/lib/types";
 
@@ -546,14 +547,41 @@ const SHORTS: [string, string, FantasyCategoryId][] = [
   ["group-oral-else-got", "Watch your partner go down on someone else", "group"],
 ];
 
-export const FANTASY_IDEAS: FantasyIdea[] = SHORTS.map(([id, title, category]) => ({
+const FANTASY_SEED: FantasyIdea[] = SHORTS.map(([id, title, category]) => ({
   id: `fx-${id}`,
   title,
   category,
 }));
 
+function asFantasyCategory(value: string | undefined, fallback: FantasyCategoryId): FantasyCategoryId {
+  return FANTASY_CATEGORIES.some((row) => row.id === value)
+    ? (value as FantasyCategoryId)
+    : fallback;
+}
+
+export function fantasyIdeas(includeHidden = false): FantasyIdea[] {
+  return applyOverlay(
+    "fantasy",
+    FANTASY_SEED,
+    (row, edit) => ({
+      ...row,
+      title: edit.title?.trim() || row.title,
+      category: asFantasyCategory(edit.group, row.category),
+    }),
+    (row) => ({
+      id: row.id,
+      title: row.title.trim() || "Untitled",
+      category: asFantasyCategory(row.group, "body"),
+    }),
+    includeHidden
+  );
+}
+
+/** @deprecated use fantasyIdeas() — kept for older imports */
+export const FANTASY_IDEAS = FANTASY_SEED;
+
 export function fantasyById(id: string): FantasyIdea | null {
-  return FANTASY_IDEAS.find((item) => item.id === id) ?? null;
+  return fantasyIdeas().find((item) => item.id === id) ?? null;
 }
 
 export function fantasyCategoryMeta(id: FantasyCategoryId): FantasyCategory {
@@ -602,7 +630,7 @@ export function leftoverFantasies(
 
 function shuffledFantasyDeck(seed: string): FantasyIdea[] {
   const rand = seededRand(seed);
-  const bag = shuffleInPlace([...FANTASY_IDEAS], rand);
+  const bag = shuffleInPlace([...fantasyIdeas()], rand);
   const mixed: FantasyIdea[] = [];
   while (bag.length) {
     const last = mixed[mixed.length - 1]?.category;
@@ -641,9 +669,9 @@ export function groupFantasiesByCategory(ideas: FantasyIdea[]): {
 
 /** Deterministic subset of idea ids a demo partner "already liked". */
 export function demoLikedFantasyIds(): string[] {
-  return FANTASY_IDEAS.filter((_, index) => index % 3 === 0).map(
-    (item) => item.id
-  );
+  return fantasyIdeas()
+    .filter((_, index) => index % 3 === 0)
+    .map((item) => item.id);
 }
 
 export function isTonightAskLive(

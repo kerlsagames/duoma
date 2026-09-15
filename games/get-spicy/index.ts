@@ -7,7 +7,7 @@ export const getSpicyGame: GameModule = {
   available: true,
 };
 
-export { cloneDefaultDeck, GET_SPICY_SEEDS } from "./cards";
+export { cloneDefaultDeck, GET_SPICY_SEEDS, getSpicySeeds } from "./cards";
 export {
   STAGE_META,
   STAGE_ORDER,

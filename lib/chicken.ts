@@ -1,4 +1,5 @@
-import { CHICKEN_DARES, type ChickenDare } from "@/lib/chicken-dares";
+import { CHICKEN_DARES as CHICKEN_SEED, type ChickenDare } from "@/lib/chicken-dares";
+import { applyOverlay } from "@/lib/catalog-overlay";
 import {
   CHICKEN_PACKS,
   CHICKEN_YARDS,
@@ -9,7 +10,35 @@ import {
 } from "@/lib/chicken-meta";
 
 export type { ChickenDare, ChickenPack, ChickenPackId, ChickenYard, ChickenYardId };
-export { CHICKEN_DARES, CHICKEN_PACKS, CHICKEN_YARDS };
+export { CHICKEN_PACKS, CHICKEN_YARDS };
+
+export function chickenDares(includeHidden = false): ChickenDare[] {
+  return applyOverlay(
+    "chicken",
+    CHICKEN_SEED,
+    (row, edit) => ({
+      ...row,
+      name: edit.title?.trim() || row.name,
+      body: edit.body?.trim() || row.body,
+      pack: (edit.group as ChickenPackId) || row.pack,
+    }),
+    (row) => {
+      const pack =
+        CHICKEN_PACKS.find((item) => item.id === row.group) ?? CHICKEN_PACKS[0]!;
+      return {
+        id: row.id,
+        n: 0,
+        yard: pack.yard,
+        pack: pack.id,
+        name: row.title.trim() || "Homemade dare",
+        body: row.body.trim() || row.title,
+      };
+    },
+    includeHidden
+  );
+}
+
+export const CHICKEN_DARES = CHICKEN_SEED;
 
 export type ChickenPlayStatus = "offered" | "accepted" | "declined" | "done";
 
@@ -55,7 +84,7 @@ export const CHICKEN_BADGES: ChickenBadge[] = [
 
 export function chickenDareById(id: string | null | undefined): ChickenDare | null {
   if (!id) return null;
-  return CHICKEN_DARES.find((row) => row.id === id) ?? null;
+  return chickenDares().find((row) => row.id === id) ?? null;
 }
 
 export function chickenPackById(id: ChickenPackId | null | undefined): ChickenPack | null {
@@ -69,14 +98,14 @@ export function chickenYardById(id: ChickenYardId | null | undefined): ChickenYa
 }
 
 export function daresInPack(pack: ChickenPackId): ChickenDare[] {
-  return CHICKEN_DARES.filter((row) => row.pack === pack);
+  return chickenDares().filter((row) => row.pack === pack);
 }
 
 export function daresInYard(yard: ChickenYardId): ChickenDare[] {
-  return CHICKEN_DARES.filter((row) => row.yard === yard);
+  return chickenDares().filter((row) => row.yard === yard);
 }
 
-export function peckRandom(from: ChickenDare[] = CHICKEN_DARES): ChickenDare {
+export function peckRandom(from: ChickenDare[] = chickenDares()): ChickenDare {
   return from[Math.floor(Math.random() * from.length)]!;
 }
 

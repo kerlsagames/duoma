@@ -4,9 +4,10 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import {
-  FANTASY_IDEAS,
+  FANTASY_CATEGORIES,
   fantasyById,
   fantasyCategoryMeta,
+  fantasyIdeas,
   groupFantasiesByCategory,
   leftoverFantasies,
   incomingTonightAsks,
@@ -84,7 +85,7 @@ export default function FantasyMatcherScreen() {
     [couple?.id, mySwipes, user?.id]
   );
   const seenCount = mySwipes.length;
-  const catalogCount = FANTASY_IDEAS.length;
+  const catalogCount = fantasyIdeas().length;
 
   const current = remaining[0] ?? null;
   const nextPeek = remaining[1] ?? null;
@@ -97,7 +98,7 @@ export default function FantasyMatcherScreen() {
     const theirLikes = new Set(
       partnerSwipes.filter((row) => row.liked).map((row) => row.fantasyId)
     );
-    return FANTASY_IDEAS.filter(
+    return fantasyIdeas().filter(
       (idea) => myLikes.has(idea.id) && theirLikes.has(idea.id)
     );
   }, [mySwipes, partner, partnerSwipes, user]);
@@ -131,13 +132,13 @@ export default function FantasyMatcherScreen() {
     const ids = new Set(
       mySwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
     );
-    return FANTASY_IDEAS.filter((idea) => ids.has(idea.id));
+    return fantasyIdeas().filter((idea) => ids.has(idea.id));
   }, [mySwipes]);
   const partnerPasses = useMemo(() => {
     const ids = new Set(
       partnerSwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
     );
-    return FANTASY_IDEAS.filter((idea) => ids.has(idea.id));
+    return fantasyIdeas().filter((idea) => ids.has(idea.id));
   }, [partnerSwipes]);
   const passedList = passedWho === "you" ? myPasses : partnerPasses;
   const passedGroups = useMemo(

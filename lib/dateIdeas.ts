@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type DateTimeTag = "day" | "night" | "anytime";
 export type DateCostTag = "free" | "low" | "splurge";
 export type DateVibeTag =
@@ -3665,8 +3667,30 @@ export const DATE_IDEAS: DateIdea[] = [
   },
 ]
 
+export function dateIdeas(includeHidden = false): DateIdea[] {
+  return applyOverlay(
+    "dates",
+    DATE_IDEAS,
+    (row, edit) => ({
+      ...row,
+      title: edit.title?.trim() || row.title,
+      blurb: edit.body?.trim() || row.blurb,
+    }),
+    (row) => ({
+      id: row.id,
+      title: row.title.trim() || "Untitled",
+      blurb: row.body.trim() || row.title,
+      time: "anytime" as const,
+      cost: "low" as const,
+      vibe: "relaxed" as const,
+      location: row.group === "home" ? "home" : "out",
+    }),
+    includeHidden
+  );
+}
+
 export function filterDateIdeas(filters: DateIdeaFilters): DateIdea[] {
-  return DATE_IDEAS.filter((idea) => {
+  return dateIdeas().filter((idea) => {
     if (filters.location !== "all" && idea.location !== filters.location) return false;
     if (filters.cost !== "all" && idea.cost !== filters.cost) return false;
     if (filters.vibe !== "all" && idea.vibe !== filters.vibe) return false;
@@ -3700,5 +3724,5 @@ export function pickRandomDateIdea(
 }
 
 export function dateIdeaById(id: string): DateIdea | null {
-  return DATE_IDEAS.find((idea) => idea.id === id) ?? null;
+  return dateIdeas().find((idea) => idea.id === id) ?? null;
 }

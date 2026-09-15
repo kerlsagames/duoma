@@ -1,6 +1,7 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
 import { localDateKey, startOfWeek } from "@/lib/dates";
 import { nowIso } from "@/lib/ids";
-import { HOW_TECHNIQUES } from "@/lib/the-how-book";
+import { HOW_TECHNIQUES as HOW_SEED } from "@/lib/the-how-book";
 
 export type HowChapterId = "essentials" | "penetration" | "amplify" | "release";
 
@@ -184,7 +185,35 @@ export const HOW_BODY_WORDS: HowBodyWord[] = [
   },
 ];
 
-export { HOW_TECHNIQUES };
+export function howTechniques(includeHidden = false): HowTechnique[] {
+  const blank = HOW_SEED[0]!;
+  return applyOverlay(
+    "how",
+    HOW_SEED,
+    (row, edit) => ({
+      ...row,
+      name: edit.title?.trim() || row.name,
+      where: edit.group?.trim() || row.where,
+      sayThis: edit.body?.trim() ? row.sayThis : row.sayThis,
+      plain: {
+        ...row.plain,
+        what: edit.body?.trim() || row.plain.what,
+      },
+    }),
+    (row) => ({
+      ...blank,
+      id: row.id,
+      number: 99,
+      name: row.title.trim() || "Untitled",
+      where: row.group || blank.where,
+      sayThis: row.body || blank.sayThis,
+      plain: { ...blank.plain, what: row.body || blank.plain.what },
+    }),
+    includeHidden
+  );
+}
+
+export const HOW_TECHNIQUES = HOW_SEED;
 
 export function howVoice(technique: HowTechnique, plainOn: boolean): HowVoice {
   return plainOn ? technique.plain : technique.science;
@@ -201,11 +230,11 @@ export function chapterMeta(id: HowChapterId) {
 }
 
 export function techniqueById(id: string): HowTechnique | null {
-  return HOW_TECHNIQUES.find((row) => row.id === id) ?? null;
+  return howTechniques().find((row) => row.id === id) ?? null;
 }
 
 export function techniquesInChapter(id: HowChapterId): HowTechnique[] {
-  return HOW_TECHNIQUES.filter((row) => row.chapter === id);
+  return howTechniques().filter((row) => row.chapter === id);
 }
 
 export function forLabel(who: HowFor): string {
@@ -263,7 +292,7 @@ export function keptTechniques(notes: HowNote[]): HowTechnique[] {
       .filter((row) => row.status === "keep" || row.status === "want")
       .map((row) => row.techniqueId)
   );
-  return HOW_TECHNIQUES.filter((row) => ids.has(row.id));
+  return howTechniques().filter((row) => ids.has(row.id));
 }
 
 export function thisWeekKey(from = new Date()): string {
@@ -287,13 +316,13 @@ export function weekTechnique(notes: HowNote[], weekKey: string): HowTechnique {
       .filter((row) => row.status === "keep" || row.status === "want")
       .map((row) => row.techniqueId)
   );
-  const fresh = HOW_TECHNIQUES.filter(
+  const fresh = howTechniques().filter(
     (row) => !skipped.has(row.id) && !tried.has(row.id)
   );
   const pool = fresh.length
     ? fresh
-    : HOW_TECHNIQUES.filter((row) => !skipped.has(row.id));
-  const list = pool.length ? pool : HOW_TECHNIQUES;
+    : howTechniques().filter((row) => !skipped.has(row.id));
+  const list = pool.length ? pool : howTechniques();
   return list[hashKey(weekKey) % list.length]!;
 }
 

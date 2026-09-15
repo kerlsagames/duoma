@@ -4,7 +4,7 @@ import {
   type CategoryId,
   type Question,
 } from "@/lib/promptsData";
-import { SPICY_DARES, isSpicyDareDeck } from "@/lib/spicy-dares";
+import { isSpicyDareDeck, spicyDares } from "@/lib/spicy-dares";
 import type { TalkDeckState, TalkDraw, TalkVaultEntry } from "@/lib/types";
 import { localDateKey } from "@/lib/dates";
 
@@ -13,7 +13,7 @@ export type { CategoryId, Question };
 
 export function freshQueue(categoryId: string): string[] {
   if (isSpicyDareDeck(categoryId)) {
-    return SPICY_DARES.map((dare) => dare.id);
+    return spicyDares().map((dare) => dare.id);
   }
   const category = categoryById(categoryId);
   return category.questions.map((question) => question.id);
@@ -24,7 +24,7 @@ export function questionById(
   questionId: string
 ): Question | null {
   if (isSpicyDareDeck(categoryId)) {
-    const dare = SPICY_DARES.find((row) => row.id === questionId);
+    const dare = spicyDares().find((row) => row.id === questionId);
     return dare
       ? {
           id: dare.id,

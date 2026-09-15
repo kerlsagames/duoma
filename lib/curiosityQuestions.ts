@@ -1,3 +1,4 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
 import type { CuriosityCategory, CuriosityQuestion } from "@/lib/types";
 import { discoverQuestionById } from "@/lib/discover-questions";
 
@@ -2174,6 +2175,39 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
   }
 ] as CuriosityQuestion[];
 
+export function curiosityQuestions(includeHidden = false): CuriosityQuestion[] {
+  return applyOverlay(
+    "curiosity",
+    CURIOSITY_QUESTIONS,
+    (row, edit) => ({
+      ...row,
+      question: edit.title?.trim() || row.question,
+      options: edit.body
+        ? edit.body.split("\n").map((line) => line.trim()).filter(Boolean)
+        : row.options,
+      category: (["flirty", "fun", "life", "deep"] as const).includes(
+        edit.group as CuriosityCategory
+      )
+        ? (edit.group as CuriosityCategory)
+        : row.category,
+    }),
+    (row) => ({
+      id: row.id,
+      question: row.title.trim() || "Question",
+      options: row.body
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
+      category: (["flirty", "fun", "life", "deep"] as const).includes(
+        row.group as CuriosityCategory
+      )
+        ? (row.group as CuriosityCategory)
+        : "fun",
+    }),
+    includeHidden
+  );
+}
+
 export function curiosityQuestionById(id: string): CuriosityQuestion | null {
   const discover = discoverQuestionById(id);
   if (discover) {
@@ -2184,13 +2218,14 @@ export function curiosityQuestionById(id: string): CuriosityQuestion | null {
       category: "deep",
     };
   }
-  return CURIOSITY_QUESTIONS.find((row) => row.id === id) ?? null;
+  return curiosityQuestions().find((row) => row.id === id) ?? null;
 }
 
 export function dailyCuriosityQuestion(coupleId: string, date: string): CuriosityQuestion {
+  const live = curiosityQuestions();
   let hash = 0;
   const key = `${coupleId}:${date}`;
   for (let i = 0; i < key.length; i += 1) hash += key.charCodeAt(i) * (i + 3);
-  return CURIOSITY_QUESTIONS[hash % CURIOSITY_QUESTIONS.length];
+  return live[hash % Math.max(1, live.length)] ?? CURIOSITY_QUESTIONS[0]!;
 }
 

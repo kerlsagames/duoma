@@ -1,10 +1,24 @@
+import { usePathname } from "expo-router";
 import { ReactNode } from "react";
 import { Platform, Text, View, useWindowDimensions } from "react-native";
 
 type Props = { children: ReactNode };
 
+function isAdminPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
 export function PhoneShell({ children }: Props) {
   const { width } = useWindowDimensions();
+  const pathname = usePathname();
+
+  if (isAdminPath(pathname)) {
+    return (
+      <View style={{ flex: 1, width: "100%", backgroundColor: "#0B0B0E" }}>
+        {children}
+      </View>
+    );
+  }
 
   if (Platform.OS !== "web" || width < 560) {
     return (

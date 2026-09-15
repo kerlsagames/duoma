@@ -17,6 +17,7 @@ import finishOff4 from "./cards/finish-off-4.json";
 import afterglow from "./cards/afterglow.json";
 import afterglow2 from "./cards/afterglow-2.json";
 import afterglow3 from "./cards/afterglow-3.json";
+import { applyOverlay } from "@/lib/catalog-overlay";
 import type { Card, DefaultCardSeed } from "@/lib/types";
 import { createId, nowIso } from "@/lib/ids";
 
@@ -40,11 +41,37 @@ export const GET_SPICY_SEEDS = [
   ...(afterglow as DefaultCardSeed[]),
   ...(afterglow2 as DefaultCardSeed[]),
   ...(afterglow3 as DefaultCardSeed[]),
-];
+].map((seed, index) => ({
+  ...seed,
+  id: `gs-${seed.category}-${seed.order}-${index}`,
+}));
+
+type SpicySeed = DefaultCardSeed & { id: string };
+
+export function getSpicySeeds(includeHidden = false): SpicySeed[] {
+  return applyOverlay(
+    "spicySeeds",
+    GET_SPICY_SEEDS as SpicySeed[],
+    (row, edit) => ({
+      ...row,
+      title: edit.title?.trim() || row.title,
+      description: edit.body?.trim() || row.description,
+      category: (edit.group as DefaultCardSeed["category"]) || row.category,
+    }),
+    (row) => ({
+      id: row.id,
+      category: (row.group as DefaultCardSeed["category"]) || "foreplay",
+      title: row.title.trim() || "Untitled",
+      description: row.body.trim() || row.title,
+      order: 9000,
+    }),
+    includeHidden
+  );
+}
 
 export function cloneDefaultDeck(coupleId: string, createdBy: string): Card[] {
   const createdAt = nowIso();
-  return GET_SPICY_SEEDS.map((seed) => ({
+  return getSpicySeeds().map((seed) => ({
     id: createId(),
     coupleId,
     stage: seed.category,
