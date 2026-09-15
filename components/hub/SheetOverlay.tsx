@@ -45,9 +45,11 @@ export function SheetOverlay({
         }}
       />
       <View
+        pointerEvents="auto"
         style={{
           width: "100%",
           maxHeight: "88%",
+          zIndex: 1,
           backgroundColor: background,
           paddingHorizontal: 16,
           paddingTop: 16,
