@@ -45,6 +45,13 @@ import {
   type MoneyGoal,
 } from "@/lib/money";
 import { emptyGifts, hydrateGifts, type GiftItem, type GiftPerson } from "@/lib/gifts";
+import {
+  emptyHowNotes,
+  emptyHowWords,
+  hydrateHowNotes,
+  hydrateHowWordsOn,
+  type HowNote,
+} from "@/lib/the-how";
 
 export type { BudgetState, MoneyGoal } from "@/lib/money";
 
@@ -468,6 +475,8 @@ export type MiniState = {
   birthdays: Birthday[];
   giftPeople: GiftPerson[];
   giftItems: GiftItem[];
+  howNotes: HowNote[];
+  howWordsOn: string[];
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
@@ -843,6 +852,8 @@ export function emptyMiniState(): MiniState {
     birthdays: emptyBirthdays(),
     giftPeople: emptyGifts().people,
     giftItems: emptyGifts().items,
+    howNotes: emptyHowNotes(),
+    howWordsOn: emptyHowWords(),
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
@@ -954,6 +965,8 @@ export function hydrateMiniState(raw: unknown): MiniState {
     birthdays: hydrateBirthdays(row.birthdays),
     giftPeople: hydrateGifts(row.giftPeople, row.giftItems).people,
     giftItems: hydrateGifts(row.giftPeople, row.giftItems).items,
+    howNotes: hydrateHowNotes(row.howNotes),
+    howWordsOn: hydrateHowWordsOn(row.howWordsOn),
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),

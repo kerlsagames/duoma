@@ -166,6 +166,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/positions",
       },
       {
+        id: "the-how",
+        label: "The How",
+        detail: "Named techniques. Try one. Keep the words that work.",
+        icon: "book",
+        href: "/hub/the-how",
+      },
+      {
         id: "fantasy-matcher",
         label: "Fantasy Matcher",
         detail: "Swipe yes or no. To-do, completed, and passed.",

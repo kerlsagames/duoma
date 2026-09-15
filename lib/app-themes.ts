@@ -173,6 +173,26 @@ export const ROLEPLAYS_TONE = liveTone(
   ROLEPLAYS_TONE_BASE.accent
 );
 
+/** Linen workbook for The How — named techniques, not dares. */
+const HOW_TONE_BASE = {
+  background: "#161012",
+  paper: "#F6EBE2",
+  paperInk: "#2A1816",
+  paperMuted: "rgba(42,24,22,0.56)",
+  rose: "#D47884",
+  roseDeep: "#B85A68",
+  roseSoft: "rgba(212,120,132,0.16)",
+  ink: "#F7EEE8",
+  muted: "rgba(247,238,232,0.62)",
+  dim: "rgba(247,238,232,0.4)",
+  surface: "#1E1618",
+  surfaceRaised: "#281C20",
+  border: "rgba(212,120,132,0.28)",
+  keep: "#C4A07A",
+} as const;
+
+export const HOW_TONE = liveTone("desire", HOW_TONE_BASE, HOW_TONE_BASE.rose);
+
 /** Warm glass mason jar for Appreciation notes. */
 const JAR_TONE_BASE = {
   background: "#100E0C",
