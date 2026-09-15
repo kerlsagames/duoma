@@ -1,4 +1,5 @@
 import { Stage } from "@/components/hub/Stage";
+import { ClockTimeField, formatClockLabel } from "@/components/ui/ClockTimeField";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
@@ -13,15 +14,7 @@ import type {
   TripDay,
   TripPlanItem,
 } from "@/lib/mini-content";
-import { ScrollTimeField } from "@/components/ui/ScrollWheelField";
-import {
-  BOOKING_KINDS,
-  emptyTripDay,
-  sortPlanItems,
-  tripDayCount,
-  tripPlanCost,
-  tripSummary,
-} from "@/lib/trips";
+import { BOOKING_KINDS, emptyTripDay, sortPlanItems, tripDayCount, tripPlanCost, tripSummary } from "@/lib/trips";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -632,7 +625,7 @@ export default function TripDetailScreen() {
           muted={MUTED}
         >
           <Field label="What" value={itemTitle} onChangeText={setItemTitle} placeholder="Ramen crawl" />
-          <ScrollTimeField
+          <ClockTimeField
             label="Time"
             value={itemTime}
             onChange={setItemTime}
@@ -791,7 +784,7 @@ function DayItemRow({
             textDecorationLine: item.done ? "line-through" : "none",
           }}
         >
-          {item.time ? `${item.time} · ` : ""}
+          {item.time ? `${formatClockLabel(item.time)} · ` : ""}
           {item.title}
         </Text>
         {item.detail ? (

@@ -1,7 +1,7 @@
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
+import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
-import { ScrollDateField } from "@/components/ui/ScrollWheelField";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { sectionAccent } from "@/lib/hub-theme";
 import { money } from "@/lib/money";
@@ -70,17 +70,6 @@ export default function TravelScreen() {
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={accent()}>
         <Text
           style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            color: accent(),
-            marginBottom: 6,
-          }}
-        >
-          UPDATED · SCROLL TIMES · SEP 14
-        </Text>
-        <Text
-          style={{
             fontFamily: SERIF,
             fontSize: 34,
             color: PAPER,
@@ -97,7 +86,7 @@ export default function TravelScreen() {
             color: MUTED,
           }}
         >
-          scroll date & time wheels · days stay put when you add
+          Pick the days on a calendar. Times use a clock, same as the shared month.
         </Text>
 
         <Pressable
@@ -240,16 +229,19 @@ export default function TravelScreen() {
             onChangeText={setWhere}
             placeholder="City, region, or road trip"
           />
-          <ScrollDateField
+          <CalendarDateField
             label="Starts"
             value={start}
-            onChange={setStart}
+            onChange={(value) => {
+              setStart(value);
+              if (end && value && value > end) setEnd(value);
+            }}
             ink={PAPER}
             muted={MUTED}
             accent={accent()}
             background="#0F1822"
           />
-          <ScrollDateField
+          <CalendarDateField
             label="Ends"
             value={end}
             onChange={(value) => {
@@ -262,7 +254,7 @@ export default function TravelScreen() {
             background="#0F1822"
           />
           <Text style={{ marginTop: 6, color: MUTED, fontSize: 12, lineHeight: 17 }}>
-            Tap a month, day, and year. Clear either date if it is still TBD —
+            Tap a day on the month. Clear either date if it is still TBD —
             you can always add day pages later.
           </Text>
           {error ? (
