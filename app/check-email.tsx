@@ -9,9 +9,14 @@ import { Text, View } from "react-native";
 export default function CheckEmailScreen() {
   const router = useRouter();
   const { user, couple, pairError } = useApp();
-  const [pending] = useState(() => readPendingPair());
+  const [pending, setPending] = useState(() => readPendingPair());
 
   useEffect(() => {
+    setPending(readPendingPair());
+  }, []);
+
+  useEffect(() => {
+    if (readPendingPair()) return;
     if (!user || !couple) return;
     router.replace(couple.partnerB ? "/" : "/waiting");
   }, [user, couple, router]);

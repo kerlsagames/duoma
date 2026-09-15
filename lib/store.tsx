@@ -1268,6 +1268,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Email is required so you can open this pair on a new phone.");
       }
       setPairError(null);
+      sessionUserId = null;
+      await writeSessionUserId(null);
+      emit();
       await sendPairMagicLink(
         { intent: "create", displayName: displayName.trim() || "You", gender },
         trimmedEmail
@@ -1309,6 +1312,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error("Email is required so you can open this pair on a new phone.");
       }
       setPairError(null);
+      sessionUserId = null;
+      await writeSessionUserId(null);
+      emit();
       await sendPairMagicLink(
         {
           intent: "join",
