@@ -148,7 +148,10 @@ import {
   absorbCloudSession,
   cloudAccountsOn,
   loadCloudDirectory,
+  readPendingPair,
+  sendLoginOtp,
   sendPairMagicLink,
+  verifyPairOtp,
 } from "@/lib/cloud-pair";
 import { supabase } from "@/lib/supabase";
 import {
@@ -499,6 +502,8 @@ type AppContextValue = {
   banAccount: (profileId: string, reason: string) => Promise<void>;
   unbanAccount: (profileId: string) => Promise<void>;
   refreshCloudAccounts: () => Promise<void>;
+  requestEmailCode: (email: string) => Promise<void>;
+  verifyEmailCode: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
@@ -1413,6 +1418,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const directory = await loadCloudDirectory();
     if (!directory) return;
     mergeCloudDirectory(directory.profiles, directory.couples);
+    await persist();
+  }, []);
+
+  const requestEmailCode = useCallback(async (email: string) => {
+    setPairError(null);
+    await sendLoginOtp(email);
+  }, []);
+
+  const verifyEmailCode = useCallback(async (token: string) => {
+    const pending = readPendingPair();
+    const email = pending?.email;
+    if (!email) {
+      throw new Error("Add the email we sent the code to, then send a new one.");
+    }
+    setPairError(null);
+    await verifyPairOtp(email, token);
+    const absorbed = await absorbCloudSession();
+    if (!absorbed) {
+      throw new Error("Signed in, but the pair is not ready yet. Send a new code.");
+    }
+    mergeCloudPair(absorbed);
+    await rememberUser(absorbed.profile.id);
     await persist();
   }, []);
 
@@ -5272,6 +5299,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     banAccount,
     unbanAccount,
     refreshCloudAccounts,
+    requestEmailCode,
+    verifyEmailCode,
     signOut,
     sendSpicyInvite,
     acceptInvite,

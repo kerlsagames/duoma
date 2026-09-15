@@ -4,15 +4,16 @@ import type { Couple, Gender, Profile } from "@/lib/types";
 export type PendingPair = {
   intent: "create" | "join";
   displayName: string;
-  gender: Gender;
+  gender: Gender | null;
   code?: string;
+  email?: string;
 };
 
 const PENDING_KEY = "duoma:pending-pair";
 
 function webStore(): Storage | null {
-  if (typeof sessionStorage === "undefined") return null;
-  return sessionStorage;
+  if (typeof localStorage === "undefined") return null;
+  return localStorage;
 }
 
 export function savePendingPair(pending: PendingPair): void {
@@ -27,7 +28,9 @@ export function readPendingPair(): PendingPair | null {
   try {
     const row = JSON.parse(raw) as PendingPair;
     if (row.intent !== "create" && row.intent !== "join") return null;
-    if (row.gender !== "male" && row.gender !== "female") return null;
+    if (row.gender != null && row.gender !== "male" && row.gender !== "female") {
+      return null;
+    }
     return row;
   } catch {
     return null;
@@ -43,24 +46,87 @@ function redirectTo(path: string): string | undefined {
   return `${window.location.origin}${path}`;
 }
 
-export async function sendPairMagicLink(pending: PendingPair, email: string): Promise<void> {
+export function readAuthRedirectError(): string | null {
+  if (typeof window === "undefined") return null;
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
+  const code = hash.get("error_code") || query.get("error_code");
+  const desc = (hash.get("error_description") || query.get("error_description") || "").replace(
+    /\+/g,
+    " "
+  );
+  if (!code && !desc) return null;
+  if (code === "otp_expired" || /expired|invalid/i.test(desc)) {
+    return "That email link expired. Type the 6-digit code from the same email, or send a new one.";
+  }
+  return desc || "Could not open that email link.";
+}
+
+export function clearAuthRedirectError(): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  const hash = url.hash.replace(/^#/, "");
+  if (!hash.includes("error") && !url.search.includes("error")) return;
+  url.hash = "";
+  url.searchParams.delete("error");
+  url.searchParams.delete("error_code");
+  url.searchParams.delete("error_description");
+  window.history.replaceState(null, "", url.pathname + url.search);
+}
+
+async function sendOtp(email: string, pending: PendingPair): Promise<void> {
   if (!supabase) {
     throw new Error("Cloud accounts are not connected yet.");
   }
-  savePendingPair(pending);
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim().toLowerCase(),
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: redirectTo(pending.intent === "join" ? "/" : "/waiting"),
+      emailRedirectTo: redirectTo("/check-email"),
       data: {
         display_name: pending.displayName.trim() || "Player",
-        gender: pending.gender,
+        gender: pending.gender ?? "",
         invite_code: pending.code ?? "",
       },
     },
   });
   if (error) throw error;
+}
+
+export async function sendPairMagicLink(pending: PendingPair, email: string): Promise<void> {
+  const trimmed = email.trim().toLowerCase();
+  savePendingPair({ ...pending, email: trimmed });
+  await sendOtp(trimmed, pending);
+}
+
+export async function sendLoginOtp(email: string): Promise<void> {
+  const trimmed = email.trim().toLowerCase();
+  const pending = readPendingPair();
+  savePendingPair({
+    intent: pending?.intent ?? "create",
+    displayName: pending?.displayName ?? "Player",
+    gender: pending?.gender ?? null,
+    code: pending?.code,
+    email: trimmed,
+  });
+  await sendOtp(trimmed, readPendingPair() ?? { intent: "create", displayName: "Player", gender: null });
+}
+
+export async function verifyPairOtp(email: string, token: string): Promise<void> {
+  if (!supabase) {
+    throw new Error("Cloud accounts are not connected yet.");
+  }
+  const { error } = await supabase.auth.verifyOtp({
+    email: email.trim().toLowerCase(),
+    token: token.replace(/\s/g, ""),
+    type: "email",
+  });
+  if (error) {
+    if (/expired|invalid/i.test(error.message)) {
+      throw new Error("That code is wrong or expired. Send a new one and type it here.");
+    }
+    throw error;
+  }
 }
 
 function asCouple(row: {
@@ -116,7 +182,7 @@ export async function absorbCloudSession(): Promise<{
 
   const pending = readPendingPair();
   const userId = session.user.id;
-  const email = session.user.email ?? null;
+  const email = session.user.email ?? pending?.email ?? null;
 
   const meta = session.user.user_metadata ?? {};
   const metaCode = typeof meta.invite_code === "string" ? meta.invite_code.trim() : "";

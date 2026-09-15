@@ -127,6 +127,13 @@ export default function WelcomeScreen() {
             tone="ghost"
             onPress={() => router.push("/join")}
           />
+          {usingCloud ? (
+            <PrimaryButton
+              label="Open with email"
+              tone="ghost"
+              onPress={() => router.push("/check-email")}
+            />
+          ) : null}
           <PrimaryButton
             label="How it works"
             tone="ghost"

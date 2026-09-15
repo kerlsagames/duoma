@@ -3,7 +3,7 @@ import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 export default function Index() {
-  const { ready, user, couple } = useApp();
+  const { ready, user } = useApp();
 
   if (!ready) {
     return (
@@ -14,6 +14,5 @@ export default function Index() {
   }
 
   if (!user) return <Redirect href="/welcome" />;
-  if (!couple?.partnerB) return <Redirect href="/waiting" />;
   return <Redirect href="/(tabs)" />;
 }

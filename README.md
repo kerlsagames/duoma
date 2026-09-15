@@ -47,11 +47,12 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 
 ### Pairing on web
 
-1. **Create your pair** — name, email, Male/Female. We email a magic link. After you open it, copy the 6-character code.
-2. Their phone: **I have a code** — their name, their email, the code. They open their link.
-3. Or **Continue with a demo partner** (Riley) to try Us + games solo on one phone.
+1. **Create your pair** — name, email, Male/Female. We email a 6-digit code. Type it in the app (do not tap the link — inboxes often burn it).
+2. Home shows **Connect** until they join. Send them the 6-character pair code from that button.
+3. Their phone: **I have a code** — their name, their email, the pair code, then their 6-digit email code.
+4. **Open with email** if a link expired. Same inbox, new 6-digit code.
 
-Email is the account (new phone, bans). The code is still how two people become a pair.
+Email is the account (new phone, bans). The pair code is still how two people become a pair.
 
 ## iPhone (iOS 16.4+)
 
