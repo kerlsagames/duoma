@@ -8,7 +8,7 @@ import {
 import { chickenDares } from "@/lib/chicken";
 import { couponIdeas } from "@/lib/couponIdeas";
 import { curiosityQuestions } from "@/lib/curiosityQuestions";
-import { dateIdeas } from "@/lib/dateIdeas";
+import { dateIdeas, DATE_VIBE_FILTERS } from "@/lib/dateIdeas";
 import { discoverQuestions } from "@/lib/discover-questions";
 import { fantasyIdeas, FANTASY_CATEGORIES } from "@/lib/fantasy-matcher";
 import { getSpicySeeds } from "@/games/get-spicy";
@@ -20,7 +20,7 @@ import { howTechniques, HOW_CHAPTERS } from "@/lib/the-how";
 import { CHICKEN_PACKS } from "@/lib/chicken-meta";
 import { COUPON_CATEGORIES } from "@/lib/couponIdeas";
 import { PHOTO_CATEGORIES } from "@/lib/photo-prompts";
-import { STAGE_ORDER } from "@/games/get-spicy/engine";
+import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 
 export { CATALOG_KEYS };
 export type { CatalogKey, CatalogRow };
@@ -66,8 +66,8 @@ export function catalogRows(key: CatalogKey): CatalogRow[] {
       return dateIdeas(true).map((row) => ({
         id: row.id,
         title: row.title,
-        body: row.blurb,
-        group: `${row.location} · ${row.vibe}`,
+        body: `${row.location === "home" ? "At home" : "Out"} · ${row.blurb}`,
+        group: row.vibe,
       }));
     case "coupons":
       return couponIdeas(true).map((row) => ({
@@ -127,7 +127,7 @@ export function catalogGroups(key: CatalogKey): string[] {
     case "positions":
       return POSITION_CATEGORIES.map((row) => row.id);
     case "dates":
-      return ["out", "home"];
+      return DATE_VIBE_FILTERS.filter((row) => row.id !== "all").map((row) => row.id);
     case "coupons":
       return COUPON_CATEGORIES.map((row) => row.id);
     case "discover":
@@ -141,6 +141,57 @@ export function catalogGroups(key: CatalogKey): string[] {
     case "photo":
       return PHOTO_CATEGORIES.map((row) => row.id);
   }
+}
+
+export type CatalogChip = { id: string; label: string };
+
+function labelize(id: string): string {
+  return id
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function catalogGroupChips(key: CatalogKey): CatalogChip[] {
+  switch (key) {
+    case "fantasy":
+      return FANTASY_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "spicyDares":
+      return SPICY_DARE_CATEGORIES.map((id) => ({ id, label: id }));
+    case "chicken":
+      return CHICKEN_PACKS.map((row) => ({ id: row.id, label: row.label }));
+    case "roleplays":
+      return ROLEPLAY_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "positions":
+      return POSITION_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "dates":
+      return DATE_VIBE_FILTERS.filter((row) => row.id !== "all").map((row) => ({
+        id: row.id,
+        label: row.label,
+      }));
+    case "coupons":
+      return COUPON_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "discover":
+      return catalogGroups("discover").map((id) => ({ id, label: labelize(id) }));
+    case "curiosity":
+      return catalogGroups("curiosity").map((id) => ({ id, label: labelize(id) }));
+    case "how":
+      return HOW_CHAPTERS.map((row) => ({ id: row.id, label: row.label }));
+    case "spicySeeds":
+      return STAGE_ORDER.map((id) => ({ id, label: STAGE_META[id].label }));
+    case "photo":
+      return PHOTO_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+  }
+}
+
+export function rowInGroup(row: CatalogRow, groupId: string): boolean {
+  if (!groupId) return true;
+  if (row.group === groupId) return true;
+  return row.group
+    .split(",")
+    .map((part) => part.trim())
+    .includes(groupId);
 }
 
 export function hiddenIds(key: CatalogKey): string[] {

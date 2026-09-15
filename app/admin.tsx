@@ -8,11 +8,14 @@ import {
   type CatalogKey,
 } from "@/lib/catalog-overlay";
 import {
+  catalogGroupChips,
   catalogGroups,
   catalogRows,
   hiddenIds,
   newCatalogId,
+  rowInGroup,
 } from "@/lib/catalog-rows";
+import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
 import { useState } from "react";
@@ -28,9 +31,20 @@ import {
 type Tab = "users" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
-  { id: "users", label: "Users & couples" },
-  { id: "spicyLive", label: "Get Spicy (in play)" },
-  ...CATALOG_KEYS.map((row) => ({ id: row.id as Tab, label: row.label })),
+  { id: "users", label: "Users" },
+  { id: "spicyLive", label: "Copies" },
+  { id: "fantasy", label: "Fantasy" },
+  { id: "spicyDares", label: "Dare Me" },
+  { id: "chicken", label: "Chicken" },
+  { id: "roleplays", label: "Roleplays" },
+  { id: "positions", label: "Positions" },
+  { id: "dates", label: "Dates" },
+  { id: "coupons", label: "Coupons" },
+  { id: "discover", label: "Discover" },
+  { id: "curiosity", label: "Curiosity" },
+  { id: "how", label: "The How" },
+  { id: "spicySeeds", label: "Spicy seeds" },
+  { id: "photo", label: "Photos" },
 ];
 
 export default function AdminScreen() {
@@ -112,18 +126,19 @@ export default function AdminScreen() {
         horizontal={stacked}
         style={
           stacked
-            ? { maxHeight: 72, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.08)" }
-            : { width: 220, borderRightWidth: 1, borderRightColor: "rgba(255,255,255,0.08)" }
+            ? { maxHeight: 56, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.08)" }
+            : { width: 128, flexGrow: 0, flexShrink: 0, borderRightWidth: 1, borderRightColor: "rgba(255,255,255,0.08)" }
         }
         contentContainerStyle={{
-          padding: 12,
-          paddingBottom: stacked ? 12 : 40,
+          paddingHorizontal: 8,
+          paddingTop: 10,
+          paddingBottom: stacked ? 8 : 32,
           flexDirection: stacked ? "row" : "column",
           alignItems: stacked ? "center" : "stretch",
-          gap: stacked ? 4 : 0,
+          gap: stacked ? 2 : 0,
         }}
       >
-        <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 11, letterSpacing: 1.6 }}>
+        <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 9, letterSpacing: 1.4, paddingHorizontal: 6 }}>
           BACKSTAGE
         </Text>
         {NAV.map((row) => {
@@ -136,14 +151,17 @@ export default function AdminScreen() {
                 setQ("");
               }}
               style={{
-                marginTop: 6,
-                paddingVertical: 8,
-                paddingHorizontal: 10,
-                borderRadius: 8,
+                marginTop: stacked ? 0 : 2,
+                paddingVertical: 6,
+                paddingHorizontal: 8,
+                borderRadius: 6,
                 backgroundColor: on ? "rgba(255,0,127,0.18)" : "transparent",
               }}
             >
-              <Text style={{ color: on ? "#FF007F" : "#F4F4F6", fontSize: 13, fontWeight: "700" }}>
+              <Text
+                numberOfLines={1}
+                style={{ color: on ? "#FF007F" : "#F4F4F6", fontSize: 12, fontWeight: "700" }}
+              >
                 {row.label}
               </Text>
             </Pressable>
@@ -155,9 +173,9 @@ export default function AdminScreen() {
             setUnlocked(false);
             setPass("");
           }}
-          style={{ marginTop: 24, padding: 10 }}
+          style={{ marginTop: stacked ? 0 : 16, padding: 8 }}
         >
-          <Text style={{ color: "rgba(244,244,246,0.45)", fontSize: 12 }}>Lock</Text>
+          <Text style={{ color: "rgba(244,244,246,0.45)", fontSize: 11 }}>Lock</Text>
         </Pressable>
       </ScrollView>
 
@@ -273,45 +291,56 @@ function LiveSpicyPane({
   profiles: ReturnType<typeof useApp>["allProfiles"];
   couples: ReturnType<typeof useApp>["allCouples"];
 }) {
+  const [stage, setStage] = useState<(typeof STAGE_ORDER)[number] | "all">("all");
   const name = (id: string | null) =>
     profiles.find((row) => row.id === id)?.displayName ?? id ?? "—";
+  const chips = [
+    { id: "all" as const, label: "All" },
+    ...STAGE_ORDER.map((id) => ({ id, label: STAGE_META[id].short })),
+  ];
+  const visible = cards.filter((card) => stage === "all" || card.stage === stage);
+
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
-      <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>
-        Get Spicy copies · {cards.length}
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, marginBottom: 12 }}>
-        Each couple gets a copy of the seed deck. Edit the seed catalog to change everyone’s
-        copies. This list is what’s actually in play.
-      </Text>
-      {cards.length === 0 ? (
-        <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8 }}>
-          No Get Spicy copies yet. Pair an account and the seed deck lands here.
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <Text style={{ color: "#F4F4F6", fontSize: 20, fontWeight: "800" }}>
+          Get Spicy copies · {visible.length}
         </Text>
-      ) : null}
-      {cards.map((card) => {
-        const couple = couples.find((row) => row.id === card.coupleId);
-        return (
-          <View
-            key={card.id}
-            style={{
-              marginTop: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: "rgba(255,255,255,0.08)",
-              paddingBottom: 8,
-            }}
-          >
-            <Text style={{ color: "#F4F4F6", fontWeight: "700" }}>{card.title}</Text>
-            <Text style={{ color: "rgba(244,244,246,0.5)", fontSize: 12, marginTop: 2 }}>
-              {card.stage} · {card.isActive ? "on" : "off"} · couple {couple?.inviteCode ?? card.coupleId} · {name(couple?.partnerA ?? null)} / {name(couple?.partnerB ?? null)}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.7)", marginTop: 4, fontSize: 13 }}>
-              {card.body}
-            </Text>
-          </View>
-        );
-      })}
-    </ScrollView>
+        <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, marginBottom: 8, fontSize: 13 }}>
+          Copies in play. Edit the seed catalog to change everyone’s deck.
+        </Text>
+        <ChipRow
+          chips={chips}
+          selected={stage}
+          onSelect={(id) => setStage(id as typeof stage)}
+        />
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 48 }}>
+        {visible.length === 0 ? (
+          <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8 }}>
+            No Get Spicy copies in this stage yet.
+          </Text>
+        ) : null}
+        {visible.map((card) => {
+          const couple = couples.find((row) => row.id === card.coupleId);
+          return (
+            <View key={card.id} style={cardRow}>
+              <Text numberOfLines={1} style={cardTitle}>
+                {card.title}
+              </Text>
+              <Text numberOfLines={1} style={cardDetail}>
+                {card.body}
+              </Text>
+              <Text style={cardMeta}>
+                {STAGE_META[card.stage]?.short ?? card.stage} · {card.isActive ? "on" : "off"} ·{" "}
+                {couple?.inviteCode ?? card.coupleId} · {name(couple?.partnerA ?? null)} /{" "}
+                {name(couple?.partnerB ?? null)}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -326,176 +355,329 @@ function CatalogPane({
 }) {
   const meta = CATALOG_KEYS.find((row) => row.id === catalog)!;
   const rows = catalogRows(catalog);
+  const chips = catalogGroupChips(catalog);
   const groups = catalogGroups(catalog);
   const hidden = new Set(hiddenIds(catalog));
-  const needle = query.trim().toLowerCase();
-  const visible = rows.filter((row) => {
-    if (!needle) return true;
-    return `${row.title} ${row.body} ${row.group} ${row.id}`.toLowerCase().includes(needle);
-  });
+  const [group, setGroup] = useState(chips[0]?.id ?? "");
   const [draftId, setDraftId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [group, setGroup] = useState(groups[0] ?? "");
+  const [editGroup, setEditGroup] = useState(chips[0]?.id ?? "");
   const [adding, setAdding] = useState(false);
+
+  const needle = query.trim().toLowerCase();
+  const inCategory = rows.filter((row) => rowInGroup(row, group));
+  const matched = inCategory.filter((row) => {
+    if (!needle) return true;
+    return `${row.title} ${row.body} ${row.group} ${row.id}`.toLowerCase().includes(needle);
+  });
+  const live = matched.filter((row) => !hidden.has(row.id));
+  const tucked = matched.filter((row) => hidden.has(row.id));
 
   const open = (row: { id: string; title: string; body: string; group: string }) => {
     setAdding(false);
     setDraftId(row.id);
     setTitle(row.title);
     setBody(row.body);
-    setGroup(row.group);
+    setEditGroup(row.group.split(",")[0]?.trim() || group);
+  };
+
+  const detailOf = (row: { title: string; body: string }) => {
+    const text = row.body.trim();
+    if (!text || text === row.title) return "";
+    if (text.startsWith(row.title)) return text.slice(row.title.length).replace(/^[·\s-]+/, "");
+    return text;
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
-      <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>
-        {meta.label} · {rows.length}
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4 }}>
-        Hide or edit here and every couple on this origin sees it. Hidden cards leave the live
-        decks but stay here so you can restore them.
-      </Text>
-      <TextInput
-        value={query}
-        onChangeText={onQuery}
-        placeholder="Search"
-        placeholderTextColor="rgba(244,244,246,0.35)"
-        style={field}
-      />
-
-      {meta.add ? (
-        <Pressable
-          onPress={() => {
-            setAdding(true);
-            setDraftId(null);
-            setTitle("");
-            setBody("");
-            setGroup(groups[0] ?? "");
-          }}
-          style={{
-            marginTop: 12,
-            alignSelf: "flex-start",
-            backgroundColor: "#FF007F",
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: "#0B0B0E", fontWeight: "800" }}>Add card</Text>
-        </Pressable>
-      ) : null}
-
-      {adding || draftId ? (
-        <View
-          style={{
-            marginTop: 14,
-            borderWidth: 1,
-            borderColor: "#FF007F",
-            borderRadius: 10,
-            padding: 12,
-          }}
-        >
-          <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 11 }}>
-            {adding ? "NEW" : draftId}
-          </Text>
-          <TextInput value={title} onChangeText={setTitle} placeholder="Title" placeholderTextColor="rgba(244,244,246,0.35)" style={field} />
-          <TextInput
-            value={body}
-            onChangeText={setBody}
-            placeholder="Body / prompt / options (one per line for Curiosity)"
-            placeholderTextColor="rgba(244,244,246,0.35)"
-            multiline
-            style={{ ...field, minHeight: 90, textAlignVertical: "top" }}
-          />
-          <TextInput
-            value={group}
-            onChangeText={setGroup}
-            placeholder={`Group (${groups.slice(0, 6).join(", ")})`}
-            placeholderTextColor="rgba(244,244,246,0.35)"
-            style={field}
-          />
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
-            <Pressable
-              onPress={() =>
-                void (async () => {
-                  if (adding) {
-                    await addCatalogRow(catalog, {
-                      id: newCatalogId(catalog),
-                      title: title.trim() || "Untitled",
-                      body: body.trim(),
-                      group: group.trim() || groups[0] || "misc",
-                    });
-                    setAdding(false);
-                  } else if (draftId) {
-                    await editCatalogRow(catalog, draftId, {
-                      title: title.trim(),
-                      body: body.trim(),
-                      group: group.trim(),
-                    });
-                    setDraftId(null);
-                  }
-                })()
-              }
-              style={{ backgroundColor: "#FF007F", paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 }}
-            >
-              <Text style={{ color: "#0B0B0E", fontWeight: "800" }}>Save — everyone gets this</Text>
-            </Pressable>
-            <Pressable onPress={() => { setAdding(false); setDraftId(null); }} style={{ padding: 10 }}>
-              <Text style={{ color: "rgba(244,244,246,0.6)" }}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : null}
-
-      {visible.length === 0 ? (
-        <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 16 }}>
-          {needle ? "No cards match that search." : "No cards in this catalog."}
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <Text style={{ color: "#F4F4F6", fontSize: 20, fontWeight: "800" }}>
+          {meta.label} · {matched.length}
         </Text>
-      ) : null}
-
-      {visible.map((row) => (
-        <View
-          key={row.id}
-          style={{
-            marginTop: 10,
-            borderWidth: 1,
-            borderColor: hidden.has(row.id) ? "rgba(255,138,138,0.45)" : "rgba(255,255,255,0.1)",
-            borderRadius: 8,
-            padding: 10,
-            opacity: hidden.has(row.id) ? 0.7 : 1,
+        <ChipRow
+          chips={chips}
+          selected={group}
+          counts={Object.fromEntries(
+            chips.map((chip) => [
+              chip.id,
+              rows.filter((row) => rowInGroup(row, chip.id)).length,
+            ])
+          )}
+          onSelect={(id) => {
+            setGroup(id);
+            setAdding(false);
+            setDraftId(null);
+            onQuery("");
           }}
-        >
-          <Text style={{ color: "#F4F4F6", fontWeight: "700" }}>
-            {row.title}
-            {hidden.has(row.id) ? " · hidden" : ""}
-          </Text>
-          <Text style={{ color: "#FF007F", fontSize: 11, marginTop: 2 }}>{row.group}</Text>
-          {row.body ? (
-            <Text style={{ color: "rgba(244,244,246,0.7)", marginTop: 4, fontSize: 13 }}>
-              {row.body}
+        />
+        <TextInput
+          value={query}
+          onChangeText={onQuery}
+          placeholder="Search this category"
+          placeholderTextColor="rgba(244,244,246,0.35)"
+          style={field}
+        />
+        {meta.add ? (
+          <Pressable
+            onPress={() => {
+              setAdding(true);
+              setDraftId(null);
+              setTitle("");
+              setBody("");
+              setEditGroup(group || groups[0] || "");
+            }}
+            style={{
+              marginTop: 10,
+              alignSelf: "flex-start",
+              backgroundColor: "#FF007F",
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 6,
+            }}
+          >
+            <Text style={{ color: "#0B0B0E", fontWeight: "800", fontSize: 12 }}>Add card</Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}>
+        {adding || draftId ? (
+          <View
+            style={{
+              marginBottom: 12,
+              borderWidth: 1,
+              borderColor: "#FF007F",
+              borderRadius: 10,
+              padding: 12,
+            }}
+          >
+            <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 11 }}>
+              {adding ? "NEW" : draftId}
             </Text>
-          ) : null}
-          <Text style={{ color: "rgba(244,244,246,0.35)", fontSize: 11, marginTop: 4 }}>{row.id}</Text>
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-            <Pressable onPress={() => open(row)}>
-              <Text style={{ color: "#FF007F", fontWeight: "700" }}>Edit</Text>
-            </Pressable>
-            {hidden.has(row.id) ? (
-              <Pressable onPress={() => void restoreCatalogRow(catalog, row.id)}>
-                <Text style={{ color: "#3ECFBF", fontWeight: "700" }}>Restore</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Title"
+              placeholderTextColor="rgba(244,244,246,0.35)"
+              style={field}
+            />
+            <TextInput
+              value={body}
+              onChangeText={setBody}
+              placeholder="Detail / prompt / options (one per line for Curiosity)"
+              placeholderTextColor="rgba(244,244,246,0.35)"
+              multiline
+              style={{ ...field, minHeight: 90, textAlignVertical: "top" }}
+            />
+            <TextInput
+              value={editGroup}
+              onChangeText={setEditGroup}
+              placeholder={`Category (${chips.map((chip) => chip.label).slice(0, 5).join(", ")})`}
+              placeholderTextColor="rgba(244,244,246,0.35)"
+              style={field}
+            />
+            <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+              <Pressable
+                onPress={() =>
+                  void (async () => {
+                    if (adding) {
+                      await addCatalogRow(catalog, {
+                        id: newCatalogId(catalog),
+                        title: title.trim() || "Untitled",
+                        body: body.trim(),
+                        group: editGroup.trim() || group || groups[0] || "misc",
+                      });
+                      setAdding(false);
+                    } else if (draftId) {
+                      await editCatalogRow(catalog, draftId, {
+                        title: title.trim(),
+                        body: body.trim(),
+                        group: editGroup.trim(),
+                      });
+                      setDraftId(null);
+                    }
+                  })()
+                }
+                style={{
+                  backgroundColor: "#FF007F",
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 6,
+                }}
+              >
+                <Text style={{ color: "#0B0B0E", fontWeight: "800", fontSize: 12 }}>
+                  Save — everyone gets this
+                </Text>
               </Pressable>
-            ) : (
-              <Pressable onPress={() => void hideCatalogRow(catalog, row.id)}>
-                <Text style={{ color: "#FF8A8A", fontWeight: "700" }}>Hide for everyone</Text>
+              <Pressable
+                onPress={() => {
+                  setAdding(false);
+                  setDraftId(null);
+                }}
+                style={{ padding: 8 }}
+              >
+                <Text style={{ color: "rgba(244,244,246,0.6)" }}>Cancel</Text>
               </Pressable>
-            )}
+            </View>
           </View>
-        </View>
-      ))}
-    </ScrollView>
+        ) : null}
+
+        {live.length === 0 && tucked.length === 0 ? (
+          <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8 }}>
+            {needle ? "No cards match that search." : "No cards in this category."}
+          </Text>
+        ) : null}
+
+        {live.map((row) => (
+          <CardLine
+            key={row.id}
+            title={row.title}
+            detail={detailOf(row)}
+            hidden={false}
+            onEdit={() => open(row)}
+            onHide={() => void hideCatalogRow(catalog, row.id)}
+          />
+        ))}
+
+        {tucked.length ? (
+          <Text
+            style={{
+              color: "rgba(244,244,246,0.4)",
+              fontSize: 11,
+              fontWeight: "700",
+              letterSpacing: 1.2,
+              marginTop: 22,
+              marginBottom: 4,
+            }}
+          >
+            HIDDEN · {tucked.length}
+          </Text>
+        ) : null}
+
+        {tucked.map((row) => (
+          <CardLine
+            key={row.id}
+            title={row.title}
+            detail={detailOf(row)}
+            hidden
+            onEdit={() => open(row)}
+            onRestore={() => void restoreCatalogRow(catalog, row.id)}
+          />
+        ))}
+      </ScrollView>
+    </View>
   );
 }
+
+function ChipRow({
+  chips,
+  selected,
+  onSelect,
+  counts,
+}: {
+  chips: { id: string; label: string }[];
+  selected: string;
+  onSelect: (id: string) => void;
+  counts?: Record<string, number>;
+}) {
+  return (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+      {chips.map((chip) => {
+        const on = selected === chip.id;
+        const count = counts?.[chip.id];
+        return (
+          <Pressable
+            key={chip.id}
+            onPress={() => onSelect(chip.id)}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 99,
+              backgroundColor: on ? "#FF007F" : "rgba(255,255,255,0.06)",
+              borderWidth: 1,
+              borderColor: on ? "#FF007F" : "rgba(255,255,255,0.12)",
+            }}
+          >
+            <Text style={{ color: on ? "#0B0B0E" : "#F4F4F6", fontSize: 12, fontWeight: "700" }}>
+              {chip.label}
+              {typeof count === "number" ? ` ${count}` : ""}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function CardLine({
+  title,
+  detail,
+  hidden,
+  onEdit,
+  onHide,
+  onRestore,
+}: {
+  title: string;
+  detail: string;
+  hidden: boolean;
+  onEdit: () => void;
+  onHide?: () => void;
+  onRestore?: () => void;
+}) {
+  return (
+    <View style={{ ...cardRow, opacity: hidden ? 0.55 : 1 }}>
+      <Text numberOfLines={1} style={cardTitle}>
+        {title}
+      </Text>
+      {detail ? (
+        <Text numberOfLines={1} style={cardDetail}>
+          {detail}
+        </Text>
+      ) : null}
+      <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
+        <Pressable onPress={onEdit} hitSlop={8}>
+          <Text style={{ color: "#FF007F", fontSize: 11, fontWeight: "700" }}>Edit</Text>
+        </Pressable>
+        {hidden ? (
+          <Pressable onPress={onRestore} hitSlop={8}>
+            <Text style={{ color: "#3ECFBF", fontSize: 11, fontWeight: "700" }}>Restore</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={onHide} hitSlop={8}>
+            <Text style={{ color: "rgba(255,138,138,0.9)", fontSize: 11, fontWeight: "700" }}>
+              Hide
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const cardRow = {
+  paddingVertical: 8,
+  borderBottomWidth: 1,
+  borderBottomColor: "rgba(255,255,255,0.08)",
+};
+
+const cardTitle = {
+  color: "#F4F4F6",
+  fontWeight: "700" as const,
+  fontSize: 14,
+};
+
+const cardDetail = {
+  color: "rgba(244,244,246,0.62)",
+  fontSize: 12,
+  marginTop: 2,
+};
+
+const cardMeta = {
+  color: "rgba(244,244,246,0.4)",
+  fontSize: 11,
+  marginTop: 2,
+};
 
 const field = {
   marginTop: 10,
