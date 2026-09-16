@@ -15,6 +15,8 @@ export type CardStage = (typeof STAGES)[number];
 
 export type GameKey = "get-spicy" | "lets-talk";
 
+export type SpicyPace = "detailed" | "simple";
+
 /** Live deal-3 play. Legacy random / pick_your_own may still appear in old saves. */
 export type GameMode = "deal" | "random" | "pick_your_own";
 
@@ -104,6 +106,8 @@ export type GameSession = {
   stageCounts: StageCounts;
   /** Enabled flavor tag ids from Get Spicy setup checkboxes. */
   flavorTags: string[];
+  /** Detailed is all five stages with counts. Simple is Foreplay → Step it up → Finish Off until you move on. */
+  pace: SpicyPace;
   currentStage: CardStage | null;
   activeCardId: string | null;
   turnUserId: string | null;

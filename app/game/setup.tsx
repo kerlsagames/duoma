@@ -4,6 +4,8 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import {
   DEFAULT_STAGE_COUNTS,
+  SIMPLE_STAGE_COUNTS,
+  SIMPLE_STAGE_ORDER,
   STAGE_META,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
@@ -15,7 +17,7 @@ import {
 } from "@/games/get-spicy/flavor-tags";
 import { useAppLook } from "@/lib/app-prefs";
 import { useApp } from "@/lib/store";
-import type { CardStage, StageCounts } from "@/lib/types";
+import type { CardStage, SpicyPace, StageCounts } from "@/lib/types";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -35,7 +37,11 @@ const SETUP_RULES = [
   },
   {
     title: "Daytime pause",
-    body: "Pre-foreplay is daytime tease. Those cards stay hidden from your partner until you both tap We are ready to move on.",
+    body: "Detailed: pre-foreplay is daytime tease. Those cards stay hidden from your partner until you both tap We are ready to move on.",
+  },
+  {
+    title: "Keep it simple",
+    body: "Three stages only — Foreplay, Step it up, Finish Off. Keep flipping cards in a stage until you tap Ready to move on. Then the next stage. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -98,7 +104,9 @@ export default function SetupScreen() {
   const look = useAppLook("get-spicy", "#FF007F", {
     remember: true,
     hideRules: false,
+    pace: "detailed",
   });
+  const [pace, setPace] = useState<SpicyPace>("detailed");
 
   useEffect(() => {
     if (!game) {
@@ -110,6 +118,18 @@ export default function SetupScreen() {
     }
   }, [game, router]);
 
+  useEffect(() => {
+    if (!look.ready) return;
+    if (look.prefs.pace === "simple" || look.prefs.pace === "detailed") {
+      setPace(look.prefs.pace);
+    }
+  }, [look.prefs.pace, look.ready]);
+
+  const choosePace = (next: SpicyPace) => {
+    setPace(next);
+    look.patch({ pace: next });
+  };
+
   const bump = (stage: keyof StageCounts, delta: number) => {
     setCounts((current) => ({
       ...current,
@@ -119,6 +139,7 @@ export default function SetupScreen() {
 
   const enabledSet = useMemo(() => new Set(flavorTags), [flavorTags]);
   const allOn = flavorTags.length === ALL_FLAVOR_TAG_IDS.length;
+  const flavorStages = pace === "simple" ? SIMPLE_STAGE_ORDER : STAGE_ORDER;
 
   const toggleTag = (id: string) => {
     setFlavorTags((current) =>
@@ -141,8 +162,9 @@ export default function SetupScreen() {
       await configureGame({
         blockLimit: passLimit,
         shuffleLimit,
-        stageCounts: counts,
+        stageCounts: pace === "simple" ? SIMPLE_STAGE_COUNTS : counts,
         flavorTags,
+        pace,
       });
       router.replace("/game/play");
     } finally {
@@ -201,6 +223,43 @@ export default function SetupScreen() {
           />
         ) : null}
 
+        <View className="mt-6 flex-row gap-2">
+          {(
+            [
+              {
+                id: "detailed" as const,
+                label: "Detailed",
+                hint: "All five stages. You set how many cards.",
+              },
+              {
+                id: "simple" as const,
+                label: "Keep it simple",
+                hint: "Foreplay, Step it up, Finish Off. Flip until you move on.",
+              },
+            ] as const
+          ).map((option) => {
+            const on = pace === option.id;
+            return (
+              <Pressable
+                key={option.id}
+                onPress={() => choosePace(option.id)}
+                className={`flex-1 rounded-2xl border px-3 py-3 ${
+                  on ? "border-neon bg-neon/15" : "border-white/12 bg-white/5"
+                }`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+              >
+                <Text className="text-center text-[15px] font-bold text-mist">
+                  {option.label}
+                </Text>
+                <Text className="mt-1 text-center text-[11px] leading-4 text-mist/55">
+                  {option.hint}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <View className="mt-7 flex-row gap-3">
           <View className="flex-1">
             <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -226,6 +285,8 @@ export default function SetupScreen() {
           </View>
         </View>
 
+        {pace === "detailed" ? (
+          <>
         <Text className="mt-7 text-[12px] font-semibold uppercase tracking-widest text-mist/40">
           Cards per stage
         </Text>
@@ -265,6 +326,13 @@ export default function SetupScreen() {
             </View>
           ))}
         </View>
+          </>
+        ) : (
+          <Text className="mt-7 text-[14px] leading-5 text-mist/60">
+            Foreplay, then Step it up, then Finish Off. Flip cards in a stage until
+            you tap Ready to move on.
+          </Text>
+        )}
 
         <View className="mt-8 flex-row items-center justify-between">
           <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -292,7 +360,7 @@ export default function SetupScreen() {
         </View>
 
         <View className="mt-4 gap-4">
-          {STAGE_ORDER.map((stage) => {
+          {flavorStages.map((stage) => {
             const tags = flavorTagsForStage(stage);
             const stageIds = tags.map((row) => row.id);
             const stageOn = stageIds.every((id) => enabledSet.has(id));

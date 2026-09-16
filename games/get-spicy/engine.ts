@@ -33,6 +33,35 @@ export const DEFAULT_STAGE_COUNTS: StageCounts = {
   afterglow: 1,
 };
 
+export const SIMPLE_STAGE_ORDER: CardStage[] = [
+  "foreplay",
+  "step_it_up",
+  "finish_off",
+];
+
+/** Counts only mark a stage as in-play. Foreplay and Step it up stay open until Ready to move on. */
+export const SIMPLE_STAGE_COUNTS: StageCounts = {
+  pre_foreplay: 0,
+  foreplay: 1,
+  step_it_up: 1,
+  finish_off: 1,
+  afterglow: 0,
+};
+
+export function isSimpleOpenStage(
+  pace: string | null | undefined,
+  stage: CardStage | null | undefined
+): boolean {
+  return (
+    pace === "simple" &&
+    (stage === "foreplay" || stage === "step_it_up")
+  );
+}
+
+export function stagesForPace(pace: string | null | undefined): CardStage[] {
+  return pace === "simple" ? SIMPLE_STAGE_ORDER : STAGE_ORDER;
+}
+
 export function normalizeStageCounts(
   counts?: Partial<StageCounts> | null
 ): StageCounts {

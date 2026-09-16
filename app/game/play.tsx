@@ -4,7 +4,7 @@ import { RealtimeCardStage } from "@/components/RealtimeCardStage";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { STAGE_ORDER } from "@/games/get-spicy/engine";
+import { isSimpleOpenStage, stagesForPace } from "@/games/get-spicy/engine";
 import {
   personalizeCard,
   resolveCardGenders,
@@ -31,6 +31,7 @@ export default function PlayScreen() {
     resolveFinishReveal,
     blockCard,
     unlockPrivate,
+    readyToMoveOn,
     rateCard,
     finishRatings,
     endGame,
@@ -105,7 +106,9 @@ export default function PlayScreen() {
       ? game.finishUnitsDone ?? 0
       : played.filter((item) => item.stage === game?.currentStage).length;
   const progressLabel =
-    game?.currentStage === "finish_off" && game.finishAwaitingMale
+    isSimpleOpenStage(game?.pace, game?.currentStage)
+      ? `${stagePlayed} this stage · until you move on`
+      : game?.currentStage === "finish_off" && game.finishAwaitingMale
       ? `${stagePlayed} / ${stageNeed} · M next`
       : `${stagePlayed} / ${stageNeed} this stage`;
 
@@ -229,20 +232,43 @@ export default function PlayScreen() {
     }
   };
 
+  const onReadyToMoveOn = async () => {
+    setError(null);
+    try {
+      await readyToMoveOn();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not move on");
+    }
+  };
+
   if (game?.awaitingPrivate) {
+    const next = game.currentStage;
+    const simple = game.pace === "simple";
+    const kicker = simple
+      ? next === "finish_off"
+        ? "Step it up closed"
+        : "Foreplay closed"
+      : "Stage 1 closed";
+    const title = simple
+      ? next === "finish_off"
+        ? "Step it up is done."
+        : "Foreplay is done."
+      : "Pre-foreplay is done.";
+    const body = simple
+      ? next === "finish_off"
+        ? "When you are both ready to finish, tap below."
+        : "When you are both ready to step it up, tap below."
+      : "That was the daytime tease. When you are both ready for what comes next, tap below. Foreplay will not start until you do.";
     return (
       <Screen>
         <View className="flex-1 justify-center">
           <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
-            Stage 1 closed
+            {kicker}
           </Text>
           <Text className="mt-3 text-[34px] font-bold leading-10 text-mist">
-            Pre-foreplay is done.
+            {title}
           </Text>
-          <Text className="mt-4 text-[16px] leading-7 text-mist/70">
-            That was the daytime tease. When you are both ready for what comes
-            next, tap below. Foreplay will not start until you do.
-          </Text>
+          <Text className="mt-4 text-[16px] leading-7 text-mist/70">{body}</Text>
           <View className="mt-8 gap-3">
             <PrimaryButton
               label="We are ready to move on"
@@ -414,7 +440,7 @@ export default function PlayScreen() {
     <Screen scroll={showHand}>
       <View className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}>
         <View className="mb-1.5 flex-row justify-between">
-          {STAGE_ORDER.map((stage) => {
+          {stagesForPace(game?.pace).map((stage) => {
             const on = game?.currentStage === stage;
             return (
               <View
@@ -508,6 +534,14 @@ export default function PlayScreen() {
               tone="ghost"
               disabled={!myTurn || animating || myShufflesRemaining === 0}
               onPress={() => void onShuffle()}
+            />
+          ) : null}
+          {isSimpleOpenStage(game?.pace, game?.currentStage) && !active ? (
+            <PrimaryButton
+              label="Ready to move on"
+              tone="ghost"
+              disabled={animating}
+              onPress={() => void onReadyToMoveOn()}
             />
           ) : null}
           <PrimaryButton

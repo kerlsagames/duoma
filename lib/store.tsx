@@ -4,8 +4,10 @@ import {
   dealHandFromBank,
   dealFinishHandFromBank,
   DEFAULT_STAGE_COUNTS,
+  SIMPLE_STAGE_COUNTS,
   firstActiveStage,
   HAND_SIZE,
+  isSimpleOpenStage,
   nextActiveStage,
   normalizePassLimit,
   normalizeShuffleLimit,
@@ -108,6 +110,7 @@ import type {
   ScratchKind,
   ScratchReveal,
   SocialBattery,
+  SpicyPace,
   StageCounts,
   TodayNeed,
   TalkDeckState,
@@ -615,6 +618,7 @@ type AppContextValue = {
     shuffleLimit: number;
     stageCounts: StageCounts;
     flavorTags: string[];
+    pace?: SpicyPace;
   }) => Promise<void>;
   toggleDeckPick: (cardId: string) => Promise<void>;
   fillPicksRandomly: () => Promise<void>;
@@ -628,6 +632,7 @@ type AppContextValue = {
   playCard: () => Promise<void>;
   blockCard: () => Promise<void>;
   unlockPrivate: () => Promise<void>;
+  readyToMoveOn: () => Promise<void>;
   rateCard: (cardId: string, stars: number) => Promise<void>;
   finishRatings: () => Promise<void>;
   endGame: () => Promise<void>;
@@ -2300,6 +2305,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shuffleLimit: 3,
       stageCounts: { ...DEFAULT_STAGE_COUNTS },
       flavorTags: defaultEnabledFlavorTags(),
+      pace: "detailed",
       currentStage: null,
       activeCardId: null,
       turnUserId: user.id,
@@ -2477,7 +2483,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const playedInStage = playedCountForStage(deckRows, justPlayedStage);
-    const stageDone = playedInStage >= stageCounts[justPlayedStage];
+    const openEnded = isSimpleOpenStage(row.pace, justPlayedStage);
+    const stageDone = !openEnded && playedInStage >= stageCounts[justPlayedStage];
 
     if (!stageDone) {
       return {
@@ -2582,11 +2589,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shuffleLimit: number;
       stageCounts: StageCounts;
       flavorTags: string[];
+      pace?: SpicyPace;
     }) => {
       if (!game || !couple?.partnerA || !couple.partnerB) return;
       const blockLimit = normalizePassLimit(input.blockLimit);
       const shuffleLimit = normalizeShuffleLimit(input.shuffleLimit);
-      const stageCounts = normalizeStageCounts(input.stageCounts);
+      const pace: SpicyPace = input.pace === "simple" ? "simple" : "detailed";
+      const stageCounts = normalizeStageCounts(
+        pace === "simple" ? SIMPLE_STAGE_COUNTS : input.stageCounts
+      );
       const flavorTags = normalizeFlavorTags(input.flavorTags);
       if (flavorTags.length === 0) {
         throw new Error("Pick at least one flavor for the deck.");
@@ -2600,6 +2611,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           row.id === game.id
             ? startPlayingPatch(row, {
                 mode: "deal",
+                pace,
                 blockLimit,
                 shuffleLimit,
                 stageCounts,
@@ -3247,7 +3259,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const unlockPrivate = useCallback(async () => {
     if (!game || !game.awaitingPrivate) return;
-    const stageCounts = normalizeStageCounts(game.stageCounts);
     const stage = game.currentStage;
     const needsReveal =
       (stage === "finish_off" || stage === "afterglow") &&
@@ -3265,6 +3276,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 ? null
                 : exclusiveTurnForStage(row, stage, row.turnUserId ?? row.initiatorId),
               handCardIds: [],
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [game]);
+
+  const readyToMoveOn = useCallback(async () => {
+    if (!game || game.status !== "playing") return;
+    if (!isSimpleOpenStage(game.pace, game.currentStage)) {
+      throw new Error("Finish this stage's cards, or use Detailed counts.");
+    }
+    if (game.activeCardId) {
+      throw new Error("Complete the live card first.");
+    }
+    const stageCounts = normalizeStageCounts(game.stageCounts);
+    const from = game.currentStage;
+    if (!from) return;
+    const next = nextActiveStage(stageCounts, from);
+    if (!next) {
+      throw new Error("Nothing left after this stage.");
+    }
+    const needsReveal =
+      (next === "finish_off" || next === "afterglow") &&
+      !game.finishPickerId;
+    db = {
+      ...db,
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              currentStage: next,
+              turnUserId: needsReveal
+                ? null
+                : exclusiveTurnForStage(row, next, row.turnUserId ?? row.initiatorId),
+              handCardIds: [],
+              activeCardId: null,
+              activePlayedBy: null,
+              awaitingPrivate: true,
+              awaitingFinishReveal: false,
             })
           : row
       ),
@@ -6067,6 +6117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     playCard,
     blockCard,
     unlockPrivate,
+    readyToMoveOn,
     rateCard,
     finishRatings,
     endGame,

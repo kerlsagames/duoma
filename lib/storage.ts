@@ -136,6 +136,7 @@ function hydrateGame(game: GameSession): GameSession {
       Array.isArray(game.flavorTags) && game.flavorTags.length > 0
         ? game.flavorTags
         : defaultEnabledFlavorTags(),
+    pace: game.pace === "simple" ? "simple" : "detailed",
   };
 }
 
