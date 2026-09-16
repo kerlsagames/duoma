@@ -10,6 +10,7 @@ import {
 } from "@/lib/app-themes";
 import {
   CHICKEN_BADGES,
+  CHICKEN_DARES,
   CHICKEN_PACKS,
   CHICKEN_YARDS,
   chickenBoard,
@@ -183,7 +184,7 @@ export default function ChickenScreen() {
             color: T.muted,
           }}
         >
-          300 silly dares. Send one to {them}. They cluck out, or they do it.
+          {CHICKEN_DARES.length} silly dares. Send one to {them}. They cluck out, or they do it.
           Eggs go on the board.
         </Text>
 

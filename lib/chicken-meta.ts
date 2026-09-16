@@ -12,7 +12,9 @@ export type ChickenPackId =
   | "bed"
   | "bath"
   | "chores"
-  | "banter";
+  | "banter"
+  | "scene"
+  | "chaos";
 
 export type ChickenYard = {
   id: ChickenYardId;
@@ -128,5 +130,19 @@ export const CHICKEN_PACKS: ChickenPack[] = [
     label: "House banter",
     detail: "Lava, plants, hallway runways",
     range: "276–300",
+  },
+  {
+    id: "scene",
+    yard: "out",
+    label: "Public scenes",
+    detail: "Autographs, escalator stares, fake proposals",
+    range: "301–314",
+  },
+  {
+    id: "chaos",
+    yard: "home",
+    label: "High commitment",
+    detail: "Ice cubes, wet socks, butler duty",
+    range: "315–327",
   },
 ];

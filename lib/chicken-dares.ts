@@ -9,7 +9,7 @@ export type ChickenDare = {
   body: string;
 };
 
-const OUT: ChickenPackId[] = ["talk", "move", "shop", "park", "dine", "ride"];
+const OUT: ChickenPackId[] = ["talk", "move", "shop", "park", "dine", "ride", "scene"];
 
 function packFor(n: number): ChickenPackId {
   if (n <= 25) return "talk";
@@ -23,7 +23,9 @@ function packFor(n: number): ChickenPackId {
   if (n <= 225) return "bed";
   if (n <= 250) return "bath";
   if (n <= 275) return "chores";
-  return "banter";
+  if (n <= 300) return "banter";
+  if (n <= 314) return "scene";
+  return "chaos";
 }
 
 function yardFor(pack: ChickenPackId): ChickenYardId {
@@ -331,6 +333,33 @@ const RAW: [string, string][] = [
   ["The Whisper Gossip", "Lean in and whisper a completely mundane fact (“The sky is blue today”) like it’s a huge secret."],
   ["The Shadow Chase", "Try to catch your partner’s hand shadow on the wall using your own hand shadow."],
   ["The Final Bow", "Take a deep, theatrical bow to your partner before leaving any room."],
+  ["The Overly Enthusiastic Fan", "Walk up to a stranger, gasp, demand an autograph on a napkin, and treat them like a famous celebrity trying to stay undercover."],
+  ["The Drive-Thru Serenade", "Order a meal at a drive-thru, but you may only sing the order to the tune of Happy Birthday."],
+  ["The Unwanted Advice", "In a clothing shop, find a stranger holding something, look them dead in the eye, whisper “It’s just not your colour, darling,” then walk away."],
+  ["The Dramatic Rejection", "Have your partner hand you a banana or a bottle of water in public, gasp, throw your hands up, yell “How COULD you?!”, and storm off ten steps."],
+  ["The Mystery Exchange", "Hand a stranger a folded sticky note that says “They know,” give them an intense nod, and walk away without a word."],
+  ["The Escalator Stare", "On a two-way escalator, hold eye contact with a stranger going the other way and slowly raise a finger to your lips until you pass."],
+  ["The Mannequin Swap", "Stand next to a store mannequin, copy its pose exactly, and freeze for a full 60 seconds even if shoppers walk past."],
+  ["The Phantom Bump", "Walk past someone with plenty of room, jolt like you hit an invisible brick wall, drop to one knee, and yell “Who put that there?!”"],
+  ["The Supermarket Announcer", "Pick up a jar of pasta sauce in a quiet aisle, hold it like a microphone, and give 30 seconds of live sports commentary on the shopper next to you."],
+  ["The Public Proposal", "In a crowded public spot, drop to one knee in front of your partner, pull out a half-eaten snack or a key ring, and deliver a dramatic 15-second marriage proposal."],
+  ["The Traffic Guard", "Stand near a pedestrian crossing and give serious airport-runway signals to people walking across, using two rolled-up newspapers."],
+  ["The Pigeon Diplomat", "Sit on a park bench, lay out breadcrumbs, and hold a one-minute performance review out loud with the local birds."],
+  ["The Invisible Dog Walk", "Walk a completely invisible dog on an imaginary leash. If anyone looks, stop, bend down, and sternly tell it, “Buster, sit! Bad boy!”"],
+  ["The Bus Stop Audition", "At a busy bus stop, loudly perform a 30-second dramatic monologue from a famous film as if your life depends on it."],
+  ["The Ice Bucket Challenge", "Hold an ice cube firmly under your armpit for 45 seconds without making a sound or breaking eye contact."],
+  ["The Blindfolded Chef", "Let your partner blindfold you and feed you a mystery bite made from 3 random fridge ingredients. Chew and swallow the lot."],
+  ["The Wet Sock Penalty", "Soak a pair of thick socks under the cold tap and walk around the house in them for 5 full minutes."],
+  ["The Spicy Shot", "Take a straight shot of hot sauce, lemon juice, or pickle juice, then no water for 2 minutes afterward."],
+  ["The Floor Is Lava (Hard Mode)", "Get from the living room to the kitchen using only furniture, pillows, and the walls. If a foot touches the floor, start over."],
+  ["The Dramatic Death Scene", "Sometime in the next hour, when your partner least expects it, fake a soap-opera death — gasp, last words, slow-motion collapse onto the floor."],
+  ["The Cat Persona", "Speak only in meows, purrs, and aggressive stares for 15 minutes. Break character and speak English, and you owe a penalty dare."],
+  ["The Accidental Livestream", "Go into another room, fake an Instagram Live on your phone, and perform a 2-minute high-energy dance at full effort."],
+  ["The Unwanted Butler", "Follow your partner around the house for 15 minutes, three feet behind them, call them My Lord or My Lady, and carry a tray with a single grape."],
+  ["The Awkward Call", "Call a local shop and, dead serious, ask if they carry an absurdly fake item — left-handed hammers, pre-chewed mozzarella."],
+  ["The Reverse Fit", "Wear your whole outfit backward for the rest of the evening, including if you answer the door for a delivery."],
+  ["The Terrible Makeup Makeover", "Let your partner do your makeup or hair while they are blindfolded. Keep it on for at least one full hour."],
+  ["The Layer Challenge", "Put on 10 shirts and 5 pairs of pants at the same time, then do 10 jumping jacks without ripping anything."],
 ];
 
 export const CHICKEN_DARES: ChickenDare[] = RAW.map(([name, body], index) => {
