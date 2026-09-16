@@ -1027,6 +1027,14 @@ function HomeSettingsSheet({
               router.push("/how-to" as Href);
             }}
           />
+          <LinkRow
+            label="Terms and privacy"
+            hint="Who is responsible if an email or sign-in code is stolen."
+            onPress={() => {
+              onClose();
+              router.push("/legal" as Href);
+            }}
+          />
           <View
             style={{
               marginBottom: 8,

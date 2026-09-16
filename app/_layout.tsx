@@ -104,6 +104,7 @@ function RootChrome() {
             <Stack.Screen name="check-email" />
             <Stack.Screen name="waiting" />
             <Stack.Screen name="how-to" />
+            <Stack.Screen name="legal" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="hub" />
             <Stack.Screen name="game" />

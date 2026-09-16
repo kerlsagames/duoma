@@ -139,6 +139,11 @@ export default function WelcomeScreen() {
             tone="ghost"
             onPress={() => router.push("/how-to" as Href)}
           />
+          <PrimaryButton
+            label="Terms and privacy"
+            tone="ghost"
+            onPress={() => router.push("/legal" as Href)}
+          />
         </View>
       </View>
     </Screen>

@@ -2,7 +2,9 @@ import {
   AGE_CONSENT_LABEL,
   PRIVACY_CONSENT_LABEL,
   PRIVACY_NOTICE,
+  TERMS_OF_USE,
 } from "@/lib/legal";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -44,7 +46,8 @@ function Box({
 }
 
 export function ConsentChecks({ over18, privacy, onOver18, onPrivacy }: Props) {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [which, setWhich] = useState<"terms" | "privacy" | null>(null);
 
   return (
     <View style={{ marginTop: 20 }}>
@@ -60,12 +63,22 @@ export function ConsentChecks({ over18, privacy, onOver18, onPrivacy }: Props) {
       </Text>
       <Box checked={over18} label={AGE_CONSENT_LABEL} onPress={() => onOver18(!over18)} />
       <Box checked={privacy} label={PRIVACY_CONSENT_LABEL} onPress={() => onPrivacy(!privacy)} />
-      <Pressable onPress={() => setOpen((value) => !value)} style={{ marginTop: 10 }}>
-        <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>
-          {open ? "Hide the notice" : "Read the privacy notice"}
-        </Text>
-      </Pressable>
-      {open ? (
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 }}>
+        <Pressable onPress={() => setWhich(which === "terms" ? null : "terms")}>
+          <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>
+            {which === "terms" ? "Hide Terms" : "Read Terms of Use"}
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => setWhich(which === "privacy" ? null : "privacy")}>
+          <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>
+            {which === "privacy" ? "Hide Privacy" : "Read Privacy Policy"}
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => router.push("/legal")}>
+          <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>Full page</Text>
+        </Pressable>
+      </View>
+      {which ? (
         <Text
           style={{
             marginTop: 10,
@@ -74,7 +87,7 @@ export function ConsentChecks({ over18, privacy, onOver18, onPrivacy }: Props) {
             lineHeight: 19,
           }}
         >
-          {PRIVACY_NOTICE}
+          {which === "terms" ? TERMS_OF_USE : PRIVACY_NOTICE}
         </Text>
       ) : null}
     </View>
