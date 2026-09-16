@@ -1,7 +1,11 @@
+import type { ComponentProps } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { requestHomeSettings, requestHomeStats } from "@/lib/home-chrome";
+
+type IconName = ComponentProps<typeof Ionicons>["name"];
 
 const HIDDEN = new Set([
   "/welcome",
@@ -20,6 +24,43 @@ function isHomePath(pathname: string) {
     pathname === "/index" ||
     pathname === "/(tabs)" ||
     pathname === "/(tabs)/index"
+  );
+}
+
+function BarButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 2,
+        minWidth: 64,
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <Ionicons name={icon} size={24} color="#FF007F" />
+      <Text
+        style={{
+          marginTop: 2,
+          fontSize: 11,
+          fontWeight: "700",
+          letterSpacing: 0.4,
+          color: "#FF007F",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -48,64 +89,37 @@ export function HomeBar() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
-          gap: 48,
+          justifyContent: atHome ? "space-between" : "center",
+          paddingHorizontal: atHome ? 18 : 0,
+          gap: atHome ? 0 : 48,
         }}
       >
-        {!atHome ? (
-          <Pressable
+        {atHome ? (
+          <BarButton
+            icon="settings-outline"
+            label="Settings"
+            onPress={() => requestHomeSettings()}
+          />
+        ) : (
+          <BarButton
+            icon="chevron-back"
+            label="Back"
             onPress={() => {
               if (router.canGoBack()) router.back();
               else router.replace("/");
             }}
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 2,
-              minWidth: 64,
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-          >
-            <Ionicons name="chevron-back" size={24} color="#FF007F" />
-            <Text
-              style={{
-                marginTop: 2,
-                fontSize: 11,
-                fontWeight: "700",
-                letterSpacing: 0.4,
-                color: "#FF007F",
-              }}
-            >
-              Back
-            </Text>
-          </Pressable>
-        ) : null}
+          />
+        )}
 
-        <Pressable
-          onPress={() => router.replace("/")}
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            paddingVertical: 2,
-            minWidth: 64,
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Home"
-        >
-          <Ionicons name="home" size={24} color="#FF007F" />
-          <Text
-            style={{
-              marginTop: 2,
-              fontSize: 11,
-              fontWeight: "700",
-              letterSpacing: 0.4,
-              color: "#FF007F",
-            }}
-          >
-            Home
-          </Text>
-        </Pressable>
+        <BarButton icon="home" label="Home" onPress={() => router.replace("/")} />
+
+        {atHome ? (
+          <BarButton
+            icon="bar-chart"
+            label="Stats"
+            onPress={() => requestHomeStats()}
+          />
+        ) : null}
       </View>
     </View>
   );

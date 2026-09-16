@@ -3,6 +3,7 @@ import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeConnectButton } from "@/components/home/HomeConnectButton";
 import { HomeDemoFlip } from "@/components/home/HomeDemoFlip";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
+import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { GenderPicker } from "@/components/ui/GenderPicker";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/hub-theme";
 import { HOME_HEADER_WIDGETS } from "@/lib/hubs";
 import { useMiniApps } from "@/lib/mini-apps";
+import { subscribeHomeSettings, subscribeHomeStats } from "@/lib/home-chrome";
 import { useApp } from "@/lib/store";
 import { homeWorldWidget } from "@/lib/worlds";
 import { Ionicons } from "@expo/vector-icons";
@@ -70,6 +72,7 @@ export default function HomeScreen() {
   const [wallpaperId, setWallpaperId] = useState<HomeWallpaperId>("black");
   const [layout, setLayout] = useState<HomeLayout>(defaultHomeLayout());
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const hubs = useThemedHubs();
   const dailyWidgets = useMemo(() => {
     const world = homeWorldWidget(mini.worldChoice);
@@ -116,6 +119,21 @@ export default function HomeScreen() {
     })();
     return () => {
       alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const offSettings = subscribeHomeSettings(() => {
+      setStatsOpen(false);
+      setSettingsOpen(true);
+    });
+    const offStats = subscribeHomeStats(() => {
+      setSettingsOpen(false);
+      setStatsOpen(true);
+    });
+    return () => {
+      offSettings();
+      offStats();
     };
   }, []);
 
@@ -184,24 +202,6 @@ export default function HomeScreen() {
             minHeight: 44,
           }}
         >
-          <Pressable
-            onPress={() => setSettingsOpen(true)}
-            accessibilityLabel="Home settings"
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 2,
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: "rgba(244,244,246,0.18)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="settings-outline" size={20} color="#F4F4F6" />
-          </Pressable>
           <DuomaLogo size={44} />
           <View style={{ position: "absolute", right: 0, top: 2 }}>
             <HomeNotificationsBell onStartSpicy={() => void startSpicy()} />
@@ -702,6 +702,7 @@ export default function HomeScreen() {
         }}
       />
     ) : null}
+    {statsOpen ? <HomeStatsSheet onClose={() => setStatsOpen(false)} /> : null}
     </HomeBackdrop>
   );
 }
