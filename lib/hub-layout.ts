@@ -82,12 +82,45 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
   const base = emptyHubLayouts();
   if (!raw || typeof raw !== "object") return base;
   const row = raw as Partial<Record<HubId, unknown>>;
+  const play = hydrateHubLayout(row.play);
   return {
     connect: hydrateHubLayout(row.connect),
     desire: hydrateHubLayout(row.desire),
-    play: hydrateHubLayout(row.play),
+    play: {
+      ...play,
+      order: migratePlayOrder(play.order),
+    },
     "home-base": hydrateHubLayout(row["home-base"]),
   };
+}
+
+/** Old catalog had Chicken first. Leave custom orders alone. */
+function migratePlayOrder(order: string[]): string[] {
+  if (order.length === 0) return order;
+  const known = order.filter((id) => id !== "scoreboard" && id !== "who-did-it");
+  const oldDefault = [
+    "chicken",
+    "coupons",
+    "trivia",
+    "prediction",
+    "photo-challenges",
+    "doodle",
+    "crossword",
+    "fair-share",
+  ];
+  const isOldDefault =
+    known.length === oldDefault.length && known.every((id, i) => id === oldDefault[i]);
+  if (!isOldDefault) return order;
+  return [
+    "coupons",
+    "trivia",
+    "prediction",
+    "photo-challenges",
+    "chicken",
+    "doodle",
+    "crossword",
+    "fair-share",
+  ];
 }
 
 export function catalogOrder(hub: HubDef): string[] {
