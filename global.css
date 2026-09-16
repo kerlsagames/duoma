@@ -13,3 +13,21 @@ body,
   background-color: #0B0B0E;
   color: #f4f4f6;
 }
+
+@keyframes duoma-ticker-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.duoma-ticker-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: max-content;
+  will-change: transform;
+  animation: duoma-ticker-marquee var(--duoma-ticker-duration, 16s) linear infinite;
+}

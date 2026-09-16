@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   Text,
   View,
@@ -29,33 +30,75 @@ export function HomeCountdownTicker() {
   );
   const [copyWidth, setCopyWidth] = useState(0);
   const translate = useRef(new Animated.Value(0)).current;
-  const loopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const running = useRef(false);
 
   useEffect(() => {
     setCopyWidth(0);
   }, [line]);
 
   useEffect(() => {
-    loopRef.current?.stop();
+    if (Platform.OS === "web") return;
+    running.current = true;
+    translate.stopAnimation();
     translate.setValue(0);
     if (!line || copyWidth <= 0) return;
+
     const duration = Math.max(14000, Math.round(copyWidth * 22));
-    const loop = Animated.loop(
+    const tick = () => {
+      if (!running.current) return;
+      translate.setValue(0);
       Animated.timing(translate, {
         toValue: -copyWidth,
         duration,
         easing: Easing.linear,
         useNativeDriver: true,
-      })
-    );
-    loopRef.current = loop;
-    loop.start();
+      }).start(({ finished }) => {
+        if (finished && running.current) tick();
+      });
+    };
+    tick();
     return () => {
-      loop.stop();
+      running.current = false;
+      translate.stopAnimation();
     };
   }, [copyWidth, line, translate]);
 
   if (!couple || !line) return null;
+
+  const seconds = Math.max(14, Math.round((copyWidth || 280) / 40));
+  const copies = (
+    <>
+      {[0, 1].map((copy) => (
+        <View
+          key={copy}
+          onLayout={
+            copy === 0
+              ? (event) => {
+                  const width = event.nativeEvent.layout.width;
+                  if (width > 0 && Math.abs(width - copyWidth) > 1) {
+                    setCopyWidth(width);
+                  }
+                }
+              : undefined
+          }
+          style={{ flexDirection: "row", alignItems: "center", flexShrink: 0 }}
+        >
+          <Text
+            numberOfLines={1}
+            style={{
+              color: "#FF8AB8",
+              fontSize: 12,
+              fontWeight: "700",
+              letterSpacing: 0.3,
+              paddingRight: 48,
+            }}
+          >
+            {line}
+          </Text>
+        </View>
+      ))}
+    </>
+  );
 
   return (
     <Pressable
@@ -70,41 +113,33 @@ export function HomeCountdownTicker() {
         justifyContent: "center",
       }}
     >
-      <Animated.View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          transform: [{ translateX: translate }],
-        }}
-      >
-        {[0, 1].map((copy) => (
-          <View
-            key={copy}
-            onLayout={
-              copy === 0
-                ? (event) => {
-                    const width = event.nativeEvent.layout.width;
-                    if (width > 0 && width !== copyWidth) setCopyWidth(width);
-                  }
-                : undefined
-            }
-            style={{ flexDirection: "row", alignItems: "center", flexShrink: 0 }}
-          >
-            <Text
-              numberOfLines={1}
-              style={{
-                color: "#FF8AB8",
-                fontSize: 12,
-                fontWeight: "700",
-                letterSpacing: 0.3,
-                paddingRight: 48,
-              }}
-            >
-              {line}
-            </Text>
-          </View>
-        ))}
-      </Animated.View>
+      {Platform.OS === "web" ? (
+        <View
+          className="duoma-ticker-track"
+          style={{
+            flexDirection: "row",
+            flexWrap: "nowrap",
+            // RN web: keep the strip scrolling forever.
+            animationName: "duoma-ticker-marquee",
+            animationDuration: `${seconds}s`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
+            ["--duoma-ticker-duration" as never]: `${seconds}s`,
+          }}
+        >
+          {copies}
+        </View>
+      ) : (
+        <Animated.View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            transform: [{ translateX: translate }],
+          }}
+        >
+          {copies}
+        </Animated.View>
+      )}
     </Pressable>
   );
 }
