@@ -29,6 +29,8 @@ import type {
   Couple,
 } from "@/lib/types";
 
+export type StatSectionId = "general" | "connect" | "desire" | "fun" | "home";
+
 export type StatRow = {
   id: string;
   label: string;
@@ -36,7 +38,7 @@ export type StatRow = {
 };
 
 export type StatSection = {
-  id: "connect" | "desire" | "fun" | "home";
+  id: StatSectionId;
   label: string;
   hint: string;
   accent: string;
@@ -151,6 +153,22 @@ export function buildCoupleStats(input: CoupleStatInput): StatSection[] {
 
   return [
     {
+      id: "general",
+      label: "General",
+      hint: "The pair as a whole — time, streak, how long you have been us",
+      accent: "#8B3A4A",
+      rows: [
+        { id: "pair-days", label: "Days as a pair", value: n(pairAgeDays(input.couple)) },
+        { id: "active-days", label: "Days with any activity", value: n(days.length) },
+        { id: "streak", label: "Days in a row", value: n(currentStreak(days)) },
+        { id: "hours-you", label: "Time you spent in the app", value: formatActiveTime(input.user?.activeSeconds) },
+        { id: "hours-them", label: "Time they spent in the app", value: formatActiveTime(input.partner?.activeSeconds) },
+        { id: "check-all", label: "Check-ins between you", value: n(input.checkIns.length) },
+        { id: "spicy-all", label: "Spicy nights played", value: n(spicy.length) },
+        { id: "dates-all", label: "Date nights started", value: n(input.dateNightAsks.length) },
+      ],
+    },
+    {
       id: "connect",
       label: "Connect",
       hint: "Talks, dates, the jar, showing up",
@@ -169,7 +187,6 @@ export function buildCoupleStats(input: CoupleStatInput): StatSection[] {
         { id: "lists-add", label: "List items added", value: n(input.listEntries.length) },
         { id: "lists-done", label: "List items ticked off", value: n(input.listEntries.filter((row) => row.completedAt).length) },
         { id: "curiosity", label: "Curiosity answers", value: n(input.curiosityAnswers.length) },
-        { id: "streak", label: "Days in a row with activity", value: n(currentStreak(days)) },
       ],
     },
     {
@@ -222,10 +239,6 @@ export function buildCoupleStats(input: CoupleStatInput): StatSection[] {
         { id: "errand-open", label: "Errands still open", value: n(input.errandItems.filter((row) => !row.doneAt).length) },
         { id: "meals", label: "Meal rounds agreed", value: n(input.mealRounds.filter((row) => row.status === "agreed").length) },
         { id: "rituals", label: "Rituals checked", value: n(input.ritualChecks.length) },
-        { id: "hours-you", label: "Time you spent in the app", value: formatActiveTime(input.user?.activeSeconds) },
-        { id: "hours-them", label: "Time they spent in the app", value: formatActiveTime(input.partner?.activeSeconds) },
-        { id: "pair-days", label: "Days as a pair", value: n(pairAgeDays(input.couple)) },
-        { id: "active-days", label: "Days with any activity", value: n(days.length) },
       ],
     },
   ];

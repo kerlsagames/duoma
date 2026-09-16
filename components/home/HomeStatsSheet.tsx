@@ -1,6 +1,11 @@
 import { SERIF } from "@/lib/app-themes";
 import { evaluateBadges } from "@/lib/badges";
-import { buildCoupleStats, type CoupleStatInput } from "@/lib/couple-stats";
+import {
+  buildCoupleStats,
+  type CoupleStatInput,
+  type StatSectionId,
+} from "@/lib/couple-stats";
+import { useThemedHubs } from "@/lib/hub-theme";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -8,9 +13,30 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 type Tab = "stats" | "badges";
 
+const PAPER = {
+  sheet: "#F6E8D4",
+  card: "#FFF6E8",
+  ink: "#2C1812",
+  muted: "rgba(44,24,18,0.62)",
+  fine: "rgba(44,24,18,0.4)",
+  line: "rgba(122,46,58,0.16)",
+  wine: "#8B3A4A",
+  wineFill: "#C45C6A",
+} as const;
+
+const LANES: { id: StatSectionId; label: string }[] = [
+  { id: "general", label: "General" },
+  { id: "connect", label: "Connect" },
+  { id: "desire", label: "Desire" },
+  { id: "fun", label: "Fun" },
+  { id: "home", label: "Home" },
+];
+
 export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   const app = useApp();
+  const hubs = useThemedHubs();
   const [tab, setTab] = useState<Tab>("stats");
+  const [lane, setLane] = useState<StatSectionId>("general");
   const input: CoupleStatInput = useMemo(
     () => ({
       user: app.user,
@@ -46,6 +72,21 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   const sections = useMemo(() => buildCoupleStats(input), [input]);
   const badges = useMemo(() => evaluateBadges(input), [input]);
   const unlocked = badges.filter((row) => row.unlocked).length;
+  const section = sections.find((row) => row.id === lane) ?? sections[0]!;
+  const laneBadges = badges.filter((row) => row.lane === lane);
+  const accentFor = (id: StatSectionId) => {
+    if (id === "general") return PAPER.wine;
+    if (id === "connect") return hubs.find((hub) => hub.id === "connect")?.tile ?? "#FF6B9A";
+    if (id === "desire") return hubs.find((hub) => hub.id === "desire")?.tile ?? "#FF007F";
+    if (id === "fun") return hubs.find((hub) => hub.id === "play")?.tile ?? "#E09A4A";
+    return hubs.find((hub) => hub.id === "home-base")?.tile ?? "#3ECFBF";
+  };
+  const inkFor = (id: StatSectionId, on: boolean) => {
+    if (!on) return PAPER.ink;
+    if (id === "general") return "#F8E7D6";
+    const hubId = id === "fun" ? "play" : id === "home" ? "home-base" : id;
+    return hubs.find((hub) => hub.id === hubId)?.tileInk ?? PAPER.ink;
+  };
 
   return (
     <View
@@ -70,21 +111,21 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
           right: 0,
           bottom: 0,
           left: 0,
-          backgroundColor: "rgba(8,8,12,0.72)",
+          backgroundColor: "rgba(80,36,42,0.38)",
         }}
       />
       <View
         style={{
           width: "100%",
           maxHeight: "88%",
-          backgroundColor: "#14141A",
+          backgroundColor: PAPER.sheet,
           paddingHorizontal: 16,
           paddingTop: 16,
           paddingBottom: 18,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
-          borderTopWidth: 1,
-          borderColor: "rgba(255,255,255,0.1)",
+          borderTopLeftRadius: 26,
+          borderTopRightRadius: 26,
+          borderTopWidth: 2,
+          borderColor: "rgba(196,92,106,0.35)",
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
@@ -95,27 +136,29 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
                 fontSize: 11,
                 letterSpacing: 1.6,
                 textTransform: "uppercase",
-                color: "#FF007F",
+                color: PAPER.wine,
               }}
             >
               The two of you
             </Text>
-            <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 22, color: "#F4F4F6" }}>
+            <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 24, color: PAPER.ink }}>
               {app.partner ? `${app.user?.displayName ?? "You"} × ${app.partner.displayName}` : "Stats"}
             </Text>
           </View>
           <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Close">
-            <Ionicons name="close" size={22} color="#F4F4F6" />
+            <Ionicons name="close" size={22} color={PAPER.ink} />
           </Pressable>
         </View>
 
         <View
           style={{
             flexDirection: "row",
-            backgroundColor: "#1A1A22",
-            borderRadius: 14,
+            backgroundColor: PAPER.card,
+            borderRadius: 16,
             padding: 4,
             marginBottom: 12,
+            borderWidth: 1,
+            borderColor: PAPER.line,
           }}
         >
           {(["stats", "badges"] as const).map((id) => {
@@ -127,19 +170,57 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
                 style={{
                   flex: 1,
                   paddingVertical: 10,
-                  borderRadius: 11,
-                  backgroundColor: on ? "#FF007F" : "transparent",
+                  borderRadius: 12,
+                  backgroundColor: on ? PAPER.wineFill : "transparent",
                   alignItems: "center",
                 }}
               >
                 <Text
                   style={{
-                    color: on ? "#0B0B0E" : "rgba(244,244,246,0.6)",
+                    color: on ? "#F8E7D6" : PAPER.muted,
                     fontWeight: "800",
                     fontSize: 14,
                   }}
                 >
                   {id === "stats" ? "Stats" : `Badges · ${unlocked}`}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          {LANES.map((row) => {
+            const on = lane === row.id;
+            const fill = accentFor(row.id);
+            return (
+              <Pressable
+                key={row.id}
+                onPress={() => setLane(row.id)}
+                style={{
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 999,
+                  backgroundColor: on ? fill : PAPER.card,
+                  borderWidth: 1,
+                  borderColor: on ? fill : PAPER.line,
+                }}
+              >
+                <Text
+                  style={{
+                    color: inkFor(row.id, on),
+                    fontSize: 13,
+                    fontWeight: "800",
+                  }}
+                >
+                  {row.label}
                 </Text>
               </Pressable>
             );
@@ -152,124 +233,134 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
           contentContainerStyle={{ paddingBottom: 28 }}
         >
           {tab === "stats" ? (
-            sections.map((section) => (
-              <View key={section.id} style={{ marginBottom: 16 }}>
-                <Text
-                  style={{
-                    fontFamily: "SpaceMono",
-                    fontSize: 11,
-                    letterSpacing: 1.6,
-                    color: section.accent,
-                    marginBottom: 4,
-                  }}
-                >
-                  {section.label.toUpperCase()}
-                </Text>
-                <Text
-                  style={{
-                    color: "rgba(244,244,246,0.45)",
-                    fontSize: 12,
-                    marginBottom: 8,
-                  }}
-                >
-                  {section.hint}
-                </Text>
-                <View
-                  style={{
-                    borderRadius: 14,
-                    backgroundColor: "#1A1A22",
-                    overflow: "hidden",
-                  }}
-                >
-                  {section.rows.map((row, index) => (
-                    <View
-                      key={row.id}
+            <View>
+              <Text
+                style={{
+                  fontFamily: SERIF,
+                  fontSize: 22,
+                  color: PAPER.ink,
+                }}
+              >
+                {section.label}
+              </Text>
+              <Text
+                style={{
+                  color: PAPER.muted,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  marginTop: 4,
+                  marginBottom: 12,
+                }}
+              >
+                {section.hint}
+              </Text>
+              <View
+                style={{
+                  borderRadius: 18,
+                  backgroundColor: PAPER.card,
+                  overflow: "hidden",
+                  borderWidth: 1,
+                  borderColor: PAPER.line,
+                }}
+              >
+                {section.rows.map((row, index) => (
+                  <View
+                    key={row.id}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      borderTopWidth: index === 0 ? 0 : 1,
+                      borderTopColor: PAPER.line,
+                    }}
+                  >
+                    <Text style={{ flex: 1, color: PAPER.ink, fontSize: 15 }}>
+                      {row.label}
+                    </Text>
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingVertical: 10,
-                        paddingHorizontal: 12,
-                        borderTopWidth: index === 0 ? 0 : 1,
-                        borderTopColor: "rgba(255,255,255,0.06)",
+                        color: accentFor(section.id),
+                        fontFamily: "SpaceMono",
+                        fontSize: 16,
+                        fontWeight: "700",
                       }}
                     >
-                      <Text style={{ flex: 1, color: "#F4F4F6", fontSize: 14 }}>
-                        {row.label}
-                      </Text>
-                      <Text
-                        style={{
-                          color: section.accent,
-                          fontFamily: "SpaceMono",
-                          fontSize: 14,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {row.value}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
+                      {row.value}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))
+            </View>
           ) : (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
-              {badges.map((badge) => (
-                <View
-                  key={badge.id}
-                  style={{
-                    width: "48.5%",
-                    marginBottom: 10,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: badge.unlocked
-                      ? "rgba(255,0,127,0.55)"
-                      : "rgba(255,255,255,0.08)",
-                    backgroundColor: badge.unlocked
-                      ? "rgba(255,0,127,0.12)"
-                      : "#1A1A22",
-                    padding: 12,
-                    opacity: badge.unlocked ? 1 : 0.55,
-                  }}
-                >
-                  <Ionicons
-                    name={badge.icon}
-                    size={22}
-                    color={badge.unlocked ? "#FF007F" : "rgba(244,244,246,0.45)"}
-                  />
-                  <Text
+            <View>
+              <Text style={{ fontFamily: SERIF, fontSize: 22, color: PAPER.ink }}>
+                {LANES.find((row) => row.id === lane)?.label} badges
+              </Text>
+              <Text
+                style={{
+                  color: PAPER.muted,
+                  fontSize: 13,
+                  marginTop: 4,
+                  marginBottom: 12,
+                }}
+              >
+                {laneBadges.filter((row) => row.unlocked).length} unlocked here
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
+                {laneBadges.map((badge) => (
+                  <View
+                    key={badge.id}
                     style={{
-                      marginTop: 8,
-                      color: "#F4F4F6",
-                      fontSize: 14,
-                      fontWeight: "800",
+                      width: "48.5%",
+                      marginBottom: 10,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: badge.unlocked ? accentFor(lane) : PAPER.line,
+                      backgroundColor: badge.unlocked ? PAPER.card : "rgba(255,246,232,0.7)",
+                      padding: 12,
                     }}
                   >
-                    {badge.title}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      color: "rgba(244,244,246,0.55)",
-                      fontSize: 11,
-                      lineHeight: 15,
-                    }}
-                  >
-                    {badge.blurb}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 8,
-                      fontFamily: "SpaceMono",
-                      fontSize: 11,
-                      color: badge.unlocked ? "#3ECFBF" : "rgba(244,244,246,0.4)",
-                    }}
-                  >
-                    {badge.unlocked
-                      ? "Unlocked"
-                      : `${Math.min(badge.count, badge.target)} / ${badge.target}`}
-                  </Text>
-                </View>
-              ))}
+                    <Ionicons
+                      name={badge.icon}
+                      size={22}
+                      color={badge.unlocked ? accentFor(lane) : PAPER.fine}
+                    />
+                    <Text
+                      style={{
+                        marginTop: 8,
+                        color: PAPER.ink,
+                        fontSize: 14,
+                        fontWeight: "800",
+                      }}
+                    >
+                      {badge.title}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        color: PAPER.muted,
+                        fontSize: 11,
+                        lineHeight: 15,
+                      }}
+                    >
+                      {badge.blurb}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 8,
+                        fontFamily: "SpaceMono",
+                        fontSize: 11,
+                        color: badge.unlocked ? PAPER.wine : PAPER.fine,
+                      }}
+                    >
+                      {badge.unlocked
+                        ? "Unlocked"
+                        : `${Math.min(badge.count, badge.target)} / ${badge.target}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>
