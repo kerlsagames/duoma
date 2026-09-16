@@ -17,7 +17,7 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily Check-In and the shared calendar sit at the top. Couple settings is on Home — card bank, notifications, and sign-out live there.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily Check-In and the shared calendar sit at the top. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges.",
   },
   {
     kicker: "Shared world",
