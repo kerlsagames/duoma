@@ -15,6 +15,7 @@ Duoma is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_UR
    - `supabase/migrations/007_grants.sql` (anon/authenticated table grants + catalog realtime)
    - `supabase/migrations/008_consent.sql` (18+, privacy notice, timezone, time in app)
    - `supabase/migrations/009_creator_pardon.sql` (unban creator inboxes; they cannot be banned again)
+   - `supabase/migrations/010_safety.sql` (content reports, `unpair_couple()`, `delete_own_account()`, admin `resolve_report`)
    - `supabase/seed.sql` (named-card Get Spicy decks across 5 stages)
 3. Enable Authentication → Email (magic link). Pairing still uses the 6-character invite code.
 4. After you sign in once, run:

@@ -1,6 +1,5 @@
 import {
-  AGE_CONSENT_LABEL,
-  PRIVACY_CONSENT_LABEL,
+  AGE_PRIVACY_CONSENT_LABEL,
   PRIVACY_NOTICE,
   TERMS_OF_USE,
 } from "@/lib/legal";
@@ -9,10 +8,8 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
-  over18: boolean;
-  privacy: boolean;
-  onOver18: (value: boolean) => void;
-  onPrivacy: (value: boolean) => void;
+  agreed: boolean;
+  onAgreed: (value: boolean) => void;
 };
 
 function Box({
@@ -45,7 +42,7 @@ function Box({
   );
 }
 
-export function ConsentChecks({ over18, privacy, onOver18, onPrivacy }: Props) {
+export function ConsentChecks({ agreed, onAgreed }: Props) {
   const router = useRouter();
   const [which, setWhich] = useState<"terms" | "privacy" | null>(null);
 
@@ -61,8 +58,11 @@ export function ConsentChecks({ over18, privacy, onOver18, onPrivacy }: Props) {
       >
         LEGAL
       </Text>
-      <Box checked={over18} label={AGE_CONSENT_LABEL} onPress={() => onOver18(!over18)} />
-      <Box checked={privacy} label={PRIVACY_CONSENT_LABEL} onPress={() => onPrivacy(!privacy)} />
+      <Box
+        checked={agreed}
+        label={AGE_PRIVACY_CONSENT_LABEL}
+        onPress={() => onAgreed(!agreed)}
+      />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 }}>
         <Pressable onPress={() => setWhich(which === "terms" ? null : "terms")}>
           <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>

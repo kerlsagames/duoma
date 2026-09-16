@@ -9,6 +9,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 ## What works in this slice
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you. Continue as [name] on welcome. Two browser tabs are two partners (`sessionStorage`).
+- **Safety** — Adults-only tick at sign-up. Home settings: Report (24h review), Unpair / break up (wipes shared vaults on both devices), Delete account. Sexy Vault and Photo Memory stay in the app sandbox (not Camera Roll), with a screenshot cover when the app backgrounds. Optional `EXPO_PUBLIC_MEDIA_SCAN_URL` can block a file before it is saved.
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, Discover answers, and a ready jar hit the other lock screen.
 - **Home** — Daily Check-In, Calendar, four hubs (you can hide one in settings), and a dotted favorites strip whose spot count you pick. Shared world is off until you add it in Home settings (cog on the bottom bar). Stats and badges sit on the bar-chart button to the right of Home. Forgot a vault pin? Both of you tap Reset there.
 - **Connect** — Lists, Date Night Generator (400 ideas — spin or search, save to To-do, tick off, ask them tonight), Thought-of-You Pings, Talk, Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Flirtatious findings (cheeky and taboo questions with your partner).

@@ -5,6 +5,7 @@ import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
 import { CatalogProvider } from "@/lib/catalog-overlay";
+import { SafetyWatch } from "@/components/SafetyWatch";
 import { isCreatorEmail } from "@/lib/creator";
 import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
@@ -93,6 +94,7 @@ function RootChrome() {
 
   return (
     <PhoneShell>
+      <SafetyWatch />
       <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
         <View style={{ flex: 1 }}>
           <Stack

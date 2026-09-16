@@ -15,8 +15,7 @@ export default function CreateAccountScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
-  const [over18, setOver18] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +30,8 @@ export default function CreateAccountScreen() {
       setError("That email does not look right.");
       return;
     }
-    if (!over18 || !privacy) {
-      setError("Tick 18+ and the privacy notice to continue.");
+    if (!agreed) {
+      setError("Tick that you are 18+ and agree to the Terms and Privacy Policy.");
       return;
     }
     setError(null);
@@ -88,12 +87,7 @@ export default function CreateAccountScreen() {
           <GenderPicker value={gender} onChange={setGender} label="I am" />
         </View>
 
-        <ConsentChecks
-          over18={over18}
-          privacy={privacy}
-          onOver18={setOver18}
-          onPrivacy={setPrivacy}
-        />
+        <ConsentChecks agreed={agreed} onAgreed={setAgreed} />
 
         {error ? <Text className="mt-3 text-[14px] text-crimson">{error}</Text> : null}
 
@@ -101,7 +95,7 @@ export default function CreateAccountScreen() {
           <PrimaryButton
             label={usingCloud ? "Email me the link" : "Generate my code"}
             loading={loading}
-            disabled={!name.trim() || !gender || !over18 || !privacy || (usingCloud && !email.trim())}
+            disabled={!name.trim() || !gender || !agreed || (usingCloud && !email.trim())}
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />

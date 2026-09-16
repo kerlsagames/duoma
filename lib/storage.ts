@@ -1,4 +1,5 @@
 import { hydrateChickenPlay } from "@/lib/chicken";
+import { hydrateContentReport } from "@/lib/reports";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { defaultEnabledFlavorTags } from "@/games/get-spicy/flavor-tags";
@@ -47,6 +48,7 @@ const hubEmpty = () => ({
   mealWants: [],
   customMeals: [],
   hiddenMeals: [],
+  contentReports: [],
 });
 
 export function emptyDb(): AppDB {
@@ -210,6 +212,9 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     mealWants: (raw.mealWants ?? []).map(hydrateMealWant),
     customMeals: (raw.customMeals ?? []).map(hydrateCustomMeal),
     hiddenMeals: raw.hiddenMeals ?? [],
+    contentReports: (raw.contentReports ?? [])
+      .map(hydrateContentReport)
+      .filter((row): row is NonNullable<typeof row> => Boolean(row)),
   };
 }
 

@@ -1,3 +1,4 @@
+import { MediaShield } from "@/components/MediaShield";
 import { groupUsageItems, usageForProfile, type UsageGroup } from "@/lib/account-usage";
 import {
   EXAMPLE_COUPLE,
@@ -520,11 +521,13 @@ function UploadBlock({
         >
           {looking ? (
             <Pressable onPress={(event) => event.stopPropagation?.()}>
-              <UploadThumb item={looking} size={320} />
-              <Text style={{ color: "#F4F4F6", marginTop: 10, fontWeight: "700" }}>
-                {looking.label}
-              </Text>
-              <Text style={{ color: "#FF007F", marginTop: 8, fontWeight: "700" }}>Close</Text>
+              <MediaShield>
+                <UploadThumb item={looking} size={320} />
+                <Text style={{ color: "#F4F4F6", marginTop: 10, fontWeight: "700" }}>
+                  {looking.label}
+                </Text>
+                <Text style={{ color: "#FF007F", marginTop: 8, fontWeight: "700" }}>Close</Text>
+              </MediaShield>
             </Pressable>
           ) : null}
         </Pressable>

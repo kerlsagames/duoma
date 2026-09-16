@@ -37,6 +37,22 @@ export async function patchMini(
   return next;
 }
 
+export async function wipeMiniApps(): Promise<MiniState> {
+  cache = emptyMiniState();
+  emit(cache);
+  try {
+    await AsyncStorage.setItem(KEY, JSON.stringify(cache));
+  } catch {
+    // In-memory empty still applies.
+  }
+  return cache;
+}
+
+export async function reloadMiniFromDisk(): Promise<MiniState> {
+  cache = null;
+  return loadMiniState();
+}
+
 export function useMiniApps() {
   const [data, setData] = useState<MiniState>(cache ?? emptyMiniState());
   const [ready, setReady] = useState(Boolean(cache));
@@ -50,9 +66,21 @@ export function useMiniApps() {
       setData(state);
       setReady(true);
     });
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== KEY && event.key !== "duoma:safety:event") return;
+      void reloadMiniFromDisk().then((state) => {
+        if (alive) setData(state);
+      });
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", onStorage);
+    }
     return () => {
       alive = false;
       listeners.delete(onChange);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("storage", onStorage);
+      }
     };
   }, []);
 

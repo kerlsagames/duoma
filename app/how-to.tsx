@@ -55,6 +55,11 @@ const STEPS = [
     body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Daytime cards stay private until you both tap that you are ready to move on.",
   },
   {
+    kicker: "Safety",
+    title: "Unpair, report, adults only",
+    body: "Create and Join stay locked until you tick that you are 18+ and agree to the Terms. Home settings has Report content / abuse (reviewed within 24 hours), Unpair / break up (wipes the shared vault, photos, and lists on both phones), and Delete account. Photos live in Duoma’s sandbox, not the Camera Roll. Open a vault clip or a Photo Memory to report that file.",
+  },
+  {
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
     body: "Safari Share → Add to Home Screen, then open the icon — not the Safari tab. Notifications only work from that icon on iOS 16.4+.",

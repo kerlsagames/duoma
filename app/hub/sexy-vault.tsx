@@ -1,5 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
+import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
+import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
@@ -47,8 +49,9 @@ const ROSE = "#FF6B8A";
 const INK = "#F6E7DC";
 
 export default function SexyVaultScreen() {
-  const { user, partner, notifyPartner } = useApp();
+  const { user, partner, notifyPartner, submitContentReport } = useApp();
   const { data, ready, patch } = useMiniApps();
+  const scanUpload = useScanUpload();
   const [gate, setGate] = useState("");
   const look = useAppLook("sexy-vault", gold(), {
     blurLocked: true,
@@ -72,6 +75,8 @@ export default function SexyVaultScreen() {
     preview: string;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attested, setAttested] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
   const them = partner?.displayName || "them";
 
@@ -129,6 +134,7 @@ export default function SexyVaultScreen() {
         ...picked,
         preview: URL.createObjectURL(picked.blob),
       });
+      setAttested(false);
       setMode("compose");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read that file.");
@@ -157,6 +163,15 @@ export default function SexyVaultScreen() {
     setError(null);
     const id = createId();
     try {
+      const scan = await scanUpload({
+        mimeType: pending.mimeType || pending.blob.type || "application/octet-stream",
+        byteSize: pending.blob.size,
+        attestedAdults: attested,
+      });
+      if (!scan.ok) {
+        setError(scan.reason);
+        return;
+      }
       const stored = await persistSexyVaultMedia(id, pending.blob);
       const item: SexyVaultItem = {
         id,
@@ -184,6 +199,7 @@ export default function SexyVaultScreen() {
       setPending(null);
       setNote("");
       setHideUntil(false);
+      setAttested(false);
       setRevealLocal(defaultCustomDateTime());
       setMode("list");
     } catch (err) {
@@ -227,6 +243,7 @@ export default function SexyVaultScreen() {
   };
 
   return (
+    <MediaShield>
     <Screen scroll={mode !== "view"} background={BG}>
       <Stage
         background={BG}
@@ -283,16 +300,19 @@ export default function SexyVaultScreen() {
             hideUntil={hideUntil}
             revealLocal={revealLocal}
             busy={busy}
+            attested={attested}
             error={error}
             onNote={setNote}
             onHide={setHideUntil}
             onReveal={setRevealLocal}
+            onAttest={setAttested}
             onPick={() => void pickFile()}
             onCancel={() => {
               if (pending?.preview.startsWith("blob:")) {
                 URL.revokeObjectURL(pending.preview);
               }
               setPending(null);
+              setAttested(false);
               setError(null);
               setMode("list");
             }}
@@ -310,6 +330,7 @@ export default function SexyVaultScreen() {
               setMode("list");
             }}
             onRemove={() => setRemoveId(viewing.id)}
+            onReport={() => setReportOpen(true)}
           />
         ) : (
           <VaultHome
@@ -365,7 +386,23 @@ export default function SexyVaultScreen() {
           setRemoveId(null);
         }}
       />
+      <ReportSheet
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={async ({ reason, details }) => {
+          if (!viewing) throw new Error("Open a clip first.");
+          await submitContentReport({
+            reason,
+            details,
+            mediaId: viewing.id,
+            mediaKind: "sexy-vault",
+            reportedUserId:
+              viewing.fromId === user?.id ? partner?.id ?? null : viewing.fromId,
+          });
+        }}
+      />
     </Screen>
+    </MediaShield>
   );
 }
 
@@ -704,10 +741,12 @@ function Compose({
   hideUntil,
   revealLocal,
   busy,
+  attested,
   error,
   onNote,
   onHide,
   onReveal,
+  onAttest,
   onPick,
   onCancel,
   onLeave,
@@ -718,10 +757,12 @@ function Compose({
   hideUntil: boolean;
   revealLocal: string;
   busy: boolean;
+  attested: boolean;
   error: string | null;
   onNote: (value: string) => void;
   onHide: (value: boolean) => void;
   onReveal: (value: string) => void;
+  onAttest: (value: boolean) => void;
   onPick: () => void;
   onCancel: () => void;
   onLeave: () => void;
@@ -740,6 +781,9 @@ function Compose({
           </Text>
         </View>
       </Pressable>
+      <Text style={{ marginTop: 8, color: "rgba(246,231,220,0.5)", fontSize: 13 }}>
+        Stays in Duoma’s sandbox. Never auto-saved to the Camera Roll.
+      </Text>
       {pending ? <MediaPreview kind={pending.kind} src={pending.preview} /> : null}
       <TextInput
         value={note}
@@ -797,10 +841,11 @@ function Compose({
           border="rgba(228,181,106,0.32)"
         />
       ) : null}
+      {pending ? <AdultAttest checked={attested} onChange={onAttest} /> : null}
       <Pressable
         onPress={onLeave}
-        disabled={busy}
-        style={[goldBtn(), { opacity: busy ? 0.6 : 1 }]}
+        disabled={busy || !pending || !attested}
+        style={[goldBtn(), { opacity: busy || !pending || !attested ? 0.6 : 1 }]}
       >
         <Text style={goldBtnText}>{busy ? "Locking it away…" : "Lock it in the vault"}</Text>
       </Pressable>
@@ -953,6 +998,7 @@ function Viewer({
   onStep,
   onBack,
   onRemove,
+  onReport,
 }: {
   item: SexyVaultItem;
   album: SexyVaultItem[];
@@ -961,6 +1007,7 @@ function Viewer({
   onStep: (dir: number) => void;
   onBack: () => void;
   onRemove: () => void;
+  onReport: () => void;
 }) {
   const src = useVaultSrc(item);
   const [full, setFull] = useState(false);
@@ -1084,6 +1131,9 @@ function Viewer({
       <Pressable onPress={onBack} style={[goldBtn(), { marginTop: 22 }]}>
         <Text style={goldBtnText}>Back to the vault</Text>
       </Pressable>
+      <View style={{ marginTop: 12, alignItems: "flex-start" }}>
+        <ReportTextButton onPress={onReport} />
+      </View>
       {mine ? (
         <Pressable onPress={onRemove} style={[ghostBtn, { marginTop: 10 }]}>
           <Text style={ghostBtnText}>Remove</Text>

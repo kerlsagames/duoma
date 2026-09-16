@@ -3,6 +3,9 @@ export const AGE_CONSENT_LABEL = "I am 18 or older.";
 export const PRIVACY_CONSENT_LABEL =
   "I agree to the Terms of Use and Privacy Policy.";
 
+export const AGE_PRIVACY_CONSENT_LABEL =
+  "I am 18 or older and agree to the Terms of Service and Privacy Policy.";
+
 export const LEGAL_EFFECTIVE = "16 September 2026";
 export const LEGAL_OPERATOR = "Kerlsagames / Duoma";
 export const LEGAL_CONTACT = "kerlsagameshq@gmail.com";
@@ -29,6 +32,8 @@ If you think someone else is in your account, email ${LEGAL_CONTACT} at once and
 
 4. What you must not do
 You must not: use Duoma if you are under 18; upload photos or video of anyone who did not agree, or of anyone under 18; harass, blackmail, or impersonate; try to break into other accounts; scrape or copy the catalog; or use the app to break the law.
+
+Report abuse in the app (Home settings → Report, or Report on a photo). We review reports within 24 hours. You can Unpair / break up in settings. That wipes the shared pair on both sides and deletes couple media stored for that pairing. Delete account is also in settings.
 
 We may pause or close an account, without a refund (Duoma is free unless we later say otherwise), if we reasonably believe these rules were broken.
 
@@ -70,7 +75,7 @@ ${LEGAL_OPERATOR} runs Duoma. Contact: ${LEGAL_CONTACT}.
 What we collect
 • Account: name, email, Male/Female, pair code, 18+ and policy ticks, last sign-in, timezone from the device (not GPS), time spent in the app
 • Play: cards, lists, check-ins, and other things you do in the hubs
-• Images and clips you upload (Photo Memory, Sexy Vault, and similar). These often stay on your phones. If they sync, we may store them to run the feature and — if you agreed — to review reports of abuse
+• Images and clips you upload (Photo Memory, Sexy Vault, and similar). These stay in Duoma’s sandboxed storage on the phones, not the Camera Roll, unless you export them yourselves. If they sync, we may store them to run the feature and — if you agreed — to review reports of abuse
 • Device basics needed to send a sign-in email or a lock-screen ping (if you turn notifications on)
 
 We do not sell your personal information. We do not buy advertising profiles of you.
@@ -85,13 +90,13 @@ Who can see what
 Your partner sees what you share in the pair. The people who run Duoma may see account fields and, where you agreed, images and activity, only to operate the service or investigate a problem. We may share information if the law requires it, or with a host (for example Vercel or Supabase) that stores the app under a contract.
 
 How long
-We keep account records while the pair exists and a short time after you ask us to close it, unless we must keep a record of a ban or a legal request. You can ask us to delete an account at ${LEGAL_CONTACT}.
+We keep account records while the pair exists and a short time after you unpair or delete the account, unless we must keep a record of a ban or a legal request. Unpair wipes shared couple data. Delete account in settings (or email ${LEGAL_CONTACT}) is how you ask us to close the rest.
 
 Your rights
 You can ask for a copy of the account we hold, ask us to correct it, or ask us to delete it, subject to what we must keep. If you are in Australia this sits with the Australian Privacy Principles as they apply to a small app. If you are in the UK/EU, extra rights may apply; email us.
 
 Safety review of images
-We only review intimate images to stop abuse, under-18 use, or a report, and only after you ticked that you agree. That is not a public feed.
+We only review intimate images to stop abuse, under-18 use, or a report, and only after you ticked that you agree. That is not a public feed. Screens of the vault and Photo Memory try to hide the picture if you leave the app or a screen recording starts. We cannot stop every screenshot on the web.
 
 This policy can change. The date at the top will change.`;
 

@@ -16,8 +16,7 @@ export default function JoinScreen() {
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [code, setCode] = useState("");
-  const [over18, setOver18] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +31,8 @@ export default function JoinScreen() {
       setError("That email does not look right.");
       return;
     }
-    if (!over18 || !privacy) {
-      setError("Tick 18+ and the privacy notice to continue.");
+    if (!agreed) {
+      setError("Tick that you are 18+ and agree to the Terms and Privacy Policy.");
       return;
     }
     setError(null);
@@ -98,12 +97,7 @@ export default function JoinScreen() {
           className="mt-3 h-16 rounded-2xl border border-neon/40 bg-white/5 px-4 text-center text-[28px] font-bold tracking-[10px] text-mist"
         />
 
-        <ConsentChecks
-          over18={over18}
-          privacy={privacy}
-          onOver18={setOver18}
-          onPrivacy={setPrivacy}
-        />
+        <ConsentChecks agreed={agreed} onAgreed={setAgreed} />
 
         {error ? <Text className="mt-3 text-[14px] text-crimson">{error}</Text> : null}
 
@@ -114,8 +108,7 @@ export default function JoinScreen() {
             disabled={
               !name.trim() ||
               !gender ||
-              !over18 ||
-              !privacy ||
+              !agreed ||
               code.trim().length !== 6 ||
               (usingCloud && !email.trim())
             }

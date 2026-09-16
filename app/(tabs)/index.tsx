@@ -6,7 +6,9 @@ import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { GenderPicker } from "@/components/ui/GenderPicker";
+import { ReportSheet } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
@@ -765,10 +767,15 @@ function HomeSettingsSheet({
     couple,
     partner,
     signOut,
+    unpairAndWipe,
+    deleteOwnAccount,
+    submitContentReport,
     nights,
     bestCards,
     setProfileGender,
   } = useApp();
+  const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
+  const [safetyError, setSafetyError] = useState<string | null>(null);
   const hubThemes = useHubThemes();
   const hubs = useThemedHubs();
   const names = resolveCardNames({
@@ -1390,8 +1397,109 @@ function HomeSettingsSheet({
               Does not unpair you. Continue as {user?.displayName ?? "you"} next time.
             </Text>
           </Pressable>
+          <Pressable
+            onPress={() => {
+              setSafetyError(null);
+              setDanger("report");
+            }}
+            style={{ marginTop: 4, paddingVertical: 12 }}
+          >
+            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+              Report content / abuse
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Goes to Duoma, not your partner. We review within 24 hours.
+            </Text>
+          </Pressable>
+          {partner ? (
+            <Pressable
+              onPress={() => {
+                setSafetyError(null);
+                setDanger("unpair");
+              }}
+              style={{ marginTop: 4, paddingVertical: 12 }}
+            >
+              <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+                Unpair / break up
+              </Text>
+              <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+                Ends the connection. Shared photos, vault, and lists on this pair
+                are wiped on both sides.
+              </Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              setSafetyError(null);
+              setDanger("delete");
+            }}
+            style={{ marginTop: 4, paddingVertical: 12 }}
+          >
+            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+              Delete account
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Closes your Duoma account and wipes this phone’s copy of the pair.
+            </Text>
+          </Pressable>
+          {safetyError ? (
+            <Text style={{ marginTop: 8, color: "#FF6B7A", fontSize: 13 }}>{safetyError}</Text>
+          ) : null}
         </ScrollView>
       </View>
+      <ConfirmDialog
+        open={danger === "unpair"}
+        title="End this pairing?"
+        body={`${partner?.displayName ?? "They"} lose access to the shared vault, photos, and lists. This phone wipes them too. You keep your account and get a new pair code.`}
+        confirmLabel="Unpair and wipe"
+        cancelLabel="Keep us paired"
+        onCancel={() => setDanger(null)}
+        onConfirm={() => {
+          void (async () => {
+            try {
+              await unpairAndWipe();
+              setDanger(null);
+              onClose();
+              router.replace("/waiting");
+            } catch (err) {
+              setSafetyError(err instanceof Error ? err.message : "Could not unpair.");
+              setDanger(null);
+            }
+          })();
+        }}
+      />
+      <ConfirmDialog
+        open={danger === "delete"}
+        title="Delete your account?"
+        body="This unpaired you, wipes local vaults, and closes the account on this phone. Email kerlsagameshq@gmail.com if a cloud login still needs finishing."
+        confirmLabel="Delete everything"
+        cancelLabel="Keep my account"
+        onCancel={() => setDanger(null)}
+        onConfirm={() => {
+          void (async () => {
+            try {
+              await deleteOwnAccount();
+              setDanger(null);
+              onClose();
+              router.replace("/welcome");
+            } catch (err) {
+              setSafetyError(err instanceof Error ? err.message : "Could not delete.");
+              setDanger(null);
+            }
+          })();
+        }}
+      />
+      <ReportSheet
+        open={danger === "report"}
+        onClose={() => setDanger(null)}
+        onSubmit={async ({ reason, details }) => {
+          await submitContentReport({
+            reason,
+            details,
+            mediaKind: "pair",
+          });
+        }}
+      />
     </View>
   );
 }

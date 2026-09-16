@@ -40,6 +40,21 @@ import { discoverQuestionById } from "@/lib/discover-questions";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import { positionById } from "@/lib/sex-positions";
 import {
+  broadcastSafetyEvent,
+  safetyEventNow,
+  stripCoupleFromDb,
+  wipeLocalMediaCaches,
+} from "@/lib/safety";
+import {
+  buildContentReport,
+  hydrateContentReport,
+  readLocalReports,
+  writeLocalReports,
+  type ContentReport,
+  type ReportReasonId,
+} from "@/lib/reports";
+import { wipeMiniApps } from "@/lib/mini-apps";
+import {
   registerDuomaWorker,
   sendPushToSubscriptions,
   showLocalPush,
@@ -561,6 +576,20 @@ type AppContextValue = {
   requestEmailCode: (email: string) => Promise<void>;
   verifyEmailCode: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  unpairAndWipe: () => Promise<void>;
+  deleteOwnAccount: () => Promise<void>;
+  submitContentReport: (input: {
+    reason: ReportReasonId;
+    details?: string;
+    reportedUserId?: string | null;
+    mediaId?: string | null;
+    mediaKind: import("@/lib/reports").ContentReport["mediaKind"];
+  }) => Promise<void>;
+  resolveContentReport: (
+    id: string,
+    action: "dismiss" | "action_taken"
+  ) => Promise<void>;
+  contentReports: import("@/lib/reports").ContentReport[];
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
   declineInvite: () => Promise<void>;
@@ -828,6 +857,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       db = await readDb();
+      const localReports = await readLocalReports();
+      if (localReports.length) {
+        const seen = new Set((db.contentReports ?? []).map((row) => row.id));
+        const extra = localReports.filter((row) => !seen.has(row.id));
+        if (extra.length) {
+          db = { ...db, contentReports: [...(db.contentReports ?? []), ...extra] };
+        }
+      }
       const pardoned = db.profiles.map(pardonCreator);
       const clearedBan = pardoned.some((profile, index) => profile !== db.profiles[index]);
       if (clearedBan) db = { ...db, profiles: pardoned };
@@ -885,7 +922,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (typeof BroadcastChannel !== "undefined") {
       channel = new BroadcastChannel(CHANNEL_NAME);
-      channel.onmessage = async () => {
+      channel.onmessage = async (event) => {
+        const data = event?.data as { type?: string; coupleId?: string } | undefined;
+        if (data?.type === "unpair" || data?.type === "delete-account") {
+          await wipeLocalMediaCaches();
+          await wipeMiniApps();
+        }
         db = await readDb();
         bump();
       };
@@ -1173,6 +1215,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const hiddenMeals = useMemo(
     () => db.hiddenMeals.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const contentReports = useMemo(
+    () => db.contentReports ?? [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1548,8 +1595,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const refreshCloudAccounts = useCallback(async () => {
     const directory = await loadCloudDirectory();
-    if (!directory) return;
-    mergeCloudDirectory(directory.profiles, directory.couples);
+    if (directory) {
+      mergeCloudDirectory(directory.profiles, directory.couples);
+    }
+    if (cloudAccountsOn() && supabase) {
+      const { data } = await supabase
+        .from("content_reports")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (data) {
+        const remote = data
+          .map((row) =>
+            hydrateContentReport({
+              id: row.id,
+              reporterId: row.reporter_id,
+              reportedUserId: row.reported_user_id,
+              coupleId: row.couple_id,
+              mediaId: row.media_id,
+              mediaKind: row.media_kind,
+              reason: row.reason,
+              details: row.details,
+              status: row.status,
+              createdAt: row.created_at,
+            })
+          )
+          .filter((row): row is ContentReport => Boolean(row));
+        const seen = new Set(remote.map((row) => row.id));
+        const extra = (db.contentReports ?? []).filter((row) => !seen.has(row.id));
+        db = { ...db, contentReports: [...remote, ...extra] };
+      }
+    }
+    if (!directory && !(cloudAccountsOn() && supabase)) return;
     await persist();
   }, []);
 
@@ -2024,6 +2101,166 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await writeSessionUserId(null);
     emit();
   }, []);
+
+  const unpairAndWipe = useCallback(async () => {
+    if (!user || !couple) {
+      throw new Error("There is no connection to end.");
+    }
+    pingPartner(couple, user, partner, {
+      title: "Connection ended",
+      body: `${user.displayName} ended the pairing. Shared photos and lists on this pair are gone.`,
+      url: "/welcome",
+    });
+    if (cloudAccountsOn() && supabase) {
+      const { error } = await supabase.rpc("unpair_couple");
+      if (error) {
+        throw new Error(error.message || "Could not unpair on the server.");
+      }
+    }
+    await wipeLocalMediaCaches();
+    await wipeMiniApps();
+    const stripped = stripCoupleFromDb(db, couple.id);
+    const freshId = createId();
+    const freshCode = uniqueInviteCode();
+    db = {
+      ...stripped,
+      profiles: stripped.profiles.filter((row) => !row.isDemo || row.id === user.id),
+      couples: [
+        ...stripped.couples,
+        {
+          id: freshId,
+          inviteCode: freshCode,
+          partnerA: user.id,
+          partnerB: null,
+          createdAt: nowIso(),
+          pairedAt: null,
+        },
+      ],
+      cards: [...stripped.cards, ...cloneDefaultDeck(freshId, user.id)],
+    };
+    broadcastSafetyEvent(safetyEventNow("unpair", couple.id));
+    await persist();
+  }, [user, couple, partner]);
+
+  const deleteOwnAccount = useCallback(async () => {
+    if (!user) throw new Error("Sign in first.");
+    if (couple) {
+      pingPartner(couple, user, partner, {
+        title: "Account closed",
+        body: `${user.displayName} closed their Duoma account. The pairing is gone.`,
+        url: "/welcome",
+      });
+    }
+    if (cloudAccountsOn() && supabase) {
+      const { error } = await supabase.rpc("delete_own_account");
+      if (error) {
+        throw new Error(error.message || "Could not close the cloud account.");
+      }
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Local wipe still runs.
+      }
+    }
+    await wipeLocalMediaCaches();
+    await wipeMiniApps();
+    if (couple) {
+      db = stripCoupleFromDb(db, couple.id);
+    }
+    db = {
+      ...db,
+      profiles: db.profiles.filter((row) => row.id !== user.id && !row.isDemo),
+    };
+    sessionUserId = null;
+    lastUserId = null;
+    liveUserId = null;
+    await writeSessionUserId(null);
+    await writeLastUserId(null);
+    await writeLiveUserId(null);
+    broadcastSafetyEvent(safetyEventNow("delete-account", couple?.id ?? null));
+    await persist();
+    emit();
+  }, [user, couple, partner]);
+
+  const submitContentReport = useCallback(
+    async (input: {
+      reason: ReportReasonId;
+      details?: string;
+      reportedUserId?: string | null;
+      mediaId?: string | null;
+      mediaKind: import("@/lib/reports").ContentReport["mediaKind"];
+    }) => {
+      if (!user) throw new Error("Sign in first.");
+      const row = buildContentReport({
+        reporterId: user.id,
+        reportedUserId: input.reportedUserId ?? partner?.id ?? null,
+        coupleId: couple?.id ?? null,
+        mediaId: input.mediaId ?? null,
+        mediaKind: input.mediaKind,
+        reason: input.reason,
+        details: input.details,
+      });
+      db = { ...db, contentReports: [...(db.contentReports ?? []), row] };
+      await writeLocalReports(db.contentReports);
+      if (cloudAccountsOn() && supabase) {
+        const { error } = await supabase.from("content_reports").insert({
+          id: row.id,
+          reporter_id: row.reporterId,
+          reported_user_id: row.reportedUserId,
+          couple_id: row.coupleId,
+          media_id: row.mediaId,
+          media_kind: row.mediaKind,
+          reason: row.reason,
+          details: row.details,
+          status: row.status,
+          created_at: row.createdAt,
+        });
+        if (error) {
+          // Keep the local copy so the report is not lost if the table is not migrated yet.
+        }
+      }
+      await persist();
+    },
+    [user, partner?.id, couple?.id]
+  );
+
+  const resolveContentReport = useCallback(
+    async (id: string, action: "dismiss" | "action_taken") => {
+      const status = action === "dismiss" ? "dismissed" : "action_taken";
+      const existing = (db.contentReports ?? []).find((row) => row.id === id);
+      if (cloudAccountsOn() && supabase) {
+        const { error } = await supabase.rpc("resolve_report", {
+          p_report_id: id,
+          p_action: action,
+        });
+        if (error) {
+          throw new Error(error.message || "Could not resolve that report.");
+        }
+      }
+      db = {
+        ...db,
+        contentReports: (db.contentReports ?? []).map((row) =>
+          row.id === id ? { ...row, status } : row
+        ),
+        profiles:
+          action === "action_taken" && existing?.reportedUserId
+            ? db.profiles.map((profile) =>
+                profile.id === existing.reportedUserId &&
+                !isCreatorEmail(profile.email)
+                  ? {
+                      ...profile,
+                      bannedAt: nowIso(),
+                      bannedReason: "Removed after a safety report",
+                    }
+                  : profile
+              )
+            : db.profiles,
+      };
+      await writeLocalReports(db.contentReports);
+      await persist();
+    },
+    []
+  );
 
   const sendSpicyInvite = useCallback(async () => {
     if (!user || !couple?.partnerB) {
@@ -5636,6 +5873,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     requestEmailCode,
     verifyEmailCode,
     signOut,
+    unpairAndWipe,
+    deleteOwnAccount,
+    submitContentReport,
+    resolveContentReport,
+    contentReports,
     sendSpicyInvite,
     acceptInvite,
     declineInvite,

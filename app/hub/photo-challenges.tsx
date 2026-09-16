@@ -1,4 +1,6 @@
 import { Stage } from "@/components/hub/Stage";
+import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
+import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { formatLongDate } from "@/lib/dates";
@@ -23,6 +25,7 @@ import {
   type PhotoMemory,
   type PhotoPromptCategory,
 } from "@/lib/photo-challenge";
+import { scanInputFromDataUrl } from "@/lib/media-scan";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
@@ -43,13 +46,16 @@ const INK = "#3A2A18";
 const PINK = "#F6D6D6";
 
 export default function PhotoChallengesScreen() {
-  const { user } = useApp();
+  const { user, partner, submitContentReport } = useApp();
   const { data, ready, patch } = useMiniApps();
+  const scanUpload = useScanUpload();
   const [tick, setTick] = useState(() => Date.now());
   const [caption, setCaption] = useState("");
   const [draftImage, setDraftImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attested, setAttested] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [looking, setLooking] = useState<PhotoMemory | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -75,6 +81,7 @@ export default function PhotoChallengesScreen() {
 
   if (!ready || !week) {
     return (
+      <MediaShield>
       <Screen scroll background={BG}>
         <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
           <Text
@@ -90,6 +97,7 @@ export default function PhotoChallengesScreen() {
           </Text>
         </Stage>
       </Screen>
+      </MediaShield>
     );
   }
 
@@ -146,7 +154,10 @@ export default function PhotoChallengesScreen() {
     setBusy(true);
     try {
       const dataUrl = await pickImageFromDevice();
-      if (dataUrl) setDraftImage(dataUrl);
+      if (dataUrl) {
+        setDraftImage(dataUrl);
+        setAttested(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read that photo.");
     } finally {
@@ -163,6 +174,11 @@ export default function PhotoChallengesScreen() {
     setError(null);
     setBusy(true);
     try {
+      const scan = await scanUpload(scanInputFromDataUrl(draftImage, attested));
+      if (!scan.ok) {
+        setError(scan.reason);
+        return;
+      }
       const memory = createPhotoMemory({
         userId: user.id,
         promptId: week.promptId,
@@ -183,6 +199,7 @@ export default function PhotoChallengesScreen() {
       });
       setCaption("");
       setDraftImage(null);
+      setAttested(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save that photo.");
     } finally {
@@ -203,6 +220,7 @@ export default function PhotoChallengesScreen() {
   const shownImage = thisWeekShot?.imageData ?? draftImage;
 
   return (
+    <MediaShield>
     <Screen scroll background={BG}>
       <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
         <View
@@ -609,6 +627,15 @@ export default function PhotoChallengesScreen() {
                         : "Upload the photo"}
                   </Text>
                 </Pressable>
+                <Text
+                  style={{
+                    textAlign: "center",
+                    color: "rgba(246,214,214,0.45)",
+                    fontSize: 12,
+                  }}
+                >
+                  Stays in Duoma. Not saved to the Camera Roll.
+                </Text>
                 <TextInput
                   value={caption}
                   onChangeText={setCaption}
@@ -623,12 +650,13 @@ export default function PhotoChallengesScreen() {
                     paddingVertical: 8,
                   }}
                 />
+                {draftImage ? <AdultAttest checked={attested} onChange={setAttested} /> : null}
                 <Pressable
                   onPress={() => void complete()}
-                  disabled={busy || !draftImage}
+                  disabled={busy || !draftImage || !attested}
                   style={{
                     height: 48,
-                    backgroundColor: draftImage ? red() : "rgba(194,59,59,0.35)",
+                    backgroundColor: draftImage && attested ? red() : "rgba(194,59,59,0.35)",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -839,10 +867,29 @@ export default function PhotoChallengesScreen() {
                   ? `Week of ${formatLongDate(looking.weekKey)}`
                   : looking.createdAt.slice(0, 10)}
               </Text>
+              <View style={{ marginTop: 12 }}>
+                <ReportTextButton onPress={() => setReportOpen(true)} />
+              </View>
             </Pressable>
           ) : null}
         </Pressable>
       </Modal>
+      <ReportSheet
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={async ({ reason, details }) => {
+          if (!looking) throw new Error("Open a photo first.");
+          await submitContentReport({
+            reason,
+            details,
+            mediaId: looking.id,
+            mediaKind: "photo-memory",
+            reportedUserId:
+              looking.userId === user?.id ? partner?.id ?? null : looking.userId,
+          });
+        }}
+      />
     </Screen>
+    </MediaShield>
   );
 }

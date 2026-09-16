@@ -1,6 +1,7 @@
 import type { ChickenPlay } from "@/lib/chicken";
+import type { ContentReport } from "@/lib/reports";
 
-export type { ChickenPlay };
+export type { ChickenPlay, ContentReport };
 
 export const STAGES = [
   "pre_foreplay",
@@ -693,6 +694,7 @@ export type AppDB = {
   mealWants: MealWant[];
   customMeals: CustomMeal[];
   hiddenMeals: HiddenMeal[];
+  contentReports: ContentReport[];
 };
 
 export type GameModule = {
