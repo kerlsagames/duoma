@@ -117,7 +117,7 @@ function MetricCard({
 }) {
   return (
     <View
-      className={`mb-1.5 rounded-xl border px-3 py-2 ${
+      className={`mb-1 rounded-xl border px-3 py-1.5 ${
         enabled
           ? "border-neon/40 bg-night"
           : "border-white/10 bg-white/5 opacity-60"
@@ -342,10 +342,10 @@ export default function CheckInScreen() {
         </AppSettingsPanel>
       }
     >
-      <View className="mb-3 flex-row rounded-2xl bg-white/5 p-1">
+      <View className="mb-2 flex-row rounded-2xl bg-white/5 p-1">
         <Pressable
           onPress={() => setMode("checkin")}
-          className={`flex-1 items-center rounded-xl py-2.5 ${
+          className={`flex-1 items-center rounded-xl py-1.5 ${
             mode === "checkin" || look.prefs.hideNudge ? "bg-neon" : ""
           }`}
           style={
@@ -365,7 +365,7 @@ export default function CheckInScreen() {
         {look.prefs.hideNudge ? null : (
         <Pressable
           onPress={() => setMode("request")}
-          className={`flex-1 items-center rounded-xl py-2.5 ${
+          className={`flex-1 items-center rounded-xl py-1.5 ${
             mode === "request" ? "bg-neon" : ""
           }`}
           style={mode === "request" ? { backgroundColor: look.accent } : undefined}
@@ -386,7 +386,7 @@ export default function CheckInScreen() {
           {partner ? (
             <Pressable
               onPress={() => setPeekPartner((on) => !on)}
-              className="mb-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+              className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5"
             >
               <Text
                 className="text-center text-[13px] font-semibold"
@@ -434,8 +434,8 @@ export default function CheckInScreen() {
             </View>
           ) : null}
 
-          <Text className="mb-3 text-center text-[12px] text-mist/50">
-            Toggle on only the areas you want to share right now.
+          <Text className="mb-1.5 text-center text-[11px] text-mist/50">
+            Toggle on only what you want to share.
           </Text>
 
           {look.prefs.showLove ? (
@@ -584,6 +584,7 @@ export default function CheckInScreen() {
             loading={saving}
             disabled={!canSave}
             onPress={() => void save()}
+            size="compact"
           />
           </>
           )}

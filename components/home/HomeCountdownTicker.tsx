@@ -38,7 +38,6 @@ export function HomeCountdownTicker() {
   }, [line]);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
     running.current = true;
     translate.stopAnimation();
     if (!line || copyWidth <= 0 || boxWidth <= 0) {
@@ -46,9 +45,12 @@ export function HomeCountdownTicker() {
       return;
     }
 
+    // Start fully off the right edge, then loop by one padded copy so the
+    // next pass also enters from the right instead of sitting mid-strip.
     const from = boxWidth;
     const to = boxWidth - copyWidth;
-    const duration = Math.max(14000, Math.round(copyWidth * 22));
+    translate.setValue(from);
+    const duration = Math.max(10000, Math.round(copyWidth * 18));
     const tick = () => {
       if (!running.current) return;
       translate.setValue(from);
@@ -56,7 +58,7 @@ export function HomeCountdownTicker() {
         toValue: to,
         duration,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start(({ finished }) => {
         if (finished && running.current) tick();
       });
@@ -70,7 +72,6 @@ export function HomeCountdownTicker() {
 
   if (!couple || !line) return null;
 
-  const seconds = Math.max(14, Math.round((copyWidth || 280) / 40));
   const copies = (
     <>
       {[0, 1].map((copy) => (
@@ -86,7 +87,12 @@ export function HomeCountdownTicker() {
                 }
               : undefined
           }
-          style={{ flexDirection: "row", alignItems: "center", flexShrink: 0 }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            flexShrink: 0,
+            minWidth: boxWidth || undefined,
+          }}
         >
           <Text
             numberOfLines={1}
@@ -95,7 +101,7 @@ export function HomeCountdownTicker() {
               fontSize: 12,
               fontWeight: "700",
               letterSpacing: 0.3,
-              paddingRight: 16,
+              paddingRight: 20,
             }}
           >
             {line}
@@ -124,41 +130,16 @@ export function HomeCountdownTicker() {
         justifyContent: "center",
       }}
     >
-      {Platform.OS === "web" ? (
-        <View
-          className="duoma-ticker-enter"
-          style={{
-            width: "100%",
-            animationName: "duoma-ticker-marquee",
-            animationDuration: `${seconds}s`,
-            animationTimingFunction: "linear",
-            animationIterationCount: "infinite",
-            ["--duoma-ticker-copy" as never]: `${copyWidth || 280}px`,
-            ["--duoma-ticker-duration" as never]: `${seconds}s`,
-          }}
-        >
-          <View
-            className="duoma-ticker-track"
-            style={{
-              flexDirection: "row",
-              flexWrap: "nowrap",
-              width: "max-content" as never,
-            }}
-          >
-            {copies}
-          </View>
-        </View>
-      ) : (
-        <Animated.View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            transform: [{ translateX: translate }],
-          }}
-        >
-          {copies}
-        </Animated.View>
-      )}
+      <Animated.View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          transform: [{ translateX: translate }],
+        }}
+      >
+        {copies}
+      </Animated.View>
     </Pressable>
   );
 }

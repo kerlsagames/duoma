@@ -95,7 +95,7 @@ export function HubScreen({
       density={density}
       typeface={typeface}
     >
-      <View className={scroll ? (compactHeader ? "pt-2 pb-4" : "pt-4 pb-6") : "flex-1 pt-3 pb-3"}>
+      <View className={scroll ? (compactHeader ? "pt-1 pb-2" : "pt-4 pb-6") : "flex-1 pt-3 pb-3"}>
         {showBack ? (
           <BackButton
             color={color}
@@ -156,7 +156,7 @@ export function HubScreen({
           </Text>
         ) : null}
         <View
-          className={`${title || body ? (compactHeader ? "mt-3" : "mt-6") : "mt-3"}${scroll ? "" : " flex-1"}`}
+          className={`${title || body ? (compactHeader ? "mt-3" : "mt-6") : compactHeader ? "mt-2" : "mt-3"}${scroll ? "" : " flex-1"}`}
         >
           {settingsOpen && settings ? settings : children}
         </View>

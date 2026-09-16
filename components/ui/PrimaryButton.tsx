@@ -11,7 +11,7 @@ type Props = PressableProps & {
   tone?: "neon" | "crimson" | "ghost" | "danger" | "gold" | "teal";
   loading?: boolean;
   /** Taller type for a stage jump that has to read as the main move. */
-  size?: "default" | "loud";
+  size?: "default" | "loud" | "compact";
 };
 
 export function PrimaryButton({
@@ -23,9 +23,10 @@ export function PrimaryButton({
   ...rest
 }: Props) {
   const loud = size === "loud";
-  const height = loud ? 60 : 52;
-  const radius = loud ? 20 : 18;
-  const typeSize = loud ? 18 : 16;
+  const compact = size === "compact";
+  const height = loud ? 60 : compact ? 44 : 52;
+  const radius = loud ? 20 : compact ? 14 : 18;
+  const typeSize = loud ? 18 : compact ? 15 : 16;
 
   if (tone === "ghost") {
     return (
