@@ -72,61 +72,25 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
           className={fillGrid ? "flex-1 pt-2 pb-2" : "pt-4 pb-10"}
           style={fillGrid ? { flex: 1, minHeight: 0 } : undefined}
         >
-          <BackButton
-            color={hub.accent}
-            fallback="/"
-            style={{ marginBottom: fillGrid ? 8 : 14 }}
-          />
-
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              gap: 12,
-              marginBottom: 6,
+              marginBottom: fillGrid ? 4 : 6,
             }}
           >
-            <View
-              style={{
-                width: fillGrid ? 32 : 44,
-                height: fillGrid ? 32 : 44,
-                borderRadius: fillGrid ? 11 : 14,
-                backgroundColor: hub.accentSoft,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name={hub.icon} size={fillGrid ? 18 : 24} color={hub.accent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontFamily: "SpaceMono",
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: hub.accent,
-                }}
-              >
-                Hub
-              </Text>
-              <Text
-                style={{
-                  fontFamily: SERIF,
-                  fontSize: fillGrid ? 22 : 30,
-                  lineHeight: fillGrid ? 26 : 36,
-                  color: "#F4F4F6",
-                }}
-              >
-                {hub.label}
-              </Text>
-            </View>
+            <BackButton
+              color={hub.accent}
+              fallback="/"
+              style={{ marginBottom: 0 }}
+            />
+            <View style={{ flex: 1 }} />
             <Pressable
               onPress={() => setSettingsOpen(true)}
               accessibilityLabel={`${hub.label} settings`}
               style={{
-                width: fillGrid ? 36 : 44,
-                height: fillGrid ? 36 : 44,
+                width: fillGrid ? 40 : 44,
+                height: fillGrid ? 40 : 44,
                 borderRadius: 16,
                 backgroundColor: "#14141A",
                 borderWidth: 1,
@@ -139,18 +103,63 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
             </Pressable>
           </View>
 
-          <Text
+          <View
             style={{
-              marginTop: fillGrid ? 2 : 4,
+              alignItems: "center",
               marginBottom: fillGrid ? 10 : 18,
-              fontFamily: SERIF,
-              fontSize: fillGrid ? 13 : 16,
-              lineHeight: fillGrid ? 18 : 24,
-              color: "rgba(244,244,246,0.58)",
             }}
           >
-            {hub.tagline}
-          </Text>
+            <View
+              style={{
+                width: fillGrid ? 48 : 44,
+                height: fillGrid ? 48 : 44,
+                borderRadius: 16,
+                backgroundColor: hub.accentSoft,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name={hub.icon} size={fillGrid ? 26 : 24} color={hub.accent} />
+            </View>
+            {fillGrid ? null : (
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: hub.accent,
+                }}
+              >
+                Hub
+              </Text>
+            )}
+            <Text
+              style={{
+                marginTop: fillGrid ? 8 : 2,
+                fontFamily: SERIF,
+                fontSize: fillGrid ? 28 : 30,
+                lineHeight: fillGrid ? 32 : 36,
+                color: "#F4F4F6",
+                textAlign: "center",
+              }}
+            >
+              {hub.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF,
+                fontSize: fillGrid ? 14 : 16,
+                lineHeight: fillGrid ? 20 : 24,
+                color: "rgba(244,244,246,0.58)",
+                textAlign: "center",
+              }}
+            >
+              {hub.tagline}
+            </Text>
+          </View>
 
           {loading ? (
             <Text
@@ -711,40 +720,43 @@ function GridTile({
         height: fill
           ? (`${(100 / rowCount - 1.6).toFixed(2)}%` as DimensionValue)
           : undefined,
-        paddingVertical: fill ? 8 : 14,
-        paddingHorizontal: fill ? 10 : 12,
+        paddingVertical: fill ? 10 : 14,
+        paddingHorizontal: fill ? 8 : 12,
         marginBottom: fill ? 0 : undefined,
-        borderRadius: fill ? 14 : 18,
+        borderRadius: fill ? 16 : 18,
         backgroundColor: "#14141A",
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.08)",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <View
         style={{
-          width: fill ? 32 : 40,
-          height: fill ? 32 : 40,
-          borderRadius: fill ? 10 : 13,
+          width: fill ? 44 : 40,
+          height: fill ? 44 : 40,
+          borderRadius: fill ? 14 : 13,
           backgroundColor: accentSoft,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={feature.icon} size={fill ? 16 : 20} color={accent} />
+        <Ionicons name={feature.icon} size={fill ? 22 : 20} color={accent} />
       </View>
       <Text
         style={{
           marginTop: fill ? 8 : 12,
           color: "#F4F4F6",
-          fontSize: fill ? 13 : 15,
+          fontSize: fill ? 15 : 15,
           fontWeight: "700",
-          lineHeight: fill ? 17 : 20,
+          lineHeight: fill ? 19 : 20,
+          textAlign: "center",
         }}
-        numberOfLines={fill ? 2 : 3}
+        numberOfLines={2}
       >
         {feature.label}
       </Text>
-      {showDetails ? (
+      {showDetails && !fill ? (
         <Text
           numberOfLines={fill ? 1 : 2}
           style={{

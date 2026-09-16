@@ -15,6 +15,8 @@ type Props = {
   accent?: string;
   track?: string;
   labelColor?: string;
+  /** Number beside the track instead of a big score stacked on top. */
+  compact?: boolean;
 };
 
 /**
@@ -27,6 +29,7 @@ export function ScoreSlider({
   accent = "#FF6B4A",
   track = "rgba(243,255,251,0.18)",
   labelColor = "#F3FFFB",
+  compact = false,
 }: Props) {
   const widthRef = useRef(0);
   const [width, setWidth] = useState(0);
@@ -64,70 +67,91 @@ export function ScoreSlider({
   );
 
   const fill = width > 0 ? (score / 10) * width : 0;
-  const thumb = Math.max(0, Math.min(width - 22, fill - 11));
+  const thumbSize = compact ? 16 : 22;
+  const thumb = Math.max(0, Math.min(width - thumbSize, fill - thumbSize / 2));
+  const bar = compact ? 6 : 10;
 
-  return (
-    <View>
-      <Text
-        style={{
-          textAlign: "center",
-          fontSize: 36,
-          fontWeight: "700",
-          color: labelColor,
-          fontVariant: ["tabular-nums"],
-        }}
-      >
-        {score.toFixed(1)}
+  const scoreLabel = (
+    <Text
+      style={{
+        textAlign: compact ? "right" : "center",
+        fontSize: compact ? 18 : 36,
+        fontWeight: "700",
+        color: labelColor,
+        fontVariant: ["tabular-nums"],
+        minWidth: compact ? 52 : undefined,
+      }}
+    >
+      {score.toFixed(1)}
+      {compact ? null : (
         <Text style={{ fontSize: 18, color: "rgba(243,255,251,0.55)" }}> / 10</Text>
-      </Text>
+      )}
+    </Text>
+  );
 
+  const trackBlock = (
+    <View
+      onLayout={onLayout}
+      {...pan.panHandlers}
+      style={{
+        flex: compact ? 1 : undefined,
+        marginTop: compact ? 0 : 16,
+        height: compact ? 28 : 36,
+        justifyContent: "center",
+        ...(Platform.OS === "web" ? { cursor: "pointer" as const } : null),
+      }}
+      accessibilityRole="adjustable"
+    >
       <View
-        onLayout={onLayout}
-        {...pan.panHandlers}
         style={{
-          marginTop: 16,
-          height: 36,
-          justifyContent: "center",
-          ...(Platform.OS === "web" ? { cursor: "pointer" as const } : null),
+          height: bar,
+          borderRadius: 999,
+          backgroundColor: track,
+          overflow: "hidden",
         }}
-        accessibilityRole="adjustable"
       >
         <View
           style={{
-            height: 10,
+            width: fill,
+            height: bar,
             borderRadius: 999,
-            backgroundColor: track,
-            overflow: "hidden",
-          }}
-        >
-          <View
-            style={{
-              width: fill,
-              height: 10,
-              borderRadius: 999,
-              backgroundColor: accent,
-            }}
-          />
-        </View>
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            left: thumb,
-            width: 22,
-            height: 22,
-            borderRadius: 11,
-            backgroundColor: labelColor,
-            borderWidth: 3,
-            borderColor: accent,
-            shadowColor: "#000",
-            shadowOpacity: 0.35,
-            shadowRadius: 4,
-            shadowOffset: { width: 0, height: 2 },
+            backgroundColor: accent,
           }}
         />
       </View>
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: thumb,
+          width: thumbSize,
+          height: thumbSize,
+          borderRadius: thumbSize / 2,
+          backgroundColor: labelColor,
+          borderWidth: compact ? 2 : 3,
+          borderColor: accent,
+          shadowColor: "#000",
+          shadowOpacity: 0.35,
+          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 2 },
+        }}
+      />
+    </View>
+  );
 
+  if (compact) {
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        {trackBlock}
+        {scoreLabel}
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      {scoreLabel}
+      {trackBlock}
       <View
         style={{
           marginTop: 8,

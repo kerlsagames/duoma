@@ -364,30 +364,28 @@ export default function PlayScreen() {
     );
     return (
       <Screen scroll>
-        <View className="pt-2 pb-8">
+        <View className="pt-2 pb-6">
           <Pressable
             onPress={() => {
               void finishRatings();
               router.replace("/(tabs)");
             }}
-            className="self-start rounded-full border border-white/15 px-4 py-2"
+            className="self-start rounded-full border border-white/15 px-3 py-1.5"
           >
-            <Text className="text-[13px] font-semibold text-mist/70">
+            <Text className="text-[12px] font-semibold text-mist/70">
               Skip this time
             </Text>
           </Pressable>
-          <Text className="mt-4 text-[12px] font-semibold uppercase tracking-[3px] text-neon">
-            Rate the night
+          <Text className="mt-3 text-[12px] font-semibold uppercase tracking-[3px] text-neon">
+            Get Spicy
           </Text>
-          <Text className="mt-3 text-[32px] font-bold text-mist">Best cards</Text>
-          <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-            Score each played card from 0 to 10 (decimals ok). High scores land
-            in your bank so you can find them again.
+          <Text className="mt-1 text-[22px] font-bold text-mist">
+            Rate the cards played
           </Text>
-          <View className="mt-6 gap-3">
+          <View className="mt-4 gap-2">
             {played.length === 0 ? (
-              <View className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <Text className="text-[16px] text-mist/70">
+              <View className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <Text className="text-[15px] text-mist/70">
                   No played cards to rate.
                 </Text>
               </View>
@@ -405,19 +403,20 @@ export default function PlayScreen() {
                 return (
                   <View
                     key={item.id}
-                    className="rounded-3xl border border-white/10 bg-white/5 p-4"
+                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5"
                   >
-                    <Text className="text-[12px] uppercase tracking-widest text-crimson">
+                    <Text className="text-[10px] uppercase tracking-widest text-crimson">
                       {playedCard.stage.replaceAll("_", " ")}
                     </Text>
-                    <Text className="mt-1 text-[16px] font-semibold text-mist">
+                    <Text
+                      className="mt-0.5 text-[15px] font-semibold text-mist"
+                      numberOfLines={2}
+                    >
                       {copy.title}
                     </Text>
-                    <Text className="mt-2 text-[14px] leading-5 text-mist/70">
-                      {copy.body}
-                    </Text>
-                    <View className="mt-4">
+                    <View className="mt-2">
                       <ScoreSlider
+                        compact
                         value={current}
                         onChange={(score) => void rateCard(playedCard.id, score)}
                       />
@@ -427,8 +426,9 @@ export default function PlayScreen() {
               })
             )}
           </View>
-          <View className="mt-8 gap-3">
+          <View className="mt-5">
             <PrimaryButton
+              size="compact"
               label="Save ratings"
               onPress={() => {
                 void finishRatings();
