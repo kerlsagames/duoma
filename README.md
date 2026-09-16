@@ -50,7 +50,7 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 1. **Create your pair** — name, email, Male/Female. We email a 6-digit code. Type it in the app (do not tap the link — inboxes often burn it).
 2. Home shows **Connect** until they join. Send them the 6-character pair code from that button.
 3. Their phone: **I have a code** — their name, their email, the pair code, then their 6-digit email code.
-4. **Open with email** if a link expired. Same inbox, new 6-digit code.
+4. **Sign in** on the login screen if a link expired. Same inbox, new 6-digit code. Forgot password is only there — not on Home.
 
 Email is the account (new phone, bans). The pair code is still how two people become a pair.
 
