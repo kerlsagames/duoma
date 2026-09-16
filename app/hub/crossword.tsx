@@ -442,17 +442,11 @@ function Keyboard({
               >
                 <Text
                   style={{
-                    color: absent
-                      ? "rgba(255,255,255,0.72)"
-                      : mark
-                        ? "#FFFFFF"
-                        : theme.keyText,
+                    color: mark ? "#FFFFFF" : theme.keyText,
                     fontSize: wide ? 11 : 13,
                     fontWeight: "800",
-                    textDecorationLine: absent ? "line-through" : "none",
                   }}
                 >
-                  {absent && !wide ? "✕ " : ""}
                   {key}
                 </Text>
               </Pressable>
