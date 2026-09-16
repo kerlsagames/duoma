@@ -482,7 +482,10 @@ export default function PlayScreen() {
 
   return (
     <Screen scroll={showHand || simplePace}>
-      <View className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}>
+      <View
+        className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}
+        style={{ position: "relative", overflow: "hidden" }}
+      >
         {simplePace ? <FinishOffSpray playKey={sprayKey} /> : null}
         <View className="mb-1.5 flex-row justify-between">
           {stagesForPace(game?.pace).map((stage) => {

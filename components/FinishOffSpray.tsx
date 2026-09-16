@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, Platform, Text, View } from "react-native";
+import { Animated, Easing, Text, View } from "react-native";
 
 const DROPS = [
   "💧",
@@ -20,6 +20,12 @@ const DROPS = [
   "💦",
   "💧",
   "💦",
+  "💧",
+  "💦",
+  "🌊",
+  "💦",
+  "💧",
+  "💦",
 ] as const;
 
 type Props = {
@@ -31,11 +37,11 @@ export function FinishOffSpray({ playKey }: Props) {
     () =>
       DROPS.map((emoji, i) => ({
         emoji,
-        left: 6 + ((i * 17 + 9) % 88),
-        delay: (i * 38) % 260,
-        drift: ((i * 11) % 48) - 24,
-        size: 20 + (i % 5) * 7,
-        duration: 980 + (i % 5) * 160,
+        left: 4 + ((i * 13 + 7) % 90),
+        delay: (i * 70) % 520,
+        drift: ((i * 11) % 56) - 28,
+        size: 26 + (i % 5) * 8,
+        duration: 2200 + (i % 5) * 280,
       })),
     []
   );
@@ -47,24 +53,26 @@ export function FinishOffSpray({ playKey }: Props) {
     const loops = drops.map((drop, i) => {
       lifts[i]!.setValue(0);
       fades[i]!.setValue(0);
+      const hold = Math.min(720, drop.duration * 0.28);
       return Animated.sequence([
         Animated.delay(drop.delay),
         Animated.parallel([
           Animated.timing(lifts[i]!, {
             toValue: 1,
             duration: drop.duration,
-            easing: Easing.out(Easing.quad),
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
           Animated.sequence([
             Animated.timing(fades[i]!, {
               toValue: 1,
-              duration: 140,
+              duration: 180,
               useNativeDriver: true,
             }),
+            Animated.delay(hold),
             Animated.timing(fades[i]!, {
               toValue: 0,
-              duration: drop.duration - 140,
+              duration: drop.duration - hold - 180,
               useNativeDriver: true,
             }),
           ]),
@@ -81,21 +89,19 @@ export function FinishOffSpray({ playKey }: Props) {
     <View
       pointerEvents="none"
       style={{
+        position: "absolute",
         left: 0,
         right: 0,
         top: 0,
         bottom: 0,
         overflow: "hidden",
         zIndex: 40,
-        ...(Platform.OS === "web"
-          ? ({ position: "fixed" } as object)
-          : { position: "absolute" }),
       }}
     >
       {drops.map((drop, i) => {
         const translateY = lifts[i]!.interpolate({
           inputRange: [0, 1],
-          outputRange: [40, -420],
+          outputRange: [80, -520],
         });
         const translateX = lifts[i]!.interpolate({
           inputRange: [0, 1],
@@ -103,7 +109,7 @@ export function FinishOffSpray({ playKey }: Props) {
         });
         const rotate = lifts[i]!.interpolate({
           inputRange: [0, 1],
-          outputRange: ["-12deg", "18deg"],
+          outputRange: ["-16deg", "22deg"],
         });
         return (
           <Animated.View
@@ -111,7 +117,7 @@ export function FinishOffSpray({ playKey }: Props) {
             style={{
               position: "absolute",
               left: `${drop.left}%`,
-              bottom: 72,
+              bottom: 24,
               opacity: fades[i],
               transform: [{ translateY }, { translateX }, { rotate }],
             }}
