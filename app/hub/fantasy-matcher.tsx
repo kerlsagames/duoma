@@ -25,6 +25,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Modal,
   PanResponder,
   Pressable,
   Text,
@@ -1069,14 +1070,16 @@ export default function FantasyMatcherScreen() {
       </View>
 
       {pickedMatch ? (
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={() => setPickedMatch(null)}
+        >
         <Pressable
           onPress={() => setPickedMatch(null)}
           style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
+            flex: 1,
             backgroundColor: "rgba(8,4,10,0.88)",
             alignItems: "center",
             justifyContent: "center",
@@ -1160,17 +1163,20 @@ export default function FantasyMatcherScreen() {
             />
           </Pressable>
         </Pressable>
+        </Modal>
       ) : null}
 
       {matchFlash ? (
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMatchFlash(null)}
+        >
         <Pressable
           onPress={() => setMatchFlash(null)}
           style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
+            flex: 1,
             backgroundColor: "rgba(8,4,10,0.88)",
             alignItems: "center",
             justifyContent: "center",
@@ -1237,6 +1243,7 @@ export default function FantasyMatcherScreen() {
             />
           </View>
         </Pressable>
+        </Modal>
       ) : null}
     </Screen>
   );
