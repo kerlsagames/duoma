@@ -194,6 +194,16 @@ function migratePlayOrder(order: string[]): string[] {
       "crossword",
       "fair-share",
     ],
+    [
+      "coupons",
+      "trivia",
+      "prediction",
+      "crossword",
+      "photo-challenges",
+      "chicken",
+      "doodle",
+      "fair-share",
+    ],
   ];
   const isOldDefault = oldDefaults.some(
     (old) => known.length === old.length && known.every((id, i) => id === old[i])
@@ -206,8 +216,8 @@ function migratePlayOrder(order: string[]): string[] {
     "coupons",
     "trivia",
     "prediction",
-    "crossword",
     "photo-challenges",
+    "crossword",
     "chicken",
     "doodle",
     "fair-share",

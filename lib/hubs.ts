@@ -240,18 +240,18 @@ export const HUBS: HubDef[] = [
         href: "/hub/prediction",
       },
       {
-        id: "crossword",
-        label: "Daily Word",
-        detail: "Same five letters. Who lands it first.",
-        icon: "grid",
-        href: "/hub/daily-word",
-      },
-      {
         id: "photo-challenges",
         label: "Photo Memory Challenges",
         detail: "One shot a week. Shuffle until you both lock it in.",
         icon: "camera",
         href: "/hub/photo-challenges",
+      },
+      {
+        id: "crossword",
+        label: "Daily Word",
+        detail: "Same five letters. Who lands it first.",
+        icon: "grid",
+        href: "/hub/daily-word",
       },
       {
         id: "chicken",
