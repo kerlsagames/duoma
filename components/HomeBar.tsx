@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const HIDDEN = new Set([
   "/welcome",
+  "/login",
   "/create",
   "/join",
   "/check-email",

@@ -104,6 +104,7 @@ function RootChrome() {
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="welcome" />
+            <Stack.Screen name="login" />
             <Stack.Screen name="create" />
             <Stack.Screen name="join" />
             <Stack.Screen name="check-email" />
@@ -117,7 +118,10 @@ function RootChrome() {
             <Stack.Screen name="banned" />
           </Stack>
         </View>
-        {admin || pathname === "/banned" || pathname === "/check-email" ? null : (
+        {admin ||
+        pathname === "/banned" ||
+        pathname === "/check-email" ||
+        pathname === "/login" ? null : (
           <>
             <HomeBar />
             <GameInvitationModal />

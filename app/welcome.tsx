@@ -1,5 +1,4 @@
 import { DuomaLogo } from "@/components/DuomaLogo";
-import { ForgotPassword } from "@/components/ForgotPassword";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { HUBS } from "@/lib/hubs";
@@ -128,7 +127,13 @@ export default function WelcomeScreen() {
             tone="ghost"
             onPress={() => router.push("/join")}
           />
-          <ForgotPassword />
+          {usingCloud ? (
+            <PrimaryButton
+              label="Sign in"
+              tone="ghost"
+              onPress={() => router.push("/login")}
+            />
+          ) : null}
           <PrimaryButton
             label="How it works"
             tone="ghost"
