@@ -42,12 +42,12 @@ function Gauge({
   onChange: (n: number) => void;
 }) {
   return (
-    <View className="mt-2 flex-row gap-1">
+    <View className="mt-1.5 flex-row gap-1">
       {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
         <Pressable
           key={n}
           onPress={() => onChange(n)}
-          className={`h-6 flex-1 rounded-md ${
+          className={`h-5 flex-1 rounded-md ${
             n <= value ? "bg-neon" : "bg-white/10"
           }`}
         />
@@ -69,7 +69,7 @@ function Choice<T extends string>({
 }) {
   return (
     <View
-      className={`mt-2 flex-row flex-wrap ${
+      className={`mt-1.5 flex-row flex-wrap ${
         columns === 2 ? "justify-between" : ""
       }`}
     >
@@ -80,8 +80,8 @@ function Choice<T extends string>({
             key={item.id}
             onPress={() => onChange(item.id)}
             className={`${
-              columns === 2 ? "mb-2 w-[48%]" : "mb-2 w-full"
-            } rounded-xl border p-2.5 ${
+              columns === 2 ? "mb-1.5 w-[48%]" : "mb-1.5 w-full"
+            } rounded-xl border p-2 ${
               on ? "border-neon bg-neon/20" : "border-white/10 bg-white/5"
             }`}
           >
@@ -117,7 +117,7 @@ function MetricCard({
 }) {
   return (
     <View
-      className={`mb-3 rounded-2xl border p-4 ${
+      className={`mb-1.5 rounded-xl border px-3 py-2 ${
         enabled
           ? "border-neon/40 bg-night"
           : "border-white/10 bg-white/5 opacity-60"
@@ -125,8 +125,8 @@ function MetricCard({
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center pr-3">
-          <Ionicons name={icon} size={20} color="#FF007F" />
-          <Text className="ml-2 text-[15px] font-semibold text-mist">{title}</Text>
+          <Ionicons name={icon} size={16} color="#FF007F" />
+          <Text className="ml-2 text-[13px] font-semibold text-mist">{title}</Text>
         </View>
         <Switch
           value={enabled}
@@ -285,10 +285,10 @@ export default function CheckInScreen() {
 
   return (
     <HubScreen
-      kicker="Check-in"
-      title="Daily Check in"
+      kicker="Daily Check in"
       accent={look.accent}
       look={look}
+      compactHeader
       settingsLabel="Check-in settings"
       settings={
         <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)", "#0B0B0E")}>
@@ -342,7 +342,7 @@ export default function CheckInScreen() {
         </AppSettingsPanel>
       }
     >
-      <View className="mb-5 flex-row rounded-2xl bg-white/5 p-1">
+      <View className="mb-3 flex-row rounded-2xl bg-white/5 p-1">
         <Pressable
           onPress={() => setMode("checkin")}
           className={`flex-1 items-center rounded-xl py-2.5 ${
@@ -386,7 +386,7 @@ export default function CheckInScreen() {
           {partner ? (
             <Pressable
               onPress={() => setPeekPartner((on) => !on)}
-              className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+              className="mb-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2"
             >
               <Text
                 className="text-center text-[13px] font-semibold"

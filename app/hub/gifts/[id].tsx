@@ -194,7 +194,7 @@ export default function GiftPersonScreen() {
               onPress={() => router.replace("/hub/gifts" as Href)}
               style={{ marginTop: 16 }}
             >
-              <Text style={{ color: T.gold, fontWeight: "700" }}>Back to Gifts</Text>
+              <Text style={{ color: T.gold, fontWeight: "700" }}>Back to Wishlists</Text>
             </Pressable>
           </Stage>
         </Screen>
@@ -216,7 +216,7 @@ export default function GiftPersonScreen() {
           background={T.background}
           fallback={"/hub/gifts" as Href}
           accent={look.accent}
-          settingsLabel="Gifts"
+          settingsLabel="Wishlists"
           settings={
             <LookPanel
               look={look}

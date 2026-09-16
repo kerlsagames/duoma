@@ -4,7 +4,6 @@ import { WeekGrid } from "@/components/hub/WeekGrid";
 import { HubScreen } from "@/components/hub/HubScreen";
 import {
   activitiesForDate,
-  activitiesForLane,
   activitiesForMonth,
   groupActivitiesByDate,
   laneForKind,
@@ -16,8 +15,10 @@ import {
 import {
   CALENDAR_KIND_OPTIONS,
   CALENDAR_LAYOUT_OPTIONS,
+  PERIOD_PLACEMENT_OPTIONS,
   defaultCalendarPrefs,
   type CalendarLayout,
+  type PeriodPlacement,
 } from "@/lib/calendar-prefs";
 import {
   REMINDER_TARGET_OPTIONS,
@@ -84,19 +85,23 @@ export default function CalendarScreen() {
   }, [selected, prefs.listMode, lane, prefs.layout]);
 
   useEffect(() => {
-    if (lane === "cycle") setLane("life");
-  }, [lane]);
+    if (lane === "cycle" && prefs.periodPlacement !== "own") {
+      setLane("life");
+    }
+  }, [lane, prefs.periodPlacement]);
 
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
     return allActivities.filter((row) => {
       if (row.kind === "period") {
-        return prefs.showPeriodLane && lane === "life";
+        if (prefs.periodPlacement === "off") return false;
+        if (prefs.periodPlacement === "own") return lane === "cycle";
+        return lane === "life";
       }
       if (prefs.enabledKinds[row.kind] === false) return false;
       return laneForKind(row.kind) === lane;
     });
-  }, [allActivities, lane, prefs.enabledKinds, prefs.showPeriodLane]);
+  }, [allActivities, lane, prefs.enabledKinds, prefs.periodPlacement]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
   const dayItems = useMemo(
     () => activitiesForDate(activities, selected),
@@ -154,7 +159,12 @@ export default function CalendarScreen() {
   const emptyCopy =
     lane === "together"
       ? "Nothing recorded this day."
-      : "No birthdays, holidays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
+      : lane === "cycle"
+        ? "No cycle days this day."
+        : "No birthdays, holidays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
+
+  const typeSmall = look.prefs.density === "compact";
+  const gridCompact = typeSmall || layout === "split";
 
   return (
     <HubScreen
@@ -163,6 +173,7 @@ export default function CalendarScreen() {
       scroll={!fillPage}
       accent={look.accent}
       look={look}
+      compactHeader
       headerRight={
         <Pressable
           onPress={() => setSettingsOpen(true)}
@@ -183,6 +194,8 @@ export default function CalendarScreen() {
       <View style={fillPage ? { flex: 1, minHeight: 0 } : undefined}>
         <LaneTabs
           lane={lane}
+          showPeriod={prefs.periodPlacement === "own"}
+          compact={typeSmall}
           onChange={(next) => {
             setLane(next);
             setExpanded(false);
@@ -190,6 +203,7 @@ export default function CalendarScreen() {
         />
         <ViewModeBar
           layout={layout}
+          compact
           onChange={(next) => savePrefs({ ...prefs, layout: next })}
         />
 
@@ -268,6 +282,7 @@ export default function CalendarScreen() {
               selected={selected}
               today={today}
               onSelect={selectDay}
+              compact={typeSmall}
             />
             <DayHeader
               label={selectedIsToday ? "Today" : formatLongDate(selected)}
@@ -316,6 +331,7 @@ export default function CalendarScreen() {
                 today={today}
                 onSelect={selectDay}
                 compact
+                density={look.prefs.density}
               />
             </View>
             <View style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
@@ -353,6 +369,8 @@ export default function CalendarScreen() {
               selected={selected}
               today={today}
               onSelect={selectDay}
+              compact={gridCompact}
+              density={look.prefs.density}
             />
             <DayHeader
               label={selectedIsToday ? "Today" : formatLongDate(selected)}
@@ -619,7 +637,7 @@ export default function CalendarScreen() {
                 })}
               </View>
 
-              <SectionLabel>Period on calendar</SectionLabel>
+              <SectionLabel>Period tracker</SectionLabel>
               <Text
                 style={{
                   marginTop: -4,
@@ -629,67 +647,70 @@ export default function CalendarScreen() {
                   lineHeight: 18,
                 }}
               >
-                When this is on, logged and predicted cycle days sync onto
-                General automatically.
+                Off, mixed into General, or its own calendar button up top.
               </Text>
-              <Pressable
-                onPress={() =>
-                  savePrefs({
-                    ...prefs,
-                    showPeriodLane: !prefs.showPeriodLane,
-                  })
-                }
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  paddingVertical: 12,
-                  paddingHorizontal: 14,
-                  marginBottom: 22,
-                  borderWidth: 1,
-                  borderColor: prefs.showPeriodLane
-                    ? "#C23B55"
-                    : "rgba(22,24,29,0.1)",
-                  backgroundColor: prefs.showPeriodLane
-                    ? "rgba(194,59,85,0.08)"
-                    : "#FFFFFF",
-                }}
-              >
-                <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "600",
-                      color: "#16181D",
-                    }}
-                  >
-                    Show period on calendar
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      fontSize: 13,
-                      color: "rgba(22,24,29,0.5)",
-                    }}
-                  >
-                    Flow, predicted days, fertile window, and ovulation.
-                  </Text>
-                </View>
-                <Ionicons
-                  name={
-                    prefs.showPeriodLane ? "checkmark-circle" : "ellipse-outline"
-                  }
-                  size={22}
-                  color={
-                    prefs.showPeriodLane ? "#C23B55" : "rgba(22,24,29,0.35)"
-                  }
-                />
-              </Pressable>
+              <View style={{ gap: 8, marginBottom: 22 }}>
+                {PERIOD_PLACEMENT_OPTIONS.map((row) => {
+                  const on = prefs.periodPlacement === row.id;
+                  return (
+                    <Pressable
+                      key={row.id}
+                      onPress={() => {
+                        const next = row.id as PeriodPlacement;
+                        savePrefs({ ...prefs, periodPlacement: next });
+                        if (next !== "own" && lane === "cycle") {
+                          setLane("life");
+                        }
+                      }}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingVertical: 10,
+                        paddingHorizontal: 12,
+                        borderWidth: 1,
+                        borderColor: on ? "#C23B55" : "rgba(22,24,29,0.1)",
+                        backgroundColor: on
+                          ? "rgba(194,59,85,0.08)"
+                          : "#FFFFFF",
+                      }}
+                    >
+                      <View style={{ flex: 1, paddingRight: 12 }}>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "600",
+                            color: "#16181D",
+                          }}
+                        >
+                          {row.label}
+                        </Text>
+                        <Text
+                          style={{
+                            marginTop: 3,
+                            fontSize: 13,
+                            color: "rgba(22,24,29,0.5)",
+                          }}
+                        >
+                          {row.hint}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={on ? "radio-button-on" : "radio-button-off"}
+                        size={22}
+                        color={on ? "#C23B55" : "rgba(22,24,29,0.35)"}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
 
               <SectionLabel>
                 {lane === "together"
                   ? "Show on Desire & Connect"
-                  : "Show on General"}
+                  : lane === "cycle"
+                    ? "Period calendar"
+                    : "Show on General"}
               </SectionLabel>
               <Text
                 style={{
@@ -701,10 +722,13 @@ export default function CalendarScreen() {
                 }}
               >
                 {lane === "together"
-                  ? "Play, talks, and nights you already logged."
-                  : "Birthdays, holidays, trips, jobs, and notes you add yourself."}
+                  ? "Play, talks, nights, and positions you already logged."
+                  : lane === "cycle"
+                    ? "This third calendar is only the cycle — change that above."
+                    : "Birthdays, holidays, trips, jobs, and notes you add yourself."}
               </Text>
-              <View style={{ gap: 8, marginBottom: 22 }}>
+              {lane === "cycle" ? null : (
+                <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_KIND_OPTIONS.filter(
                   (row) => laneForKind(row.kind) === lane
                 ).map((row) => {
@@ -743,7 +767,8 @@ export default function CalendarScreen() {
                     </Pressable>
                   );
                 })}
-              </View>
+                </View>
+              )}
 
               <SectionLabel>Reminders</SectionLabel>
               <Text
@@ -906,9 +931,11 @@ function SectionLabel({ children }: { children: string }) {
 function ViewModeBar({
   layout,
   onChange,
+  compact = false,
 }: {
   layout: CalendarLayout;
   onChange: (layout: CalendarLayout) => void;
+  compact?: boolean;
 }) {
   const chips: { id: CalendarLayout; label: string }[] = [
     { id: "stack", label: "Month" },
@@ -918,9 +945,9 @@ function ViewModeBar({
   return (
     <View
       style={{
-        marginBottom: 14,
+        marginBottom: compact ? 8 : 14,
         flexDirection: "row",
-        gap: 8,
+        gap: 6,
       }}
     >
       {chips.map((chip) => {
@@ -935,7 +962,7 @@ function ViewModeBar({
             style={{
               flex: 1,
               alignItems: "center",
-              paddingVertical: 8,
+              paddingVertical: compact ? 5 : 8,
               borderWidth: 1,
               borderColor: on ? "#C23B55" : "rgba(22,24,29,0.12)",
               backgroundColor: on ? "rgba(194,59,85,0.12)" : "#FFFFFF",
@@ -943,7 +970,7 @@ function ViewModeBar({
           >
             <Text
               style={{
-                fontSize: 13,
+                fontSize: compact ? 12 : 13,
                 fontWeight: "700",
                 color: on ? "#C23B55" : "#16181D",
               }}
@@ -960,31 +987,39 @@ function ViewModeBar({
 function LaneTabs({
   lane,
   onChange,
+  showPeriod = false,
+  compact = false,
 }: {
   lane: CalendarLane;
   onChange: (lane: CalendarLane) => void;
+  showPeriod?: boolean;
+  compact?: boolean;
 }) {
   const tabs = [
     {
       id: "life" as const,
       label: "General",
-      hint: "Birthdays, holidays, trips",
-      grow: 1.7,
     },
     {
       id: "together" as const,
-      label: "Desire & Connect",
-      hint: "Nights, talks",
-      grow: 1,
+      label: showPeriod ? "Desire" : "Desire & Connect",
     },
+    ...(showPeriod
+      ? [
+          {
+            id: "cycle" as const,
+            label: "Period",
+          },
+        ]
+      : []),
   ];
 
   return (
     <View
       style={{
-        marginBottom: 16,
+        marginBottom: compact ? 8 : 12,
         flexDirection: "row",
-        padding: 4,
+        padding: 3,
         backgroundColor: "rgba(22,24,29,0.05)",
         borderWidth: 1,
         borderColor: "rgba(22,24,29,0.1)",
@@ -992,23 +1027,22 @@ function LaneTabs({
     >
       {tabs.map((tab) => {
         const on = lane === tab.id;
-        const isGeneral = tab.id === "life";
         return (
           <Pressable
             key={tab.id}
             onPress={() => onChange(tab.id)}
             style={{
-              flex: tab.grow,
+              flex: 1,
               alignItems: "center",
               justifyContent: "center",
-              paddingVertical: isGeneral ? 14 : 10,
-              paddingHorizontal: isGeneral ? 12 : 8,
+              paddingVertical: compact ? 6 : 8,
+              paddingHorizontal: 6,
               backgroundColor: on ? "#C23B55" : "transparent",
             }}
           >
             <Text
               style={{
-                fontSize: isGeneral ? 16 : 12,
+                fontSize: compact || showPeriod ? 12 : 13,
                 fontWeight: "800",
                 color: on ? "#FFFFFF" : "#16181D",
                 textAlign: "center",
@@ -1016,17 +1050,6 @@ function LaneTabs({
               numberOfLines={1}
             >
               {tab.label}
-            </Text>
-            <Text
-              style={{
-                marginTop: 3,
-                fontSize: isGeneral ? 11 : 9,
-                color: on ? "rgba(255,255,255,0.78)" : "rgba(22,24,29,0.45)",
-                textAlign: "center",
-              }}
-              numberOfLines={1}
-            >
-              {tab.hint}
             </Text>
           </Pressable>
         );

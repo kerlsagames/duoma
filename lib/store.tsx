@@ -4502,6 +4502,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               createdBy: user.id,
               createdAt: stamp,
               updatedAt: stamp,
+              source: "position",
             }
           : null;
       db = {

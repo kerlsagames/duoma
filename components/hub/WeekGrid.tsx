@@ -10,11 +10,12 @@ type Props = {
   selected: string;
   today: string;
   onSelect: (date: string) => void;
+  compact?: boolean;
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export function WeekGrid({ days, marks, selected, today, onSelect }: Props) {
+export function WeekGrid({ days, marks, selected, today, onSelect, compact = false }: Props) {
   return (
     <View
       style={{
@@ -36,7 +37,7 @@ export function WeekGrid({ days, marks, selected, today, onSelect }: Props) {
             onPress={() => onSelect(cell.date)}
             style={{
               flex: 1,
-              minHeight: 96,
+              minHeight: compact ? 64 : 96,
               borderRightWidth: isLast ? 0 : 1,
               borderColor: "rgba(22,24,29,0.12)",
               backgroundColor: on

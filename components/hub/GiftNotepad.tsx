@@ -102,7 +102,7 @@ export function GiftNotepad({
               <Pressable
                 onPress={() => onSecret(item)}
                 hitSlop={6}
-                accessibilityLabel={`Send ${item.title} to private list`}
+                accessibilityLabel={`Send ${item.title} to secret list`}
               >
                 <Ionicons name="lock-closed-outline" size={14} color={T.ribbon} />
               </Pressable>

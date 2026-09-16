@@ -333,6 +333,7 @@ function hydrateCalendarEvent(
     happenedAt: row.happenedAt ?? row.createdAt,
     allDay: row.allDay !== false,
     updatedAt: row.updatedAt ?? row.createdAt,
+    source: row.source === "position" ? "position" : undefined,
   };
 }
 

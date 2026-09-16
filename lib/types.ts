@@ -662,6 +662,8 @@ export type CalendarCustomEvent = {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  /** Positions land on Desire, not General. */
+  source?: "position";
 };
 
 export type AppDB = {

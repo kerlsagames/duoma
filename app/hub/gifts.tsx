@@ -12,6 +12,7 @@ import {
   addGiftItem,
   addGiftPerson,
   allOpenItems,
+  collapseSecretLists,
   currentGiftYear,
   ensureCouplePeople,
   ensurePrivatePerson,
@@ -29,6 +30,9 @@ import {
   personById,
   removeGiftItem,
   removeGiftPerson,
+  SECRET_LIST_NAME,
+  secretListForUser,
+  sharedGiftPeople,
   shopCount,
   visibleGiftPeople,
   wishCount,
@@ -68,7 +72,6 @@ export default function GiftsScreen() {
   const [logOccasion, setLogOccasion] = useState<GiftOccasionId>("christmas");
   const [logYear, setLogYear] = useState(currentGiftYear());
   const [logDate, setLogDate] = useState(localDateKey());
-  const [hiddenList, setHiddenList] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
@@ -76,14 +79,34 @@ export default function GiftsScreen() {
 
   useEffect(() => {
     if (!ready) return;
-    const next = ensureCouplePeople(
+    const nextPeople = ensureCouplePeople(
       data.giftPeople,
       user?.displayName ?? "You",
       partner?.displayName ?? "Them"
     );
-    if (next === data.giftPeople) return;
-    void patch((state) => ({ ...state, giftPeople: next }));
-  }, [ready, data.giftPeople, user?.displayName, partner?.displayName, patch]);
+    const collapsed = user?.id
+      ? collapseSecretLists(nextPeople, data.giftItems, user.id)
+      : { people: nextPeople, items: data.giftItems };
+    if (
+      collapsed.people === data.giftPeople &&
+      collapsed.items === data.giftItems
+    ) {
+      return;
+    }
+    void patch((state) => ({
+      ...state,
+      giftPeople: collapsed.people,
+      giftItems: collapsed.items,
+    }));
+  }, [
+    ready,
+    data.giftPeople,
+    data.giftItems,
+    user?.displayName,
+    user?.id,
+    partner?.displayName,
+    patch,
+  ]);
 
   const groups = useMemo(
     () => groupedPeople(visibleGiftPeople(data.giftPeople, user?.id)),
@@ -108,7 +131,6 @@ export default function GiftsScreen() {
     setName("");
     setKind("child");
     setEmoji("🧸");
-    setHiddenList(false);
     setError(null);
   };
 
@@ -134,8 +156,6 @@ export default function GiftsScreen() {
         name,
         kind,
         emoji,
-        hidden: hiddenList,
-        ownerUserId: hiddenList ? user?.id ?? null : null,
       }),
     }));
     resetPerson();
@@ -192,7 +212,7 @@ export default function GiftsScreen() {
           background={T.background}
           fallback={"/hub/home-base" as Href}
           accent={look.accent}
-          settingsLabel="Gifts"
+          settingsLabel="Wishlists"
           settings={
             <LookPanel
               look={look}
@@ -228,7 +248,7 @@ export default function GiftsScreen() {
               color: T.gold,
             }}
           >
-            Home Base · Gifts
+            Home Base · Wishlists
           </Text>
           <Text
             style={{
@@ -239,7 +259,7 @@ export default function GiftsScreen() {
               color: T.ink,
             }}
           >
-            Who we’re shopping for
+            Wishlists
           </Text>
           <Text
             style={{
@@ -250,9 +270,8 @@ export default function GiftsScreen() {
               color: T.muted,
             }}
           >
-            Wish lists for the two of you. Lists for kids, family, friends. A
-            book of what they actually got — Christmas, birthdays, the
-            anniversary wine.
+            A list for each of you, the kids, family, friends. One secret list
+            to get something — or hide it from your partner.
           </Text>
 
           <GiftModeToggle
@@ -262,7 +281,8 @@ export default function GiftsScreen() {
 
           {classic ? (
             <ClassicPad
-              people={visibleGiftPeople(data.giftPeople, user?.id)}
+              people={sharedGiftPeople(visibleGiftPeople(data.giftPeople, user?.id))}
+              secret={secretListForUser(data.giftPeople, user?.id)}
               items={data.giftItems}
               selectedId={padPersonId}
               onSelect={setPadPersonId}
@@ -270,7 +290,7 @@ export default function GiftsScreen() {
                 setError(null);
                 setSheet("person");
               }}
-              onOpenPrivate={async () => {
+              onOpenSecret={async () => {
                 if (!user?.id) return;
                 let nextId = "";
                 await patch((state) => {
@@ -401,12 +421,11 @@ export default function GiftsScreen() {
                 onRemove={setRemoveId}
               />
               <PersonGroup
-                kicker="Just you"
-                people={groups.privateLists}
+                kicker="Secret list"
+                people={groups.privateLists.slice(0, 1)}
                 items={data.giftItems}
-                empty="A list your partner can’t see. Steal from their wish list into this one."
+                empty="One list your partner can’t see. Steal a wish here so it doesn’t spoil."
                 onOpen={(id) => router.push(`/hub/gifts/${id}` as Href)}
-                onRemove={setRemoveId}
               />
               <Pressable
                 onPress={async () => {
@@ -441,7 +460,7 @@ export default function GiftsScreen() {
                     fontWeight: "700",
                   }}
                 >
-                  {groups.privateLists.length ? "Open my private list" : "Create a private list"}
+                  {groups.privateLists.length ? "Open secret list" : "Open secret list"}
                 </Text>
               </Pressable>
               <Pressable
@@ -489,7 +508,7 @@ export default function GiftsScreen() {
                 />
               ))}
               {data.giftPeople
-                .filter((row) => !row.slot)
+                .filter((row) => !row.slot && (!row.hidden || row.ownerUserId === user?.id))
                 .map((person) =>
                   wishCount(data.giftItems, person.id) === 0 ? null : (
                     <WishCard
@@ -732,40 +751,6 @@ export default function GiftsScreen() {
               );
             })}
           </View>
-          <Pressable
-            onPress={() => {
-              setHiddenList((value) => {
-                const next = !value;
-                if (next) setEmoji("🔒");
-                return next;
-              });
-            }}
-            style={{
-              marginTop: 16,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: hiddenList ? T.gold : T.border,
-              backgroundColor: hiddenList ? T.goldSoft : T.surface,
-              padding: 12,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Ionicons
-              name={hiddenList ? "eye-off" : "eye-outline"}
-              size={18}
-              color={hiddenList ? T.gold : T.muted}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: T.ink, fontWeight: "700", fontSize: 15 }}>
-                Partner can’t see this
-              </Text>
-              <Text style={{ marginTop: 2, color: T.muted, fontSize: 12 }}>
-                A private shopping list. Send wishes here so they don’t spoil.
-              </Text>
-            </View>
-          </Pressable>
           {error ? (
             <Text style={{ marginTop: 12, color: T.ribbon, fontFamily: SERIF }}>
               {error}
@@ -805,7 +790,7 @@ export default function GiftsScreen() {
               gap: 8,
             }}
           >
-            {data.giftPeople.map((person) => {
+            {visibleGiftPeople(data.giftPeople, user?.id).map((person) => {
               const on = logPersonId === person.id;
               return (
                 <Pressable
@@ -897,32 +882,39 @@ export default function GiftsScreen() {
 
 function ClassicPad({
   people,
+  secret,
   items,
   selectedId,
   onSelect,
   onAddPerson,
-  onOpenPrivate,
+  onOpenSecret,
   onAdd,
   onToggle,
   onRemove,
   onSecret,
 }: {
   people: ReturnType<typeof visibleGiftPeople>;
+  secret: ReturnType<typeof secretListForUser>;
   items: GiftItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAddPerson: () => void;
-  onOpenPrivate: () => void;
+  onOpenSecret: () => void;
   onAdd: (personId: string, title: string) => void;
   onToggle: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   onSecret?: (item: GiftItem) => void;
 }) {
   const selected =
-    people.find((row) => row.id === selectedId) ?? people[0] ?? null;
+    (secret && selectedId === secret.id ? secret : null) ??
+    people.find((row) => row.id === selectedId) ??
+    people[0] ??
+    secret ??
+    null;
   const rows = selected ? allOpenItems(items, selected.id) : [];
   const steal =
     selected && selected.slot === "them" && !selected.hidden ? onSecret : undefined;
+  const secretOn = Boolean(secret && selected?.id === secret.id);
 
   return (
     <View style={{ marginTop: 16 }}>
@@ -950,24 +942,29 @@ function ClassicPad({
                 }}
               >
                 {person.emoji} {person.name}
-                {person.hidden ? " · private" : ""}
               </Text>
             </Pressable>
           );
         })}
         <Pressable
-          onPress={onOpenPrivate}
+          onPress={onOpenSecret}
           style={{
             borderRadius: 999,
             paddingHorizontal: 12,
             paddingVertical: 7,
-            backgroundColor: T.goldSoft,
+            backgroundColor: secretOn ? T.gold : T.goldSoft,
             borderWidth: 1,
             borderColor: T.gold,
           }}
         >
-          <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>
-            Private list
+          <Text
+            style={{
+              color: secretOn ? "#1A1408" : T.gold,
+              fontWeight: "800",
+              fontSize: 13,
+            }}
+          >
+            🔒 {SECRET_LIST_NAME}
           </Text>
         </Pressable>
         <Pressable
@@ -987,7 +984,11 @@ function ClassicPad({
       {selected ? (
         <GiftNotepad
           items={rows}
-          empty={`Write on ${selected.name}’s list. Tick the box when it’s given.`}
+          empty={
+            selected.hidden
+              ? "Write what you’re getting them. Partner can’t see this list."
+              : `Write on ${selected.name}’s list. Tick the box when it’s given.`
+          }
           onAdd={(title) => onAdd(selected.id, title)}
           onToggle={onToggle}
           onRemove={onRemove}
@@ -1072,7 +1073,7 @@ function PersonGroup({
                     numberOfLines={1}
                   >
                     {person.name}
-                    {person.hidden ? "  · private" : ""}
+                    {person.hidden ? "  · secret" : ""}
                   </Text>
                   <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
                     {kindLabel(person.kind)}

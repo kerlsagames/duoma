@@ -1,4 +1,5 @@
 import type { CalendarMark } from "@/lib/calendar-activity";
+import type { DensityId } from "@/lib/app-prefs";
 import { Pressable, Text, View } from "react-native";
 
 type Cell = { date: string; day: number } | null;
@@ -11,6 +12,7 @@ type Props = {
   onSelect: (date: string) => void;
   /** Tighter cells for the split layout. */
   compact?: boolean;
+  density?: DensityId;
 };
 
 const MARK_COLOR: Record<CalendarMark, string> = {
@@ -44,9 +46,14 @@ export function MonthGrid({
   today,
   onSelect,
   compact = false,
+  density = "regular",
 }: Props) {
-  const cellMin = compact ? 40 : 58;
-  const daySize = compact ? 22 : 28;
+  const cellMin =
+    density === "compact" ? 34 : density === "roomy" ? 70 : compact ? 40 : 58;
+  const daySize =
+    density === "compact" ? 18 : density === "roomy" ? 32 : compact ? 22 : 28;
+  const dayFont =
+    density === "compact" ? 11 : density === "roomy" ? 16 : compact ? 12 : 14;
   return (
     <View
       style={{
@@ -70,8 +77,8 @@ export function MonthGrid({
             style={{
               flex: 1,
               textAlign: "center",
-              paddingVertical: compact ? 6 : 10,
-              fontSize: compact ? 10 : 11,
+              paddingVertical: density === "compact" ? 4 : compact ? 6 : 10,
+              fontSize: density === "compact" ? 9 : compact ? 10 : 11,
               fontWeight: "700",
               letterSpacing: 1,
               color: "rgba(22,24,29,0.45)",
@@ -139,7 +146,7 @@ export function MonthGrid({
               >
                 <Text
                   style={{
-                    fontSize: compact ? 12 : 14,
+                    fontSize: dayFont,
                     fontWeight: "600",
                     color: on ? "#FFFFFF" : "#16181D",
                   }}

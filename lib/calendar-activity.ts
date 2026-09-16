@@ -5,6 +5,7 @@ import {
   type Birthday,
 } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
+import { sexPositions } from "@/lib/sex-positions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import { holidaysAround } from "@/lib/holidays";
 import type { MaintTask, Trip } from "@/lib/mini-content";
@@ -73,6 +74,7 @@ export type CalendarActivityKind =
   | "jar"
   | "curiosity"
   | "custom"
+  | "position"
   | "birthday"
   | "trip"
   | "job"
@@ -125,6 +127,7 @@ const TOGETHER_KINDS = new Set<CalendarActivityKind>([
   "coupon",
   "jar",
   "curiosity",
+  "position",
 ]);
 
 const LIFE_KINDS = new Set<CalendarActivityKind>([
@@ -136,7 +139,7 @@ const LIFE_KINDS = new Set<CalendarActivityKind>([
 ]);
 
 export function laneForKind(kind: CalendarActivityKind): CalendarLane {
-  if (kind === "period") return "life";
+  if (kind === "period") return "cycle";
   return LIFE_KINDS.has(kind) ? "life" : "together";
 }
 
@@ -229,6 +232,13 @@ function nightSubtitle(night: GameSession): string {
   if (night.status === "rating") return "Rating cards";
   if (night.status === "playing") return "In progress";
   return night.status.replace(/_/g, " ");
+}
+
+function isPositionCalendarEvent(row: CalendarCustomEvent): boolean {
+  if (row.source === "position") return true;
+  if (row.title === "Try a position") return true;
+  if (!row.title.startsWith("Try ")) return false;
+  return sexPositions(true).some((pose) => row.title === `Try ${pose.name}`);
 }
 
 export function buildCalendarActivities(
@@ -436,18 +446,21 @@ export function buildCalendarActivities(
 
   for (const row of input.calendarEvents) {
     const allDay = row.allDay !== false;
+    const position = isPositionCalendarEvent(row);
     items.push({
       id: `custom:${row.id}`,
-      kind: "custom",
+      kind: position ? "position" : "custom",
       dateKey: row.date,
       at: row.happenedAt,
       title: row.title,
       subtitle: row.notes.trim()
         ? row.notes.slice(0, 80)
-        : allDay
-          ? "All day"
-          : "Your note",
-      mark: "custom",
+        : position
+          ? "Position"
+          : allDay
+            ? "All day"
+            : "Your note",
+      mark: position ? "play" : "custom",
       href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
       allDay,
     });

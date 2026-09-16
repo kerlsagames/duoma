@@ -296,8 +296,8 @@ export const HUBS: HubDef[] = [
       },
       {
         id: "gifts",
-        label: "Gifts",
-        detail: "Wish lists, what to buy, and what they got each year",
+        label: "Wishlists",
+        detail: "A list each, plus one secret list to hide from your partner",
         icon: "ribbon",
         href: "/hub/gifts",
       },

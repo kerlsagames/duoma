@@ -358,6 +358,8 @@ export function visibleGiftPeople(
   return people.filter((row) => !row.hidden || row.ownerUserId === userId);
 }
 
+export const SECRET_LIST_NAME = "Secret list";
+
 export function groupedPeople(people: GiftPerson[]): {
   us: GiftPerson[];
   kids: GiftPerson[];
@@ -372,18 +374,98 @@ export function groupedPeople(people: GiftPerson[]): {
   };
 }
 
+export function sharedGiftPeople(people: GiftPerson[]): GiftPerson[] {
+  return people.filter((row) => !row.hidden);
+}
+
+export function secretListForUser(
+  people: GiftPerson[],
+  userId: string | undefined
+): GiftPerson | null {
+  if (!userId) return null;
+  return (
+    people.find((row) => row.hidden && row.ownerUserId === userId) ?? null
+  );
+}
+
+/** One secret list per person — merge extras and rename leftovers. */
+export function collapseSecretLists(
+  people: GiftPerson[],
+  items: GiftItem[],
+  userId: string
+): { people: GiftPerson[]; items: GiftItem[] } {
+  const mine = people.filter((row) => row.hidden && row.ownerUserId === userId);
+  if (mine.length === 0) return { people, items };
+  const keeper =
+    mine.find(
+      (row) => row.name === SECRET_LIST_NAME || row.name === "Private list"
+    ) ?? mine[0]!;
+  const extraIds = new Set(
+    mine.filter((row) => row.id !== keeper.id).map((row) => row.id)
+  );
+  const rename =
+    keeper.name !== SECRET_LIST_NAME ||
+    keeper.emoji !== "🔒" ||
+    keeper.notes !== "Hide from your partner.";
+  if (extraIds.size === 0 && !rename) return { people, items };
+  return {
+    people: people
+      .filter((row) => !extraIds.has(row.id))
+      .map((row) =>
+        row.id === keeper.id
+          ? {
+              ...row,
+              name: SECRET_LIST_NAME,
+              emoji: "🔒",
+              notes: "Hide from your partner.",
+            }
+          : row
+      ),
+    items: extraIds.size
+      ? items.map((row) =>
+          extraIds.has(row.personId) ? { ...row, personId: keeper.id } : row
+        )
+      : items,
+  };
+}
+
 export function ensurePrivatePerson(
   people: GiftPerson[],
   userId: string
 ): { people: GiftPerson[]; person: GiftPerson } {
   const existing = people.find((row) => row.hidden && row.ownerUserId === userId);
-  if (existing) return { people, person: existing };
+  if (existing) {
+    if (
+      existing.name === SECRET_LIST_NAME &&
+      existing.notes === "Hide from your partner."
+    ) {
+      return { people, person: existing };
+    }
+    return {
+      people: people.map((row) =>
+        row.id === existing.id
+          ? {
+              ...row,
+              name: SECRET_LIST_NAME,
+              emoji: "🔒",
+              notes: "Hide from your partner.",
+            }
+          : row
+      ),
+      person: {
+        ...existing,
+        name: SECRET_LIST_NAME,
+        emoji: "🔒",
+        notes: "Hide from your partner.",
+      },
+    };
+  }
   const person: GiftPerson = {
     id: createId(),
-    name: "Private list",
+    name: SECRET_LIST_NAME,
     kind: "other",
     emoji: "🔒",
-    notes: "Partner can’t see this.",
+    notes: "Hide from your partner.",
     slot: null,
     hidden: true,
     ownerUserId: userId,

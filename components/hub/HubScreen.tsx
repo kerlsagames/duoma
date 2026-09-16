@@ -35,6 +35,8 @@ type Props = {
   /** Override the tone accent (and kicker) with a hub colour. */
   accent?: string;
   look?: LookBits;
+  /** Pull the header up and shrink it so more of the page fits. */
+  compactHeader?: boolean;
 };
 
 export function HubScreen({
@@ -50,6 +52,7 @@ export function HubScreen({
   scroll = true,
   accent,
   look,
+  compactHeader = false,
 }: Props) {
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
@@ -92,11 +95,11 @@ export function HubScreen({
       density={density}
       typeface={typeface}
     >
-      <View className={scroll ? "pt-4 pb-6" : "flex-1 pt-3 pb-3"}>
+      <View className={scroll ? (compactHeader ? "pt-2 pb-4" : "pt-4 pb-6") : "flex-1 pt-3 pb-3"}>
         {showBack ? (
           <BackButton
             color={color}
-            style={{ marginBottom: scroll ? sizes.gap + 2 : 8 }}
+            style={{ marginBottom: compactHeader ? 4 : scroll ? sizes.gap + 2 : 8 }}
           />
         ) : null}
         <View
@@ -110,10 +113,10 @@ export function HubScreen({
           <Text
             style={{
               flex: 1,
-              fontSize: 12,
-              fontWeight: "600",
-              letterSpacing: 3,
-              textTransform: "uppercase",
+              fontSize: compactHeader ? (title ? 11 : 20) : 12,
+              fontWeight: compactHeader && !title ? "700" : "600",
+              letterSpacing: compactHeader && !title ? 0.4 : 3,
+              textTransform: compactHeader && !title ? "none" : "uppercase",
               color,
               fontFamily:
                 typeface === "sans" && tone === "talk" ? "SpaceMono" : fontFamily,
@@ -126,12 +129,14 @@ export function HubScreen({
         {title ? (
           <Text
             style={{
-              marginTop: sizes.gap,
-              fontSize: sizes.title,
+              marginTop: compactHeader ? 4 : sizes.gap,
+              fontSize: compactHeader ? Math.min(sizes.title, 24) : sizes.title,
               fontWeight: serifTitle ? "500" : "700",
               color: theme.ink,
               fontFamily: serifTitle && typeface === "sans" ? SERIF : fontFamily,
-              lineHeight: sizes.titleLine,
+              lineHeight: compactHeader
+                ? Math.min(sizes.titleLine, 28)
+                : sizes.titleLine,
             }}
           >
             {title}
@@ -151,7 +156,7 @@ export function HubScreen({
           </Text>
         ) : null}
         <View
-          className={`${title || body ? "mt-6" : "mt-3"}${scroll ? "" : " flex-1"}`}
+          className={`${title || body ? (compactHeader ? "mt-3" : "mt-6") : "mt-3"}${scroll ? "" : " flex-1"}`}
         >
           {settingsOpen && settings ? settings : children}
         </View>

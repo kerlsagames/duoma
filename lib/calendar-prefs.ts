@@ -14,14 +14,38 @@ export type CalendarListMode = "all" | "preview";
 
 export type CalendarLayout = "stack" | "split" | "agenda" | "week";
 
+export type PeriodPlacement = "off" | "general" | "own";
+
 export type CalendarPrefs = {
   enabledKinds: Record<CalendarActivityKind, boolean>;
   listMode: CalendarListMode;
   layout: CalendarLayout;
-  showPeriodLane: boolean;
+  periodPlacement: PeriodPlacement;
   defaultLeads: Record<ReminderTargetKind, ReminderLead[]>;
   itemLeads: Record<string, ReminderLead[]>;
 };
+
+export const PERIOD_PLACEMENT_OPTIONS: {
+  id: PeriodPlacement;
+  label: string;
+  hint: string;
+}[] = [
+  {
+    id: "off",
+    label: "Off",
+    hint: "Keep the cycle in Period Tracker only.",
+  },
+  {
+    id: "general",
+    label: "Add to General",
+    hint: "Flow and predicted days sit on the shared calendar.",
+  },
+  {
+    id: "own",
+    label: "Own calendar",
+    hint: "A third button up top — Period, next to General.",
+  },
+];
 
 export const CALENDAR_LAYOUT_OPTIONS: {
   id: CalendarLayout;
@@ -66,6 +90,7 @@ export const CALENDAR_KIND_OPTIONS: {
   { kind: "coupon", label: "Coupons" },
   { kind: "milestone", label: "Milestones" },
   { kind: "custom", label: "Your notes" },
+  { kind: "position", label: "Positions" },
   { kind: "birthday", label: "Birthdays" },
   { kind: "trip", label: "Trips" },
   { kind: "job", label: "Household jobs" },
@@ -88,7 +113,7 @@ export function defaultCalendarPrefs(): CalendarPrefs {
     enabledKinds,
     listMode: "preview",
     layout: "stack",
-    showPeriodLane: false,
+    periodPlacement: "off",
     defaultLeads: {
       birthday: [...DEFAULT_REMINDER_LEADS.birthday],
       custom: [...DEFAULT_REMINDER_LEADS.custom],
@@ -104,8 +129,20 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function hydratePeriodPlacement(raw: Record<string, unknown>): PeriodPlacement {
+  if (
+    raw.periodPlacement === "off" ||
+    raw.periodPlacement === "general" ||
+    raw.periodPlacement === "own"
+  ) {
+    return raw.periodPlacement;
+  }
+  if (raw.showPeriodLane === true) return "general";
+  return "off";
+}
+
 export function hydrateCalendarPrefs(
-  raw: Partial<CalendarPrefs> | null | undefined
+  raw: (Partial<CalendarPrefs> & { showPeriodLane?: boolean }) | null | undefined
 ): CalendarPrefs {
   const base = defaultCalendarPrefs();
   if (!raw) return base;
@@ -142,7 +179,7 @@ export function hydrateCalendarPrefs(
       raw.layout === "week"
         ? raw.layout
         : "stack",
-    showPeriodLane: raw.showPeriodLane === true,
+    periodPlacement: hydratePeriodPlacement(raw as Record<string, unknown>),
     defaultLeads,
     itemLeads,
   };

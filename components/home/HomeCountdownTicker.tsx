@@ -29,6 +29,7 @@ export function HomeCountdownTicker() {
     [look.prefs.asWeeks, look.prefs.tickerAll, milestones]
   );
   const [copyWidth, setCopyWidth] = useState(0);
+  const [boxWidth, setBoxWidth] = useState(0);
   const translate = useRef(new Animated.Value(0)).current;
   const running = useRef(false);
 
@@ -40,15 +41,19 @@ export function HomeCountdownTicker() {
     if (Platform.OS === "web") return;
     running.current = true;
     translate.stopAnimation();
-    translate.setValue(0);
-    if (!line || copyWidth <= 0) return;
+    if (!line || copyWidth <= 0 || boxWidth <= 0) {
+      translate.setValue(boxWidth || 0);
+      return;
+    }
 
+    const from = boxWidth;
+    const to = boxWidth - copyWidth;
     const duration = Math.max(14000, Math.round(copyWidth * 22));
     const tick = () => {
       if (!running.current) return;
-      translate.setValue(0);
+      translate.setValue(from);
       Animated.timing(translate, {
-        toValue: -copyWidth,
+        toValue: to,
         duration,
         easing: Easing.linear,
         useNativeDriver: true,
@@ -61,7 +66,7 @@ export function HomeCountdownTicker() {
       running.current = false;
       translate.stopAnimation();
     };
-  }, [copyWidth, line, translate]);
+  }, [boxWidth, copyWidth, line, translate]);
 
   if (!couple || !line) return null;
 
@@ -90,7 +95,7 @@ export function HomeCountdownTicker() {
               fontSize: 12,
               fontWeight: "700",
               letterSpacing: 0.3,
-              paddingRight: 48,
+              paddingRight: 16,
             }}
           >
             {line}
@@ -103,6 +108,12 @@ export function HomeCountdownTicker() {
   return (
     <Pressable
       onPress={() => router.push("/hub/milestones" as Href)}
+      onLayout={(event) => {
+        const width = event.nativeEvent.layout.width;
+        if (width > 0 && Math.abs(width - boxWidth) > 1) {
+          setBoxWidth(width);
+        }
+      }}
       accessibilityRole="button"
       accessibilityLabel={`Countdown ticker. ${line}`}
       style={{
@@ -115,19 +126,27 @@ export function HomeCountdownTicker() {
     >
       {Platform.OS === "web" ? (
         <View
-          className="duoma-ticker-track"
+          className="duoma-ticker-enter"
           style={{
-            flexDirection: "row",
-            flexWrap: "nowrap",
-            // RN web: keep the strip scrolling forever.
+            width: "100%",
             animationName: "duoma-ticker-marquee",
             animationDuration: `${seconds}s`,
             animationTimingFunction: "linear",
             animationIterationCount: "infinite",
+            ["--duoma-ticker-copy" as never]: `${copyWidth || 280}px`,
             ["--duoma-ticker-duration" as never]: `${seconds}s`,
           }}
         >
-          {copies}
+          <View
+            className="duoma-ticker-track"
+            style={{
+              flexDirection: "row",
+              flexWrap: "nowrap",
+              width: "max-content" as never,
+            }}
+          >
+            {copies}
+          </View>
         </View>
       ) : (
         <Animated.View
