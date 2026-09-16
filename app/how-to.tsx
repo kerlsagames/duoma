@@ -52,7 +52,7 @@ const STEPS = [
   {
     kicker: "Get Spicy",
     title: "If you open that game",
-    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Daytime cards stay private until you both tap that you are ready to move on.",
+    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Daytime cards stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand for him.",
   },
   {
     kicker: "Safety",

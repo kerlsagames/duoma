@@ -97,13 +97,17 @@ export default function PlayScreen() {
       ? partner?.displayName
       : user?.displayName;
 
-  const stagePlayed = played.filter(
-    (item) => item.stage === game?.currentStage
-  ).length;
   const stageNeed = game?.currentStage
     ? game.stageCounts[game.currentStage]
     : 0;
-  const progressLabel = `${stagePlayed} / ${stageNeed} this stage`;
+  const stagePlayed =
+    game?.currentStage === "finish_off"
+      ? game.finishUnitsDone ?? 0
+      : played.filter((item) => item.stage === game?.currentStage).length;
+  const progressLabel =
+    game?.currentStage === "finish_off" && game.finishAwaitingMale
+      ? `${stagePlayed} / ${stageNeed} · M next`
+      : `${stagePlayed} / ${stageNeed} this stage`;
 
   // Fetch a hand, then play the deal animation — only on your turn with no live card.
   useEffect(() => {
@@ -447,14 +451,18 @@ export default function PlayScreen() {
             actorLabel={actor ? `${actor} played` : "Live card"}
             progressLabel={progressLabel}
             emptyTitle={
-              myTurn
-                ? "Shuffling your deck…"
-                : `Waiting on ${partner?.displayName ?? "them"}`
+              myTurn && game?.finishAwaitingMale
+                ? "M — your turn is coming…"
+                : myTurn
+                  ? "Shuffling your deck…"
+                  : `Waiting on ${partner?.displayName ?? "them"}`
             }
             emptyBody={
-              myTurn
-                ? "Cards will deal to you in a moment. Pick one when they land."
-                : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
+              myTurn && game?.finishAwaitingMale
+                ? "She came. This next hand is how he finishes."
+                : myTurn
+                  ? "Cards will deal to you in a moment. Pick one when they land."
+                  : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
             }
           
             conceal={concealPreForeplay}

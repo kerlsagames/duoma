@@ -20,6 +20,7 @@ import afterglow3 from "./cards/afterglow-3.json";
 import { applyOverlay } from "@/lib/catalog-overlay";
 import type { Card, DefaultCardSeed } from "@/lib/types";
 import { createId, nowIso } from "@/lib/ids";
+import { climaxHintForCard } from "@/games/get-spicy/finish-climax";
 
 export const GET_SPICY_SEEDS = [
   ...(preForeplay as DefaultCardSeed[]),
@@ -82,5 +83,10 @@ export function cloneDefaultDeck(coupleId: string, createdBy: string): Card[] {
     sortOrder: seed.order,
     createdBy,
     createdAt,
+    climax:
+      seed.climax ??
+      (seed.category === "finish_off"
+        ? climaxHintForCard({ title: seed.title, body: seed.description })
+        : undefined),
   }));
 }

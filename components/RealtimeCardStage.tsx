@@ -1,5 +1,10 @@
 import { STAGE_META } from "@/games/get-spicy/engine";
 import {
+  cardFinishClimax,
+  climaxLabel,
+  maleFollowUpCopy,
+} from "@/games/get-spicy/finish-climax";
+import {
   personalizeCard,
   resolveCardNames,
   type GenderPair,
@@ -61,9 +66,26 @@ export function RealtimeCardStage({
               <Text className="mt-4 text-[15px] font-semibold text-mist/55">
                 {copy!.title}
               </Text>
+              {card?.stage === "finish_off" ? (
+                <Text className="mt-2 text-[13px] font-extrabold uppercase tracking-[2px] text-crimson">
+                  {climaxLabel(cardFinishClimax(card, genders))}
+                </Text>
+              ) : null}
               <Text className="mt-3 text-[26px] font-bold leading-8 text-mist">
                 {copy!.body}
               </Text>
+              {card?.stage === "finish_off"
+                ? (() => {
+                    const follow = maleFollowUpCopy(
+                      cardFinishClimax(card, genders)
+                    );
+                    return follow ? (
+                      <Text className="mt-4 text-[18px] font-semibold leading-6 text-neon">
+                        {follow}
+                      </Text>
+                    ) : null;
+                  })()
+                : null}
             </>
           ) : active && conceal ? (
             <>

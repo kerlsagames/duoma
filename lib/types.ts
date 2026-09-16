@@ -74,6 +74,8 @@ export type Card = {
   sortOrder: number;
   createdBy: string | null;
   createdAt: string;
+  /** Finish Off: F / M / both, or partner/player until genders resolve. */
+  climax?: "F" | "M" | "FM" | "partner" | "player";
 };
 
 export type DefaultCardSeed = {
@@ -81,6 +83,8 @@ export type DefaultCardSeed = {
   title: string;
   description: string;
   order: number;
+  /** Finish Off only: who climaxes. partner/player resolve from genders. */
+  climax?: "F" | "M" | "FM" | "partner" | "player";
 };
 
 export type GameSession = {
@@ -112,6 +116,10 @@ export type GameSession = {
   finishPickerId: string | null;
   /** Who chooses the Afterglow card(s). */
   afterglowPickerId: string | null;
+  /** Finish Off: F-only card played, next hand must make M cum. */
+  finishAwaitingMale: boolean;
+  /** Completed Finish Off sequences (FM, or F then M). */
+  finishUnitsDone: number;
   awaitingPrivate: boolean;
   privateUnlocked: boolean;
   playedDate: string | null;

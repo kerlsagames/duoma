@@ -1,5 +1,10 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
+  cardFinishClimax,
+  climaxLabel,
+  maleFollowUpCopy,
+} from "@/games/get-spicy/finish-climax";
+import {
   personalizeCard,
   type GenderPair,
   type NamePair,
@@ -397,9 +402,16 @@ export function DealHand({
                   style={{ opacity: frontOpacity }}
                   className="absolute inset-0 rounded-[22px] border border-neon/50 bg-[#140910] px-4 py-3"
                 >
-                  <Text className="text-[11px] font-semibold uppercase tracking-[1.5px] text-neon/70">
-                    Option {index + 1}
-                  </Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-[11px] font-semibold uppercase tracking-[1.5px] text-neon/70">
+                      Option {index + 1}
+                    </Text>
+                    {card.stage === "finish_off" ? (
+                      <Text className="text-[11px] font-extrabold uppercase tracking-[1.4px] text-crimson">
+                        {climaxLabel(cardFinishClimax(card, genders))}
+                      </Text>
+                    ) : null}
+                  </View>
                   {copy.title ? (
                     <Text
                       className="mt-1 text-[14px] font-semibold leading-5 text-mist/70"
@@ -438,6 +450,11 @@ export function DealHand({
             <Text className="text-center text-[12px] font-semibold uppercase tracking-[3px] text-neon">
               Your pick
             </Text>
+            {selectedCard?.stage === "finish_off" ? (
+              <Text className="mt-2 text-center text-[13px] font-extrabold uppercase tracking-[2px] text-crimson">
+                {climaxLabel(cardFinishClimax(selectedCard, genders))}
+              </Text>
+            ) : null}
             <ScrollView
               className="mt-4 flex-1"
               showsVerticalScrollIndicator={false}
@@ -451,6 +468,18 @@ export function DealHand({
               <Text className="mt-4 text-center text-[26px] font-bold leading-9 text-mist">
                 {selectedCopy?.body}
               </Text>
+              {selectedCard?.stage === "finish_off"
+                ? (() => {
+                    const follow = maleFollowUpCopy(
+                      cardFinishClimax(selectedCard, genders)
+                    );
+                    return follow ? (
+                      <Text className="mt-5 text-center text-[18px] font-semibold leading-6 text-neon">
+                        {follow}
+                      </Text>
+                    ) : null;
+                  })()
+                : null}
             </ScrollView>
             <View className="mt-2 gap-3">
               <PrimaryButton

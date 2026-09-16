@@ -39,7 +39,7 @@ const SETUP_RULES = [
   },
   {
     title: "Finish Off",
-    body: "Before Finish Off and Afterglow, a reveal picks who chooses Finish Off. The other person chooses Afterglow. Defaults are one card each.",
+    body: "Before Finish Off and Afterglow, a reveal picks who chooses Finish Off. The other person chooses Afterglow. Finish Off deals her climax first, or both together. If the card is F-only, a second hand is dealt so he cums too. Defaults are one finish sequence.",
   },
 ];
 
@@ -241,7 +241,9 @@ export default function SetupScreen() {
                 </Text>
                 {stage === "finish_off" || stage === "afterglow" ? (
                   <Text className="mt-0.5 text-[12px] text-mist/45">
-                    Default 1
+                    {stage === "finish_off"
+                      ? "One sequence. F first, or both on one card."
+                      : "Default 1"}
                   </Text>
                 ) : (
                   <Text className="mt-0.5 text-[12px] text-mist/45">

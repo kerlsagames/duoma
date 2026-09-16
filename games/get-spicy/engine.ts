@@ -1,6 +1,10 @@
 import type { Card, CardStage, DefaultCardSeed, StageCounts } from "@/lib/types";
 import { shuffle } from "@/lib/ids";
 import { cardAllowedByFlavorTags } from "@/games/get-spicy/flavor-tags";
+import {
+  finishCardFitsBeat,
+} from "@/games/get-spicy/finish-climax";
+import type { GenderPair } from "@/lib/personalize";
 
 export const STAGE_ORDER: CardStage[] = [
   "pre_foreplay",
@@ -147,4 +151,32 @@ export function dealHandFromBank(
   count: number = HAND_SIZE
 ): Card[] {
   return pickRandomFromBank(bank, stage, count, excludeIds, enabledFlavorTags);
+}
+
+/** Finish Off: first hand is F or FM; after an F-only card, deal M or FM. */
+export function dealFinishHandFromBank(
+  bank: Card[],
+  excludeIds: Set<string>,
+  enabledFlavorTags: string[] | null | undefined,
+  beat: "F" | "M",
+  genders: GenderPair | null | undefined,
+  count: number = HAND_SIZE
+): Card[] {
+  const pool = bank.filter(
+    (card) =>
+      card.stage === "finish_off" &&
+      card.isActive &&
+      !excludeIds.has(card.id) &&
+      cardAllowedByFlavorTags(card, enabledFlavorTags ?? null) &&
+      finishCardFitsBeat(card, beat, genders)
+  );
+  const picked = shuffle(pool).slice(0, Math.max(0, count));
+  if (picked.length > 0) return picked;
+  return pickRandomFromBank(
+    bank,
+    "finish_off",
+    count,
+    excludeIds,
+    enabledFlavorTags
+  );
 }

@@ -2,6 +2,7 @@ import { cloneDefaultDeck, getSpicySeeds } from "@/games/get-spicy";
 import {
   buildRandomDeck,
   dealHandFromBank,
+  dealFinishHandFromBank,
   DEFAULT_STAGE_COUNTS,
   firstActiveStage,
   HAND_SIZE,
@@ -13,11 +14,9 @@ import {
   replacementCard,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
-import {
-  cardAllowedByFlavorTags,
-  defaultEnabledFlavorTags,
-  normalizeFlavorTags,
-} from "@/games/get-spicy/flavor-tags";
+import { cardAllowedByFlavorTags, defaultEnabledFlavorTags, normalizeFlavorTags } from "@/games/get-spicy/flavor-tags";
+import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-climax";
+import { resolveCardGenders } from "@/lib/personalize";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { localDateKey } from "@/lib/dates";
@@ -291,7 +290,8 @@ function syncDefaultCards(): boolean {
         if (
           card.stage !== seed.category ||
           card.body !== seed.description ||
-          card.sortOrder !== seed.order
+          card.sortOrder !== seed.order ||
+          (seed.category === "finish_off" && !card.climax)
         ) {
           changed = true;
           return {
@@ -299,6 +299,14 @@ function syncDefaultCards(): boolean {
             stage: seed.category,
             body: seed.description,
             sortOrder: seed.order,
+            climax:
+              seed.climax ??
+              (seed.category === "finish_off"
+                ? climaxHintForCard({
+                    title: seed.title,
+                    body: seed.description,
+                  })
+                : card.climax),
           };
         }
         return card;
@@ -321,6 +329,14 @@ function syncDefaultCards(): boolean {
             isDefault: true,
             isActive: true,
             sortOrder: seed.order,
+            climax:
+              seed.climax ??
+              (seed.category === "finish_off"
+                ? climaxHintForCard({
+                    title: seed.title,
+                    body: seed.description,
+                  })
+                : undefined),
             createdBy: couple.partnerA,
             createdAt: nowIso(),
           })),
@@ -2289,6 +2305,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       awaitingFinishReveal: false,
       finishPickerId: null,
       afterglowPickerId: null,
+      finishAwaitingMale: false,
+      finishUnitsDone: 0,
       awaitingPrivate: false,
       privateUnlocked: false,
       playedDate: null,
@@ -2405,9 +2423,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
     deckRows: DeckCard[],
     justPlayedStage: CardStage,
     currentUserId: string,
-    passToUserId: string
+    passToUserId: string,
+    finishResolved?: "F" | "M" | "FM" | null
   ): Partial<GameSession> => {
     const stageCounts = normalizeStageCounts(row.stageCounts);
+
+    if (justPlayedStage === "finish_off" && finishResolved) {
+      if (finishResolved === "F") {
+        return {
+          currentStage: "finish_off",
+          turnUserId: exclusiveTurnForStage(row, "finish_off", currentUserId),
+          handCardIds: [],
+          awaitingFinishReveal: false,
+          finishAwaitingMale: true,
+          finishUnitsDone: row.finishUnitsDone ?? 0,
+        };
+      }
+      const units = (row.finishUnitsDone ?? 0) + 1;
+      if (units < stageCounts.finish_off) {
+        return {
+          currentStage: "finish_off",
+          turnUserId: exclusiveTurnForStage(row, "finish_off", passToUserId),
+          handCardIds: [],
+          awaitingFinishReveal: false,
+          finishAwaitingMale: false,
+          finishUnitsDone: units,
+        };
+      }
+      const next = nextActiveStage(stageCounts, justPlayedStage);
+      if (!next) {
+        return {
+          currentStage: justPlayedStage,
+          turnUserId: null,
+          handCardIds: [],
+          activeCardId: null,
+          activePlayedBy: null,
+          status: "rating",
+          finishAwaitingMale: false,
+          finishUnitsDone: units,
+        };
+      }
+      return {
+        currentStage: next,
+        turnUserId: exclusiveTurnForStage(row, next, passToUserId),
+        handCardIds: [],
+        awaitingFinishReveal: false,
+        finishAwaitingMale: false,
+        finishUnitsDone: units,
+      };
+    }
+
     const playedInStage = playedCountForStage(deckRows, justPlayedStage);
     const stageDone = playedInStage >= stageCounts[justPlayedStage];
 
@@ -2499,6 +2564,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       awaitingFinishReveal: Boolean(needsReveal),
       finishPickerId: extra.finishPickerId ?? null,
       afterglowPickerId: extra.afterglowPickerId ?? null,
+      finishAwaitingMale: false,
+      finishUnitsDone: 0,
       awaitingPrivate: false,
       privateUnlocked: stageCounts.pre_foreplay === 0,
       ...extra,
@@ -2536,6 +2603,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 flavorTags,
                 finishPickerId: null,
                 afterglowPickerId: null,
+                finishAwaitingMale: false,
+                finishUnitsDone: 0,
               })
             : row
         ),
@@ -2700,7 +2769,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const used = new Set(deckRows.map((item) => item.cardId));
-    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    const finishGenders = resolveCardGenders({
+      userGender: user.gender,
+      partnerGender: partner?.gender ?? profileById(partnerIdOf(user.id))?.gender,
+      userId: user.id,
+      partnerId: partnerIdOf(user.id),
+      playedById: user.id,
+    });
+    const dealt =
+      stage === "finish_off"
+        ? dealFinishHandFromBank(
+            cards,
+            used,
+            game.flavorTags,
+            game.finishAwaitingMale ? "M" : "F",
+            finishGenders,
+            HAND_SIZE
+          )
+        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
     if (dealt.length === 0) {
       throw new Error("No cards left for this stage. Add more in the bank or change flavors.");
     }
@@ -2722,7 +2808,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [cards, couple, game, user]);
+  }, [cards, couple, game, partner, user]);
 
   const shuffleHand = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
@@ -2748,7 +2834,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const used = usedCardIdsForGame(game.id);
     // Also exclude the current hand so reshuffle feels fresh when possible
     game.handCardIds.forEach((id) => used.add(id));
-    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    const finishGenders = resolveCardGenders({
+      userGender: user.gender,
+      partnerGender: partner?.gender ?? profileById(partnerIdOf(user.id))?.gender,
+      userId: user.id,
+      partnerId: partnerIdOf(user.id),
+      playedById: user.id,
+    });
+    const dealt =
+      stage === "finish_off"
+        ? dealFinishHandFromBank(
+            cards,
+            used,
+            game.flavorTags,
+            game.finishAwaitingMale ? "M" : "F",
+            finishGenders,
+            HAND_SIZE
+          )
+        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
     if (dealt.length === 0) {
       throw new Error("No alternate cards left to shuffle in.");
     }
@@ -2772,7 +2875,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [cards, game, user]);
+  }, [cards, couple, game, partner, user]);
 
   const chooseHandCard = useCallback(
     async (cardId: string) => {
@@ -2844,6 +2947,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       playedBy === user.id ? partnerId ?? user.id : user.id;
     const passTo = exclusiveTurnForStage(game, active.stage, otherId);
 
+    const playedCard = cards.find((item) => item.id === active.cardId);
+    const finishGenders = resolveCardGenders({
+      userGender: profileById(playedBy)?.gender,
+      partnerGender: profileById(partnerIdOf(playedBy))?.gender,
+      userId: playedBy,
+      partnerId: partnerIdOf(playedBy),
+      playedById: playedBy,
+    });
+    const finishResolved =
+      active.stage === "finish_off" && playedCard
+        ? cardFinishClimax(playedCard, finishGenders)
+        : null;
+
     const nextDeck = deckRows.map((item) =>
       item.id === active.id
         ? { ...item, status: "played" as const, playedBy }
@@ -2854,7 +2970,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       nextDeck,
       active.stage,
       user.id,
-      passTo
+      passTo,
+      finishResolved
     );
 
     db = {
@@ -2876,7 +2993,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [couple, game, user]);
+  }, [cards, couple, game, user]);
 
   const playDemoPartnerTurn = useCallback(async () => {
     if (!game || !user || !couple || game.status !== "playing") return;
@@ -2903,7 +3020,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (deckRows.some((item) => item.status === "active")) return;
 
     const used = new Set(deckRows.map((item) => item.cardId));
-    const dealt = dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+    const finishGenders = resolveCardGenders({
+      userGender: partner.gender,
+      partnerGender: user.gender,
+      userId: partner.id,
+      partnerId: user.id,
+      playedById: partner.id,
+    });
+    const dealt =
+      stage === "finish_off"
+        ? dealFinishHandFromBank(
+            cards,
+            used,
+            game.flavorTags,
+            game.finishAwaitingMale ? "M" : "F",
+            finishGenders,
+            HAND_SIZE
+          )
+        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
     if (dealt.length === 0) return;
 
     const pick = dealt[Math.floor(Math.random() * dealt.length)] ?? dealt[0];
@@ -2976,6 +3110,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               handCardIds: [],
               activeCardId: null,
               activePlayedBy: null,
+              finishAwaitingMale: false,
+              finishUnitsDone: 0,
               status: stage ? "playing" : closeNight(game.id, true),
             })
           : row

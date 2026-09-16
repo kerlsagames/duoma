@@ -125,6 +125,9 @@ function hydrateGame(game: GameSession): GameSession {
     awaitingFinishReveal: Boolean(game.awaitingFinishReveal),
     finishPickerId: game.finishPickerId ?? null,
     afterglowPickerId: game.afterglowPickerId ?? null,
+    finishAwaitingMale: Boolean(game.finishAwaitingMale),
+    finishUnitsDone:
+      typeof game.finishUnitsDone === "number" ? game.finishUnitsDone : 0,
     awaitingPrivate: game.awaitingPrivate ?? false,
     privateUnlocked: game.privateUnlocked ?? false,
     playedDate: game.playedDate ?? null,
