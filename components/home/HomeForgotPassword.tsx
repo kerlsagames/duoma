@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
 export function HomeForgotPassword() {
-  const { user, usingCloud, requestEmailCode } = useApp();
+  const { user, usingCloud, requestEmailCode, demoMode } = useApp();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState(user?.email ?? "");
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export function HomeForgotPassword() {
     if (user?.email) setEmail(user.email);
   }, [user?.email]);
 
-  if (!usingCloud) return null;
+  if (!usingCloud || demoMode) return null;
 
   const send = async () => {
     const trimmed = email.trim();

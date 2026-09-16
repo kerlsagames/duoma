@@ -5,11 +5,11 @@ import { useState } from "react";
 import { Share, Text, View } from "react-native";
 
 export function HomeConnectButton() {
-  const { couple, partner } = useApp();
+  const { couple, partner, demoMode } = useApp();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  if (!couple || couple.partnerB || partner) return null;
+  if (demoMode || !couple || couple.partnerB || partner) return null;
 
   const share = async () => {
     const message = `Join me on Duoma — the couples app. My invite code is ${couple.inviteCode}`;

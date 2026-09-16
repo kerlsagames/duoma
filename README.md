@@ -54,6 +54,8 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 
 Email is the account (new phone, bans). The pair code is still how two people become a pair.
 
+Creator inbox `craigmkerlin@gmail.com` cannot be closed by a ban. That account also gets a Home flip into a Riley sandbox (a separate local pair). Nobody else sees demo mode.
+
 ## iPhone (iOS 16.4+)
 
 Web push does **not** run inside a regular Safari tab. Both of you:

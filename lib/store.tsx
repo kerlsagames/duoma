@@ -47,10 +47,14 @@ import {
 import {
   emptyDb,
   readDb,
+  readDemoUserId,
   readLastUserId,
+  readLiveUserId,
   readSessionUserId,
   writeDb,
+  writeDemoUserId,
   writeLastUserId,
+  writeLiveUserId,
   writeSessionUserId,
 } from "@/lib/storage";
 import type {
@@ -144,6 +148,7 @@ import {
   fantasyIdeas,
 } from "@/lib/fantasy-matcher";
 import { subscribeCatalog } from "@/lib/catalog-overlay";
+import { isCreatorEmail, pardonCreator } from "@/lib/creator";
 import { deviceTimezone } from "@/lib/legal";
 import {
   absorbCloudSession,
@@ -170,6 +175,8 @@ const CHANNEL_NAME = "duoma-realtime";
 let db: AppDB = emptyDb();
 let sessionUserId: string | null = null;
 let lastUserId: string | null = null;
+let liveUserId: string | null = null;
+let demoUserId: string | null = null;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -359,6 +366,48 @@ function otherUserId(couple: Couple, userId: string): string | null {
   return null;
 }
 
+function profileById(userId: string | null): Profile | null {
+  if (!userId) return null;
+  return db.profiles.find((profile) => profile.id === userId) ?? null;
+}
+
+function findDemoCouple(): Couple | null {
+  return (
+    db.couples.find((row) => {
+      const a = profileById(row.partnerA);
+      const b = profileById(row.partnerB);
+      return Boolean(a?.isDemo || b?.isDemo);
+    }) ?? null
+  );
+}
+
+function demoYouIdForCouple(couple: Couple): string {
+  const a = profileById(couple.partnerA);
+  const b = profileById(couple.partnerB);
+  if (a && !a.isDemo) return a.id;
+  if (b && !b.isDemo) return b.id;
+  return couple.partnerA;
+}
+
+function sessionIsDemo(): boolean {
+  if (!sessionUserId) return false;
+  if (demoUserId && sessionUserId === demoUserId) return true;
+  if (liveUserId && sessionUserId === liveUserId) return false;
+  const me = profileById(sessionUserId);
+  if (isCreatorEmail(me?.email)) return false;
+  const couple = coupleForUser(sessionUserId);
+  if (!couple) return false;
+  return Boolean(profileById(otherUserId(couple, sessionUserId))?.isDemo);
+}
+
+function creatorOnThisPhone(): Profile | null {
+  const session = profileById(sessionUserId);
+  if (isCreatorEmail(session?.email)) return session;
+  const live = profileById(liveUserId);
+  if (isCreatorEmail(live?.email)) return live;
+  return db.profiles.find((profile) => isCreatorEmail(profile.email)) ?? null;
+}
+
 function upsertRitual(
   coupleId: string,
   userId: string,
@@ -499,6 +548,10 @@ type AppContextValue = {
   joinWithCode: (input: JoinInput) => Promise<void>;
   continueAsSaved: () => Promise<void>;
   addDemoPartner: (name?: string, gender?: Gender) => Promise<void>;
+  enterDemo: (name?: string, gender?: Gender) => Promise<void>;
+  leaveDemo: () => Promise<void>;
+  demoMode: boolean;
+  canUseDemo: boolean;
   setProfileGender: (who: "you" | "partner", gender: Gender) => Promise<void>;
   banAccount: (profileId: string, reason: string) => Promise<void>;
   unbanAccount: (profileId: string) => Promise<void>;
@@ -750,11 +803,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const absorbed = await absorbCloudSession();
         if (!absorbed) return false;
-        mergeCloudPair(absorbed);
-        sessionUserId = absorbed.profile.id;
-        lastUserId = absorbed.profile.id;
-        await writeSessionUserId(absorbed.profile.id);
-        await writeLastUserId(absorbed.profile.id);
+        const profile = pardonCreator(absorbed.profile);
+        mergeCloudPair({ ...absorbed, profile });
+        liveUserId = profile.id;
+        lastUserId = profile.id;
+        await writeLiveUserId(profile.id);
+        await writeLastUserId(profile.id);
+        if (!sessionIsDemo()) {
+          sessionUserId = profile.id;
+          await writeSessionUserId(profile.id);
+        }
         setPairError(null);
         return true;
       } catch (err) {
@@ -765,21 +823,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       db = await readDb();
+      const pardoned = db.profiles.map(pardonCreator);
+      const clearedBan = pardoned.some((profile, index) => profile !== db.profiles[index]);
+      if (clearedBan) db = { ...db, profiles: pardoned };
       sessionUserId = await readSessionUserId();
       lastUserId = await readLastUserId();
+      liveUserId = await readLiveUserId();
+      demoUserId = await readDemoUserId();
       const known = (id: string | null) =>
         Boolean(id && db.profiles.some((profile) => profile.id === id));
-      if (!known(sessionUserId) && known(lastUserId)) {
+      if (!known(sessionUserId) && known(liveUserId)) {
+        sessionUserId = liveUserId;
+        await writeSessionUserId(liveUserId);
+      }
+      if (!known(sessionUserId) && known(lastUserId) && lastUserId !== demoUserId) {
         sessionUserId = lastUserId;
         await writeSessionUserId(lastUserId);
       }
       if (!known(sessionUserId)) {
-        const demoCouple = db.couples.find((row) => {
-          const other = db.profiles.find((profile) => profile.id === row.partnerB);
-          return Boolean(other?.isDemo && row.partnerA);
-        });
         const resume =
-          demoCouple?.partnerA ??
+          (known(liveUserId) ? liveUserId : null) ??
+          db.profiles.find((profile) => isCreatorEmail(profile.email))?.id ??
           db.profiles.find((profile) => !profile.isDemo)?.id ??
           null;
         if (resume) {
@@ -790,7 +854,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
       const absorbed = await applyCloudSession();
-      if (syncDefaultCards() || absorbed) {
+      if (syncDefaultCards() || absorbed || clearedBan) {
         await persist();
       } else {
         bump();
@@ -855,6 +919,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return db.profiles.find((profile) => profile.id === partnerId) ?? null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
+  const demoMode = useMemo(() => sessionIsDemo(), [version]);
+  const canUseDemo = useMemo(
+    () => Boolean(creatorOnThisPhone()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
 
   useEffect(() => {
     const client = supabase;
@@ -864,7 +934,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const absorbed = await absorbCloudSession();
         if (cancelled || !absorbed) return;
-        mergeCloudPair(absorbed);
+        const profile = pardonCreator(absorbed.profile);
+        mergeCloudPair({ ...absorbed, profile });
+        liveUserId = profile.id;
+        await writeLiveUserId(profile.id);
+        if (!sessionIsDemo()) {
+          sessionUserId = profile.id;
+          lastUserId = profile.id;
+          await writeSessionUserId(profile.id);
+          await writeLastUserId(profile.id);
+        }
         await persist();
       } catch {
         // Waiting screen keeps polling.
@@ -906,7 +985,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ),
       };
       await persist();
-      if (supabase) {
+      if (supabase && !sessionIsDemo()) {
         void supabase
           .from("profiles")
           .update({
@@ -1410,11 +1489,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const absorbed = await absorbCloudSession();
         if (absorbed) {
-          if (absorbed.profile.bannedAt) {
-            throw new Error(absorbed.profile.bannedReason || "This account is banned.");
+          const profile = pardonCreator(absorbed.profile);
+          if (profile.bannedAt && !isCreatorEmail(profile.email)) {
+            throw new Error(profile.bannedReason || "This account is banned.");
           }
-          mergeCloudPair(absorbed);
-          await rememberUser(absorbed.profile.id);
+          mergeCloudPair({ ...absorbed, profile });
+          liveUserId = profile.id;
+          await writeLiveUserId(profile.id);
+          await rememberUser(profile.id);
           await persist();
           setPairError(null);
           return;
@@ -1425,7 +1507,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const saved = lastUserId
         ? db.profiles.find((profile) => profile.id === lastUserId)
         : null;
-      if (saved?.bannedAt) {
+      if (saved?.bannedAt && !isCreatorEmail(saved.email)) {
         throw new Error(saved.bannedReason || "This account is banned.");
       }
       if (saved?.email && (saved.gender === "male" || saved.gender === "female")) {
@@ -1445,7 +1527,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (!lastUserId) return;
     const saved = db.profiles.find((profile) => profile.id === lastUserId);
-    if (saved?.bannedAt) {
+    if (saved?.bannedAt && !isCreatorEmail(saved.email)) {
       throw new Error(saved.bannedReason || "This account is banned.");
     }
     sessionUserId = lastUserId;
@@ -1483,12 +1565,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!absorbed) {
       throw new Error("Signed in, but the pair is not ready yet. Send a new code.");
     }
-    mergeCloudPair(absorbed);
-    await rememberUser(absorbed.profile.id);
+    const profile = pardonCreator(absorbed.profile);
+    mergeCloudPair({ ...absorbed, profile });
+    liveUserId = profile.id;
+    await writeLiveUserId(profile.id);
+    await rememberUser(profile.id);
     await persist();
   }, []);
 
   const banAccount = useCallback(async (profileId: string, reason: string) => {
+    const target = profileById(profileId);
+    if (isCreatorEmail(target?.email)) {
+      throw new Error("Creator accounts cannot be banned.");
+    }
     if (cloudAccountsOn() && supabase) {
       const { error } = await supabase.rpc("ban_user", {
         p_user_id: profileId,
@@ -1543,45 +1632,95 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
-  const addDemoPartner = useCallback(async (name = "Riley", gender: Gender = "female") => {
-    if (partner && !partner.isDemo) {
-      throw new Error("This pair already has a real partner. Demo is only for an open pair.");
+  const enterDemo = useCallback(async (name = "Riley", gender: Gender = "female") => {
+    const creator = creatorOnThisPhone();
+    if (!creator || !isCreatorEmail(creator.email)) {
+      throw new Error("Demo is only for craigmkerlin@gmail.com.");
     }
-    if (partner?.isDemo) return;
+
+    if (sessionUserId && !sessionIsDemo()) {
+      liveUserId = sessionUserId;
+      lastUserId = sessionUserId;
+      await writeLiveUserId(sessionUserId);
+      await writeLastUserId(sessionUserId);
+    } else if (creator.id && creator.id !== demoUserId) {
+      liveUserId = creator.id;
+      await writeLiveUserId(creator.id);
+    }
+
+    const existing = findDemoCouple();
+    if (existing) {
+      const attachedId = demoYouIdForCouple(existing);
+      const attached = profileById(attachedId);
+      const liveId = liveUserId ?? creator.id;
+      if (attachedId === liveId && isCreatorEmail(attached?.email)) {
+        const stampSplit = nowIso();
+        const demoYou: Profile = {
+          id: createId(),
+          displayName: attached?.displayName || creator.displayName || "You",
+          gender: attached?.gender ?? (gender === "female" ? "male" : "female"),
+          email: attached?.email ?? creator.email,
+          lastSeenAt: stampSplit,
+          over18At: attached?.over18At ?? stampSplit,
+          privacyConsentAt: attached?.privacyConsentAt ?? stampSplit,
+          moderationConsentAt: attached?.moderationConsentAt ?? stampSplit,
+          timezone: attached?.timezone ?? deviceTimezone(),
+          activeSeconds: 0,
+          createdAt: stampSplit,
+        };
+        db = {
+          ...db,
+          profiles: [...db.profiles, demoYou],
+          couples: db.couples.map((row) => {
+            if (row.id !== existing.id) return row;
+            if (row.partnerA === attachedId) return { ...row, partnerA: demoYou.id };
+            if (row.partnerB === attachedId) return { ...row, partnerB: demoYou.id };
+            return row;
+          }),
+        };
+        demoUserId = demoYou.id;
+        sessionUserId = demoYou.id;
+        await writeDemoUserId(demoYou.id);
+        await writeSessionUserId(demoYou.id);
+        await persist();
+        return;
+      }
+      demoUserId = attachedId;
+      sessionUserId = attachedId;
+      await writeDemoUserId(attachedId);
+      await writeSessionUserId(attachedId);
+      emit();
+      return;
+    }
 
     const stamp = nowIso();
-    let pair = couple;
-    let you = user;
-
-    if (!you) {
-      you = {
-        id: createId(),
-        displayName: "You",
-        gender: gender === "female" ? "male" : "female",
-        lastSeenAt: stamp,
-        createdAt: stamp,
-      };
-      db = { ...db, profiles: [...db.profiles, you] };
-      await rememberUser(you.id);
-    }
-
-    if (!pair) {
-      pair = {
-        id: createId(),
-        inviteCode: uniqueInviteCode(),
-        partnerA: you.id,
-        partnerB: null,
-        createdAt: stamp,
-        pairedAt: null,
-      };
-      db = {
-        ...db,
-        couples: [...db.couples, pair],
-        cards: [...db.cards, ...cloneDefaultDeck(pair.id, you.id)],
-      };
-    }
-
-    if (pair.partnerB) return;
+    const you: Profile = {
+      id: createId(),
+      displayName: creator.displayName || "You",
+      gender: creator.gender ?? (gender === "female" ? "male" : "female"),
+      email: creator.email,
+      lastSeenAt: stamp,
+      over18At: creator.over18At ?? stamp,
+      privacyConsentAt: creator.privacyConsentAt ?? stamp,
+      moderationConsentAt: creator.moderationConsentAt ?? stamp,
+      timezone: creator.timezone ?? deviceTimezone(),
+      activeSeconds: 0,
+      createdAt: stamp,
+    };
+    const pair: Couple = {
+      id: createId(),
+      inviteCode: uniqueInviteCode(),
+      partnerA: you.id,
+      partnerB: null,
+      createdAt: stamp,
+      pairedAt: null,
+    };
+    db = {
+      ...db,
+      profiles: [...db.profiles, you],
+      couples: [...db.couples, pair],
+      cards: [...db.cards, ...cloneDefaultDeck(pair.id, you.id)],
+    };
 
     const pairId = pair.id;
     const youId = you.id;
@@ -1792,8 +1931,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
       ],
     };
+    demoUserId = youId;
+    sessionUserId = youId;
+    await writeDemoUserId(youId);
+    await writeSessionUserId(youId);
     await persist();
-  }, [couple, partner, user]);
+  }, []);
+
+  const addDemoPartner = enterDemo;
+
+  const leaveDemo = useCallback(async () => {
+    const live =
+      profileById(liveUserId) ??
+      db.profiles.find(
+        (profile) => isCreatorEmail(profile.email) && profile.id !== demoUserId
+      ) ??
+      null;
+    if (!live) {
+      throw new Error("No live pair to return to. Sign in with your email first.");
+    }
+    liveUserId = live.id;
+    lastUserId = live.id;
+    sessionUserId = live.id;
+    await writeLiveUserId(live.id);
+    await writeLastUserId(live.id);
+    await writeSessionUserId(live.id);
+    emit();
+  }, []);
 
   const setProfileGender = useCallback(
     async (who: "you" | "partner", gender: Gender) => {
@@ -5396,6 +5560,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     joinWithCode,
     continueAsSaved,
     addDemoPartner,
+    enterDemo,
+    leaveDemo,
+    demoMode,
+    canUseDemo,
     setProfileGender,
     banAccount,
     unbanAccount,

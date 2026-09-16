@@ -1,3 +1,4 @@
+import { isCreatorEmail } from "@/lib/creator";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Couple, Gender, Profile } from "@/lib/types";
 
@@ -215,6 +216,13 @@ export async function absorbCloudSession(): Promise<{
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
     .eq("id", userId);
+
+  if (isCreatorEmail(email)) {
+    await supabase
+      .from("profiles")
+      .update({ banned_at: null, banned_reason: null })
+      .eq("id", userId);
+  }
 
   const { data: existing, error: existingError } = await supabase
     .from("couples")

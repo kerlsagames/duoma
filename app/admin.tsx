@@ -65,6 +65,7 @@ export default function AdminScreen() {
     allCards,
     ready,
     usingCloud,
+    canUseDemo,
     refreshCloudAccounts,
   } = useApp();
   const { width } = useWindowDimensions();
@@ -158,7 +159,7 @@ export default function AdminScreen() {
         <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 9, letterSpacing: 1.4, paddingHorizontal: 6 }}>
           BACKSTAGE
         </Text>
-        {NAV.map((row) => {
+        {NAV.filter((row) => row.id !== "demo" || canUseDemo).map((row) => {
           const on = tab === row.id;
           return (
             <Pressable
@@ -268,8 +269,8 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007 and 008 if columns or grants are missing. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"
-          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 008_consent.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007, 008, and 009 if columns or grants are missing. 009 unbans craigmkerlin@gmail.com and blocks future bans on creator inboxes. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'craigmkerlin@gmail.com';"
+          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 009_creator_pardon.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
       </Text>
     </ScrollView>
   );

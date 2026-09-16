@@ -14,10 +14,11 @@ Duoma is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_UR
    - `supabase/migrations/006_accounts.sql` (email, bans, usage, global catalog overlay, admin)
    - `supabase/migrations/007_grants.sql` (anon/authenticated table grants + catalog realtime)
    - `supabase/migrations/008_consent.sql` (18+, privacy notice, timezone, time in app)
+   - `supabase/migrations/009_creator_pardon.sql` (unban creator inboxes; they cannot be banned again)
    - `supabase/seed.sql` (named-card Get Spicy decks across 5 stages)
 3. Enable Authentication → Email (magic link). Pairing still uses the 6-character invite code.
 4. After you sign in once, run:
-   `update public.profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';`
+   `update public.profiles set is_admin = true, banned_at = null, banned_reason = null where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
 5. Copy the project URL and anon key into `.env`:
 
 ```

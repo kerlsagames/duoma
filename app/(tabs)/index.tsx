@@ -1,6 +1,7 @@
 import { HubColorPicker, HubColorSectionLabel } from "@/components/home/HubColorPicker";
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeConnectButton } from "@/components/home/HomeConnectButton";
+import { HomeDemoFlip } from "@/components/home/HomeDemoFlip";
 import { HomeForgotPassword } from "@/components/home/HomeForgotPassword";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { DuomaLogo } from "@/components/DuomaLogo";
@@ -221,6 +222,7 @@ export default function HomeScreen() {
 
         <HomeConnectButton />
         <HomeForgotPassword />
+        <HomeDemoFlip />
 
         <Text
           style={{
@@ -1075,9 +1077,10 @@ function HomeSettingsSheet({
               }}
             >
               {partner
-                ? `You stay paired with ${partner.displayName}${partner.isDemo ? " (demo)" : ""}. Sign out does not unpair you.`
+                ? `You stay paired with ${partner.displayName}${partner.isDemo ? " in the Riley sandbox" : ""}. Sign out does not unpair you.`
                 : "Share this code so your partner can join."}
             </Text>
+            <HomeDemoFlip />
           </View>
           <View
             style={{

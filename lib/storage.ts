@@ -7,6 +7,8 @@ import type { AppDB, GameSession } from "@/lib/types";
 export const DB_KEY = "duoma:db";
 export const SESSION_KEY = "duoma:session";
 export const LAST_USER_KEY = "duoma:lastUser";
+export const LIVE_USER_KEY = "duoma:liveUser";
+export const DEMO_USER_KEY = "duoma:demoUser";
 
 const hubEmpty = () => ({
   checkIns: [],
@@ -424,4 +426,41 @@ export async function writeLastUserId(userId: string | null): Promise<void> {
   }
   if (userId) await AsyncStorage.setItem(LAST_USER_KEY, userId);
   else await AsyncStorage.removeItem(LAST_USER_KEY);
+}
+
+async function readKey(key: string): Promise<string | null> {
+  try {
+    if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+      return localStorage.getItem(key);
+    }
+    return await AsyncStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+async function writeKey(key: string, value: string | null): Promise<void> {
+  if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
+    return;
+  }
+  if (value) await AsyncStorage.setItem(key, value);
+  else await AsyncStorage.removeItem(key);
+}
+
+export function readLiveUserId(): Promise<string | null> {
+  return readKey(LIVE_USER_KEY);
+}
+
+export function writeLiveUserId(userId: string | null): Promise<void> {
+  return writeKey(LIVE_USER_KEY, userId);
+}
+
+export function readDemoUserId(): Promise<string | null> {
+  return readKey(DEMO_USER_KEY);
+}
+
+export function writeDemoUserId(userId: string | null): Promise<void> {
+  return writeKey(DEMO_USER_KEY, userId);
 }

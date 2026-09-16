@@ -5,6 +5,7 @@ import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
 import { CatalogProvider } from "@/lib/catalog-overlay";
+import { isCreatorEmail } from "@/lib/creator";
 import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
@@ -77,12 +78,16 @@ function RootChrome() {
   const router = useRouter();
   const { user, ready } = useApp();
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
-  const banned = Boolean(user?.bannedAt);
+  const banned = Boolean(user?.bannedAt) && !isCreatorEmail(user?.email);
 
   useEffect(() => {
     if (!ready || admin) return;
     if (banned && pathname !== "/banned") {
       router.replace("/banned");
+      return;
+    }
+    if (!banned && pathname === "/banned") {
+      router.replace("/");
     }
   }, [ready, banned, admin, pathname, router]);
 
