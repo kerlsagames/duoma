@@ -44,7 +44,6 @@ const C = {
   paperShadow: "#C9B48A",
   rule: "#C9D7EA",
   margin: "#E45B5B",
-  holeRing: "rgba(28,20,12,0.18)",
   ink: "#1C140C",
   muted: "rgba(28,20,12,0.55)",
   faint: "rgba(28,20,12,0.32)",
@@ -653,23 +652,6 @@ function PadSheet({
             backgroundColor: C.margin,
           }}
         />
-        {Array.from({ length: 6 }).map((_, index) => (
-          <View
-            key={`hole-${index}`}
-            pointerEvents="none"
-            style={{
-              position: "absolute",
-              left: 8,
-              top: 18 + index * 56,
-              width: 10,
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: C.bg,
-              borderWidth: 1,
-              borderColor: C.holeRing,
-            }}
-          />
-        ))}
         {children}
       </View>
     </View>
