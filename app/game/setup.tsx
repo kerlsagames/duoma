@@ -41,7 +41,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "Three stages only — Foreplay, Step it up, Finish Off. Keep flipping cards in a stage until you tap Ready to move on. Then the next stage. Finish Off still tags F, M, or both.",
+    body: "Three stages only — Foreplay, Step it up, Finish Off. Keep flipping cards in a stage until you tap Ready to move on. Then the next stage. No passes or shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -160,8 +160,8 @@ export default function SetupScreen() {
     setLoading(true);
     try {
       await configureGame({
-        blockLimit: passLimit,
-        shuffleLimit,
+        blockLimit: pace === "simple" ? 0 : passLimit,
+        shuffleLimit: pace === "simple" ? 0 : shuffleLimit,
         stageCounts: pace === "simple" ? SIMPLE_STAGE_COUNTS : counts,
         flavorTags,
         pace,
@@ -234,7 +234,7 @@ export default function SetupScreen() {
               {
                 id: "simple" as const,
                 label: "Keep it simple",
-                hint: "Foreplay, Step it up, Finish Off. Flip until you move on.",
+                hint: "Foreplay, Step it up, Finish Off. Flip until you move on. No passes or shuffles.",
               },
             ] as const
           ).map((option) => {
@@ -260,6 +260,7 @@ export default function SetupScreen() {
           })}
         </View>
 
+        {pace === "detailed" ? (
         <View className="mt-7 flex-row gap-3">
           <View className="flex-1">
             <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">
@@ -284,6 +285,7 @@ export default function SetupScreen() {
             </View>
           </View>
         </View>
+        ) : null}
 
         {pace === "detailed" ? (
           <>

@@ -431,6 +431,7 @@ export default function PlayScreen() {
     (active?.playedBy ?? game?.activePlayedBy) !== user?.id;
 
   const showHand = myTurn && !active && handCards.length > 0;
+  const simplePace = game?.pace === "simple";
   const shuffleLabel =
     myShufflesRemaining < 0
       ? "Shuffle hand · unlimited"
@@ -505,10 +506,12 @@ export default function PlayScreen() {
                 ? "Your turn"
                 : `${partner?.displayName ?? "Partner"}'s turn`}
           </Text>
-          <Text className="text-[13px] text-mist/50">
-            Passes {myBlocksRemaining} · Shuffles{" "}
-            {myShufflesRemaining < 0 ? "∞" : myShufflesRemaining}
-          </Text>
+          {simplePace ? null : (
+            <Text className="text-[13px] text-mist/50">
+              Passes {myBlocksRemaining} · Shuffles{" "}
+              {myShufflesRemaining < 0 ? "∞" : myShufflesRemaining}
+            </Text>
+          )}
         </View>
 
         {active ? (
@@ -528,7 +531,7 @@ export default function PlayScreen() {
               onPress={() => void onComplete()}
             />
           ) : null}
-          {showHand ? (
+          {showHand && !simplePace ? (
             <PrimaryButton
               label={shuffleLabel}
               tone="ghost"
@@ -544,12 +547,14 @@ export default function PlayScreen() {
               onPress={() => void onReadyToMoveOn()}
             />
           ) : null}
-          <PrimaryButton
-            label="Pass — I do not participate"
-            tone="danger"
-            disabled={!canPass}
-            onPress={() => void onPass()}
-          />
+          {simplePace ? null : (
+            <PrimaryButton
+              label="Pass — I do not participate"
+              tone="danger"
+              disabled={!canPass}
+              onPress={() => void onPass()}
+            />
+          )}
           <PrimaryButton
             label="End session"
             tone="ghost"

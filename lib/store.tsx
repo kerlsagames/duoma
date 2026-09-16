@@ -2592,9 +2592,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       pace?: SpicyPace;
     }) => {
       if (!game || !couple?.partnerA || !couple.partnerB) return;
-      const blockLimit = normalizePassLimit(input.blockLimit);
-      const shuffleLimit = normalizeShuffleLimit(input.shuffleLimit);
       const pace: SpicyPace = input.pace === "simple" ? "simple" : "detailed";
+      const blockLimit =
+        pace === "simple" ? 0 : normalizePassLimit(input.blockLimit);
+      const shuffleLimit =
+        pace === "simple" ? 0 : normalizeShuffleLimit(input.shuffleLimit);
       const stageCounts = normalizeStageCounts(
         pace === "simple" ? SIMPLE_STAGE_COUNTS : input.stageCounts
       );
