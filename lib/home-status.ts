@@ -246,8 +246,8 @@ export function buildHomeNotifications(input: {
       id: `curiosity-${latest.id}`,
       line:
         waitingOnMe.length === 1
-          ? "Discover · they answered a card"
-          : `Discover · ${waitingOnMe.length} cards waiting on you`,
+          ? "Flirtatious findings · they answered a card"
+          : `Flirtatious findings · ${waitingOnMe.length} cards waiting on you`,
       when: recentWhen(latest.createdAt),
       href: "/hub/discover",
       sortAt: Date.parse(latest.createdAt) || now,
@@ -257,7 +257,7 @@ export function buildHomeNotifications(input: {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
       id: `curiosity-both-${latest.id}`,
-      line: "Discover vault has new answers",
+      line: "Flirtatious findings vault has new answers",
       when: recentWhen(latest.createdAt),
       href: "/hub/discover",
       sortAt: Date.parse(latest.createdAt) || now,
@@ -266,7 +266,7 @@ export function buildHomeNotifications(input: {
     const latest = myToday.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
       id: `curiosity-waiting-${latest.id}`,
-      line: "Discover · waiting on them",
+      line: "Flirtatious findings · waiting on them",
       when: recentWhen(latest.createdAt),
       href: "/hub/discover",
       sortAt: Date.parse(latest.createdAt) || now,

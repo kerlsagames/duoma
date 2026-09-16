@@ -1,4 +1,5 @@
 import { LookPanel } from "@/components/hub/AppSettings";
+import { GiftModeToggle, GiftNotepad } from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -9,6 +10,7 @@ import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
+  allOpenItems,
   currentGiftYear,
   ensurePrivatePerson,
   formatGiftDate,
@@ -55,8 +57,10 @@ export default function GiftPersonScreen() {
   const [removePerson, setRemovePerson] = useState(false);
   const look = useAppLook("gifts", T.gold, {
     hideLedger: false,
-    compactPeople: false,
+    compactPeople: true,
+    classicMode: true,
   });
+  const classic = look.prefs.classicMode !== false;
 
   const wishes = useMemo(
     () => (person ? openItems(data.giftItems, person.id, "wish") : []),
@@ -229,6 +233,11 @@ export default function GiftPersonScreen() {
                   label: "Compact people",
                   hint: "Shorter cards in the who-list.",
                 },
+                {
+                  key: "classicMode",
+                  label: "Classic notepad",
+                  hint: "Write gifts like notes, with a checkbox.",
+                },
               ]}
             />
           }
@@ -271,6 +280,46 @@ export default function GiftPersonScreen() {
             </View>
           </View>
 
+          <GiftModeToggle
+            classic={classic}
+            onChange={(value) => void look.patch({ classicMode: value })}
+          />
+
+          {classic ? (
+            <GiftNotepad
+              items={allOpenItems(data.giftItems, person.id)}
+              empty="Write a gift. Tick the box when it’s given."
+              onAdd={(title) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: addGiftItem(state.giftItems, {
+                    personId: person.id,
+                    title,
+                    lane: person.slot === "you" ? "wish" : "shop",
+                    occasion: "just-because",
+                    year: currentGiftYear(),
+                  }),
+                }));
+              }}
+              onToggle={(item) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: markGiftGiven(state.giftItems, item.id, {
+                    dateKey: localDateKey(),
+                    year: currentGiftYear(),
+                    from: person.slot === "you" ? person.name : "Us",
+                  }),
+                }));
+              }}
+              onRemove={setRemoveItemId}
+              onSecret={
+                person.slot === "them" && !person.hidden
+                  ? (item) => void sendToPrivate(item)
+                  : undefined
+              }
+            />
+          ) : (
+            <>
           <ListBlock
             kicker="Wish list"
             title={wishHeading}
@@ -309,8 +358,10 @@ export default function GiftPersonScreen() {
             }}
             onRemove={setRemoveItemId}
           />
+            </>
+          )}
 
-          <View style={{ marginTop: 28 }}>
+          <View style={{ marginTop: 20 }}>
             <Text
               style={{
                 fontFamily: "SpaceMono",
@@ -325,12 +376,12 @@ export default function GiftPersonScreen() {
               style={{
                 marginTop: 6,
                 fontFamily: SERIF,
-                fontSize: 22,
-                color: T.ink,
-              }}
-            >
-              Logged gifts
-            </Text>
+              fontSize: 16,
+              color: T.ink,
+            }}
+          >
+            Logged gifts
+          </Text>
             {given.length === 0 ? (
               <Text
                 style={{
@@ -357,38 +408,31 @@ export default function GiftPersonScreen() {
                   <View
                     key={row.id}
                     style={{
-                      paddingHorizontal: 14,
-                      paddingVertical: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
                       borderTopWidth: index === 0 ? 0 : 1,
                       borderTopColor: "rgba(42,28,18,0.1)",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                      minHeight: 34,
                     }}
                   >
                     <Text
                       style={{
-                        fontFamily: "SpaceMono",
-                        fontSize: 10,
-                        letterSpacing: 1.2,
-                        color: T.ribbon,
-                      }}
-                    >
-                      {occasionMeta(row.occasion).label.toUpperCase()} ·{" "}
-                      {formatGiftDate(row.dateKey, row.year)}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 4,
+                        flex: 1,
                         fontFamily: SERIF,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: T.paperInk,
                       }}
+                      numberOfLines={1}
                     >
                       {row.title}
                     </Text>
-                    {row.from ? (
-                      <Text style={{ marginTop: 2, fontSize: 12, color: T.paperMuted }}>
-                        from {row.from}
-                      </Text>
-                    ) : null}
+                    <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
+                      {occasionMeta(row.occasion).short} · {formatGiftDate(row.dateKey, row.year)}
+                      {row.from ? ` · ${row.from}` : ""}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -628,7 +672,7 @@ function ListBlock({
   onRemove: (id: string) => void;
 }) {
   return (
-    <View style={{ marginTop: 22 }}>
+    <View style={{ marginTop: 14 }}>
       <Text
         style={{
           fontFamily: "SpaceMono",
@@ -641,9 +685,9 @@ function ListBlock({
       </Text>
       <Text
         style={{
-          marginTop: 4,
+          marginTop: 2,
           fontFamily: SERIF,
-          fontSize: 20,
+          fontSize: 16,
           color: T.ink,
         }}
       >
@@ -651,10 +695,10 @@ function ListBlock({
       </Text>
       <Text
         style={{
-          marginTop: 2,
+          marginTop: 1,
           fontFamily: SERIF,
-          fontSize: 12,
-          lineHeight: 16,
+          fontSize: 11,
+          lineHeight: 14,
           color: T.dim,
         }}
       >
@@ -662,8 +706,8 @@ function ListBlock({
       </Text>
       <View
         style={{
-          marginTop: 10,
-          borderRadius: 12,
+          marginTop: 6,
+          borderRadius: 10,
           overflow: "hidden",
           backgroundColor: T.paper,
         }}
@@ -692,12 +736,13 @@ function ListBlock({
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 8,
-                minHeight: 48,
+                minHeight: 34,
               }}
             >
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Text
                   style={{
+                    flex: 1,
                     fontFamily: SERIF,
                     fontSize: 15,
                     color: T.paperInk,
@@ -706,9 +751,8 @@ function ListBlock({
                 >
                   {item.title}
                 </Text>
-                <Text style={{ marginTop: 1, fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
-                  {occasionMeta(item.occasion).short} · {item.year}
-                  {item.notes ? ` · ${item.notes}` : ""}
+                <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
+                  {occasionMeta(item.occasion).short}
                 </Text>
               </View>
               <Pressable onPress={() => onGive(item)} hitSlop={6}>
@@ -717,7 +761,7 @@ function ListBlock({
               {onSecret ? (
                 <Pressable onPress={() => onSecret(item)} hitSlop={6}>
                   <Text style={{ color: T.ribbon, fontWeight: "800", fontSize: 11 }}>
-                    Private
+                    Hide
                   </Text>
                 </Pressable>
               ) : null}
@@ -736,7 +780,7 @@ function ListBlock({
           borderWidth: 1.5,
           borderStyle: "dashed",
           borderColor: T.gold,
-          paddingVertical: 10,
+          paddingVertical: 8,
           alignItems: "center",
         }}
       >

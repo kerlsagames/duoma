@@ -7,7 +7,7 @@ import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { VaultEntry } from "@/lib/mini-content";
-import { digitsOnly, isVaultPin, VAULT_PIN_MAX, vaultPinHint } from "@/lib/vault-pin";
+import { digitsOnly, isVaultPin, vaultPinFieldProps, vaultPinHint } from "@/lib/vault-pin";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -176,8 +176,7 @@ export default function EmergencyVaultScreen() {
             <TextInput
               value={pinDraft}
               onChangeText={(value) => setPinDraft(digitsOnly(value))}
-              keyboardType="number-pad"
-              maxLength={VAULT_PIN_MAX}
+              {...vaultPinFieldProps()}
               placeholder="••••"
               placeholderTextColor="rgba(197,208,218,0.3)"
               style={pinStyle()}
@@ -230,9 +229,7 @@ export default function EmergencyVaultScreen() {
             <TextInput
               value={gate}
               onChangeText={(value) => setGate(digitsOnly(value))}
-              keyboardType="number-pad"
-              maxLength={VAULT_PIN_MAX}
-              secureTextEntry
+              {...vaultPinFieldProps()}
               placeholder="combination"
               placeholderTextColor="rgba(197,208,218,0.3)"
               style={pinStyle()}
@@ -422,8 +419,7 @@ export default function EmergencyVaultScreen() {
                 <TextInput
                   value={pinChange}
                   onChangeText={(value) => setPinChange(digitsOnly(value))}
-                  keyboardType="number-pad"
-                  maxLength={VAULT_PIN_MAX}
+                  {...vaultPinFieldProps()}
                   placeholder="New 4 or 6 digits"
                   placeholderTextColor="rgba(197,208,218,0.3)"
                   style={pinStyle()}

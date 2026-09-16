@@ -288,9 +288,9 @@ export const RITUALS = [
   },
   {
     id: "curiosity",
-    title: "Discover",
+    title: "Flirtatious findings",
     cadence: "daily" as const,
-    detail: "Swipe a question. Answer it. It lands in the vault.",
+    detail: "Chat about cheeky and taboo things together.",
   },
   {
     id: "date-night",

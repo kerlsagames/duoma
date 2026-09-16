@@ -333,7 +333,7 @@ function ActivityChart({
               }}
             >
               {prettyDate(tipBar.date)}
-              {` · score ${dayConnectionScore(tipBar)}/10`}
+              {` · score ${dayConnectionScore(tipBar)}/100`}
               {tipBar.total
                 ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
                 : " · quiet"}
@@ -410,7 +410,7 @@ function ActivityChart({
               onPress={() => onSelect(bar.date)}
               onHoverIn={() => setHovered(bar.date)}
               onHoverOut={() => setHovered((current) => (current === bar.date ? null : current))}
-              accessibilityLabel={`${prettyDate(bar.date)}: connection ${score} of 10`}
+              accessibilityLabel={`${prettyDate(bar.date)}: connection ${score} of 100`}
               style={{
                 flex: 1,
                 alignItems: "center",

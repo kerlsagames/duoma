@@ -38,6 +38,7 @@ import {
 } from "@/lib/curiosity";
 import { discoverQuestionById } from "@/lib/discover-questions";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
+import { positionById } from "@/lib/sex-positions";
 import {
   registerDuomaWorker,
   sendPushToSubscriptions,
@@ -628,7 +629,10 @@ type AppContextValue = {
   }) => Promise<void>;
   respondChickenDare: (id: string, status: "accepted" | "declined") => Promise<void>;
   completeChickenDare: (id: string) => Promise<void>;
-  sendPositionInvite: (positionId: string) => Promise<void>;
+  sendPositionInvite: (
+    positionId: string,
+    when?: { dateKey: string; label: string }
+  ) => Promise<void>;
   respondPositionInvite: (
     id: string,
     status: "accepted" | "declined"
@@ -3257,7 +3261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const submitDiscoverAnswer = useCallback(
     async (questionId: string, body?: string) => {
       if (!user || !couple) {
-        throw new Error("Pair first, then Discover.");
+        throw new Error("Pair first, then Flirtatious findings.");
       }
       const question = discoverQuestionById(questionId);
       if (!question) throw new Error("That card isn’t in the deck.");
@@ -3329,8 +3333,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
       if (text && !partner?.isDemo) {
         pingPartner(couple, user, partner, {
-          title: "Discover",
-          body: `${user.displayName} answered a Discover card. Your turn if you want it.`,
+        title: "Flirtatious findings",
+        body: `${user.displayName} answered a Flirtatious findings card. Your turn if you want it.`,
           url: "/hub/discover",
         });
       }
@@ -3341,7 +3345,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const skipDiscover = useCallback(
     async (questionId: string) => {
       if (!user || !couple) {
-        throw new Error("Pair first, then Discover.");
+        throw new Error("Pair first, then Flirtatious findings.");
       }
       if (!discoverQuestionById(questionId)) {
         throw new Error("That card isn’t in the deck.");
@@ -3862,7 +3866,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const sendPositionInvite = useCallback(
-    async (positionId: string) => {
+    async (positionId: string, when?: { dateKey: string; label: string }) => {
       if (!user || !couple) {
         throw new Error("Pair first, then send a position.");
       }
@@ -3872,14 +3876,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const id = positionId.trim();
       if (!id) throw new Error("Pick a position first.");
+      const dateKey = when?.dateKey ?? null;
       const already = db.positionInvites.find(
         (row) =>
           row.coupleId === couple.id &&
           row.positionId === id &&
-          (row.status === "offered" || row.status === "accepted")
+          (row.status === "offered" || row.status === "accepted") &&
+          (row.dateKey ?? null) === dateKey
       );
       if (already?.status === "accepted") {
-        throw new Error("Tonight's already a yes on this one.");
+        throw new Error("That's already a yes on this one.");
       }
       if (already?.status === "offered") {
         if (already.fromUserId === user.id) {
@@ -3894,6 +3900,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toUserId,
         positionId: id,
         status: "offered",
+        dateKey,
+        whenLabel: when?.label ?? null,
         createdAt: nowIso(),
         answeredAt: null,
         completedAt: null,
@@ -3903,9 +3911,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         positionInvites: [...db.positionInvites, row],
       };
       await persist();
+      const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
-        title: "Try this tonight?",
-        body: `${user.displayName} wants to try a position.`,
+        title: `Try this ${whenBit}?`,
+        body: `${user.displayName} wants to try a position ${whenBit}. Confirm it first.`,
         url: "/hub/positions",
       });
     },
@@ -3918,21 +3927,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const existing = db.positionInvites.find((row) => row.id === id);
       if (!existing || existing.status !== "offered") return;
       if (existing.toUserId !== user.id) return;
+      const stamp = nowIso();
+      const pose = positionById(existing.positionId);
+      const calendarRow: CalendarCustomEvent | null =
+        status === "accepted" && existing.dateKey
+          ? {
+              id: createId(),
+              coupleId: existing.coupleId,
+              title: pose ? `Try ${pose.name}` : "Try a position",
+              notes: pose?.blurb ?? "",
+              date: existing.dateKey,
+              happenedAt: stamp,
+              allDay: true,
+              createdBy: user.id,
+              createdAt: stamp,
+              updatedAt: stamp,
+            }
+          : null;
       db = {
         ...db,
         positionInvites: db.positionInvites.map((row) =>
           row.id === id
-            ? { ...row, status, answeredAt: nowIso() }
+            ? { ...row, status, answeredAt: stamp }
             : row
         ),
+        calendarEvents: calendarRow
+          ? [...db.calendarEvents, calendarRow]
+          : db.calendarEvents,
       };
       await persist();
+      const whenBit = existing.whenLabel ?? "tonight";
       pingPartner(couple, user, partner, {
-        title: status === "accepted" ? "Tonight's on" : "Not tonight",
+        title: status === "accepted" ? `${whenBit} is on` : "Not this time",
         body:
           status === "accepted"
-            ? `${user.displayName} said yes — that pose is on tonight.`
-            : `${user.displayName} said not tonight for that pose.`,
+            ? `${user.displayName} said yes — that pose is on ${whenBit}.`
+            : `${user.displayName} said not ${whenBit} for that pose.`,
         url: "/hub/positions",
       });
     },

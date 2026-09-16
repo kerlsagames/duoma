@@ -360,11 +360,11 @@ export default function CalendarItemScreen() {
     const groups = [...byQuestion.entries()];
     const headline =
       groups.length === 1
-        ? curiosityQuestionById(groups[0]![0])?.question ?? "Discover"
-        : `${groups.length} Discover cards`;
+        ? curiosityQuestionById(groups[0]![0])?.question ?? "Flirtatious findings"
+        : `${groups.length} Flirtatious findings cards`;
     return (
       <Screen scroll background={T.background}>
-        <Block kicker="Discover" title={headline}>
+        <Block kicker="Flirtatious findings" title={headline}>
           <Meta>{formatLongDate(id)}</Meta>
           {groups.length === 0 ? (
             <Panel>
@@ -385,7 +385,7 @@ export default function CalendarItemScreen() {
                         lineHeight: 22,
                       }}
                     >
-                      {question?.question ?? "Discover card"}
+                      {question?.question ?? "Flirtatious findings card"}
                     </Text>
                   ) : null}
                   {rows.map((answer) => (

@@ -191,7 +191,7 @@ export function deriveAutoLogs(input: Omit<IntimacyFuelInput, "stored">): Intima
         sourceId: `connect:curiosity:${row.id}`,
         userId: row.userId,
         kind: "connect",
-        note: "Discover",
+        note: "Flirtatious findings",
         date: row.date || safeDateKey(row.createdAt, localDateKey()),
         createdAt: row.createdAt,
       })
@@ -298,11 +298,19 @@ export function buildDayBars(
   return bars;
 }
 
-/** 0 quiet → 10 a very full day of connection. */
+/**
+ * 0 quiet → 100 a packed day. One or two logs stay well below the ceiling;
+ * 100 needs a long list plus more than one kind of fuel.
+ */
 export function dayConnectionScore(bar: DayBar): number {
   if (bar.total <= 0) return 0;
+  let points = 0;
+  for (let i = 0; i < bar.total; i += 1) {
+    points += 16 * Math.pow(0.8, i);
+  }
   const variety = Math.max(0, bar.segments.length - 1);
-  return Math.max(1, Math.min(10, bar.total * 2 + variety));
+  points += variety * 5;
+  return Math.max(1, Math.min(100, Math.round(points)));
 }
 
 export type FireState = {

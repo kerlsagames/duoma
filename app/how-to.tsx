@@ -27,7 +27,7 @@ const STEPS = [
   {
     kicker: "Connect",
     title: "Talk, plan, leave a note",
-    body: "Lists, date nights, Discover, Talk to Me, voice notes (real microphone), the gratitude jar, apology, and thought pings. Use it when you want a conversation, not a dare.",
+    body: "Lists, date nights, Flirtatious findings, Talk to Me, voice notes (real microphone), the gratitude jar, apology, and thought pings. Use it when you want a conversation, not a dare.",
   },
   {
     kicker: "Desire",

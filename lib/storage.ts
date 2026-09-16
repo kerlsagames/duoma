@@ -201,7 +201,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     chickenPlays: (raw.chickenPlays ?? [])
       .map(hydrateChickenPlay)
       .filter((row): row is NonNullable<typeof row> => Boolean(row)),
-    positionInvites: raw.positionInvites ?? [],
+    positionInvites: (raw.positionInvites ?? []).map(hydratePositionInvite),
     roleplayInvites: raw.roleplayInvites ?? [],
     roleplaySaves: (raw.roleplaySaves ?? []).map(hydrateRoleplaySave),
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
@@ -276,6 +276,24 @@ function hydrateBucketItem(
     scheduledOn: row.scheduledOn ?? null,
     doneAt: row.doneAt ?? null,
     sourceId: row.sourceId ?? null,
+  };
+}
+
+function hydratePositionInvite(
+  row: AppDB["positionInvites"][number]
+): AppDB["positionInvites"][number] {
+  const dateKey =
+    typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
+      ? row.dateKey
+      : null;
+  const whenLabel =
+    typeof row.whenLabel === "string" && row.whenLabel.trim()
+      ? row.whenLabel.trim()
+      : null;
+  return {
+    ...row,
+    dateKey,
+    whenLabel,
   };
 }
 

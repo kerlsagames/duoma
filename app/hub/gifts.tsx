@@ -1,4 +1,5 @@
 import { LookPanel } from "@/components/hub/AppSettings";
+import { GiftModeToggle, GiftNotepad } from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -10,8 +11,10 @@ import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
   addGiftPerson,
+  allOpenItems,
   currentGiftYear,
   ensureCouplePeople,
+  ensurePrivatePerson,
   formatGiftDate,
   GIFT_KIND_OPTIONS,
   GIFT_OCCASIONS,
@@ -20,14 +23,17 @@ import {
   groupGivenByOccasion,
   giftYearChoices,
   kindLabel,
+  markGiftGiven,
   occasionMeta,
   PERSON_EMOJIS,
   personById,
+  removeGiftItem,
   removeGiftPerson,
   shopCount,
   visibleGiftPeople,
   wishCount,
   yearsInLedger,
+  type GiftItem,
   type GiftOccasionId,
   type GiftPersonKind,
 } from "@/lib/gifts";
@@ -48,8 +54,10 @@ export default function GiftsScreen() {
   const [tab, setTab] = useState<Tab>("people");
   const look = useAppLook("gifts", T.gold, {
     hideLedger: false,
-    compactPeople: false,
+    compactPeople: true,
+    classicMode: true,
   });
+  const classic = look.prefs.classicMode !== false;
   const [sheet, setSheet] = useState<Sheet>(null);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<Exclude<GiftPersonKind, "you" | "them">>("child");
@@ -64,6 +72,7 @@ export default function GiftsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
+  const [padPersonId, setPadPersonId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -200,6 +209,11 @@ export default function GiftsScreen() {
                   label: "Compact people",
                   hint: "Shorter cards in the who-list.",
                 },
+                {
+                  key: "classicMode",
+                  label: "Classic notepad",
+                  hint: "Write gifts like notes, with a checkbox.",
+                },
               ]}
             />
           }
@@ -240,6 +254,81 @@ export default function GiftsScreen() {
             anniversary wine.
           </Text>
 
+          <GiftModeToggle
+            classic={classic}
+            onChange={(value) => void look.patch({ classicMode: value })}
+          />
+
+          {classic ? (
+            <ClassicPad
+              people={visibleGiftPeople(data.giftPeople, user?.id)}
+              items={data.giftItems}
+              selectedId={padPersonId}
+              onSelect={setPadPersonId}
+              onAddPerson={() => {
+                setError(null);
+                setSheet("person");
+              }}
+              onOpenPrivate={async () => {
+                if (!user?.id) return;
+                let nextId = "";
+                await patch((state) => {
+                  const ensured = ensurePrivatePerson(state.giftPeople, user.id);
+                  nextId = ensured.person.id;
+                  return { ...state, giftPeople: ensured.people };
+                });
+                if (nextId) setPadPersonId(nextId);
+              }}
+              onAdd={(personId, title) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: addGiftItem(state.giftItems, {
+                    personId,
+                    title,
+                    lane: personById(state.giftPeople, personId)?.slot === "you" ? "wish" : "shop",
+                    occasion: "just-because",
+                    year: currentGiftYear(),
+                  }),
+                }));
+              }}
+              onToggle={(item) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: markGiftGiven(state.giftItems, item.id, {
+                    dateKey: localDateKey(),
+                    year: currentGiftYear(),
+                    from: "Us",
+                  }),
+                }));
+              }}
+              onRemove={(id) => void patch((state) => ({
+                ...state,
+                giftItems: removeGiftItem(state.giftItems, id),
+              }))}
+              onSecret={
+                user?.id
+                  ? (item) => {
+                      void patch((state) => {
+                        const ensured = ensurePrivatePerson(state.giftPeople, user.id);
+                        return {
+                          ...state,
+                          giftPeople: ensured.people,
+                          giftItems: addGiftItem(state.giftItems, {
+                            personId: ensured.person.id,
+                            title: item.title,
+                            notes: item.notes,
+                            lane: "shop",
+                            occasion: item.occasion,
+                            year: item.year,
+                          }),
+                        };
+                      });
+                    }
+                  : undefined
+              }
+            />
+          ) : (
+          <>
           <View
             style={{
               marginTop: 20,
@@ -318,6 +407,42 @@ export default function GiftsScreen() {
                 onOpen={(id) => router.push(`/hub/gifts/${id}` as Href)}
                 onRemove={setRemoveId}
               />
+              <Pressable
+                onPress={async () => {
+                  if (!user?.id) return;
+                  let nextId = "";
+                  await patch((state) => {
+                    const ensured = ensurePrivatePerson(state.giftPeople, user.id);
+                    nextId = ensured.person.id;
+                    return { ...state, giftPeople: ensured.people };
+                  });
+                  if (nextId) router.push(`/hub/gifts/${nextId}` as Href);
+                }}
+                style={{
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: T.gold,
+                  backgroundColor: T.goldSoft,
+                  paddingVertical: 12,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <Ionicons name="lock-closed-outline" size={18} color={T.gold} />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontFamily: SERIF,
+                    fontSize: 16,
+                    color: T.ink,
+                    fontWeight: "700",
+                  }}
+                >
+                  {groups.privateLists.length ? "Open my private list" : "Create a private list"}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={() => {
                   setError(null);
@@ -518,6 +643,8 @@ export default function GiftsScreen() {
               </Pressable>
             </View>
           ) : null}
+          </>
+          )}
         </Stage>
       </Screen>
 
@@ -767,6 +894,113 @@ export default function GiftsScreen() {
   );
 }
 
+function ClassicPad({
+  people,
+  items,
+  selectedId,
+  onSelect,
+  onAddPerson,
+  onOpenPrivate,
+  onAdd,
+  onToggle,
+  onRemove,
+  onSecret,
+}: {
+  people: ReturnType<typeof visibleGiftPeople>;
+  items: GiftItem[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onAddPerson: () => void;
+  onOpenPrivate: () => void;
+  onAdd: (personId: string, title: string) => void;
+  onToggle: (item: GiftItem) => void;
+  onRemove: (id: string) => void;
+  onSecret?: (item: GiftItem) => void;
+}) {
+  const selected =
+    people.find((row) => row.id === selectedId) ?? people[0] ?? null;
+  const rows = selected ? allOpenItems(items, selected.id) : [];
+  const steal =
+    selected && selected.slot === "them" && !selected.hidden ? onSecret : undefined;
+
+  return (
+    <View style={{ marginTop: 16 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {people.map((person) => {
+          const on = selected?.id === person.id;
+          return (
+            <Pressable
+              key={person.id}
+              onPress={() => onSelect(person.id)}
+              style={{
+                borderRadius: 999,
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                backgroundColor: on ? T.gold : T.surface,
+                borderWidth: 1,
+                borderColor: on ? T.gold : T.border,
+              }}
+            >
+              <Text
+                style={{
+                  color: on ? "#1A1408" : T.ink,
+                  fontWeight: "700",
+                  fontSize: 13,
+                }}
+              >
+                {person.emoji} {person.name}
+                {person.hidden ? " · private" : ""}
+              </Text>
+            </Pressable>
+          );
+        })}
+        <Pressable
+          onPress={onOpenPrivate}
+          style={{
+            borderRadius: 999,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            backgroundColor: T.goldSoft,
+            borderWidth: 1,
+            borderColor: T.gold,
+          }}
+        >
+          <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>
+            Private list
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onAddPerson}
+          style={{
+            borderRadius: 999,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: T.gold,
+          }}
+        >
+          <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>+ Person</Text>
+        </Pressable>
+      </View>
+      {selected ? (
+        <GiftNotepad
+          items={rows}
+          empty={`Write on ${selected.name}’s list. Tick the box when it’s given.`}
+          onAdd={(title) => onAdd(selected.id, title)}
+          onToggle={onToggle}
+          onRemove={onRemove}
+          onSecret={steal}
+        />
+      ) : (
+        <Text style={{ marginTop: 16, fontFamily: SERIF, color: T.muted }}>
+          Add someone to start a list.
+        </Text>
+      )}
+    </View>
+  );
+}
+
 function PersonGroup({
   kicker,
   people,
@@ -813,14 +1047,14 @@ function PersonGroup({
                   person.slot || !onRemove ? undefined : () => onRemove(person.id)
                 }
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   backgroundColor: T.paper,
-                  paddingVertical: 8,
+                  paddingVertical: 6,
                   paddingHorizontal: 10,
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 10,
-                  minHeight: 44,
+                  gap: 8,
+                  minHeight: 36,
                 }}
               >
                 <Text style={{ fontSize: 18, width: 24, textAlign: "center" }}>
@@ -830,7 +1064,7 @@ function PersonGroup({
                   <Text
                     style={{
                       fontFamily: SERIF,
-                      fontSize: 16,
+                      fontSize: 15,
                       color: T.paperInk,
                       fontWeight: "700",
                     }}

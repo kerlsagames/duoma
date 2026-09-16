@@ -1,4 +1,32 @@
+import { Platform, type TextInputProps } from "react-native";
+
 export const VAULT_PIN_MAX = 6;
+
+/** OTP-style fields so iOS/Android/web do not offer to save the PIN. */
+export function vaultPinFieldProps(): TextInputProps {
+  return {
+    keyboardType: "number-pad",
+    secureTextEntry: true,
+    maxLength: VAULT_PIN_MAX,
+    autoComplete: "one-time-code",
+    textContentType: "oneTimeCode",
+    importantForAutofill: "no",
+    autoCorrect: false,
+    autoCapitalize: "none",
+    spellCheck: false,
+    ...(Platform.OS === "web"
+      ? ({
+          nativeID: "duoma-vault-otp",
+          dataSet: {
+            lpignore: "true",
+            "1pIgnore": "true",
+            formType: "other",
+            bwignore: "true",
+          },
+        } as TextInputProps)
+      : {}),
+  };
+}
 
 export function isVaultPin(value: string): boolean {
   return /^\d{4}$/.test(value) || /^\d{6}$/.test(value);

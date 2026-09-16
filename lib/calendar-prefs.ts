@@ -58,7 +58,7 @@ export const CALENDAR_KIND_OPTIONS: {
   { kind: "check_in", label: "Daily Check-In" },
   { kind: "talk", label: "Talk To Me" },
   { kind: "list", label: "Lists & Wishlist" },
-  { kind: "curiosity", label: "Discover" },
+  { kind: "curiosity", label: "Flirtatious findings" },
   { kind: "jar", label: "Gratitude Jar" },
   { kind: "bucket", label: "Date Night" },
   { kind: "spicy_night", label: "Spicy Game" },

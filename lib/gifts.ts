@@ -139,6 +139,12 @@ export function openItems(items: GiftItem[], personId: string, lane: GiftLane): 
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export function allOpenItems(items: GiftItem[], personId: string): GiftItem[] {
+  return items
+    .filter((row) => row.personId === personId && row.status === "open")
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
 export function givenItems(items: GiftItem[], personId?: string): GiftItem[] {
   return items
     .filter((row) => row.status === "given" && (!personId || row.personId === personId))

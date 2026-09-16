@@ -304,7 +304,7 @@ export default function DiscoverScreen() {
             color: T.ink,
           }}
         >
-          Swipe a question
+          Flirtatious findings
         </Text>
         <Text
           style={{
@@ -315,7 +315,7 @@ export default function DiscoverScreen() {
             color: T.muted,
           }}
         >
-          Chat about cheeky and taboo things with your partner.
+          Chat about cheeky and taboo things together.
         </Text>
         {onDeck && !look.prefs.hideHint ? (
           <Text

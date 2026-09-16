@@ -120,7 +120,7 @@ export const HUBS: HubDef[] = [
       {
         id: "curiosity",
         label: "Flirtatious findings",
-        detail: "Chat about cheeky and taboo things with your partner",
+        detail: "Chat about cheeky and taboo things together",
         icon: "sparkles",
         href: "/hub/discover",
       },

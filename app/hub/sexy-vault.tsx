@@ -19,7 +19,7 @@ import {
   type SexyVaultKind,
 } from "@/lib/sexy-vault";
 import { useApp } from "@/lib/store";
-import { digitsOnly, isVaultPin, VAULT_PIN_MAX, vaultPinHint } from "@/lib/vault-pin";
+import { digitsOnly, isVaultPin, vaultPinFieldProps, vaultPinHint } from "@/lib/vault-pin";
 import {
   defaultCustomDateTime,
   formatExactWhen,
@@ -405,9 +405,7 @@ function PinSetup({
       <TextInput
         value={pinDraft}
         onChangeText={(value) => onDraft(digitsOnly(value))}
-        keyboardType="number-pad"
-        maxLength={VAULT_PIN_MAX}
-        secureTextEntry
+        {...vaultPinFieldProps()}
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
         style={pinStyle()}
@@ -415,9 +413,7 @@ function PinSetup({
       <TextInput
         value={pinConfirm}
         onChangeText={(value) => onConfirm(digitsOnly(value))}
-        keyboardType="number-pad"
-        maxLength={VAULT_PIN_MAX}
-        secureTextEntry
+        {...vaultPinFieldProps()}
         placeholder="again"
         placeholderTextColor="rgba(228,181,106,0.28)"
         style={pinStyle()}
@@ -466,9 +462,7 @@ function PinGate({
       <TextInput
         value={gate}
         onChangeText={(value) => onGate(digitsOnly(value))}
-        keyboardType="number-pad"
-        maxLength={VAULT_PIN_MAX}
-        secureTextEntry
+        {...vaultPinFieldProps()}
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
         style={pinStyle()}
@@ -550,9 +544,7 @@ function VaultHome({
           <TextInput
             value={pinDraft}
             onChangeText={(value) => onDraft(digitsOnly(value))}
-            keyboardType="number-pad"
-            maxLength={VAULT_PIN_MAX}
-            secureTextEntry
+            {...vaultPinFieldProps()}
             placeholder="new pin"
             placeholderTextColor="rgba(228,181,106,0.28)"
             style={pinStyle()}
@@ -560,9 +552,7 @@ function VaultHome({
           <TextInput
             value={pinConfirm}
             onChangeText={(value) => onConfirm(digitsOnly(value))}
-            keyboardType="number-pad"
-            maxLength={VAULT_PIN_MAX}
-            secureTextEntry
+            {...vaultPinFieldProps()}
             placeholder="again"
             placeholderTextColor="rgba(228,181,106,0.28)"
             style={pinStyle()}

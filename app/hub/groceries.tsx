@@ -694,15 +694,14 @@ function QuickAddSettings({
   const [emoji, setEmoji] = useState("🛒");
   const [error, setError] = useState<string | null>(null);
 
-  const catalog = useMemo(() => {
-    const seen = new Set(QUICK_GROCERY_CATALOG.map(itemKey));
-    const extras = items.filter((row) => !seen.has(itemKey(row)));
-    return [...QUICK_GROCERY_CATALOG, ...extras];
-  }, [items]);
+  const shelf = useMemo(
+    () => QUICK_GROCERY_CATALOG.filter((row) => !isOnQuickPad(items, row)),
+    [items]
+  );
 
   const addChip = (item: QuickAddItem) => {
     if (isOnQuickPad(items, item)) return;
-    onChange([...items, item]);
+    onChange([item, ...items]);
     setError(null);
   };
 
@@ -721,7 +720,7 @@ function QuickAddSettings({
       setError("That’s already on the pad.");
       return;
     }
-    onChange([...items, { emoji, label }]);
+    onChange([{ emoji, label }, ...items]);
     setDraft("");
     setError(null);
   };
@@ -764,10 +763,55 @@ function QuickAddSettings({
             color: T.muted,
           }}
         >
-          {items.length} chip{items.length === 1 ? "" : "s"} on the grocery pad.
-          Plus puts one on the pad. Minus takes it off the pad — it stays in this
-          list.
+          The list on the pad is the one at the top. Plus moves a chip up there.
+          Minus takes it off the pad — it drops back to the shelf below.
         </Text>
+      </View>
+
+      <View
+        style={{
+          backgroundColor: T.accentSoft,
+          borderBottomWidth: 1,
+          borderBottomColor: T.rule,
+        }}
+      >
+        <Text
+          style={{
+            paddingLeft: 18,
+            paddingRight: 14,
+            paddingTop: 12,
+            paddingBottom: 6,
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 1.2,
+            color: T.accent,
+          }}
+        >
+          ON THE PAD · {items.length}
+        </Text>
+        {items.length === 0 ? (
+          <Text
+            style={{
+              paddingLeft: 18,
+              paddingRight: 14,
+              paddingBottom: 14,
+              fontFamily: SERIF,
+              fontSize: 14,
+              color: T.muted,
+            }}
+          >
+            Empty. Plus a chip from the shelf and it moves up here.
+          </Text>
+        ) : (
+          items.map((item) => (
+            <QuickChipRow
+              key={`pad-${itemKey(item)}`}
+              item={item}
+              onPad
+              onToggle={() => removeChip(item)}
+            />
+          ))
+        )}
       </View>
 
       <View
@@ -858,55 +902,28 @@ function QuickAddSettings({
         ) : null}
       </View>
 
-      {catalog.map((item) => {
-        const onPad = isOnQuickPad(items, item);
-        return (
-          <View
-            key={itemKey(item)}
-            style={{
-              minHeight: LINE,
-              paddingLeft: 18,
-              paddingRight: 10,
-              borderBottomWidth: 1,
-              borderBottomColor: T.rule,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
-            <Text
-              style={{
-                flex: 1,
-                fontFamily: SERIF,
-                fontSize: 16,
-                color: T.ink,
-              }}
-            >
-              {item.label}
-            </Text>
-            <Pressable
-              onPress={() => (onPad ? removeChip(item) : addChip(item))}
-              hitSlop={10}
-              accessibilityLabel={onPad ? `Remove ${item.label} from pad` : `Add ${item.label}`}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: onPad ? "rgba(44,36,22,0.08)" : T.accentSoft,
-              }}
-            >
-              <Ionicons
-                name={onPad ? "remove" : "add"}
-                size={18}
-                color={onPad ? T.muted : T.accent}
-              />
-            </Pressable>
-          </View>
-        );
-      })}
+      <Text
+        style={{
+          paddingLeft: 18,
+          paddingRight: 14,
+          paddingTop: 12,
+          paddingBottom: 6,
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          letterSpacing: 1.2,
+          color: T.muted,
+        }}
+      >
+        FROM THE SHELF
+      </Text>
+      {shelf.map((item) => (
+        <QuickChipRow
+          key={`shelf-${itemKey(item)}`}
+          item={item}
+          onPad={false}
+          onToggle={() => addChip(item)}
+        />
+      ))}
 
       <Pressable
         onPress={() => {
@@ -922,6 +939,63 @@ function QuickAddSettings({
         <Text style={{ fontFamily: SERIF, fontSize: 14, color: T.accent, fontWeight: "600" }}>
           Restore starter chips
         </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function QuickChipRow({
+  item,
+  onPad,
+  onToggle,
+}: {
+  item: QuickAddItem;
+  onPad: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <View
+      style={{
+        minHeight: LINE,
+        paddingLeft: 18,
+        paddingRight: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: T.rule,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        backgroundColor: onPad ? "transparent" : undefined,
+      }}
+    >
+      <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
+      <Text
+        style={{
+          flex: 1,
+          fontFamily: SERIF,
+          fontSize: 16,
+          color: T.ink,
+        }}
+      >
+        {item.label}
+      </Text>
+      <Pressable
+        onPress={onToggle}
+        hitSlop={10}
+        accessibilityLabel={onPad ? `Remove ${item.label} from pad` : `Add ${item.label}`}
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: onPad ? "rgba(44,36,22,0.08)" : T.accentSoft,
+        }}
+      >
+        <Ionicons
+          name={onPad ? "remove" : "add"}
+          size={18}
+          color={onPad ? T.muted : T.accent}
+        />
       </Pressable>
     </View>
   );

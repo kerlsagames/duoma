@@ -83,6 +83,7 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
   if (!raw || typeof raw !== "object") return base;
   const row = raw as Partial<Record<HubId, unknown>>;
   const play = hydrateHubLayout(row.play);
+  const home = hydrateHubLayout(row["home-base"]);
   return {
     connect: hydrateHubLayout(row.connect),
     desire: hydrateHubLayout(row.desire),
@@ -90,8 +91,31 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
       ...play,
       order: migratePlayOrder(play.order),
     },
-    "home-base": hydrateHubLayout(row["home-base"]),
+    "home-base": {
+      ...home,
+      order: migrateHomeBaseOrder(home.order),
+    },
   };
+}
+
+/** Keep Gifts immediately after Meal Plan on Home Base. */
+function migrateHomeBaseOrder(order: string[]): string[] {
+  if (order.length === 0) return order;
+  const without = order.filter((id) => id !== "gifts");
+  if (without.length === order.length && !order.includes("gifts")) {
+    const meal = without.indexOf("meal-plan");
+    if (meal < 0) return order;
+    return [...without.slice(0, meal + 1), "gifts", ...without.slice(meal + 1)];
+  }
+  const meal = without.indexOf("meal-plan");
+  if (meal >= 0) {
+    return [...without.slice(0, meal + 1), "gifts", ...without.slice(meal + 1)];
+  }
+  const todos = without.indexOf("todos");
+  if (todos >= 0) {
+    return [...without.slice(0, todos + 1), "gifts", ...without.slice(todos + 1)];
+  }
+  return ["gifts", ...without];
 }
 
 /** Old catalog had Chicken first. Leave custom orders alone. */

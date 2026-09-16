@@ -526,6 +526,9 @@ export type PositionInvite = {
   toUserId: string;
   positionId: string;
   status: PositionInviteStatus;
+  /** When set, partner must confirm before it lands on the calendar. */
+  dateKey: string | null;
+  whenLabel: string | null;
   createdAt: string;
   answeredAt: string | null;
   completedAt: string | null;

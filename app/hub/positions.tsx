@@ -48,7 +48,6 @@ export default function PositionsScreen() {
     savePosition,
     markPositionSaveDone,
     ratePlayItem,
-    addCalendarEvent,
   } = useApp();
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const partnerName = partner?.displayName ?? "them";
@@ -172,18 +171,16 @@ export default function PositionsScreen() {
   const scheduleOn = async (dateKey: string, label: string) => {
     if (!current) return;
     setError(null);
+    setSending(true);
     try {
       await savePosition(current.id);
-      await addCalendarEvent({
-        title: `Try ${current.name}`,
-        notes: current.blurb,
-        date: dateKey,
-        allDay: true,
-      });
-      setSavedFlash(true);
+      await sendPositionInvite(current.id, { dateKey, label });
+      setSentFlash(true);
       setScheduledFlash(label);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not put it on the calendar.");
+      setError(err instanceof Error ? err.message : "Could not ask them.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -338,10 +335,10 @@ export default function PositionsScreen() {
             </Text>
             <Text
               style={{
-                marginTop: 8,
+                marginTop: 10,
                 fontFamily: SERIF,
-                fontSize: 26,
-                lineHeight: 32,
+                fontSize: 34,
+                lineHeight: 40,
                 color: T.ink,
                 textAlign: "center",
               }}
@@ -350,10 +347,10 @@ export default function PositionsScreen() {
             </Text>
             <Text
               style={{
-                marginTop: 12,
+                marginTop: 14,
                 fontFamily: SERIF,
-                fontSize: 15,
-                lineHeight: 22,
+                fontSize: 18,
+                lineHeight: 26,
                 color: T.muted,
                 textAlign: "center",
               }}
@@ -367,11 +364,13 @@ export default function PositionsScreen() {
                   marginTop: 14,
                   textAlign: "center",
                   color: T.accent,
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: "600",
+                  lineHeight: 22,
                 }}
               >
-                Asked {partnerName} to try this tonight.
+                Asked {partnerName} to confirm
+                {scheduledFlash ? ` ${scheduledFlash}` : " tonight"}.
               </Text>
             ) : null}
             {savedFlash ? (
@@ -380,7 +379,7 @@ export default function PositionsScreen() {
                   marginTop: 14,
                   textAlign: "center",
                   color: T.accent,
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: "600",
                 }}
               >
@@ -388,17 +387,17 @@ export default function PositionsScreen() {
               </Text>
             ) : null}
 
-            {scheduledFlash ? (
+            {scheduledFlash && !sentFlash ? (
               <Text
                 style={{
-                  marginTop: 8,
+                  marginTop: 10,
                   textAlign: "center",
                   color: T.accent,
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: "600",
                 }}
               >
-                On the calendar for {scheduledFlash}.
+                Waiting on {partnerName} for {scheduledFlash}.
               </Text>
             ) : null}
 
@@ -414,18 +413,18 @@ export default function PositionsScreen() {
                 loading={sending}
                 onPress={() => void send()}
               />
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 <Pressable
                   onPress={() => void scheduleOn(localDateKey(), "tonight")}
                   style={{
                     borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
                     borderWidth: 1,
                     borderColor: "rgba(255,255,255,0.16)",
                   }}
                 >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
                     Tonight
                   </Text>
                 </Pressable>
@@ -435,13 +434,13 @@ export default function PositionsScreen() {
                   }
                   style={{
                     borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
                     borderWidth: 1,
                     borderColor: "rgba(255,255,255,0.16)",
                   }}
                 >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
                     This Saturday
                   </Text>
                 </Pressable>
@@ -454,13 +453,13 @@ export default function PositionsScreen() {
                   }
                   style={{
                     borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
                     borderWidth: 1,
                     borderColor: "rgba(255,255,255,0.16)",
                   }}
                 >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
                     Next Saturday
                   </Text>
                 </Pressable>
@@ -777,10 +776,10 @@ function InviteSection({
               >
                   {row.status === "offered"
                     ? outgoing
-                      ? `Waiting on ${partnerName}`
-                      : `${partnerName} asked · tonight?`
+                      ? `Waiting on ${partnerName}${row.whenLabel ? ` · ${row.whenLabel}` : ""}`
+                      : `${partnerName} asked · ${row.whenLabel ?? "tonight"}?`
                     : row.status === "accepted"
-                      ? "Tonight's on"
+                      ? `${row.whenLabel ?? "Tonight"}'s on`
                       : row.status}
               </Text>
               <Text
@@ -796,7 +795,7 @@ function InviteSection({
               {!outgoing && row.status === "offered" ? (
                 <View style={{ marginTop: 12, gap: 8 }}>
                   <PrimaryButton
-                    label="Yes — tonight"
+                    label={row.whenLabel ? `Yes — ${row.whenLabel}` : "Yes — tonight"}
                     tone="crimson"
                     onPress={() => onRespond(row.id, "accepted")}
                   />
@@ -903,7 +902,7 @@ function PositionTodo({
                 {ask?.status === "offered" && !mine ? (
                   <>
                     <PrimaryButton
-                      label="Yes — tonight"
+                      label={ask.whenLabel ? `Yes — ${ask.whenLabel}` : "Yes — tonight"}
                       tone="crimson"
                       onPress={() => onRespond(ask.id, "accepted")}
                     />
