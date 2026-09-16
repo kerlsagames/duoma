@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { everSolved } from "@/lib/daily-word";
 import { createId, nowIso } from "@/lib/ids";
@@ -23,6 +25,10 @@ export default function ScoreboardScreen() {
   const you = user?.displayName || "YOU";
   const them = partner?.displayName || "THEM";
   const [cheer, setCheer] = useState<string | null>(null);
+  const look = useAppLook("scoreboard", amber(), {
+    hideLocked: false,
+    quietCheer: false,
+  });
   const crosswordWon = everSolved(data.wordle);
 
   const badges: { id: string; label: string; icon: Icon; earned: boolean }[] = useMemo(
@@ -51,7 +57,31 @@ export default function ScoreboardScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={amber()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/play" as Href}
+        accent={look.accent}
+        settingsLabel="Scoreboard"
+        settings={
+          <LookPanel
+            look={look}
+            ink="#F4F4F6"
+            muted="rgba(244,244,246,0.55)"
+            toggles={[
+              {
+                key: "hideLocked",
+                label: "Earned badges only",
+                hint: "Hide the ones you haven’t unlocked.",
+              },
+              {
+                key: "quietCheer",
+                label: "Quiet board",
+                hint: "Skip the random cheer ticker.",
+              },
+            ]}
+          />
+        }
+      >
         <View
           style={{
             backgroundColor: "#11140A",
@@ -80,7 +110,7 @@ export default function ScoreboardScreen() {
         </View>
 
         <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {badges.map((badge) => (
+          {(look.prefs.hideLocked ? badges.filter((badge) => badge.earned) : badges).map((badge) => (
             <View
               key={badge.id}
               style={{
@@ -102,7 +132,9 @@ export default function ScoreboardScreen() {
           ))}
         </View>
 
-        <Text style={{ marginTop: 20, color: amber(), fontFamily: SERIF, fontSize: 22 }}>
+        {look.prefs.quietCheer ? null : (
+          <>
+        <Text style={{ marginTop: 20, color: look.accent, fontFamily: SERIF, fontSize: 22 }}>
           Send a cheer from the stands
         </Text>
         <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -131,6 +163,8 @@ export default function ScoreboardScreen() {
             </Pressable>
           ))}
         </View>
+          </>
+        )}
         {cheer ? (
           <Text style={{ marginTop: 10, color: amber(), fontFamily: "SpaceMono" }}>
             NOW SHOWING: {cheer}

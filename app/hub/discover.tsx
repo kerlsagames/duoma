@@ -1,8 +1,9 @@
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
-import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { DISCOVER_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { dateKeyFromIso, formatLongDate } from "@/lib/dates";
 import {
   ALL_DISCOVER_CATEGORY_IDS,
@@ -56,6 +57,11 @@ export default function DiscoverScreen() {
     ...ALL_DISCOVER_CATEGORY_IDS,
   ]);
   const [catsOpen, setCatsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("discover", T.accent, {
+    hideHint: false,
+    jumbo: false,
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<DeckMove[]>([]);
@@ -234,7 +240,8 @@ export default function DiscoverScreen() {
 
   const catalogCount = DISCOVER_QUESTION_COUNT;
   const onDeck = tab === "deck";
-  const promptSize = current && current.prompt.length > 90 ? 18 : 20;
+  const promptSize =
+    (current && current.prompt.length > 90 ? 18 : 20) + (look.prefs.jumbo ? 6 : 0);
 
   return (
     <Screen scroll={!onDeck} background={T.background}>
@@ -246,7 +253,35 @@ export default function DiscoverScreen() {
           minHeight: 0,
         }}
       >
-        <BackButton color={T.accent} fallback="/hub/connect" />
+        <SettingsDock
+          accent={look.accent}
+          fallback="/hub/connect"
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Discover"
+        />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideHint",
+                label: "Hide swipe hint",
+                hint: "You already know: right talks, left skips.",
+              },
+              {
+                key: "jumbo",
+                label: "Jumbo cards",
+                hint: "Bigger type on the question.",
+              },
+            ]}
+          />
+        ) : null}
+        {settingsOpen ? null : (
+          <>
+
 
         <Text
           style={{
@@ -255,7 +290,7 @@ export default function DiscoverScreen() {
             fontSize: 11,
             letterSpacing: 2.4,
             textTransform: "uppercase",
-            color: T.accent,
+            color: look.accent,
           }}
         >
           Connect · Discover
@@ -271,7 +306,7 @@ export default function DiscoverScreen() {
         >
           Swipe a question
         </Text>
-        {onDeck ? (
+        {onDeck && !look.prefs.hideHint ? (
           <Text
             style={{
               marginTop: 4,
@@ -281,7 +316,7 @@ export default function DiscoverScreen() {
           >
             Right = talked about it. No typing. Left = skip.
           </Text>
-        ) : (
+        ) : onDeck ? null : (
           <Text
             style={{
               marginTop: 6,
@@ -730,6 +765,8 @@ export default function DiscoverScreen() {
             )}
           </View>
         ) : null}
+      </>
+        )}
       </View>
 
       {catsOpen ? (

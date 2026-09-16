@@ -1,3 +1,4 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
@@ -18,6 +19,7 @@ import {
   type Birthday,
   type BirthdayCircle,
 } from "@/lib/birthdays";
+import { useAppLook } from "@/lib/app-prefs";
 import { addMonths, formatLongDate, monthGrid } from "@/lib/dates";
 import { useMiniApps } from "@/lib/mini-apps";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +40,10 @@ const ROW = 40;
 export default function BirthdaysScreen() {
   const { data, ready, patch } = useMiniApps();
   const [circle, setCircle] = useState<BirthdayCircle>("family");
+  const look = useAppLook("birthdays", T.accent, {
+    soonOnly: false,
+    hideAge: false,
+  });
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [mode, setMode] = useState<DateMode>("calendar");
@@ -51,10 +57,11 @@ export default function BirthdaysScreen() {
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
 
-  const list = useMemo(
-    () => data.birthdays.filter((row) => row.circle === circle),
-    [circle, data.birthdays]
-  );
+  const list = useMemo(() => {
+    const rows = data.birthdays.filter((row) => row.circle === circle);
+    if (!look.prefs.soonOnly) return rows;
+    return rows.filter((row) => upcomingInDays(row.month, row.day) <= 60);
+  }, [circle, data.birthdays, look.prefs.soonOnly]);
   const cells = useMemo(
     () => monthGrid(cursor.year, cursor.month),
     [cursor.month, cursor.year]
@@ -105,14 +112,38 @@ export default function BirthdaysScreen() {
 
   return (
     <Screen scroll background={T.background}>
-      <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={T.accent}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/home-base" as Href}
+        accent={look.accent}
+        settingsLabel="Birthdays"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "soonOnly",
+                label: "Soon-only list",
+                hint: "Hide birthdays more than two months out.",
+              },
+              {
+                key: "hideAge",
+                label: "Hide ages",
+                hint: "Keep the date. Skip the turning-X line.",
+              },
+            ]}
+          />
+        }
+      >
         <Text
           style={{
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2.4,
             textTransform: "uppercase",
-            color: T.accent,
+            color: look.accent,
           }}
         >
           Home Base · Birthdays
@@ -121,8 +152,8 @@ export default function BirthdaysScreen() {
           style={{
             marginTop: 8,
             fontFamily: SERIF,
-            fontSize: 34,
-            lineHeight: 40,
+            fontSize: look.look.title,
+            lineHeight: look.look.titleLine,
             color: T.ink,
           }}
         >
@@ -213,6 +244,7 @@ export default function BirthdaysScreen() {
               <BirthdayRow
                 key={row.id}
                 row={row}
+                hideAge={look.prefs.hideAge}
                 onRemove={() => setRemoveId(row.id)}
               />
             ))}
@@ -575,7 +607,7 @@ export default function BirthdaysScreen() {
               alignItems: "center",
               paddingVertical: 14,
               borderRadius: 16,
-              backgroundColor: T.accent,
+              backgroundColor: look.accent,
             }}
           >
             <Text style={{ fontWeight: "700", color: "#1A120E", fontSize: 15 }}>
@@ -603,9 +635,11 @@ export default function BirthdaysScreen() {
 
 function BirthdayRow({
   row,
+  hideAge,
   onRemove,
 }: {
   row: Birthday;
+  hideAge: boolean;
   onRemove: () => void;
 }) {
   const days = upcomingInDays(row.month, row.day);
@@ -642,7 +676,7 @@ function BirthdayRow({
         </Text>
         <Text style={{ marginTop: 3, fontSize: 13, color: T.muted }}>
           {formatBirthdayDate(row.month, row.day, row.year)} · {when}
-          {age ? ` · ${age}` : ""}
+          {!hideAge && age ? ` · ${age}` : ""}
         </Text>
       </View>
       <Pressable onPress={onRemove} hitSlop={10} accessibilityLabel="Remove">

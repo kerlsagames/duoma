@@ -1,8 +1,9 @@
+import { SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { SERIF } from "@/lib/app-themes";
 import type { Href } from "expo-router";
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";
 
 /** Unique page shell: no shared “kicker + serif title” chrome. */
@@ -11,17 +12,37 @@ export function Stage({
   fallback,
   accent,
   right,
+  settings,
+  settingsLabel,
   children,
 }: {
   background: string;
   fallback: Href;
   accent: string;
   right?: ReactNode;
+  settings?: ReactNode;
+  settingsLabel?: string;
   children: ReactNode;
 }) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const cog = settings ? (
+    <SettingsCog
+      accent={accent}
+      open={settingsOpen}
+      onToggle={() => setSettingsOpen((open) => !open)}
+      label={settingsLabel ?? "App"}
+    />
+  ) : null;
+  const trailing = cog && right ? (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      {right}
+      {cog}
+    </View>
+  ) : cog ?? right ?? null;
+
   return (
     <View className="pt-3 pb-14">
-      {right ? (
+      {trailing ? (
         <View
           style={{
             flexDirection: "row",
@@ -31,12 +52,12 @@ export function Stage({
           }}
         >
           <BackButton color={accent} fallback={fallback} />
-          {right}
+          {trailing}
         </View>
       ) : (
         <BackButton color={accent} fallback={fallback} style={{ marginBottom: 8 }} />
       )}
-      {children}
+      {settingsOpen && settings ? settings : children}
     </View>
   );
 }

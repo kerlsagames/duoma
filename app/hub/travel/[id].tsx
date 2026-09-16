@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ClockTimeField, formatClockLabel } from "@/components/ui/ClockTimeField";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { money, parseMoney } from "@/lib/money";
@@ -51,6 +53,10 @@ export default function TripDetailScreen() {
   const [packText, setPackText] = useState("");
   const [notes, setNotes] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("travel", inkBlue(), {
+    hideCosts: false,
+    compact: false,
+  });
 
   const [itemTitle, setItemTitle] = useState("");
   const [itemDetail, setItemDetail] = useState("");
@@ -102,7 +108,31 @@ export default function TripDetailScreen() {
   if (!trip) {
     return (
       <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/travel" as Href} accent={inkBlue()}>
+        <Stage
+        background={BG}
+        fallback={"/hub/travel" as Href}
+        accent={look.accent}
+        settingsLabel="Travel"
+        settings={
+          <LookPanel
+            look={look}
+            ink={PAPER}
+            muted={MUTED}
+            toggles={[
+              {
+                key: "hideCosts",
+                label: "Hide trip costs",
+                hint: "Itinerary without the money line.",
+              },
+              {
+                key: "compact",
+                label: "Compact trip cards",
+                hint: "Less air between the plans.",
+              },
+            ]}
+          />
+        }
+      >
           <Text style={{ fontFamily: SERIF, fontSize: 28, color: PAPER }}>
             Trip not found
           </Text>
@@ -221,7 +251,31 @@ export default function TripDetailScreen() {
         onScroll={onMainScroll}
         scrollEventThrottle={16}
       >
-      <Stage background={BG} fallback={"/hub/travel" as Href} accent={inkBlue()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/travel" as Href}
+        accent={look.accent}
+        settingsLabel="Travel"
+        settings={
+          <LookPanel
+            look={look}
+            ink={PAPER}
+            muted={MUTED}
+            toggles={[
+              {
+                key: "hideCosts",
+                label: "Hide trip costs",
+                hint: "Itinerary without the money line.",
+              },
+              {
+                key: "compact",
+                label: "Compact trip cards",
+                hint: "Less air between the plans.",
+              },
+            ]}
+          />
+        }
+      >
         <Text style={{ fontFamily: "SpaceMono", fontSize: 11, color: MUTED }}>
           TRIP PLAN · TIMES IN ORDER
         </Text>

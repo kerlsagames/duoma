@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { CarnivalWheel } from "@/components/hub/CarnivalWheel";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -69,6 +71,10 @@ export default function FairShareScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [tab, setTab] = useState<Tab>("spin");
+  const look = useAppLook("fair-share", teal(), {
+    hideLast: false,
+    slowSpin: false,
+  });
   const [choreId, setChoreId] = useState("");
   const [draft, setDraft] = useState("");
   const [spinning, setSpinning] = useState(false);
@@ -166,7 +172,31 @@ export default function FairShareScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/play" as Href} accent={teal()}>
+        <Stage
+          background={BG}
+          fallback={"/hub/play" as Href}
+          accent={look.accent}
+          settingsLabel="Fair share"
+          settings={
+            <LookPanel
+              look={look}
+              ink="#E8FFF8"
+              muted="rgba(232,255,248,0.62)"
+              toggles={[
+                {
+                  key: "hideLast",
+                  label: "Spin only",
+                  hint: "Hide the who-did-it-last tab.",
+                },
+                {
+                  key: "slowSpin",
+                  label: "Dramatic spin",
+                  hint: "The wheel takes its sweet time.",
+                },
+              ]}
+            />
+          }
+        >
           <Text
             style={{
               textAlign: "center",
@@ -213,7 +243,7 @@ export default function FairShareScreen() {
             {(
               [
                 ["spin", "Spin it"],
-                ["last", "Who last"],
+                ...(look.prefs.hideLast ? [] : [["last", "Who last"] as const]),
               ] as const
             ).map(([id, label]) => (
               <Pressable

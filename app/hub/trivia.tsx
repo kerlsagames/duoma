@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { KNOW_ME_DISPLAY, KNOW_ME_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { createId, nowIso } from "@/lib/ids";
 import {
   KNOW_ME_CARDS,
@@ -42,6 +44,10 @@ export default function TriviaScreen() {
   const them = partner?.displayName || "them";
 
   const [view, setView] = useState<ViewMode>("shop");
+  const look = useAppLook("trivia", KNOW_ME_TONE.foil, {
+    hideScores: false,
+    compactPacks: false,
+  });
   const [playKind, setPlayKind] = useState<PlayKind>("fill");
   const [packId, setPackId] = useState<string | null>(null);
   const [cursor, setCursor] = useState(0);
@@ -247,7 +253,31 @@ export default function TriviaScreen() {
 
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
-      <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.foil}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/play" as Href}
+        accent={look.accent}
+        settingsLabel="How well do you know me"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideScores",
+                label: "Hide the scoreboard",
+                hint: "Play the packs without a running tally.",
+              },
+              {
+                key: "compactPacks",
+                label: "Compact packs",
+                hint: "Tighter shop cards.",
+              },
+            ]}
+          />
+        }
+      >
         {view !== "shop" ? (
           <Pressable
             onPress={onBack}

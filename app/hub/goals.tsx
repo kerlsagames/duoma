@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { GOALS_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import {
@@ -34,6 +36,10 @@ export default function GoalsScreen() {
   const [feedAmt, setFeedAmt] = useState("50");
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("goals", T.accent, {
+    hideReached: true,
+    hideMoney: false,
+  });
 
   const longTerm = useMemo(
     () => data.goals.filter((row) => row.horizon === "long" && !isGoalReached(row)),
@@ -115,7 +121,31 @@ export default function GoalsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
       <Screen scroll background={T.background}>
-        <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={T.accent}>
+        <Stage
+          background={T.background}
+          fallback={"/hub/home-base" as Href}
+          accent={look.accent}
+          settingsLabel="Shared goals"
+          settings={
+            <LookPanel
+              look={look}
+              ink={T.ink}
+              muted={T.muted}
+              toggles={[
+                {
+                  key: "hideReached",
+                  label: "Hide finished goals",
+                  hint: "Keep the list to what you’re still feeding.",
+                },
+                {
+                  key: "hideMoney",
+                  label: "Hide the numbers",
+                  hint: "Titles only — peek amounts in Shared budget.",
+                },
+              ]}
+            />
+          }
+        >
           <Text
             style={{
               fontFamily: "SpaceMono",

@@ -1,8 +1,9 @@
-import { BackButton } from "@/components/ui/BackButton";
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
 import { COUPONS_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   COUPON_CATEGORIES,
   COUPON_USE_OPTIONS,
@@ -400,6 +401,11 @@ export default function CouponsScreen() {
   const ideas = categoryId ? ideasInCategory(categoryId) : [];
   const composing = Boolean(idea || writingOwn);
   const focused = tab === "give" && Boolean(categoryId || composing);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("coupons", T.accent, {
+    hidePast: false,
+    compactCover: false,
+  });
 
   const startWriting = (
     from: "sections" | "category",
@@ -463,10 +469,31 @@ export default function CouponsScreen() {
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-4 pb-10">
-        <BackButton
-          color={T.onCover}
-          style={{ marginBottom: focused ? 8 : 12 }}
+        <SettingsDock
+          accent={look.accent}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Coupons"
         />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.onCover}
+            muted={T.onCoverMuted}
+            toggles={[
+              {
+                key: "hidePast",
+                label: "Hide used tickets",
+                hint: "Keep the booklet to what’s still valid.",
+              },
+              {
+                key: "compactCover",
+                label: "Compact cover",
+                hint: "Less booklet chrome at the top.",
+              },
+            ]}
+          />
+        ) : null}
 
         {!focused ? (
           <View

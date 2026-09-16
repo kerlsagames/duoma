@@ -1,9 +1,10 @@
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { AppreciationJar } from "@/components/hub/AppreciationJar";
 import { EnvelopeReveal } from "@/components/hub/EnvelopeReveal";
-import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { JAR_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import {
   JAR_OPEN_OPTIONS,
@@ -44,6 +45,11 @@ export default function JarScreen() {
   const [openOption, setOpenOption] = useState<JarOpenOptionId>("together");
   const [error, setError] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("jar", T.accent, {
+    hideCounts: false,
+    zippyDrop: false,
+  });
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -98,7 +104,7 @@ export default function JarScreen() {
       Animated.parallel([
         Animated.timing(dropY, {
           toValue: 168,
-          duration: 860,
+          duration: look.prefs.zippyDrop ? 420 : 860,
           easing: Easing.bezier(0.22, 0.61, 0.36, 1),
           useNativeDriver: true,
         }),
@@ -189,7 +195,31 @@ export default function JarScreen() {
   return (
     <Screen scroll background={T.background} scrollRef={scrollRef}>
       <View className="pt-2 pb-8">
-        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
+        <SettingsDock
+          accent={look.accent}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Gratitude jar"
+        />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideCounts",
+                label: "Hide note counts",
+                hint: "Just the jar. No tally.",
+              },
+              {
+                key: "zippyDrop",
+                label: "Zippy drop",
+                hint: "Notes fall into the jar faster.",
+              },
+            ]}
+          />
+        ) : null}
         <Text
           style={{
             fontFamily: "SpaceMono",
@@ -534,7 +564,9 @@ export default function JarScreen() {
                 color: T.muted,
               }}
             >
-              {openedFromYou} note{openedFromYou === 1 ? "" : "s"}
+              {look.prefs.hideCounts
+                ? "Notes you’ve opened"
+                : `${openedFromYou} note${openedFromYou === 1 ? "" : "s"}`}
             </Text>
           </Pressable>
 

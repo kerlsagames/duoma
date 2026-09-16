@@ -1,7 +1,8 @@
+import { SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { HUB_TONES, SERIF, type HubTone } from "@/lib/app-themes";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Text, View } from "react-native";
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
   children: ReactNode;
   tone?: HubTone;
   headerRight?: ReactNode;
+  settings?: ReactNode;
+  settingsLabel?: string;
   /** Show a back control above the page header. Defaults to true. */
   showBack?: boolean;
   /** Defaults to true. Set false to lock the page to one screen. */
@@ -26,6 +29,8 @@ export function HubScreen({
   children,
   tone = "default",
   headerRight,
+  settings,
+  settingsLabel,
   showBack = true,
   scroll = true,
   accent,
@@ -33,6 +38,21 @@ export function HubScreen({
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
   const color = accent ?? theme.accent;
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const cog = settings ? (
+    <SettingsCog
+      accent={color}
+      open={settingsOpen}
+      onToggle={() => setSettingsOpen((open) => !open)}
+      label={settingsLabel ?? title ?? kicker}
+    />
+  ) : null;
+  const trailing = cog && headerRight ? (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      {headerRight}
+      {cog}
+    </View>
+  ) : cog ?? headerRight;
 
   return (
     <Screen scroll={scroll} background={theme.background}>
@@ -58,13 +78,13 @@ export function HubScreen({
               fontWeight: "600",
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: accent ?? theme.kicker,
+              color: color,
               fontFamily: tone === "talk" ? "SpaceMono" : undefined,
             }}
           >
             {kicker}
           </Text>
-          {headerRight}
+          {trailing}
         </View>
         {title ? (
           <Text
@@ -94,7 +114,7 @@ export function HubScreen({
           </Text>
         ) : null}
         <View className={`${title || body ? "mt-6" : "mt-3"}${scroll ? "" : " flex-1"}`}>
-          {children}
+          {settingsOpen && settings ? settings : children}
         </View>
       </View>
     </Screen>

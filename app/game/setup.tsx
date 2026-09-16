@@ -1,3 +1,4 @@
+import { LookPanel, SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -12,6 +13,7 @@ import {
   flavorTagsForStage,
   summarizeFlavorSelection,
 } from "@/games/get-spicy/flavor-tags";
+import { useAppLook } from "@/lib/app-prefs";
 import { useApp } from "@/lib/store";
 import type { CardStage, StageCounts } from "@/lib/types";
 import { useRouter, type Href } from "expo-router";
@@ -92,6 +94,11 @@ export default function SetupScreen() {
   const [flavorTags, setFlavorTags] = useState<string[]>(defaultEnabledFlavorTags());
   const [loading, setLoading] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("get-spicy", "#FF007F", {
+    remember: true,
+    hideRules: false,
+  });
 
   useEffect(() => {
     if (!game) {
@@ -149,18 +156,50 @@ export default function SetupScreen() {
         <BackButton style={{ marginBottom: 12 }} />
         <View className="flex-row items-start justify-between">
           <View className="flex-1 pr-3">
-            <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
+            <Text
+              className="text-[12px] font-semibold uppercase tracking-[3px]"
+              style={{ color: look.accent }}
+            >
               Get Spicy
             </Text>
             <Text className="mt-2 text-[32px] font-bold text-mist">Setup</Text>
           </View>
-          <Pressable
-            onPress={() => setRulesOpen(true)}
-            className="mt-1 rounded-2xl border border-white/15 bg-white/5 px-3 py-2"
-          >
-            <Text className="text-[13px] font-semibold text-mist">Rules</Text>
-          </Pressable>
+          <View className="mt-1 flex-row items-center gap-2">
+            {look.prefs.hideRules ? null : (
+              <Pressable
+                onPress={() => setRulesOpen(true)}
+                className="rounded-2xl border border-white/15 bg-white/5 px-3 py-2"
+              >
+                <Text className="text-[13px] font-semibold text-mist">Rules</Text>
+              </Pressable>
+            )}
+            <SettingsCog
+              accent={look.accent}
+              open={settingsOpen}
+              onToggle={() => setSettingsOpen((open) => !open)}
+              label="Get Spicy"
+            />
+          </View>
         </View>
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink="#F4F4F6"
+            muted="rgba(244,244,246,0.6)"
+            toggles={[
+              {
+                key: "remember",
+                label: "Remember last setup",
+                hint: "Keeps your stage counts and tags next time.",
+              },
+              {
+                key: "hideRules",
+                label: "Hide the Rules button",
+                hint: "You already know the deal-three dance.",
+              },
+            ]}
+          />
+        ) : null}
 
         <View className="mt-7 flex-row gap-3">
           <View className="flex-1">

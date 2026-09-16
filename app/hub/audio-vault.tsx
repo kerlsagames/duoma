@@ -1,7 +1,9 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -82,6 +84,10 @@ export default function AudioVaultScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [folder, setFolder] = useState<AudioFolder>("sweet");
+  const look = useAppLook("audio-vault", rose(), {
+    autoplay: false,
+    hideSpicy: false,
+  });
   const [title, setTitle] = useState("");
   const [playing, setPlaying] = useState<AudioNote | null>(null);
   const [progress, setProgress] = useState(0);
@@ -290,7 +296,31 @@ export default function AudioVaultScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/connect" as Href} accent={rose()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/connect" as Href}
+        accent={look.accent}
+        settingsLabel="Audio notes"
+        settings={
+          <LookPanel
+            look={look}
+            ink="#F6E7DC"
+            muted="rgba(246,231,220,0.6)"
+            toggles={[
+              {
+                key: "autoplay",
+                label: "Play the newest tape",
+                hint: "When you open a folder, start the latest note.",
+              },
+              {
+                key: "hideSpicy",
+                label: "Hide After dark",
+                hint: "Keep the mixtape on sweet, sleep, and field notes.",
+              },
+            ]}
+          />
+        }
+      >
         <Text
           style={{
             fontFamily: HANDWRITING,
@@ -364,7 +394,10 @@ export default function AudioVaultScreen() {
         </View>
 
         <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {FOLDERS.map((row) => (
+          {(look.prefs.hideSpicy
+            ? FOLDERS.filter((row) => row.id !== "spicy")
+            : FOLDERS
+          ).map((row) => (
             <Pressable
               key={row.id}
               onPress={() => {

@@ -1,9 +1,10 @@
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { RoleplayArt } from "@/components/hub/RoleplayArt";
-import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { roleplayAskForScene, tonightAskCopy } from "@/lib/play-items";
 import {
   ROLEPLAY_CATEGORIES,
@@ -54,6 +55,16 @@ export default function RoleplaysScreen() {
   const [saving, setSaving] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("roleplays", T.accent, {
+    hideBlurb: false,
+    autoSpin: false,
+  });
+
+  useEffect(() => {
+    if (!look.prefs.autoSpin) return;
+    setCurrent((current) => current ?? pickRandomRoleplay(enabled));
+  }, [enabled, look.prefs.autoSpin]);
 
   const poolSize = useMemo(
     () => roleplaysInCategories(enabled).length,
@@ -169,7 +180,31 @@ export default function RoleplaysScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-10">
-        <BackButton color={T.accent} style={{ marginBottom: 12 }} />
+        <SettingsDock
+          accent={look.accent}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Roleplays"
+        />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideBlurb",
+                label: "Hide scene blurbs",
+                hint: "Title only when you spin.",
+              },
+              {
+                key: "autoSpin",
+                label: "Spin on open",
+                hint: "Land a scene as soon as you arrive.",
+              },
+            ]}
+          />
+        ) : null}
 
         <Text
           style={{
@@ -225,7 +260,7 @@ export default function RoleplaysScreen() {
 
         {tab === "spin" ? (
           <>
-            {current && blurb ? (
+            {current && blurb && !look.prefs.hideBlurb ? (
               <View
                 style={{
                   marginTop: 6,

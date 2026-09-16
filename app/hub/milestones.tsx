@@ -1,5 +1,7 @@
+import { AppSettingsPanel, PrefSection, PrefToggle, lookPanelProps } from "@/components/hub/AppSettings";
 import { HubScreen } from "@/components/hub/HubScreen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { useAppLook } from "@/lib/app-prefs";
 import { daysUntil, formatLongDate } from "@/lib/dates";
 import { useApp } from "@/lib/store";
 import type { MilestoneKind } from "@/lib/types";
@@ -14,6 +16,10 @@ export default function MilestonesScreen() {
   const [date, setDate] = useState("");
   const [kind, setKind] = useState<MilestoneKind>("date");
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("milestones", "#FF007F", {
+    hidePast: false,
+    asWeeks: false,
+  });
 
   const save = async () => {
     setError(null);
@@ -31,27 +37,64 @@ export default function MilestonesScreen() {
       kicker="Shared countdowns"
       title="What you're counting to"
       body="Anniversaries, getaways, date nights. They show as widgets on Us. Home-screen widgets come later — the countdown is already shared."
+      accent={look.accent}
+      settingsLabel="Countdown settings"
+      settings={
+        <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)")}>
+          <PrefSection
+            label="This app"
+            ink="#F4F4F6"
+            muted="rgba(244,244,246,0.6)"
+          >
+            <View style={{ gap: 8 }}>
+              <PrefToggle
+                on={look.prefs.hidePast}
+                label="Hide what’s already happened"
+                hint="Only show dates still ahead."
+                accent={look.accent}
+                ink="#F4F4F6"
+                muted="rgba(244,244,246,0.6)"
+                onToggle={() => look.patch({ hidePast: !look.prefs.hidePast })}
+              />
+              <PrefToggle
+                on={look.prefs.asWeeks}
+                label="Count in weeks"
+                hint="14 days becomes 2 weeks when it’s that far out."
+                accent={look.accent}
+                ink="#F4F4F6"
+                muted="rgba(244,244,246,0.6)"
+                onToggle={() => look.patch({ asWeeks: !look.prefs.asWeeks })}
+              />
+            </View>
+          </PrefSection>
+        </AppSettingsPanel>
+      }
     >
       <View className="gap-3">
-        {milestones.length === 0 ? (
+          {milestones.length === 0 ? (
           <Text className="text-[15px] text-mist/60">
             Nothing on the clock yet. Add the next thing that matters.
           </Text>
         ) : (
-          milestones.map((item) => {
+          milestones
+            .filter((item) => !look.prefs.hidePast || daysUntil(item.date) >= 0)
+            .map((item) => {
             const days = daysUntil(item.date);
+            const countdown =
+              days < 0
+                ? `${Math.abs(days)} days ago`
+                : days === 0
+                  ? "today"
+                  : look.prefs.asWeeks && days >= 14
+                    ? `${Math.round(days / 7)} weeks`
+                    : `${days} days`;
             return (
               <View
                 key={item.id}
                 className="rounded-3xl border border-white/10 bg-white/5 p-4"
               >
                 <Text className="text-[12px] uppercase tracking-widest text-crimson">
-                  {item.kind} ·{" "}
-                  {days < 0
-                    ? `${Math.abs(days)} days ago`
-                    : days === 0
-                      ? "today"
-                      : `${days} days`}
+                  {item.kind} · {countdown}
                 </Text>
                 <Text className="mt-1 text-[18px] font-semibold text-mist">
                   {item.title}

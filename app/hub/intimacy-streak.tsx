@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { localDateKey } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
@@ -463,6 +465,10 @@ export default function IntimacyStreakScreen() {
     useApp();
   const { data, ready, patch } = useMiniApps();
   const [kind, setKind] = useState<ManualIntimacyKind>("date");
+  const look = useAppLook("intimacy-streak", hot(), {
+    hideGraph: false,
+    calmFire: false,
+  });
   const [note, setNote] = useState("");
   const today = localDateKey();
   const [selectedDay, setSelectedDay] = useState(today);
@@ -540,7 +546,31 @@ export default function IntimacyStreakScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/desire" as Href} accent={hot()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/desire" as Href}
+        accent={look.accent}
+        settingsLabel="Intimacy streak"
+        settings={
+          <LookPanel
+            look={look}
+            ink="#F6E7DC"
+            muted="rgba(246,231,220,0.6)"
+            toggles={[
+              {
+                key: "hideGraph",
+                label: "Hide the week graph",
+                hint: "Just the fire.",
+              },
+              {
+                key: "calmFire",
+                label: "Calm fire",
+                hint: "Less flicker. Same heat.",
+              },
+            ]}
+          />
+        }
+      >
         <Text
           style={{
             textAlign: "center",
@@ -610,6 +640,7 @@ export default function IntimacyStreakScreen() {
           </Text>
         ) : null}
 
+        {look.prefs.hideGraph ? null : (
         <View
           style={{
             marginTop: 20,
@@ -626,6 +657,7 @@ export default function IntimacyStreakScreen() {
             onSelect={setSelectedDay}
           />
         </View>
+        )}
 
         {selectedLogs.length > 0 ? (
           <View style={{ marginTop: 18, gap: 6 }}>

@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { BUDGET_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { formatLongDate, localDateKey } from "@/lib/dates";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -52,6 +54,10 @@ export default function BudgetScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const today = localDateKey();
+  const look = useAppLook("budget", T.accent, {
+    hideAmounts: false,
+    compactBills: false,
+  });
   const budget = data.budget;
   const snap = useMemo(() => budgetSnapshot(budget, today), [budget, today]);
   const bills = useMemo(
@@ -352,7 +358,31 @@ export default function BudgetScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
       <Screen scroll background={T.background}>
-        <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={T.accent}>
+        <Stage
+          background={T.background}
+          fallback={"/hub/home-base" as Href}
+          accent={look.accent}
+          settingsLabel="Shared budget"
+          settings={
+            <LookPanel
+              look={look}
+              ink={T.ink}
+              muted={T.muted}
+              toggles={[
+                {
+                  key: "hideAmounts",
+                  label: "Glance mode",
+                  hint: "Hide dollar amounts so the phone isn’t a billboard.",
+                },
+                {
+                  key: "compactBills",
+                  label: "Compact bills",
+                  hint: "Tighter rows on the ledger.",
+                },
+              ]}
+            />
+          }
+        >
           <Text
             style={{
               fontFamily: "SpaceMono",

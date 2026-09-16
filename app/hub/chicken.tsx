@@ -1,3 +1,4 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
@@ -22,6 +23,7 @@ import {
   type ChickenPlay,
   type ChickenYardId,
 } from "@/lib/chicken";
+import { useAppLook } from "@/lib/app-prefs";
 import { useApp } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -47,6 +49,10 @@ export default function ChickenScreen() {
   const [custom, setCustom] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("chicken", T.yolk, {
+    extraBuk: false,
+    hideBadges: false,
+  });
 
   const incoming = useMemo(
     () =>
@@ -102,7 +108,31 @@ export default function ChickenScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
     <Screen scroll={!picked} background={T.background}>
-      <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.yolk}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/play" as Href}
+        accent={look.accent}
+        settingsLabel="Chicken"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "extraBuk",
+                label: "Louder buk",
+                hint: "An extra BUK on the barn door.",
+              },
+              {
+                key: "hideBadges",
+                label: "Hide coop badges",
+                hint: "Just the dares. No trophy row.",
+              },
+            ]}
+          />
+        }
+      >
         <View
           style={{
             height: 10,
@@ -127,7 +157,7 @@ export default function ChickenScreen() {
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2.4,
-            color: T.yolk,
+            color: look.accent,
           }}
         >
           FUN · CHICKEN
@@ -142,7 +172,7 @@ export default function ChickenScreen() {
             letterSpacing: -0.6,
           }}
         >
-          BUK BUK.
+          {look.prefs.extraBuk ? "BUK BUK BUK." : "BUK BUK."}
         </Text>
         <Text
           style={{
@@ -444,13 +474,15 @@ export default function ChickenScreen() {
               <EggCard name={you} board={youBoard} you />
               <EggCard name={them} board={themBoard} />
             </View>
+            {look.prefs.hideBadges ? null : (
+              <>
             <Text
               style={{
                 marginTop: 20,
                 fontFamily: "SpaceMono",
                 fontSize: 11,
                 letterSpacing: 1.6,
-                color: T.yolk,
+                color: look.accent,
               }}
             >
               BADGES
@@ -509,6 +541,8 @@ export default function ChickenScreen() {
                 );
               })}
             </View>
+              </>
+            )}
           </View>
         ) : null}
       </Stage>

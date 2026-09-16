@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage, TwinkleSky } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { PING_KINDS, type PingKind } from "@/lib/mini-content";
@@ -48,6 +50,10 @@ export default function ThoughtPingsScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [kind, setKind] = useState<PingKind>("heart");
+  const look = useAppLook("thought-pings", "#FF6B9A", {
+    softHaptic: false,
+    fewerStars: false,
+  });
   const [pressed, setPressed] = useState(false);
   const [burst, setBurst] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +76,11 @@ export default function ThoughtPingsScreen() {
       useNativeDriver: true,
     }).start(() => setBurst(false));
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      await Haptics.impactAsync(
+        look.prefs.softHaptic
+          ? Haptics.ImpactFeedbackStyle.Light
+          : Haptics.ImpactFeedbackStyle.Heavy
+      );
     } catch {
       /* web */
     }
@@ -96,7 +106,31 @@ export default function ThoughtPingsScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/connect" as Href} accent={meta.color}>
+      <Stage
+        background={BG}
+        fallback={"/hub/connect" as Href}
+        accent={look.accent}
+        settingsLabel="Thought pings"
+        settings={
+          <LookPanel
+            look={look}
+            ink="#FFD6E6"
+            muted="rgba(255,214,230,0.65)"
+            toggles={[
+              {
+                key: "softHaptic",
+                label: "Soft buzz",
+                hint: "A lighter tap when you send.",
+              },
+              {
+                key: "fewerStars",
+                label: "Fewer stars",
+                hint: "A quieter night sky behind the fingerprint.",
+              },
+            ]}
+          />
+        }
+      >
         <View
           style={{
             marginTop: 4,
@@ -111,7 +145,7 @@ export default function ThoughtPingsScreen() {
             colors={["#12061C", "#05020C", "#1A0820"]}
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
           >
-            <TwinkleSky count={36} />
+            <TwinkleSky count={look.prefs.fewerStars ? 12 : 36} />
             <Text
               selectable={false}
               style={[

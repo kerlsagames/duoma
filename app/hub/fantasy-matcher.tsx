@@ -1,8 +1,9 @@
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
-import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   FANTASY_CATEGORIES,
   fantasyById,
@@ -63,6 +64,11 @@ export default function FantasyMatcherScreen() {
   const [matchFlash, setMatchFlash] = useState<FantasyIdea | null>(null);
   const [pickedMatch, setPickedMatch] = useState<FantasyIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("fantasy-matcher", T.accent, {
+    jumbo: false,
+    hidePassed: false,
+  });
   const [passedWho, setPassedWho] = useState<"you" | "partner">("you");
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -270,7 +276,32 @@ export default function FantasyMatcherScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pb-10 pt-4">
-        <BackButton color={T.accent} fallback="/hub/desire" />
+        <SettingsDock
+          accent={look.accent}
+          fallback="/hub/desire"
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Fantasy matcher"
+        />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "jumbo",
+                label: "Jumbo cards",
+                hint: "Bigger type on the swipe deck.",
+              },
+              {
+                key: "hidePassed",
+                label: "Hide the passed tab",
+                hint: "Keep the no’s off this page.",
+              },
+            ]}
+          />
+        ) : null}
 
         <Text
           style={{
@@ -330,7 +361,9 @@ export default function FantasyMatcherScreen() {
                   : "To-do",
               },
               { id: "done", label: "Completed" },
-              { id: "passed", label: "Passed" },
+              ...(look.prefs.hidePassed
+                ? []
+                : [{ id: "passed" as const, label: "Passed" }]),
             ]}
             current={tab}
             onChange={(next) => {

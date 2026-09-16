@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { money } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -22,6 +24,10 @@ export default function TravelScreen() {
   const router = useRouter();
   const { data, ready, patch } = useMiniApps();
   const [compose, setCompose] = useState(false);
+  const look = useAppLook("travel", accent(), {
+    hideCosts: false,
+    compact: false,
+  });
   const [title, setTitle] = useState("");
   const [where, setWhere] = useState("");
   const [start, setStart] = useState("");
@@ -67,7 +73,31 @@ export default function TravelScreen() {
         contentContainerStyle={{ paddingBottom: 28 }}
         keyboardShouldPersistTaps="handled"
       >
-      <Stage background={BG} fallback={"/hub/home-base" as Href} accent={accent()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/home-base" as Href}
+        accent={look.accent}
+        settingsLabel="Travel"
+        settings={
+          <LookPanel
+            look={look}
+            ink={PAPER}
+            muted={MUTED}
+            toggles={[
+              {
+                key: "hideCosts",
+                label: "Hide trip costs",
+                hint: "Itinerary without the money line.",
+              },
+              {
+                key: "compact",
+                label: "Compact trip cards",
+                hint: "Less air between the plans.",
+              },
+            ]}
+          />
+        }
+      >
         <Text
           style={{
             fontFamily: SERIF,
@@ -188,7 +218,7 @@ export default function TravelScreen() {
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={MUTED} />
                   </View>
-                  {cost > 0 ? (
+                  {cost > 0 && !look.prefs.hideCosts ? (
                     <Text
                       style={{
                         marginTop: 10,

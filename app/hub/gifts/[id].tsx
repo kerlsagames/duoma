@@ -1,9 +1,11 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
 import { GIFTS_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
@@ -46,6 +48,10 @@ export default function GiftPersonScreen() {
   const [error, setError] = useState<string | null>(null);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [removePerson, setRemovePerson] = useState(false);
+  const look = useAppLook("gifts", T.gold, {
+    hideLedger: false,
+    compactPeople: false,
+  });
 
   const wishes = useMemo(
     () => (person ? openItems(data.giftItems, person.id, "wish") : []),
@@ -181,7 +187,27 @@ export default function GiftPersonScreen() {
         <Stage
           background={T.background}
           fallback={"/hub/gifts" as Href}
-          accent={T.gold}
+          accent={look.accent}
+          settingsLabel="Gifts"
+          settings={
+            <LookPanel
+              look={look}
+              ink={T.ink}
+              muted={T.muted}
+              toggles={[
+                {
+                  key: "hideLedger",
+                  label: "Hide the year book",
+                  hint: "Just people and wish lists.",
+                },
+                {
+                  key: "compactPeople",
+                  label: "Compact people",
+                  hint: "Shorter cards in the who-list.",
+                },
+              ]}
+            />
+          }
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View

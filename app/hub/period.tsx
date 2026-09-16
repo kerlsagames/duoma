@@ -1,7 +1,9 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { PERIOD_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   addMonths,
   daysUntil,
@@ -48,6 +50,10 @@ export default function PeriodScreen() {
   const [selected, setSelected] = useState(today);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("period", T.rose, {
+    hideSymptoms: false,
+    discreet: false,
+  });
 
   const period = data.period;
   const snap = useMemo(() => snapshot(period, today), [period, today]);
@@ -111,13 +117,37 @@ export default function PeriodScreen() {
 
   return (
     <Screen scroll background={T.background}>
-      <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={T.rose}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/home-base" as Href}
+        accent={look.accent}
+        settingsLabel="Period tracker"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "discreet",
+                label: "Discreet title",
+                hint: "Call it Cycle instead of Period on this page.",
+              },
+              {
+                key: "hideSymptoms",
+                label: "Skip symptom chips",
+                hint: "Just flow and dates.",
+              },
+            ]}
+          />
+        }
+      >
         <Text
           style={{
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2,
-            color: T.rose,
+            color: look.accent,
           }}
         >
           HOME BASE · SHARED
@@ -131,7 +161,7 @@ export default function PeriodScreen() {
             color: T.ink,
           }}
         >
-          Period tracker
+          {look.prefs.discreet ? "Cycle" : "Period tracker"}
         </Text>
         <Text style={{ marginTop: 8, fontSize: 15, lineHeight: 22, color: T.muted }}>
           Both of you can see this — for planning, not a diagnosis. Estimates only.
@@ -307,6 +337,7 @@ export default function PeriodScreen() {
           mood={selectedLog?.mood ?? null}
           symptoms={selectedLog?.symptoms ?? []}
           note={selectedLog?.note ?? ""}
+          hideSymptoms={look.prefs.hideSymptoms}
           onStart={() => void save(startPeriodOn(period, selected))}
           onEnd={() => void save(endPeriodOn(period, selected))}
           onRemove={() => selectedCycle && setRemoveId(selectedCycle.id)}
@@ -425,6 +456,7 @@ function DayEditor({
   mood,
   symptoms,
   note,
+  hideSymptoms,
   onStart,
   onEnd,
   onRemove,
@@ -440,6 +472,7 @@ function DayEditor({
   mood: PeriodMood | null;
   symptoms: PeriodSymptom[];
   note: string;
+  hideSymptoms?: boolean;
   onStart: () => void;
   onEnd: () => void;
   onRemove: () => void;
@@ -516,6 +549,8 @@ function DayEditor({
         ))}
       </View>
 
+      {hideSymptoms ? null : (
+        <>
       <Text style={{ marginTop: 16, ...sectionLabel }}>Symptoms</Text>
       <View style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {SYMPTOM_OPTIONS.map((row) => (
@@ -528,6 +563,8 @@ function DayEditor({
           </Pressable>
         ))}
       </View>
+        </>
+      )}
 
       <TextInput
         value={note}

@@ -1,7 +1,8 @@
-import { BackButton } from "@/components/ui/BackButton";
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { useApp } from "@/lib/store";
 import {
   FLAG_TONES,
@@ -177,6 +178,11 @@ export default function ApologyScreen() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("apology", C.sage, {
+    gentle: true,
+    hideHistory: false,
+  });
 
   const refresh = useCallback(async () => {
     setFlags(await listWhiteFlags());
@@ -246,11 +252,32 @@ export default function ApologyScreen() {
   return (
     <Screen scroll background={C.bg}>
       <View className="pt-4 pb-12">
-        <BackButton
-          color={C.sage}
+        <SettingsDock
+          accent={look.accent}
           fallback={"/hub/connect" as Href}
-          style={{ marginBottom: 10 }}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Apology"
         />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={C.ink}
+            muted={C.muted}
+            toggles={[
+              {
+                key: "gentle",
+                label: "Softer copy",
+                hint: "Call it a reset, not a surrender.",
+              },
+              {
+                key: "hideHistory",
+                label: "Hide recent flags",
+                hint: "Only the live white flag.",
+              },
+            ]}
+          />
+        ) : null}
 
         <Text
           style={{
@@ -272,7 +299,7 @@ export default function ApologyScreen() {
             color: C.ink,
           }}
         >
-          Raise the white flag
+          {look.prefs.gentle ? "Ask for a reset" : "Raise the white flag"}
         </Text>
         <Text
           style={{
@@ -559,7 +586,7 @@ export default function ApologyScreen() {
           ) : null}
         </View>
 
-        {recent.length > 0 ? (
+        {look.prefs.hideHistory || recent.length === 0 ? null : (
           <View style={{ marginTop: 28 }}>
             <Text
               style={{
@@ -594,7 +621,7 @@ export default function ApologyScreen() {
               </View>
             ))}
           </View>
-        ) : null}
+        )}
       </View>
     </Screen>
   );

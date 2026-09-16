@@ -1,6 +1,8 @@
+import { AppSettingsPanel, PrefSection, PrefToggle, lookPanelProps } from "@/components/hub/AppSettings";
 import { HubScreen } from "@/components/hub/HubScreen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { HUB_TONES, SERIF, TALK_DECK_TINT } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import { useApp } from "@/lib/store";
 import {
@@ -41,6 +43,10 @@ export default function TalkScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showVault, setShowVault] = useState(false);
+  const look = useAppLook("talk", THEME.accent, {
+    largeTiles: false,
+    showTold: true,
+  });
 
   const openDraw = useMemo(() => {
     if (!openId || !user) return undefined;
@@ -121,6 +127,34 @@ export default function TalkScreen() {
       tone="talk"
       kicker="Talk to me"
       body="One topic each per day. Read it out loud, then tap Answered."
+      accent={look.accent}
+      settingsLabel="Talk settings"
+      settings={
+        <AppSettingsPanel {...lookPanelProps(look, THEME.ink, THEME.muted)}>
+          <PrefSection label="This app" ink={THEME.ink} muted={THEME.muted}>
+            <View style={{ gap: 8 }}>
+              <PrefToggle
+                on={look.prefs.largeTiles}
+                label="Full-width decks"
+                hint="One topic per row — easier thumbs."
+                accent={look.accent}
+                ink={THEME.ink}
+                muted={THEME.muted}
+                onToggle={() => look.patch({ largeTiles: !look.prefs.largeTiles })}
+              />
+              <PrefToggle
+                on={look.prefs.showTold}
+                label="Show cards already told"
+                hint="The little count on each deck."
+                accent={look.accent}
+                ink={THEME.ink}
+                muted={THEME.muted}
+                onToggle={() => look.patch({ showTold: !look.prefs.showTold })}
+              />
+            </View>
+          </PrefSection>
+        </AppSettingsPanel>
+      }
     >
       <Text
         style={{
@@ -171,7 +205,7 @@ export default function TalkScreen() {
               disabled={lockedOut}
               onPress={() => void openCategoryTile(category.id)}
               style={{
-                flexBasis: "47%",
+                flexBasis: look.prefs.largeTiles ? "100%" : "47%",
                 flexGrow: 0,
                 flexShrink: 0,
                 minHeight: 96,
@@ -245,7 +279,9 @@ export default function TalkScreen() {
                     ? "Open today"
                     : lockedOut
                       ? "Locked"
-                      : `${told} told`}
+                      : look.prefs.showTold
+                        ? `${told} told`
+                        : "Pick"}
               </Text>
             </Pressable>
           );

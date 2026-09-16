@@ -1,5 +1,7 @@
+import { AppSettingsPanel, PrefSection, PrefToggle, lookPanelProps } from "@/components/hub/AppSettings";
 import { HubScreen } from "@/components/hub/HubScreen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import {
   batteryLabel,
@@ -163,6 +165,10 @@ export default function CheckInScreen() {
   const [needOn, setNeedOn] = useState(false);
   const [spicyOn, setSpicyOn] = useState(false);
   const [simpleOn, setSimpleOn] = useState(false);
+  const look = useAppLook("check-in", "#3ECFBF", {
+    hideHeat: false,
+    hideNudge: false,
+  });
   const [loveTank, setLoveTank] = useState(0);
   const [energy, setEnergy] = useState(0);
   const [mood, setMood] = useState<MoodWeather | null>(null);
@@ -270,13 +276,53 @@ export default function CheckInScreen() {
   };
 
   return (
-    <HubScreen kicker="Check-in" title="Daily Check in">
+    <HubScreen
+      kicker="Check-in"
+      title="Daily Check in"
+      accent={look.accent}
+      settingsLabel="Check-in settings"
+      settings={
+        <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)")}>
+          <PrefSection
+            label="This app"
+            ink="#F4F4F6"
+            muted="rgba(244,244,246,0.6)"
+          >
+            <View style={{ gap: 8 }}>
+              <PrefToggle
+                on={look.prefs.hideHeat}
+                label="Keep heat off this page"
+                hint="Hides intimacy temperature and bedtime wind-down."
+                accent={look.accent}
+                ink="#F4F4F6"
+                muted="rgba(244,244,246,0.6)"
+                onToggle={() => look.patch({ hideHeat: !look.prefs.hideHeat })}
+              />
+              <PrefToggle
+                on={look.prefs.hideNudge}
+                label="Hide the nudge tab"
+                hint="Just check in — no Request update."
+                accent={look.accent}
+                ink="#F4F4F6"
+                muted="rgba(244,244,246,0.6)"
+                onToggle={() => look.patch({ hideNudge: !look.prefs.hideNudge })}
+              />
+            </View>
+          </PrefSection>
+        </AppSettingsPanel>
+      }
+    >
       <View className="mb-5 flex-row rounded-2xl bg-white/5 p-1">
         <Pressable
           onPress={() => setMode("checkin")}
           className={`flex-1 items-center rounded-xl py-2.5 ${
-            mode === "checkin" ? "bg-neon" : ""
+            mode === "checkin" || look.prefs.hideNudge ? "bg-neon" : ""
           }`}
+          style={
+            mode === "checkin" || look.prefs.hideNudge
+              ? { backgroundColor: look.accent }
+              : undefined
+          }
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -286,11 +332,13 @@ export default function CheckInScreen() {
             Check in
           </Text>
         </Pressable>
+        {look.prefs.hideNudge ? null : (
         <Pressable
           onPress={() => setMode("request")}
           className={`flex-1 items-center rounded-xl py-2.5 ${
             mode === "request" ? "bg-neon" : ""
           }`}
+          style={mode === "request" ? { backgroundColor: look.accent } : undefined}
         >
           <Text
             className={`text-[13px] font-semibold ${
@@ -300,9 +348,10 @@ export default function CheckInScreen() {
             Request update
           </Text>
         </Pressable>
+        )}
       </View>
 
-      {mode === "checkin" ? (
+      {(mode === "checkin" || look.prefs.hideNudge) ? (
         <View>
           {incomingCheckInRequest && !myCheckIn ? (
             <View className="mb-4 rounded-2xl border border-crimson/40 bg-crimson/10 px-4 py-3">
@@ -401,6 +450,8 @@ export default function CheckInScreen() {
             />
           </MetricCard>
 
+          {look.prefs.hideHeat ? null : (
+            <>
           <MetricCard
             icon="flame-outline"
             title="Intimacy temperature"
@@ -435,6 +486,8 @@ export default function CheckInScreen() {
               columns={1}
             />
           </MetricCard>
+            </>
+          )}
 
           {error && mode === "checkin" ? (
             <Text className="mb-3 text-center text-[13px] text-crimson">

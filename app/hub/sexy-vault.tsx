@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -44,6 +46,10 @@ export default function SexyVaultScreen() {
   const { user, partner, notifyPartner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [gate, setGate] = useState("");
+  const look = useAppLook("sexy-vault", gold(), {
+    blurLocked: true,
+    twoCol: false,
+  });
   const [pinDraft, setPinDraft] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
   const [open, setOpen] = useState(false);
@@ -207,7 +213,31 @@ export default function SexyVaultScreen() {
 
   return (
     <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/desire" as Href} accent={gold()}>
+      <Stage
+        background={BG}
+        fallback={"/hub/desire" as Href}
+        accent={look.accent}
+        settingsLabel="Sexy vault"
+        settings={
+          <LookPanel
+            look={look}
+            ink={INK}
+            muted="rgba(246,231,220,0.6)"
+            toggles={[
+              {
+                key: "blurLocked",
+                label: "Blur hidden clips",
+                hint: "Until the time you set, keep a frost over the thumb.",
+              },
+              {
+                key: "twoCol",
+                label: "Two-column grid",
+                hint: "More tiles on the page.",
+              },
+            ]}
+          />
+        }
+      >
         {!data.sexyVaultPin ? (
           <PinSetup
             pinDraft={pinDraft}

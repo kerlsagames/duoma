@@ -1,7 +1,8 @@
-import { BackButton } from "@/components/ui/BackButton";
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { MEALS_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   combineMenu,
   customMealToIdea,
@@ -47,6 +48,11 @@ export default function MealPickerScreen() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftCategory, setDraftCategory] = useState<MealCategoryId>("staple");
   const [pendingRemove, setPendingRemove] = useState<MealIdea | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("meal-picker", T.accent, {
+    hideVotes: false,
+    compact: false,
+  });
 
   const menu = useMemo(
     () =>
@@ -93,11 +99,32 @@ export default function MealPickerScreen() {
   return (
     <Screen scroll background={T.background}>
       <View className="pt-4 pb-10">
-        <BackButton
-          color={T.accent}
+        <SettingsDock
+          accent={look.accent}
           fallback={"/hub/home-base" as Href}
-          style={{ marginBottom: 12 }}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((open) => !open)}
+          label="Dinner"
         />
+        {settingsOpen ? (
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideVotes",
+                label: "Hide the vote row",
+                hint: "Spin only — pick later in the meal plan.",
+              },
+              {
+                key: "compact",
+                label: "Compact menu",
+                hint: "Tighter category cards.",
+              },
+            ]}
+          />
+        ) : null}
         <Text
           style={{
             fontFamily: "SpaceMono",

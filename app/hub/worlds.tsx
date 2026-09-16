@@ -1,6 +1,7 @@
+import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { Screen } from "@/components/ui/Screen";
-import { BackButton } from "@/components/ui/BackButton";
 import { SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { WORLDS, worldById, type WorldId } from "@/lib/worlds";
@@ -15,6 +16,11 @@ export default function WorldsScreen() {
   const { data, patch } = useMiniApps();
   const current = data.worldChoice.worldId;
   const [picked, setPicked] = useState<WorldId | null>(current);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("worlds", "#C9A0DC", {
+    hideLockedHint: false,
+    compact: false,
+  });
 
   useEffect(() => {
     if (current) setPicked(current);
@@ -32,7 +38,32 @@ export default function WorldsScreen() {
 
   return (
     <Screen scroll background="#0C0E14">
-      <BackButton color="#C9A0DC" fallback={"/(tabs)" as Href} />
+      <SettingsDock
+        accent={look.accent}
+        fallback={"/(tabs)" as Href}
+        open={settingsOpen}
+        onToggle={() => setSettingsOpen((open) => !open)}
+        label="Shared world"
+      />
+      {settingsOpen ? (
+        <LookPanel
+          look={look}
+          ink="#F4F4F6"
+          muted="rgba(244,244,246,0.55)"
+          toggles={[
+            {
+              key: "hideLockedHint",
+              label: "Hide unlock hints",
+              hint: "Just the world names.",
+            },
+            {
+              key: "compact",
+              label: "Compact cards",
+              hint: "Less story under each world.",
+            },
+          ]}
+        />
+      ) : null}
       <Text
         style={{
           marginTop: 8,

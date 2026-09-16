@@ -1,3 +1,4 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import {
@@ -6,6 +7,7 @@ import {
   LOVEBETZ_SCRIPT as SCRIPT,
   LOVEBETZ_TONE as T,
 } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   BET_PROMPT_CATEGORIES,
   BET_PROMPTS,
@@ -54,6 +56,10 @@ export default function PredictionScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [view, setView] = useState<ViewMode>("home");
+  const look = useAppLook("prediction", T.pink, {
+    hideTape: false,
+    compactSlips: false,
+  });
   const [hub, setHub] = useState<HubTab>("make");
   const [promptCat, setPromptCat] = useState<BetPromptCategory | null>(null);
   const [stakeCat, setStakeCat] = useState<BetStakeCategory | null>(null);
@@ -314,12 +320,37 @@ export default function PredictionScreen() {
 
   return (
     <Screen scroll background={T.background}>
-      <Stage background={T.background} fallback={"/hub/play" as Href} accent={T.pink}>
+      <Stage
+        background={T.background}
+        fallback={"/hub/play" as Href}
+        accent={look.accent}
+        settingsLabel="LoveBetz"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideTape",
+                label: "Hide the ticker tape",
+                hint: "A calmer slip desk.",
+              },
+              {
+                key: "compactSlips",
+                label: "Compact slips",
+                hint: "Less paper between bets.",
+              },
+            ]}
+          />
+        }
+      >
+        {look.prefs.hideTape ? null : (
         <View
           style={{
             marginHorizontal: -20,
             height: TAPE_HEIGHT,
-            backgroundColor: T.pink,
+            backgroundColor: look.accent,
             overflow: "hidden",
             justifyContent: "center",
           }}
@@ -371,6 +402,7 @@ export default function PredictionScreen() {
             ))}
           </Animated.View>
         </View>
+        )}
 
         <View
           style={{

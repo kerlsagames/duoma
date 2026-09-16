@@ -1,9 +1,11 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
 import { GIFTS_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
@@ -42,6 +44,10 @@ export default function GiftsScreen() {
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
   const [tab, setTab] = useState<Tab>("people");
+  const look = useAppLook("gifts", T.gold, {
+    hideLedger: false,
+    compactPeople: false,
+  });
   const [sheet, setSheet] = useState<Sheet>(null);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<Exclude<GiftPersonKind, "you" | "them">>("child");
@@ -163,7 +169,27 @@ export default function GiftsScreen() {
         <Stage
           background={T.background}
           fallback={"/hub/home-base" as Href}
-          accent={T.gold}
+          accent={look.accent}
+          settingsLabel="Gifts"
+          settings={
+            <LookPanel
+              look={look}
+              ink={T.ink}
+              muted={T.muted}
+              toggles={[
+                {
+                  key: "hideLedger",
+                  label: "Hide the year book",
+                  hint: "Just people and wish lists.",
+                },
+                {
+                  key: "compactPeople",
+                  label: "Compact people",
+                  hint: "Shorter cards in the who-list.",
+                },
+              ]}
+            />
+          }
         >
           <Text
             style={{
@@ -216,7 +242,7 @@ export default function GiftsScreen() {
               [
                 ["people", "People"],
                 ["wishes", "Wishes"],
-                ["ledger", "Ledger"],
+                ...(look.prefs.hideLedger ? [] : [["ledger", "Ledger"] as const]),
               ] as const
             ).map(([id, label]) => {
               const on = tab === id;
