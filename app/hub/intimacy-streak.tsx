@@ -23,6 +23,7 @@ import { useMiniApps } from "@/lib/mini-apps";
 import {
   INTIMACY_KINDS,
   MANUAL_INTIMACY_KINDS,
+  SIMPLE_INTIMACY_KINDS,
   type ManualIntimacyKind,
 } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
@@ -497,7 +498,9 @@ export default function IntimacyStreakScreen() {
   const look = useAppLook("intimacy-streak", hot(), {
     hideGraph: false,
     calmFire: false,
+    simpleMode: false,
   });
+  const simple = Boolean(look.prefs.simpleMode);
   const [note, setNote] = useState("");
   const today = localDateKey();
   const [selectedDay, setSelectedDay] = useState(today);
@@ -544,7 +547,7 @@ export default function IntimacyStreakScreen() {
   );
   const autoToday = todayLogs.filter((row) => row.sourceId).length;
 
-  const log = async () => {
+  const logKind = async (next: ManualIntimacyKind, nextNote = "") => {
     if (!user) return;
     await patch((state) => ({
       ...state,
@@ -552,8 +555,8 @@ export default function IntimacyStreakScreen() {
         {
           id: createId(),
           userId: user.id,
-          kind,
-          note: note.trim(),
+          kind: next,
+          note: nextNote.trim(),
           date: today,
           createdAt: nowIso(),
           sourceId: null,
@@ -561,9 +564,16 @@ export default function IntimacyStreakScreen() {
         ...state.intimacy,
       ],
     }));
-    setNote("");
     setSelectedDay(today);
   };
+
+  const log = async () => {
+    await logKind(kind, note);
+    setNote("");
+  };
+
+  const todayCount = (id: ManualIntimacyKind) =>
+    todayLogs.filter((row) => row.kind === id).length;
 
   const headline = !ready
     ? "—"
@@ -601,59 +611,146 @@ export default function IntimacyStreakScreen() {
           />
         }
       >
-        <Text
+        <View
           style={{
-            textAlign: "center",
-            fontFamily: HANDWRITING,
-            fontSize: 22,
-            color: "#FFB347",
+            flexDirection: "row",
+            padding: 4,
+            borderRadius: 16,
+            backgroundColor: "#1C0C08",
+            borderWidth: 1,
+            borderColor: "rgba(255,106,61,0.22)",
           }}
         >
-          keep the fire
-        </Text>
+          {(
+            [
+              [false, "Fire"],
+              [true, "Keep it simple"],
+            ] as const
+          ).map(([value, label]) => {
+            const on = simple === value;
+            return (
+              <Pressable
+                key={label}
+                onPress={() => look.patch({ simpleMode: value })}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  borderRadius: 12,
+                  paddingVertical: 10,
+                  backgroundColor: on ? hot() : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    color: on ? "#1A0806" : "#FFD2B4",
+                    fontWeight: "800",
+                    fontSize: 14,
+                  }}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-        <Campfire
-          level={ready ? fire.level : 3}
-          lit={ready ? fire.lit : true}
-        />
+        {simple ? (
+          <>
+            <Text
+              style={{
+                marginTop: 18,
+                textAlign: "center",
+                fontFamily: HANDWRITING,
+                fontSize: 22,
+                color: "#FFB347",
+              }}
+            >
+              just log it
+            </Text>
+            <Text
+              style={{
+                textAlign: "center",
+                fontFamily: SERIF,
+                fontSize: 34,
+                color: hot(),
+                marginTop: 2,
+              }}
+            >
+              Keep it simple
+            </Text>
+            <Text
+              style={{
+                marginTop: 8,
+                textAlign: "center",
+                color: "rgba(255,210,180,0.7)",
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 22,
+                paddingHorizontal: 8,
+              }}
+            >
+              Tap what happened. Same day can take more than one — they stack
+              on the bar.
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text
+              style={{
+                marginTop: 18,
+                textAlign: "center",
+                fontFamily: HANDWRITING,
+                fontSize: 22,
+                color: "#FFB347",
+              }}
+            >
+              keep the fire
+            </Text>
 
-        <Text
-          style={{
-            textAlign: "center",
-            fontFamily: SERIF,
-            fontSize: 44,
-            color: hot(),
-            marginTop: -8,
-          }}
-        >
-          {headline}
-        </Text>
-        <Text
-          style={{
-            textAlign: "center",
-            color: "rgba(255,210,180,0.7)",
-            fontFamily: SERIF,
-            fontSize: 16,
-            lineHeight: 22,
-            paddingHorizontal: 8,
-          }}
-        >
-          {ready ? fireCaption(fire) : "Lighting the grate…"}
-        </Text>
-        {ready && fire.lit ? (
-          <Text
-            style={{
-              marginTop: 8,
-              textAlign: "center",
-              color: "rgba(255,210,180,0.45)",
-              fontFamily: "SpaceMono",
-              fontSize: 11,
-              letterSpacing: 0.6,
-            }}
-          >
-            Tiny on day one · grows over months · {MISS_DAYS_TO_OUT} quiet nights puts it out
-          </Text>
-        ) : null}
+            <Campfire
+              level={ready ? fire.level : 3}
+              lit={ready ? fire.lit : true}
+            />
+
+            <Text
+              style={{
+                textAlign: "center",
+                fontFamily: SERIF,
+                fontSize: 44,
+                color: hot(),
+                marginTop: -8,
+              }}
+            >
+              {headline}
+            </Text>
+            <Text
+              style={{
+                textAlign: "center",
+                color: "rgba(255,210,180,0.7)",
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 22,
+                paddingHorizontal: 8,
+              }}
+            >
+              {ready ? fireCaption(fire) : "Lighting the grate…"}
+            </Text>
+            {ready && fire.lit ? (
+              <Text
+                style={{
+                  marginTop: 8,
+                  textAlign: "center",
+                  color: "rgba(255,210,180,0.45)",
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 0.6,
+                }}
+              >
+                Tiny on day one · grows over months · {MISS_DAYS_TO_OUT} quiet nights puts it out
+              </Text>
+            ) : null}
+          </>
+        )}
         {ready && todayLogs.length > 0 ? (
           <Text
             style={{
@@ -666,7 +763,7 @@ export default function IntimacyStreakScreen() {
             }}
           >
             {todayLogs.length} log{todayLogs.length === 1 ? "" : "s"} today
-            {autoToday ? ` · ${autoToday} from play` : ""}
+            {autoToday && !simple ? ` · ${autoToday} from play` : ""}
           </Text>
         ) : null}
 
@@ -746,72 +843,127 @@ export default function IntimacyStreakScreen() {
           </Text>
         )}
 
-        <Text
-          style={{
-            marginTop: 20,
-            textAlign: "center",
-            color: "rgba(255,210,180,0.5)",
-            fontSize: 13,
-            lineHeight: 19,
-          }}
-        >
-          Completed dares, Get Spicy nights, thought-of-you pings, and Connect
-          already feed this graph. Use a label below to throw on another log.
-        </Text>
-
-        <View
-          style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}
-        >
-          {MANUAL_INTIMACY_KINDS.map((row) => (
-            <Pressable
-              key={row.id}
-              onPress={() => setKind(row.id)}
+        {simple ? (
+          <View
+            style={{
+              marginTop: 20,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            {SIMPLE_INTIMACY_KINDS.map((row) => {
+              const count = todayCount(row.id);
+              return (
+                <Pressable
+                  key={row.id}
+                  onPress={() => void logKind(row.id)}
+                  style={{
+                    width: "48%",
+                    flexGrow: 1,
+                    minWidth: 140,
+                    paddingVertical: 16,
+                    paddingHorizontal: 12,
+                    backgroundColor: row.color,
+                    borderRadius: 16,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#1A0806",
+                      fontWeight: "800",
+                      fontSize: 16,
+                    }}
+                  >
+                    {row.label}
+                  </Text>
+                  {count > 0 ? (
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        color: "rgba(26,8,6,0.65)",
+                        fontFamily: "SpaceMono",
+                        fontSize: 11,
+                      }}
+                    >
+                      today ×{count}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : (
+          <>
+            <Text
               style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                backgroundColor: kind === row.id ? row.color : "#2A1410",
-                borderRadius: 999,
+                marginTop: 20,
+                textAlign: "center",
+                color: "rgba(255,210,180,0.5)",
+                fontSize: 13,
+                lineHeight: 19,
               }}
             >
-              <Text
-                style={{
-                  color: kind === row.id ? "#1A0806" : "#FFD2B4",
-                  fontSize: 13,
-                }}
-              >
-                {row.label}
-              </Text>
+              Completed dares, Get Spicy nights, thought-of-you pings, and Connect
+              already feed this graph. Use a label below to throw on another log.
+            </Text>
+
+            <View
+              style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+            >
+              {MANUAL_INTIMACY_KINDS.map((row) => (
+                <Pressable
+                  key={row.id}
+                  onPress={() => setKind(row.id)}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    backgroundColor: kind === row.id ? row.color : "#2A1410",
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: kind === row.id ? "#1A0806" : "#FFD2B4",
+                      fontSize: 13,
+                    }}
+                  >
+                    {row.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="What did you throw on the fire?"
+              placeholderTextColor="rgba(255,210,180,0.35)"
+              style={{
+                marginTop: 12,
+                borderRadius: 12,
+                padding: 12,
+                backgroundColor: "#2A1410",
+                color: "#FFE8D6",
+                fontFamily: HANDWRITING,
+                fontSize: 18,
+              }}
+            />
+            <Pressable
+              onPress={() => void log()}
+              style={{
+                marginTop: 10,
+                height: 52,
+                borderRadius: 26,
+                backgroundColor: hot(),
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "#1A0806", fontWeight: "800" }}>Feed the fire</Text>
             </Pressable>
-          ))}
-        </View>
-        <TextInput
-          value={note}
-          onChangeText={setNote}
-          placeholder="What did you throw on the fire?"
-          placeholderTextColor="rgba(255,210,180,0.35)"
-          style={{
-            marginTop: 12,
-            borderRadius: 12,
-            padding: 12,
-            backgroundColor: "#2A1410",
-            color: "#FFE8D6",
-            fontFamily: HANDWRITING,
-            fontSize: 18,
-          }}
-        />
-        <Pressable
-          onPress={() => void log()}
-          style={{
-            marginTop: 10,
-            height: 52,
-            borderRadius: 26,
-            backgroundColor: hot(),
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "#1A0806", fontWeight: "800" }}>Feed the fire</Text>
-        </Pressable>
+          </>
+        )}
       </Stage>
     </Screen>
   );

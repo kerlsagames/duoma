@@ -39,7 +39,7 @@ export type GiftItem = {
   lane: GiftLane;
   occasion: GiftOccasionId;
   year: number;
-  status: "open" | "given";
+  status: "open" | "bought" | "given";
   dateKey: string | null;
   createdAt: string;
 };
@@ -145,6 +145,12 @@ export function allOpenItems(items: GiftItem[], personId: string): GiftItem[] {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+export function boughtItems(items: GiftItem[], personId?: string): GiftItem[] {
+  return items
+    .filter((row) => row.status === "bought" && (!personId || row.personId === personId))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export function givenItems(items: GiftItem[], personId?: string): GiftItem[] {
   return items
     .filter((row) => row.status === "given" && (!personId || row.personId === personId))
@@ -155,7 +161,7 @@ export function givenItems(items: GiftItem[], personId?: string): GiftItem[] {
     });
 }
 
-export function yearsInLedger(items: GiftItem[], fallbackYear = currentGiftYear()): number[] {
+export function yearsInGiftBook(items: GiftItem[], fallbackYear = currentGiftYear()): number[] {
   const years = new Set<number>();
   years.add(fallbackYear);
   items.forEach((row) => {
@@ -301,7 +307,7 @@ export function addGiftItem(
     lane: GiftLane;
     occasion?: GiftOccasionId;
     year?: number;
-    status?: "open" | "given";
+    status?: "open" | "bought" | "given";
     dateKey?: string | null;
   }
 ): GiftItem[] {
@@ -326,10 +332,23 @@ export function addGiftItem(
   ];
 }
 
+export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
+  return items.map((row) =>
+    row.id === itemId && row.status === "open"
+      ? { ...row, status: "bought" as const }
+      : row
+  );
+}
+
 export function markGiftGiven(
   items: GiftItem[],
   itemId: string,
-  input: { dateKey?: string | null; year?: number; from?: string }
+  input: {
+    dateKey?: string | null;
+    year?: number;
+    from?: string;
+    occasion?: GiftOccasionId;
+  }
 ): GiftItem[] {
   return items.map((row) => {
     if (row.id !== itemId) return row;
@@ -343,6 +362,7 @@ export function markGiftGiven(
       dateKey,
       year,
       from: input.from?.trim() || row.from,
+      occasion: input.occasion ?? row.occasion,
     };
   });
 }
@@ -550,7 +570,8 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
     lane: row.lane === "wish" ? "wish" : "shop",
     occasion: asOccasion(row.occasion),
     year,
-    status: row.status === "given" ? "given" : "open",
+    status:
+      row.status === "given" ? "given" : row.status === "bought" ? "bought" : "open",
     dateKey:
       typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
         ? row.dateKey

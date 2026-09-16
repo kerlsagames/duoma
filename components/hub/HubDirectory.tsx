@@ -756,14 +756,16 @@ function GridTile({
       >
         {feature.label}
       </Text>
-      {showDetails && !fill ? (
+      {showDetails ? (
         <Text
-          numberOfLines={fill ? 1 : 2}
+          numberOfLines={fill ? 2 : 2}
           style={{
-            marginTop: 4,
+            marginTop: fill ? 3 : 4,
             color: "rgba(244,244,246,0.5)",
             fontSize: fill ? 11 : 12,
             lineHeight: fill ? 14 : 16,
+            textAlign: "center",
+            paddingHorizontal: 2,
           }}
         >
           {feature.detail}

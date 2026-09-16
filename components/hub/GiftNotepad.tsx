@@ -1,5 +1,5 @@
 import { GIFTS_TONE as T, HANDWRITING, SERIF } from "@/lib/app-themes";
-import { occasionMeta, type GiftItem } from "@/lib/gifts";
+import { formatGiftDate, occasionMeta, type GiftItem } from "@/lib/gifts";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -74,7 +74,7 @@ export function GiftNotepad({
             <Pressable
               onPress={() => onToggle(item)}
               hitSlop={8}
-              accessibilityLabel={`Mark ${item.title} given`}
+              accessibilityLabel={`Mark ${item.title} bought`}
               style={{
                 width: 18,
                 height: 18,
@@ -176,7 +176,7 @@ export function GiftModeToggle({
       {(
         [
           [true, "Classic", "Notepad with checkboxes"],
-          [false, "New", "People, wishes, year book"],
+          [false, "New", "People, wishes, gift book"],
         ] as const
       ).map(([value, label]) => {
         const on = classic === value;
@@ -205,6 +205,186 @@ export function GiftModeToggle({
           </Pressable>
         );
       })}
+    </View>
+  );
+}
+
+export function BoughtList({
+  items,
+  onGive,
+  onRemove,
+}: {
+  items: GiftItem[];
+  onGive: (item: GiftItem) => void;
+  onRemove: (id: string) => void;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <View style={{ marginTop: 20 }}>
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          letterSpacing: 1.6,
+          textTransform: "uppercase",
+          color: T.gold,
+        }}
+      >
+        Bought
+      </Text>
+      <Text
+        style={{
+          marginTop: 4,
+          fontFamily: SERIF,
+          fontSize: 13,
+          lineHeight: 18,
+          color: T.muted,
+        }}
+      >
+        Off the wishlist. Remove it, or give it and pick the occasion.
+      </Text>
+      <View
+        style={{
+          marginTop: 10,
+          backgroundColor: T.paper,
+          borderRadius: 3,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: "rgba(42,28,18,0.12)",
+        }}
+      >
+        {items.map((item) => (
+          <View
+            key={item.id}
+            style={{
+              minHeight: LINE,
+              paddingLeft: 12,
+              paddingRight: 8,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(42,28,18,0.1)",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Ionicons name="bag-check-outline" size={16} color={T.ribbon} />
+            <Text
+              style={{
+                flex: 1,
+                fontFamily: HANDWRITING,
+                fontSize: 20,
+                color: T.paperInk,
+              }}
+              numberOfLines={1}
+            >
+              {item.title}
+            </Text>
+            <Pressable
+              onPress={() => onRemove(item.id)}
+              hitSlop={6}
+              accessibilityLabel={`Remove ${item.title} from list`}
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: "rgba(42,28,18,0.16)",
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: "700", color: T.paperMuted }}>
+                Remove
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onGive(item)}
+              hitSlop={6}
+              accessibilityLabel={`Give ${item.title}`}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 999,
+                backgroundColor: T.gold,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: "800", color: "#1A1408" }}>
+                Give
+              </Text>
+            </Pressable>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function GiftBookList({ items }: { items: GiftItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <View style={{ marginTop: 20 }}>
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          letterSpacing: 1.6,
+          textTransform: "uppercase",
+          color: T.gold,
+        }}
+      >
+        Gift book
+      </Text>
+      <Text
+        style={{
+          marginTop: 4,
+          fontFamily: SERIF,
+          fontSize: 13,
+          lineHeight: 18,
+          color: T.muted,
+        }}
+      >
+        What they actually received, by occasion.
+      </Text>
+      <View
+        style={{
+          marginTop: 10,
+          backgroundColor: T.paper,
+          borderRadius: 3,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: "rgba(42,28,18,0.12)",
+        }}
+      >
+        {items.map((item) => (
+          <View
+            key={item.id}
+            style={{
+              minHeight: LINE,
+              paddingLeft: 12,
+              paddingRight: 12,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(42,28,18,0.1)",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Text
+              style={{
+                flex: 1,
+                fontFamily: HANDWRITING,
+                fontSize: 20,
+                color: T.paperInk,
+              }}
+              numberOfLines={1}
+            >
+              {item.title}
+            </Text>
+            <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
+              {occasionMeta(item.occasion).short}
+              {` · ${formatGiftDate(item.dateKey, item.year)}`}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }

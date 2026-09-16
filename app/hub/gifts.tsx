@@ -1,5 +1,10 @@
 import { LookPanel } from "@/components/hub/AppSettings";
-import { GiftModeToggle, GiftNotepad } from "@/components/hub/GiftNotepad";
+import {
+  BoughtList,
+  GiftBookList,
+  GiftModeToggle,
+  GiftNotepad,
+} from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -12,6 +17,7 @@ import {
   addGiftItem,
   addGiftPerson,
   allOpenItems,
+  boughtItems,
   collapseSecretLists,
   currentGiftYear,
   ensureCouplePeople,
@@ -24,6 +30,7 @@ import {
   groupGivenByOccasion,
   giftYearChoices,
   kindLabel,
+  markGiftBought,
   markGiftGiven,
   occasionMeta,
   PERSON_EMOJIS,
@@ -36,7 +43,7 @@ import {
   shopCount,
   visibleGiftPeople,
   wishCount,
-  yearsInLedger,
+  yearsInGiftBook,
   type GiftItem,
   type GiftOccasionId,
   type GiftPersonKind,
@@ -48,8 +55,8 @@ import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-type Tab = "people" | "wishes" | "ledger";
-type Sheet = "person" | "log" | null;
+type Tab = "people" | "wishes" | "book";
+type Sheet = "person" | "log" | "give" | null;
 
 export default function GiftsScreen() {
   const router = useRouter();
@@ -76,6 +83,10 @@ export default function GiftsScreen() {
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
   const [padPersonId, setPadPersonId] = useState<string | null>(null);
+  const [giveItem, setGiveItem] = useState<GiftItem | null>(null);
+  const [giveOccasion, setGiveOccasion] = useState<GiftOccasionId>("just-because");
+  const [giveDate, setGiveDate] = useState(localDateKey());
+  const [giveFrom, setGiveFrom] = useState("Us");
 
   useEffect(() => {
     if (!ready) return;
@@ -113,7 +124,7 @@ export default function GiftsScreen() {
     [data.giftPeople, user?.id]
   );
   const years = useMemo(
-    () => yearsInLedger(data.giftItems, currentGiftYear()),
+    () => yearsInGiftBook(data.giftItems, currentGiftYear()),
     [data.giftItems]
   );
   const ledgerGroups = useMemo(
@@ -191,7 +202,7 @@ export default function GiftsScreen() {
       }),
     }));
     setLedgerYear(year);
-    setTab("ledger");
+    setTab("book");
     resetLog();
   };
 
@@ -222,7 +233,7 @@ export default function GiftsScreen() {
               toggles={[
                 {
                   key: "hideLedger",
-                  label: "Hide the year book",
+                  label: "Hide the gift book",
                   hint: "Just people and wish lists.",
                 },
                 {
@@ -312,15 +323,21 @@ export default function GiftsScreen() {
                   }),
                 }));
               }}
-              onToggle={(item) => {
+              onBuy={(item) => {
                 void patch((state) => ({
                   ...state,
-                  giftItems: markGiftGiven(state.giftItems, item.id, {
-                    dateKey: localDateKey(),
-                    year: currentGiftYear(),
-                    from: "Us",
-                  }),
+                  giftItems: markGiftBought(state.giftItems, item.id),
                 }));
+              }}
+              onGive={(item) => {
+                setGiveItem(item);
+                setGiveOccasion(
+                  item.occasion === "just-because" ? "birthday" : item.occasion
+                );
+                setGiveDate(localDateKey());
+                setGiveFrom("Us");
+                setError(null);
+                setSheet("give");
               }}
               onRemove={(id) => void patch((state) => ({
                 ...state,
@@ -365,7 +382,7 @@ export default function GiftsScreen() {
               [
                 ["people", "People"],
                 ["wishes", "Wishes"],
-                ...(look.prefs.hideLedger ? [] : [["ledger", "Ledger"] as const]),
+                ...(look.prefs.hideLedger ? [] : [["book", "Gift book"] as const]),
               ] as const
             ).map(([id, label]) => {
               const on = tab === id;
@@ -534,7 +551,7 @@ export default function GiftsScreen() {
             </View>
           ) : null}
 
-          {tab === "ledger" ? (
+          {tab === "book" ? (
             <View style={{ marginTop: 18 }}>
               <ScrollYears years={years} selected={ledgerYear} onChange={setLedgerYear} />
               {givenThisYear.length === 0 ? (
@@ -564,7 +581,7 @@ export default function GiftsScreen() {
                       color: T.paperMuted,
                     }}
                   >
-                    Mark a present as given on someone’s list, or log a gift
+                    Give a bought present and pick the occasion, or log a gift
                     from a past Christmas, birthday, or anniversary.
                   </Text>
                 </View>
@@ -774,7 +791,7 @@ export default function GiftsScreen() {
 
       {sheet === "log" ? (
         <SheetOverlay
-          kicker="LEDGER"
+          kicker="GIFT BOOK"
           title="Log a gift"
           onClose={resetLog}
           background={T.surfaceRaised}
@@ -863,7 +880,83 @@ export default function GiftsScreen() {
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#1A1408", fontWeight: "800" }}>Save to ledger</Text>
+            <Text style={{ color: "#1A1408", fontWeight: "800" }}>Save to gift book</Text>
+          </Pressable>
+        </SheetOverlay>
+      ) : null}
+
+      {sheet === "give" && giveItem ? (
+        <SheetOverlay
+          kicker="GIVE"
+          title={`Give ${giveItem.title}`}
+          onClose={() => {
+            setSheet(null);
+            setGiveItem(null);
+            setError(null);
+          }}
+          background={T.surfaceRaised}
+          ink={T.ink}
+          muted={T.muted}
+        >
+          <Text style={{ fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
+            Pick the occasion. It lands in their gift book.
+          </Text>
+          <Text style={[label, { marginTop: 16 }]}>Occasion</Text>
+          <OccasionChips value={giveOccasion} onChange={setGiveOccasion} />
+          <Text style={[label, { marginTop: 14 }]}>From</Text>
+          <TextInput
+            value={giveFrom}
+            onChangeText={setGiveFrom}
+            placeholder="Us, Grandma, Santa…"
+            placeholderTextColor={T.dim}
+            style={field}
+          />
+          <CalendarDateField
+            label="When they got it"
+            value={giveDate}
+            onChange={setGiveDate}
+            ink={T.ink}
+            muted={T.muted}
+            accent={T.gold}
+            background={T.surface}
+          />
+          {error ? (
+            <Text style={{ marginTop: 12, color: T.ribbon, fontFamily: SERIF }}>
+              {error}
+            </Text>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              const item = giveItem;
+              if (!item) return;
+              const year = giveDate
+                ? Number(giveDate.slice(0, 4))
+                : currentGiftYear();
+              void patch((state) => ({
+                ...state,
+                giftItems: markGiftGiven(state.giftItems, item.id, {
+                  dateKey: giveDate || null,
+                  year,
+                  from: giveFrom,
+                  occasion: giveOccasion,
+                }),
+              }));
+              setLedgerYear(year);
+              setSheet(null);
+              setGiveItem(null);
+            }}
+            style={{
+              marginTop: 18,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: T.gold,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#1A1408", fontWeight: "800" }}>
+              Save to gift book
+            </Text>
           </Pressable>
         </SheetOverlay>
       ) : null}
@@ -871,7 +964,7 @@ export default function GiftsScreen() {
       <ConfirmDialog
         open={Boolean(removing)}
         title={removing ? `Remove ${removing.name}?` : "Remove"}
-        body="Their wish list, shopping list, and logged gifts go with them."
+        body="Their wish list, shopping list, and gift book go with them."
         confirmLabel="Remove"
         onConfirm={() => void confirmRemove()}
         onCancel={() => setRemoveId(null)}
@@ -889,7 +982,8 @@ function ClassicPad({
   onAddPerson,
   onOpenSecret,
   onAdd,
-  onToggle,
+  onBuy,
+  onGive,
   onRemove,
   onSecret,
 }: {
@@ -901,7 +995,8 @@ function ClassicPad({
   onAddPerson: () => void;
   onOpenSecret: () => void;
   onAdd: (personId: string, title: string) => void;
-  onToggle: (item: GiftItem) => void;
+  onBuy: (item: GiftItem) => void;
+  onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   onSecret?: (item: GiftItem) => void;
 }) {
@@ -912,6 +1007,8 @@ function ClassicPad({
     secret ??
     null;
   const rows = selected ? allOpenItems(items, selected.id) : [];
+  const bought = selected ? boughtItems(items, selected.id) : [];
+  const given = selected ? givenItems(items, selected.id) : [];
   const steal =
     selected && selected.slot === "them" && !selected.hidden ? onSecret : undefined;
   const secretOn = Boolean(secret && selected?.id === secret.id);
@@ -982,18 +1079,22 @@ function ClassicPad({
         </Pressable>
       </View>
       {selected ? (
+        <>
         <GiftNotepad
           items={rows}
           empty={
             selected.hidden
               ? "Write what you’re getting them. Partner can’t see this list."
-              : `Write on ${selected.name}’s list. Tick the box when it’s given.`
+              : `Write on ${selected.name}’s list. Tick the box when you’ve bought it.`
           }
           onAdd={(title) => onAdd(selected.id, title)}
-          onToggle={onToggle}
+          onToggle={onBuy}
           onRemove={onRemove}
           onSecret={steal}
         />
+        <BoughtList items={bought} onGive={onGive} onRemove={onRemove} />
+        <GiftBookList items={given} />
+        </>
       ) : (
         <Text style={{ marginTop: 16, fontFamily: SERIF, color: T.muted }}>
           Add someone to start a list.

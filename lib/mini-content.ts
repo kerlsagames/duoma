@@ -2,8 +2,11 @@ import type { ComponentProps } from "react";
 import type { Ionicons } from "@expo/vector-icons";
 import {
   emptyBirthdays,
+  emptyBirthdayGroups,
   hydrateBirthdays,
+  hydrateBirthdayGroups,
   type Birthday,
+  type BirthdayGroup,
 } from "@/lib/birthdays";
 import { emptyWordle, hydrateWordle, type WordleState } from "@/lib/daily-word";
 import { emptyDoodleBoard, hydrateDoodleBoard, type DoodleBoard } from "@/lib/doodle-game";
@@ -159,6 +162,8 @@ export type IntimacyKind =
   | "talk"
   | "date"
   | "intimacy"
+  | "oral"
+  | "sex"
   | "cuddle"
   | "adventure"
   | "dare"
@@ -190,6 +195,8 @@ export function hydrateIntimacyLog(raw: unknown): IntimacyLog | null {
     "talk",
     "date",
     "intimacy",
+    "oral",
+    "sex",
     "cuddle",
     "adventure",
     "dare",
@@ -482,6 +489,7 @@ export type MiniState = {
   cheers: Cheer[];
   period: PeriodState;
   birthdays: Birthday[];
+  birthdayGroups: BirthdayGroup[];
   giftPeople: GiftPerson[];
   giftItems: GiftItem[];
   howNotes: HowNote[];
@@ -622,8 +630,23 @@ export const MANUAL_INTIMACY_KINDS: {
   { id: "cuddle", label: "Cuddle", color: "#C9A0DC", icon: "moon" },
   { id: "talk", label: "Deep talk", color: "#8FA8C8", icon: "chatbubbles" },
   { id: "date", label: "Date night", color: "#F0C75E", icon: "wine" },
-  { id: "intimacy", label: "Intimacy", color: "#FF4D6A", icon: "flame" },
+  { id: "oral", label: "Oral", color: "#FF8A5C", icon: "water" },
+  { id: "sex", label: "Sex", color: "#FF4D6A", icon: "flame" },
+  { id: "intimacy", label: "Intimacy", color: "#E05A78", icon: "heart-circle" },
   { id: "adventure", label: "Adventure", color: "#3ECFBF", icon: "compass" },
+];
+
+export const SIMPLE_INTIMACY_KINDS: {
+  id: ManualIntimacyKind;
+  label: string;
+  color: string;
+}[] = [
+  { id: "kiss", label: "Kiss", color: "#FF6B9A" },
+  { id: "cuddle", label: "Cuddle", color: "#C9A0DC" },
+  { id: "talk", label: "Deep talk", color: "#8FA8C8" },
+  { id: "date", label: "Date night", color: "#F0C75E" },
+  { id: "oral", label: "Oral", color: "#FF8A5C" },
+  { id: "sex", label: "Sex", color: "#FF4D6A" },
 ];
 
 export const AUTO_INTIMACY_KINDS: {
@@ -863,6 +886,7 @@ export function emptyMiniState(): MiniState {
     cheers: [],
     period: emptyPeriodState(),
     birthdays: emptyBirthdays(),
+    birthdayGroups: emptyBirthdayGroups(),
     giftPeople: emptyGifts().people,
     giftItems: emptyGifts().items,
     howNotes: emptyHowNotes(),
@@ -980,6 +1004,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     cheers: asArray(row.cheers, base.cheers),
     period: hydratePeriodState(row.period),
     birthdays: hydrateBirthdays(row.birthdays),
+    birthdayGroups: hydrateBirthdayGroups(row.birthdayGroups),
     giftPeople: hydrateGifts(row.giftPeople, row.giftItems).people,
     giftItems: hydrateGifts(row.giftPeople, row.giftItems).items,
     howNotes: hydrateHowNotes(row.howNotes),

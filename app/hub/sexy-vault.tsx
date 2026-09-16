@@ -33,6 +33,7 @@ import type { Href } from "expo-router";
 import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   Image,
   Modal,
   PanResponder,
@@ -47,6 +48,8 @@ const BG = "#10060A";
 const gold = () => sectionAccent("desire", "#E4B56A");
 const ROSE = "#FF6B8A";
 const INK = "#F6E7DC";
+const STEEL = "#C5D0DA";
+const SAFE = "#0C1014";
 
 export default function SexyVaultScreen() {
   const { user, partner, notifyPartner, submitContentReport } = useApp();
@@ -121,7 +124,7 @@ export default function SexyVaultScreen() {
       setGate("");
       return;
     }
-    setError("Wrong pin.");
+    setError("The tumblers didn’t like that.");
   };
 
   const pickFile = async () => {
@@ -407,6 +410,78 @@ export default function SexyVaultScreen() {
   );
 }
 
+function SafeDial({ spinning = true }: { spinning?: boolean }) {
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!spinning) return;
+    const loop = Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 12000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [spin, spinning]);
+
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <View
+      style={{
+        width: 220,
+        height: 220,
+        borderRadius: 110,
+        backgroundColor: "#1A222A",
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 10,
+        borderColor: "#3A4650",
+        shadowColor: "#000",
+        shadowOpacity: 0.45,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 8 },
+      }}
+    >
+      <Animated.View
+        style={{
+          width: 170,
+          height: 170,
+          borderRadius: 85,
+          borderWidth: 8,
+          borderColor: STEEL,
+          borderStyle: "dashed",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#151C22",
+          transform: spinning ? [{ rotate }] : undefined,
+        }}
+      >
+        <View
+          style={{
+            width: 86,
+            height: 86,
+            borderRadius: 43,
+            backgroundColor: "#2A333C",
+            borderWidth: 3,
+            borderColor: "#5A6772",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name="lock-closed" size={36} color={STEEL} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
 function PinSetup({
   pinDraft,
   pinConfirm,
@@ -423,43 +498,57 @@ function PinSetup({
   onSave: () => void;
 }) {
   return (
-    <View style={{ alignItems: "center", paddingTop: 12 }}>
-      <Text style={{ fontFamily: SERIF, fontSize: 34, color: gold() }}>The Sexy Vault</Text>
+    <View style={{ alignItems: "center", paddingTop: 8 }}>
+      <SafeDial spinning={false} />
+      <Text style={{ marginTop: 18, fontFamily: SERIF, fontSize: 32, color: STEEL }}>
+        Cut a combination
+      </Text>
       <Text
         style={{
           marginTop: 8,
           fontFamily: HANDWRITING,
           fontSize: 20,
-          color: "rgba(228,181,106,0.72)",
+          color: "rgba(197,208,218,0.68)",
           textAlign: "center",
         }}
       >
-        one pin, both of you
+        four or six digits, shared
       </Text>
-      <Text style={lede}>
-        Cut a four- or six-digit key. Photos and clips live here. You can hide one until
-        a time you pick — they still get told something is waiting.
+      <Text
+        style={{
+          marginTop: 12,
+          fontSize: 15,
+          lineHeight: 22,
+          color: "rgba(197,208,218,0.58)",
+          textAlign: "center",
+        }}
+      >
+        A grey safe for the two of you. Photos and clips live behind this
+        wheel. You can hide one until a time you pick — they still get told
+        something is waiting.
       </Text>
       <TextInput
         value={pinDraft}
         onChangeText={(value) => onDraft(digitsOnly(value))}
         {...vaultPinFieldProps()}
-        placeholder="••••"
-        placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle()}
+        placeholder="combination"
+        placeholderTextColor="rgba(197,208,218,0.28)"
+        style={steelPinStyle()}
       />
       <TextInput
         value={pinConfirm}
         onChangeText={(value) => onConfirm(digitsOnly(value))}
         {...vaultPinFieldProps()}
         placeholder="again"
-        placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle()}
+        placeholderTextColor="rgba(197,208,218,0.28)"
+        style={steelPinStyle()}
       />
-      <Pressable onPress={onSave} style={goldBtn()}>
-        <Text style={goldBtnText}>Set the pin</Text>
+      <Pressable onPress={onSave} style={steelBtn()}>
+        <Text style={{ color: SAFE, fontWeight: "800", fontSize: 15 }}>
+          Set combination
+        </Text>
       </Pressable>
-      {error ? <Text style={errText}>{error}</Text> : null}
+      {error ? <Text style={steelErr}>{error}</Text> : null}
     </View>
   );
 }
@@ -476,40 +565,36 @@ function PinGate({
   onUnlock: () => void;
 }) {
   return (
-    <View style={{ alignItems: "center", paddingTop: 18 }}>
-      <View
+    <View style={{ alignItems: "center", paddingTop: 12 }}>
+      <SafeDial />
+      <Text style={{ marginTop: 18, fontFamily: SERIF, fontSize: 28, color: STEEL }}>
+        Vault
+      </Text>
+      <Text
         style={{
-          width: 148,
-          height: 148,
-          borderRadius: 74,
-          borderWidth: 2,
-          borderColor: "rgba(228,181,106,0.45)",
-          backgroundColor: "#1A0C12",
-          alignItems: "center",
-          justifyContent: "center",
+          marginTop: 6,
+          fontFamily: HANDWRITING,
+          fontSize: 18,
+          color: "rgba(197,208,218,0.62)",
         }}
       >
-        <Ionicons name="lock-closed" size={42} color={gold()} />
-      </View>
-      <Text style={{ marginTop: 18, fontFamily: SERIF, fontSize: 28, color: gold() }}>
-        Locked
-      </Text>
-      <Text style={{ marginTop: 6, fontFamily: HANDWRITING, fontSize: 18, color: ROSE }}>
-        enter the shared pin
+        enter the combination
       </Text>
       <TextInput
         value={gate}
         onChangeText={(value) => onGate(digitsOnly(value))}
         {...vaultPinFieldProps()}
-        placeholder="••••"
-        placeholderTextColor="rgba(228,181,106,0.28)"
-        style={pinStyle()}
+        placeholder="combination"
+        placeholderTextColor="rgba(197,208,218,0.28)"
+        style={steelPinStyle()}
         onSubmitEditing={onUnlock}
       />
-      <Pressable onPress={onUnlock} style={goldBtn()}>
-        <Text style={goldBtnText}>Open the vault</Text>
+      <Pressable onPress={onUnlock} style={steelBtn()}>
+        <Text style={{ color: SAFE, fontWeight: "800", fontSize: 15 }}>
+          Turn the wheel
+        </Text>
       </Pressable>
-      {error ? <Text style={errText}>{error}</Text> : null}
+      {error ? <Text style={steelErr}>{error}</Text> : null}
     </View>
   );
 }
@@ -1340,6 +1425,32 @@ const pinStyle = () => ({
   fontSize: 28,
   letterSpacing: 10,
 });
+
+const steelPinStyle = () => ({
+  marginTop: 14,
+  width: "100%" as const,
+  height: 56,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "rgba(197,208,218,0.28)",
+  backgroundColor: "#151C22",
+  color: STEEL,
+  textAlign: "center" as const,
+  fontSize: 28,
+  letterSpacing: 12,
+});
+
+const steelBtn = () => ({
+  marginTop: 16,
+  height: 52,
+  width: "100%" as const,
+  borderRadius: 16,
+  backgroundColor: STEEL,
+  alignItems: "center" as const,
+  justifyContent: "center" as const,
+});
+
+const steelErr = { marginTop: 10, color: "#FF8A8A", textAlign: "center" as const };
 
 const goldBtn = () => ({
   marginTop: 16,

@@ -1,5 +1,9 @@
 import { LookPanel } from "@/components/hub/AppSettings";
-import { GiftModeToggle, GiftNotepad } from "@/components/hub/GiftNotepad";
+import {
+  BoughtList,
+  GiftModeToggle,
+  GiftNotepad,
+} from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -11,6 +15,7 @@ import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
   allOpenItems,
+  boughtItems,
   currentGiftYear,
   ensurePrivatePerson,
   formatGiftDate,
@@ -18,6 +23,7 @@ import {
   GIFT_OCCASIONS,
   givenItems,
   kindLabel,
+  markGiftBought,
   markGiftGiven,
   occasionMeta,
   openItems,
@@ -52,6 +58,7 @@ export default function GiftPersonScreen() {
   const [giveId, setGiveId] = useState<string | null>(null);
   const [giveDate, setGiveDate] = useState(localDateKey());
   const [giveFrom, setGiveFrom] = useState("Us");
+  const [giveOccasion, setGiveOccasion] = useState<GiftOccasionId>("birthday");
   const [error, setError] = useState<string | null>(null);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [removePerson, setRemovePerson] = useState(false);
@@ -68,6 +75,10 @@ export default function GiftPersonScreen() {
   );
   const shop = useMemo(
     () => (person ? openItems(data.giftItems, person.id, "shop") : []),
+    [data.giftItems, person]
+  );
+  const bought = useMemo(
+    () => (person ? boughtItems(data.giftItems, person.id) : []),
     [data.giftItems, person]
   );
   const given = useMemo(
@@ -132,6 +143,7 @@ export default function GiftPersonScreen() {
         dateKey: giveDate || null,
         year: parsedYear,
         from: giveFrom,
+        occasion: giveOccasion,
       }),
     }));
     setSheet(null);
@@ -226,7 +238,7 @@ export default function GiftPersonScreen() {
               toggles={[
                 {
                   key: "hideLedger",
-                  label: "Hide the year book",
+                  label: "Hide the gift book",
                   hint: "Just people and wish lists.",
                 },
                 {
@@ -287,9 +299,10 @@ export default function GiftPersonScreen() {
           />
 
           {classic ? (
+            <>
             <GiftNotepad
               items={allOpenItems(data.giftItems, person.id)}
-              empty="Write a gift. Tick the box when it’s given."
+              empty="Write a gift. Tick the box when you’ve bought it."
               onAdd={(title) => {
                 void patch((state) => ({
                   ...state,
@@ -305,11 +318,7 @@ export default function GiftPersonScreen() {
               onToggle={(item) => {
                 void patch((state) => ({
                   ...state,
-                  giftItems: markGiftGiven(state.giftItems, item.id, {
-                    dateKey: localDateKey(),
-                    year: currentGiftYear(),
-                    from: person.slot === "you" ? person.name : "Us",
-                  }),
+                  giftItems: markGiftBought(state.giftItems, item.id),
                 }));
               }}
               onRemove={setRemoveItemId}
@@ -319,6 +328,20 @@ export default function GiftPersonScreen() {
                   : undefined
               }
             />
+            <BoughtList
+              items={bought}
+              onGive={(item) => {
+                setGiveId(item.id);
+                setGiveFrom(person.slot === "you" ? person.name : "Us");
+                setGiveDate(localDateKey());
+                setGiveOccasion(
+                  item.occasion === "just-because" ? "birthday" : item.occasion
+                );
+                setSheet("give");
+              }}
+              onRemove={setRemoveItemId}
+            />
+            </>
           ) : (
             <>
           <ListBlock
@@ -333,6 +356,9 @@ export default function GiftPersonScreen() {
               setGiveId(item.id);
               setGiveFrom(person.slot === "you" ? person.name : "Us");
               setGiveDate(localDateKey());
+              setGiveOccasion(
+                item.occasion === "just-because" ? "birthday" : item.occasion
+              );
               setSheet("give");
             }}
             onSecret={
@@ -346,7 +372,7 @@ export default function GiftPersonScreen() {
           <ListBlock
             kicker="Shopping"
             title={shopHeading}
-            hint="What you plan to wrap. Mark as given and it lands in the ledger."
+            hint="What you plan to wrap. Give it and it lands in their gift book."
             items={shop}
             empty="Nothing planned. Add a present you’re hunting down."
             action="Add a present"
@@ -355,6 +381,9 @@ export default function GiftPersonScreen() {
               setGiveId(item.id);
               setGiveFrom("Us");
               setGiveDate(localDateKey());
+              setGiveOccasion(
+                item.occasion === "just-because" ? "birthday" : item.occasion
+              );
               setSheet("give");
             }}
             onRemove={setRemoveItemId}
@@ -371,7 +400,7 @@ export default function GiftPersonScreen() {
                 color: T.gold,
               }}
             >
-              WHAT THEY GOT
+              GIFT BOOK
             </Text>
             <Text
               style={{
@@ -381,7 +410,7 @@ export default function GiftPersonScreen() {
               color: T.ink,
             }}
           >
-            Logged gifts
+            What they received
           </Text>
             {given.length === 0 ? (
               <Text
@@ -394,7 +423,7 @@ export default function GiftPersonScreen() {
                 }}
               >
                 Christmas, birthdays, the anniversary bottle — it all collects
-                here once you mark something given or log it from the ledger.
+                here once you give a bought present or log it in the gift book.
               </Text>
             ) : (
               <View
@@ -592,8 +621,43 @@ export default function GiftPersonScreen() {
             {giving.title}
           </Text>
           <Text style={{ marginTop: 4, color: T.muted, fontSize: 13 }}>
-            Lands in the {occasionMeta(giving.occasion).label} page of the ledger.
+            Pick the occasion. It lands in their gift book.
           </Text>
+          <Text style={[label, { marginTop: 16 }]}>Occasion</Text>
+          <View
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            {GIFT_OCCASIONS.map((opt) => {
+              const on = giveOccasion === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => setGiveOccasion(opt.id)}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    backgroundColor: on ? T.ribbon : T.surface,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: on ? T.paper : T.ink,
+                      fontWeight: "700",
+                      fontSize: 13,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
           <Text style={[label, { marginTop: 16 }]}>From</Text>
           <TextInput
             value={giveFrom}
@@ -623,7 +687,7 @@ export default function GiftPersonScreen() {
             }}
           >
             <Text style={{ color: "#1A1408", fontWeight: "800" }}>
-              Save to ledger
+              Save to gift book
             </Text>
           </Pressable>
         </SheetOverlay>
@@ -632,7 +696,7 @@ export default function GiftPersonScreen() {
       <ConfirmDialog
         open={Boolean(removingItem)}
         title={removingItem ? `Remove ${removingItem.title}?` : "Remove"}
-        body="It comes off this list. If it was already given, it leaves the ledger too."
+        body="It comes off this list. If it was already given, it leaves the gift book too."
         confirmLabel="Remove"
         onConfirm={() => void confirmRemoveItem()}
         onCancel={() => setRemoveItemId(null)}
