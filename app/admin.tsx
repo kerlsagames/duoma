@@ -16,6 +16,7 @@ import {
   rowInGroup,
 } from "@/lib/catalog-rows";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { DemoPane } from "@/components/admin/DemoPane";
 import { UsersSpreadsheet } from "@/components/admin/UsersSpreadsheet";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
@@ -30,10 +31,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type Tab = "setup" | "users" | CatalogKey | "spicyLive";
+type Tab = "setup" | "users" | "demo" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
   { id: "setup", label: "Setup" },
+  { id: "demo", label: "Demo" },
   { id: "users", label: "Users" },
   { id: "spicyLive", label: "Copies" },
   { id: "fantasy", label: "Fantasy" },
@@ -203,6 +205,8 @@ export default function AdminScreen() {
           <SetupPane />
         ) : tab === "users" ? (
           <UsersSpreadsheet />
+        ) : tab === "demo" ? (
+          <DemoPane />
         ) : tab === "spicyLive" ? (
           <LiveSpicyPane cards={allCards} profiles={allProfiles} couples={allCouples} />
         ) : (

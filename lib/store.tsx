@@ -1544,21 +1544,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addDemoPartner = useCallback(async (name = "Riley", gender: Gender = "female") => {
-    if (!couple || couple.partnerB) return;
+    if (partner && !partner.isDemo) {
+      throw new Error("This pair already has a real partner. Demo is only for an open pair.");
+    }
+    if (partner?.isDemo) return;
+
+    const stamp = nowIso();
+    let pair = couple;
+    let you = user;
+
+    if (!you) {
+      you = {
+        id: createId(),
+        displayName: "You",
+        gender: gender === "female" ? "male" : "female",
+        lastSeenAt: stamp,
+        createdAt: stamp,
+      };
+      db = { ...db, profiles: [...db.profiles, you] };
+      await rememberUser(you.id);
+    }
+
+    if (!pair) {
+      pair = {
+        id: createId(),
+        inviteCode: uniqueInviteCode(),
+        partnerA: you.id,
+        partnerB: null,
+        createdAt: stamp,
+        pairedAt: null,
+      };
+      db = {
+        ...db,
+        couples: [...db.couples, pair],
+        cards: [...db.cards, ...cloneDefaultDeck(pair.id, you.id)],
+      };
+    }
+
+    if (pair.partnerB) return;
+
+    const pairId = pair.id;
+    const youId = you.id;
     const demo: Profile = {
       id: createId(),
       displayName: name,
       gender,
       isDemo: true,
-      createdAt: nowIso(),
+      createdAt: stamp,
     };
     const today = localDateKey();
     const anniversary = new Date();
     anniversary.setMonth(anniversary.getMonth() + 2);
-    const stamp = nowIso();
     const seededLists: CoupleList[] = STARTER_LISTS.map((def, index) => ({
       id: createId(),
-      coupleId: couple.id,
+      coupleId: pairId,
       title: def.title,
       emoji: def.emoji,
       accent: def.accent,
@@ -1580,7 +1619,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...db,
       profiles: [...db.profiles, demo],
       couples: db.couples.map((row) =>
-        row.id === couple.id
+        row.id === pairId
           ? { ...row, partnerB: demo.id, pairedAt: nowIso() }
           : row
       ),
@@ -1588,7 +1627,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...db.checkIns,
         {
           id: createId(),
-          coupleId: couple.id,
+          coupleId: pairId,
           userId: demo.id,
           date: today,
           energy: 3,
@@ -1606,7 +1645,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...ALL_DESIRE_OPTIONS.filter((_, index) => index % 3 !== 2).map(
           (option) => ({
             id: createId(),
-            coupleId: couple.id,
+            coupleId: pairId,
             userId: demo.id,
             optionId: option.id,
             createdAt: nowIso(),
@@ -1617,7 +1656,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...db.milestones,
         {
           id: createId(),
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Weekend getaway",
           kind: "trip" as const,
           date: localDateKey(anniversary),
@@ -1629,7 +1668,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...db.jarNotes,
         {
           id: createId(),
-          coupleId: couple.id,
+          coupleId: pairId,
           fromUserId: demo.id,
           body: "Thank you for making coffee before I asked.",
           createdAt: nowIso(),
@@ -1638,11 +1677,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
           openOption: "together",
         },
       ],
+      chickenPlays: [
+        ...db.chickenPlays,
+        {
+          id: createId(),
+          coupleId: pairId,
+          fromUserId: demo.id,
+          toUserId: youId,
+          dareId: null,
+          packId: null,
+          yardId: null,
+          text: "Send me a photo of the weirdest thing in the fridge.",
+          status: "offered" as const,
+          createdAt: nowIso(),
+          answeredAt: null,
+          completedAt: null,
+        },
+      ],
       bucketItems: [
         ...db.bucketItems,
         {
           id: createId(),
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Oyster night at the market",
           kind: "meal" as const,
           notes: "Weeknight. No occasion required.",
@@ -1654,7 +1710,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
         {
           id: createId(),
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Coast overnight",
           kind: "trip" as const,
           notes: "Cheap motel is fine.",
@@ -1666,7 +1722,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
       ],
       coupleLists: [
-        ...db.coupleLists.filter((row) => row.coupleId !== couple.id),
+        ...db.coupleLists.filter((row) => row.coupleId !== pairId),
         ...seededLists,
       ],
       listEntries: [
@@ -1674,7 +1730,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: createId(),
           listId: moviesListId,
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Past Lives",
           notes: "",
           createdBy: demo.id,
@@ -1685,7 +1741,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: pastMovieId,
           listId: moviesListId,
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Before Sunrise",
           notes: "",
           createdBy: demo.id,
@@ -1696,7 +1752,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: createId(),
           listId: moviesListId,
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "The Grand Budapest Hotel",
           notes: "",
           createdBy: demo.id,
@@ -1707,7 +1763,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: pastEatId,
           listId: eatListId,
-          coupleId: couple.id,
+          coupleId: pairId,
           title: "Night market noodles",
           notes: "",
           createdBy: demo.id,
@@ -1721,7 +1777,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: createId(),
           entryId: pastMovieId,
-          coupleId: couple.id,
+          coupleId: pairId,
           userId: demo.id,
           stars: 8.4,
           createdAt: stamp,
@@ -1729,7 +1785,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: createId(),
           entryId: pastEatId,
-          coupleId: couple.id,
+          coupleId: pairId,
           userId: demo.id,
           stars: 9.1,
           createdAt: stamp,
@@ -1737,7 +1793,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ],
     };
     await persist();
-  }, [couple]);
+  }, [couple, partner, user]);
 
   const setProfileGender = useCallback(
     async (who: "you" | "partner", gender: Gender) => {
