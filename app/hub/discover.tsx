@@ -258,7 +258,7 @@ export default function DiscoverScreen() {
           fallback="/hub/connect"
           open={settingsOpen}
           onToggle={() => setSettingsOpen((open) => !open)}
-          label="Discover"
+          label="Flirtatious findings"
         />
         {settingsOpen ? (
           <LookPanel
@@ -293,7 +293,7 @@ export default function DiscoverScreen() {
             color: look.accent,
           }}
         >
-          Connect · Discover
+          Connect · Flirtatious findings
         </Text>
         <Text
           style={{
@@ -305,6 +305,17 @@ export default function DiscoverScreen() {
           }}
         >
           Swipe a question
+        </Text>
+        <Text
+          style={{
+            marginTop: 4,
+            fontFamily: SERIF,
+            fontSize: 15,
+            lineHeight: 21,
+            color: T.muted,
+          }}
+        >
+          Chat about cheeky and taboo things with your partner.
         </Text>
         {onDeck && !look.prefs.hideHint ? (
           <Text

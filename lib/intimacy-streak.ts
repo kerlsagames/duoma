@@ -298,6 +298,13 @@ export function buildDayBars(
   return bars;
 }
 
+/** 0 quiet → 10 a very full day of connection. */
+export function dayConnectionScore(bar: DayBar): number {
+  if (bar.total <= 0) return 0;
+  const variety = Math.max(0, bar.segments.length - 1);
+  return Math.max(1, Math.min(10, bar.total * 2 + variety));
+}
+
 export type FireState = {
   /** 0–100. Grows slowly over months; empty days pull it down. */
   level: number;

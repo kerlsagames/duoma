@@ -26,8 +26,7 @@ import {
   type PhotoPrefs,
   type PhotoWeek,
 } from "@/lib/photo-challenge";
-import {
-  emptyWorldChoice,
+import { emptyWorldChoice,
   hydrateWorldChoice,
   type WorldChoice,
 } from "@/lib/worlds";
@@ -36,6 +35,7 @@ import {
   hydrateSexyVault,
   type SexyVaultItem,
 } from "@/lib/sexy-vault";
+import { hydrateVoteIds } from "@/lib/vault-pin";
 import {
   defaultGoals,
   emptyBudget,
@@ -468,8 +468,10 @@ export type MiniState = {
   maintenance: MaintTask[];
   vault: VaultEntry[];
   vaultPin: string;
+  vaultPinResetVotes: string[];
   sexyVault: SexyVaultItem[];
   sexyVaultPin: string;
+  sexyVaultPinResetVotes: string[];
   whoLast: WhoLast[];
   whoTasks: { id: string; label: string }[];
   cheers: Cheer[];
@@ -846,8 +848,10 @@ export function emptyMiniState(): MiniState {
     })),
     vault: DEFAULT_VAULT.map((row) => ({ ...row })),
     vaultPin: "",
+    vaultPinResetVotes: [],
     sexyVault: emptySexyVault(),
     sexyVaultPin: "",
+    sexyVaultPinResetVotes: [],
     whoLast: [],
     whoTasks: DEFAULT_WHO_TASKS.map((row) => ({ ...row })),
     cheers: [],
@@ -960,8 +964,10 @@ export function hydrateMiniState(raw: unknown): MiniState {
     maintenance: asArray(row.maintenance, base.maintenance),
     vault: asArray(row.vault, base.vault),
     vaultPin: typeof row.vaultPin === "string" ? row.vaultPin : "",
+    vaultPinResetVotes: hydrateVoteIds(row.vaultPinResetVotes),
     sexyVault: hydrateSexyVault(row.sexyVault),
     sexyVaultPin: typeof row.sexyVaultPin === "string" ? row.sexyVaultPin : "",
+    sexyVaultPinResetVotes: hydrateVoteIds(row.sexyVaultPinResetVotes),
     whoLast: asArray(row.whoLast, base.whoLast),
     whoTasks: asArray(row.whoTasks, base.whoTasks).filter(keepFairShareItem),
     cheers: asArray(row.cheers, base.cheers),

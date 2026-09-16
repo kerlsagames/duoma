@@ -15,15 +15,17 @@ import { gameResumeHref } from "@/lib/home-status";
 import {
   allHubApps,
   emptyFavoriteSlots,
-  HOME_FAVORITE_SLOTS,
   hubAppById,
   loadHomeFavorites,
+  resizeFavoriteSlots,
   saveHomeFavorites,
   type HomeFavoriteSlot,
   type HubAppOption,
 } from "@/lib/home-favorites";
 import {
   defaultHomeLayout,
+  HOME_FAVORITE_SLOT_MAX,
+  HOME_FAVORITE_SLOT_MIN,
   HOME_HUB_VIEW_OPTIONS,
   loadHomeLayout,
   saveHomeLayout,
@@ -41,10 +43,11 @@ import {
   useHubThemes,
   useThemedHubs,
 } from "@/lib/hub-theme";
-import { HOME_HEADER_WIDGETS } from "@/lib/hubs";
+import { HOME_HEADER_WIDGETS, type HubId } from "@/lib/hubs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { subscribeHomeSettings, subscribeHomeStats } from "@/lib/home-chrome";
 import { useApp } from "@/lib/store";
+import { votePinReset } from "@/lib/vault-pin";
 import { homeWorldWidget } from "@/lib/worlds";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -74,6 +77,10 @@ export default function HomeScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const hubs = useThemedHubs();
+  const visibleHubs = useMemo(
+    () => hubs.filter((hub) => hub.id !== layout.hiddenHubId),
+    [hubs, layout.hiddenHubId]
+  );
   const dailyWidgets = useMemo(() => {
     const world = homeWorldWidget(mini.worldChoice);
     return HOME_HEADER_WIDGETS.filter(
@@ -113,9 +120,9 @@ export default function HomeScreen() {
         loadHomeLayout(),
       ]);
       if (!alive) return;
-      setFavorites(slots);
-      setWallpaperId(paper);
       setLayout(homeLayout);
+      setFavorites(resizeFavoriteSlots(slots, homeLayout.favoriteSlots));
+      setWallpaperId(paper);
     })();
     return () => {
       alive = false;
@@ -140,6 +147,11 @@ export default function HomeScreen() {
   const persistLayout = async (next: HomeLayout) => {
     setLayout(next);
     await saveHomeLayout(next);
+    if (next.favoriteSlots !== layout.favoriteSlots) {
+      const resized = resizeFavoriteSlots(favorites, next.favoriteSlots);
+      setFavorites(resized);
+      await saveHomeFavorites(resized, next.favoriteSlots);
+    }
   };
 
   const persistWallpaper = async (id: HomeWallpaperId) => {
@@ -148,8 +160,9 @@ export default function HomeScreen() {
   };
 
   const persistFavorites = async (next: HomeFavoriteSlot[]) => {
-    setFavorites(next);
-    await saveHomeFavorites(next);
+    const sized = resizeFavoriteSlots(next, layout.favoriteSlots);
+    setFavorites(sized);
+    await saveHomeFavorites(sized, layout.favoriteSlots);
   };
 
   const startSpicy = async () => {
@@ -246,14 +259,17 @@ export default function HomeScreen() {
               : { gap: 8, marginBottom: 14 }
           }
         >
-          {hubs.map((hub) => (
+          {visibleHubs.map((hub, index) => {
+            const gridThree = layout.hubView === "grid" && visibleHubs.length === 3;
+            const fullRow = gridThree && index === 2;
+            return (
             <Pressable
               key={hub.id}
               onPress={() => router.push(hub.href as Href)}
               style={
                 layout.hubView === "grid"
                   ? {
-                      width: "48%",
+                      width: fullRow ? "100%" : "48%",
                       marginBottom: 10,
                       borderRadius: 18,
                       paddingVertical: 12,
@@ -325,7 +341,8 @@ export default function HomeScreen() {
                 ) : null}
               </View>
             </Pressable>
-          ))}
+            );
+          })}
         </View>
 
         {layout.showDaily ? (
@@ -449,8 +466,19 @@ export default function HomeScreen() {
             backgroundColor: "#121218",
           }}
         >
-          <View style={{ flexDirection: "row", gap: favoriteGap }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: favoriteGap,
+            }}
+          >
             {favorites.map((featureId, index) => {
+              const cols = Math.min(4, Math.max(2, favorites.length));
+              const tileWidth =
+                favorites.length <= 4
+                  ? undefined
+                  : `${(100 - (cols - 1) * 2) / cols}%`;
               const app = featureId ? hubAppById(featureId, hubs) : null;
               if (app) {
                 return (
@@ -459,7 +487,8 @@ export default function HomeScreen() {
                     onPress={() => router.push(app.href as Href)}
                     onLongPress={() => void clearFavorite(index)}
                     style={{
-                      flex: 1,
+                      flex: favorites.length <= 4 ? 1 : undefined,
+                      width: tileWidth as never,
                       height: favoriteBox,
                       borderRadius: 14,
                       backgroundColor: "#1A1A22",
@@ -491,7 +520,8 @@ export default function HomeScreen() {
                   key={`fav-empty-${index}`}
                   onPress={() => setPickerSlot(index)}
                   style={{
-                    flex: 1,
+                    flex: favorites.length <= 4 ? 1 : undefined,
+                    width: tileWidth as never,
                     height: favoriteBox,
                     borderRadius: 14,
                     borderWidth: 1.5,
@@ -737,6 +767,7 @@ function HomeSettingsSheet({
     setProfileGender,
   } = useApp();
   const hubThemes = useHubThemes();
+  const hubs = useThemedHubs();
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
@@ -903,6 +934,130 @@ function HomeSettingsSheet({
             on={layout.showFavorites}
             onPress={() => onLayout({ ...layout, showFavorites: !layout.showFavorites })}
           />
+          {layout.showFavorites ? (
+            <View
+              style={{
+                marginBottom: 12,
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+                borderRadius: 14,
+                backgroundColor: "#1A1A22",
+              }}
+            >
+              <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
+                Favorite spots
+              </Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  marginBottom: 10,
+                  color: "rgba(244,244,246,0.5)",
+                  fontSize: 12,
+                  lineHeight: 18,
+                }}
+              >
+                How many pins on Home. {HOME_FAVORITE_SLOT_MIN} to {HOME_FAVORITE_SLOT_MAX}.
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {Array.from(
+                  { length: HOME_FAVORITE_SLOT_MAX - HOME_FAVORITE_SLOT_MIN + 1 },
+                  (_, i) => i + HOME_FAVORITE_SLOT_MIN
+                ).map((count) => {
+                  const on = layout.favoriteSlots === count;
+                  return (
+                    <Pressable
+                      key={count}
+                      onPress={() => onLayout({ ...layout, favoriteSlots: count })}
+                      style={{
+                        minWidth: 40,
+                        height: 36,
+                        paddingHorizontal: 12,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: on ? "rgba(255,0,127,0.18)" : "#121218",
+                        borderWidth: 1,
+                        borderColor: on ? "#FF007F" : "rgba(255,255,255,0.1)",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: on ? "#FF007F" : "#F4F4F6",
+                          fontWeight: "800",
+                          fontSize: 14,
+                        }}
+                      >
+                        {count}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          <Text
+            style={{
+              marginTop: 8,
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 1.6,
+              color: "rgba(244,244,246,0.45)",
+              marginBottom: 8,
+            }}
+          >
+            HIDE A HUB
+          </Text>
+          <Text
+            style={{
+              marginBottom: 10,
+              color: "rgba(244,244,246,0.55)",
+              fontSize: 13,
+              lineHeight: 18,
+            }}
+          >
+            Hide one of the four sections if you don’t want it on Home. The other
+            three stay. Tap again to bring it back.
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            {hubs.map((hub) => {
+              const on = layout.hiddenHubId === hub.id;
+              const blocked = Boolean(layout.hiddenHubId) && !on;
+              return (
+                <Pressable
+                  key={hub.id}
+                  disabled={blocked}
+                  onPress={() =>
+                    onLayout({
+                      ...layout,
+                      hiddenHubId: on ? null : (hub.id as HubId),
+                    })
+                  }
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    borderRadius: 14,
+                    opacity: blocked ? 0.4 : 1,
+                    backgroundColor: on ? "rgba(255,0,127,0.18)" : "#1A1A22",
+                    borderWidth: 1,
+                    borderColor: on ? "#FF007F" : "rgba(255,255,255,0.1)",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: on ? "#FF007F" : "#F4F4F6",
+                      fontWeight: "700",
+                      fontSize: 13,
+                    }}
+                  >
+                    {on ? `Hidden: ${hub.label}` : hub.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <VaultPinResetBlock />
 
           <HubColorSectionLabel />
           <HubColorPicker themes={hubThemes} />
@@ -1234,6 +1389,128 @@ function HomeSettingsSheet({
           </Pressable>
         </ScrollView>
       </View>
+    </View>
+  );
+}
+
+function VaultPinResetBlock() {
+  const { user, partner } = useApp();
+  const { data, patch } = useMiniApps();
+  const [flash, setFlash] = useState<string | null>(null);
+
+  const emergencyOn = Boolean(data.vaultPin);
+  const sexyOn = Boolean(data.sexyVaultPin);
+  if (!emergencyOn && !sexyOn) return null;
+
+  const them = partner?.displayName || "your partner";
+
+  const tapReset = async (kind: "vault" | "sexy") => {
+    if (!user?.id) {
+      setFlash("Sign in first.");
+      return;
+    }
+    if (!partner?.id) {
+      setFlash("Need your partner on the other phone too.");
+      return;
+    }
+    const current = kind === "vault" ? data.vaultPinResetVotes : data.sexyVaultPinResetVotes;
+    const result = votePinReset({
+      votes: current,
+      userId: user.id,
+      partnerId: partner.id,
+      partnerIsDemo: Boolean(partner.isDemo),
+    });
+    if (result.reset) {
+      await patch((state) =>
+        kind === "vault"
+          ? { ...state, vaultPin: "", vaultPinResetVotes: [] }
+          : { ...state, sexyVaultPin: "", sexyVaultPinResetVotes: [] }
+      );
+      setFlash(
+        partner.isDemo
+          ? `${them} confirmed. Pin cleared.`
+          : "Both of you tapped reset. Pin cleared."
+      );
+      return;
+    }
+    await patch((state) =>
+      kind === "vault"
+        ? { ...state, vaultPinResetVotes: result.votes }
+        : { ...state, sexyVaultPinResetVotes: result.votes }
+    );
+    setFlash(`Waiting for ${them} to tap Reset too.`);
+  };
+
+  const row = (
+    kind: "vault" | "sexy",
+    label: string,
+    votes: string[]
+  ) => {
+    const youVoted = Boolean(user?.id && votes.includes(user.id));
+    const theyVoted = Boolean(partner?.id && votes.includes(partner.id));
+    return (
+      <View
+        key={kind}
+        style={{
+          marginBottom: 8,
+          paddingVertical: 12,
+          paddingHorizontal: 12,
+          borderRadius: 14,
+          backgroundColor: "#1A1A22",
+        }}
+      >
+        <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>{label}</Text>
+        <Text
+          style={{
+            marginTop: 4,
+            marginBottom: 10,
+            color: "rgba(244,244,246,0.5)",
+            fontSize: 12,
+            lineHeight: 18,
+          }}
+        >
+          Forgot it? Both of you tap Reset in Home settings. One hacked phone
+          isn’t enough.
+        </Text>
+        <Pressable
+          onPress={() => void tapReset(kind)}
+          style={{
+            alignSelf: "flex-start",
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderRadius: 12,
+            backgroundColor: youVoted ? "rgba(255,0,127,0.18)" : "#121218",
+            borderWidth: 1,
+            borderColor: "#FF007F",
+          }}
+        >
+          <Text style={{ color: "#FF007F", fontWeight: "800", fontSize: 13 }}>
+            {youVoted && !theyVoted ? "Waiting for them" : "Reset pin"}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  };
+
+  return (
+    <View style={{ marginBottom: 8 }}>
+      <Text
+        style={{
+          marginTop: 8,
+          fontFamily: "SpaceMono",
+          fontSize: 11,
+          letterSpacing: 1.6,
+          color: "rgba(244,244,246,0.45)",
+          marginBottom: 8,
+        }}
+      >
+        VAULT PINS
+      </Text>
+      {emergencyOn ? row("vault", "Emergency vault", data.vaultPinResetVotes) : null}
+      {sexyOn ? row("sexy", "Sexy vault", data.sexyVaultPinResetVotes) : null}
+      {flash ? (
+        <Text style={{ marginBottom: 8, color: "#FF007F", fontSize: 12 }}>{flash}</Text>
+      ) : null}
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const ERRAND_PREFS_KEY = "duoma:errandPrefs";
+export const ERRAND_PREFS_KEY = "duoma:errandPrefs:v2";
 
 export type QuickAddItem = {
   emoji: string;
@@ -14,13 +14,20 @@ export type ErrandPrefs = {
 export const DEFAULT_QUICK_GROCERIES: QuickAddItem[] = [
   { emoji: "🥛", label: "Milk" },
   { emoji: "🍞", label: "Bread" },
+  { emoji: "🥩", label: "Mince" },
+  { emoji: "🍗", label: "Chicken" },
+  { emoji: "🍎", label: "Apples" },
+  { emoji: "🍌", label: "Bananas" },
+];
+
+/** Settings catalog — plus to put on the pad, minus to take off the pad only. */
+export const QUICK_GROCERY_CATALOG: QuickAddItem[] = [
+  ...DEFAULT_QUICK_GROCERIES,
   { emoji: "🥚", label: "Eggs" },
   { emoji: "🧈", label: "Butter" },
   { emoji: "🧀", label: "Cheese" },
   { emoji: "🥛", label: "Yoghurt" },
   { emoji: "🥛", label: "Cream" },
-  { emoji: "🍎", label: "Apples" },
-  { emoji: "🍌", label: "Bananas" },
   { emoji: "🍓", label: "Berries" },
   { emoji: "🍋", label: "Lemons" },
   { emoji: "🥑", label: "Avocado" },
@@ -36,9 +43,7 @@ export const DEFAULT_QUICK_GROCERIES: QuickAddItem[] = [
   { emoji: "🍄", label: "Mushrooms" },
   { emoji: "🌽", label: "Corn" },
   { emoji: "🫚", label: "Ginger" },
-  { emoji: "🍗", label: "Chicken" },
   { emoji: "🥩", label: "Beef" },
-  { emoji: "🥩", label: "Mince" },
   { emoji: "🥓", label: "Bacon" },
   { emoji: "🌭", label: "Sausages" },
   { emoji: "🐟", label: "Salmon" },
@@ -123,6 +128,15 @@ export function hydrateQuickAdd(raw: unknown): QuickAddItem[] {
 
 export function defaultErrandPrefs(): ErrandPrefs {
   return { quickAdd: DEFAULT_QUICK_GROCERIES.map((row) => ({ ...row })) };
+}
+
+export function itemKey(item: QuickAddItem): string {
+  return item.label.trim().toLowerCase();
+}
+
+export function isOnQuickPad(pad: QuickAddItem[], item: QuickAddItem): boolean {
+  const key = itemKey(item);
+  return pad.some((row) => itemKey(row) === key);
 }
 
 export async function readErrandPrefs(): Promise<ErrandPrefs> {

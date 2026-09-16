@@ -62,6 +62,15 @@ export function addDaysToDateKey(key: string, days: number): string {
   return localDateKey(date);
 }
 
+/** Next occurrence of a weekday (0 Sun–6 Sat). Same day counts as this week. */
+export function upcomingWeekday(weekday: number, from = new Date()): string {
+  const date = new Date(from);
+  date.setHours(12, 0, 0, 0);
+  const delta = (weekday - date.getDay() + 7) % 7;
+  date.setDate(date.getDate() + delta);
+  return localDateKey(date);
+}
+
 /** Local clock on a date key. */
 export function dateAtLocalHours(
   key: string,

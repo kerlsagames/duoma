@@ -4,6 +4,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
+import { addDaysToDateKey, localDateKey, upcomingWeekday } from "@/lib/dates";
 import {
   categoryMeta,
   pickRandomPosition,
@@ -47,6 +48,7 @@ export default function PositionsScreen() {
     savePosition,
     markPositionSaveDone,
     ratePlayItem,
+    addCalendarEvent,
   } = useApp();
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const partnerName = partner?.displayName ?? "them";
@@ -61,6 +63,7 @@ export default function PositionsScreen() {
   const [sending, setSending] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [scheduledFlash, setScheduledFlash] = useState<string | null>(null);
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -131,6 +134,7 @@ export default function PositionsScreen() {
   const skip = () => {
     setSentFlash(false);
     setSavedFlash(false);
+    setScheduledFlash(null);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -147,7 +151,6 @@ export default function PositionsScreen() {
       await savePosition(current.id);
       await sendPositionInvite(current.id);
       setSentFlash(true);
-      setTab("todo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
     } finally {
@@ -161,9 +164,26 @@ export default function PositionsScreen() {
     try {
       await savePosition(current.id);
       setSavedFlash(true);
-      setTab("todo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save.");
+    }
+  };
+
+  const scheduleOn = async (dateKey: string, label: string) => {
+    if (!current) return;
+    setError(null);
+    try {
+      await savePosition(current.id);
+      await addCalendarEvent({
+        title: `Try ${current.name}`,
+        notes: current.blurb,
+        date: dateKey,
+        allDay: true,
+      });
+      setSavedFlash(true);
+      setScheduledFlash(label);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not put it on the calendar.");
     }
   };
 
@@ -368,6 +388,20 @@ export default function PositionsScreen() {
               </Text>
             ) : null}
 
+            {scheduledFlash ? (
+              <Text
+                style={{
+                  marginTop: 8,
+                  textAlign: "center",
+                  color: T.accent,
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                On the calendar for {scheduledFlash}.
+              </Text>
+            ) : null}
+
             <View style={{ marginTop: 16, gap: 10 }}>
               <PrimaryButton
                 label="Save to to-do"
@@ -380,6 +414,57 @@ export default function PositionsScreen() {
                 loading={sending}
                 onPress={() => void send()}
               />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <Pressable
+                  onPress={() => void scheduleOn(localDateKey(), "tonight")}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.16)",
+                  }}
+                >
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                    Tonight
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    void scheduleOn(upcomingWeekday(6), "this Saturday")
+                  }
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.16)",
+                  }}
+                >
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                    This Saturday
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    void scheduleOn(
+                      addDaysToDateKey(upcomingWeekday(6), 7),
+                      "next Saturday"
+                    )
+                  }
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.16)",
+                  }}
+                >
+                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 12 }}>
+                    Next Saturday
+                  </Text>
+                </Pressable>
+              </View>
               <PrimaryButton label="Skip" tone="ghost" onPress={skip} />
             </View>
           </View>

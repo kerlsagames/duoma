@@ -1,6 +1,7 @@
+import type { HubId } from "@/lib/hubs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const HOME_LAYOUT_KEY = "duoma:homeLayout:v1";
+export const HOME_LAYOUT_KEY = "duoma:homeLayout:v2";
 
 export type HomeHubView = "grid" | "list" | "compact";
 
@@ -11,6 +12,10 @@ export type HomeLayout = {
   showFavorites: boolean;
   /** Shared world tile on Daily rhythm. Off until they add it in Home settings. */
   showWorld: boolean;
+  /** Hide at most one of the four hubs. */
+  hiddenHubId: HubId | null;
+  /** How many favorite spots on Home. */
+  favoriteSlots: number;
 };
 
 export const HOME_HUB_VIEW_OPTIONS: {
@@ -35,6 +40,20 @@ export const HOME_HUB_VIEW_OPTIONS: {
   },
 ];
 
+export const HOME_FAVORITE_SLOT_MIN = 2;
+export const HOME_FAVORITE_SLOT_MAX = 8;
+export const HOME_FAVORITE_SLOTS_DEFAULT = 4;
+
+export function clampFavoriteSlotCount(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return HOME_FAVORITE_SLOTS_DEFAULT;
+  }
+  return Math.min(
+    HOME_FAVORITE_SLOT_MAX,
+    Math.max(HOME_FAVORITE_SLOT_MIN, Math.round(value))
+  );
+}
+
 export function defaultHomeLayout(): HomeLayout {
   return {
     hubView: "grid",
@@ -42,7 +61,21 @@ export function defaultHomeLayout(): HomeLayout {
     showDaily: true,
     showFavorites: true,
     showWorld: false,
+    hiddenHubId: null,
+    favoriteSlots: HOME_FAVORITE_SLOTS_DEFAULT,
   };
+}
+
+function asHubId(value: unknown): HubId | null {
+  if (
+    value === "connect" ||
+    value === "desire" ||
+    value === "play" ||
+    value === "home-base"
+  ) {
+    return value;
+  }
+  return null;
 }
 
 export function hydrateHomeLayout(raw: unknown): HomeLayout {
@@ -60,13 +93,17 @@ export function hydrateHomeLayout(raw: unknown): HomeLayout {
     showFavorites:
       typeof row.showFavorites === "boolean" ? row.showFavorites : base.showFavorites,
     showWorld: typeof row.showWorld === "boolean" ? row.showWorld : base.showWorld,
+    hiddenHubId: asHubId(row.hiddenHubId),
+    favoriteSlots: clampFavoriteSlotCount(row.favoriteSlots),
   };
 }
 
 export async function loadHomeLayout(): Promise<HomeLayout> {
   try {
     const raw = await AsyncStorage.getItem(HOME_LAYOUT_KEY);
-    return hydrateHomeLayout(raw ? JSON.parse(raw) : null);
+    if (raw) return hydrateHomeLayout(JSON.parse(raw));
+    const legacy = await AsyncStorage.getItem("duoma:homeLayout:v1");
+    return hydrateHomeLayout(legacy ? JSON.parse(legacy) : null);
   } catch {
     return defaultHomeLayout();
   }

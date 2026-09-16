@@ -126,9 +126,6 @@ export default function DailyWordScreen() {
               <Text style={{ marginTop: 4, fontFamily: SERIF, fontSize: 32, color: theme.text }}>
                 Daily Word
               </Text>
-              <Text style={{ marginTop: 4, color: theme.muted, fontFamily: SERIF, fontSize: 16 }}>
-                Same five-letter word. Six tries. First to land it wins.
-              </Text>
             </View>
             <Pressable
               onPress={() => setSettingsOpen(true)}
@@ -395,6 +392,7 @@ function Keyboard({
           {row.map((key) => {
             const wide = key === "ENTER" || key === "DEL";
             const mark = marks[key];
+            const absent = mark === "absent";
             return (
               <Pressable
                 key={key}
@@ -408,17 +406,27 @@ function Keyboard({
                   height: 44,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: mark ? theme[mark] : theme.key,
+                  backgroundColor: absent
+                    ? "#6B6B70"
+                    : mark
+                      ? theme[mark]
+                      : theme.key,
                   borderRadius: 4,
                 }}
               >
                 <Text
                   style={{
-                    color: mark ? "#FFFFFF" : theme.keyText,
+                    color: absent
+                      ? "rgba(255,255,255,0.72)"
+                      : mark
+                        ? "#FFFFFF"
+                        : theme.keyText,
                     fontSize: wide ? 11 : 13,
                     fontWeight: "800",
+                    textDecorationLine: absent ? "line-through" : "none",
                   }}
                 >
+                  {absent && !wide ? "✕ " : ""}
                   {key}
                 </Text>
               </Pressable>

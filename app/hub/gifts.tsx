@@ -18,12 +18,14 @@ import {
   givenItems,
   groupedPeople,
   groupGivenByOccasion,
+  giftYearChoices,
   kindLabel,
   occasionMeta,
   PERSON_EMOJIS,
   personById,
   removeGiftPerson,
   shopCount,
+  visibleGiftPeople,
   wishCount,
   yearsInLedger,
   type GiftOccasionId,
@@ -56,8 +58,9 @@ export default function GiftsScreen() {
   const [logTitle, setLogTitle] = useState("");
   const [logFrom, setLogFrom] = useState("Us");
   const [logOccasion, setLogOccasion] = useState<GiftOccasionId>("christmas");
-  const [logYear, setLogYear] = useState(String(currentGiftYear()));
+  const [logYear, setLogYear] = useState(currentGiftYear());
   const [logDate, setLogDate] = useState(localDateKey());
+  const [hiddenList, setHiddenList] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
@@ -73,7 +76,10 @@ export default function GiftsScreen() {
     void patch((state) => ({ ...state, giftPeople: next }));
   }, [ready, data.giftPeople, user?.displayName, partner?.displayName, patch]);
 
-  const groups = useMemo(() => groupedPeople(data.giftPeople), [data.giftPeople]);
+  const groups = useMemo(
+    () => groupedPeople(visibleGiftPeople(data.giftPeople, user?.id)),
+    [data.giftPeople, user?.id]
+  );
   const years = useMemo(
     () => yearsInLedger(data.giftItems, currentGiftYear()),
     [data.giftItems]
@@ -93,6 +99,7 @@ export default function GiftsScreen() {
     setName("");
     setKind("child");
     setEmoji("🧸");
+    setHiddenList(false);
     setError(null);
   };
 
@@ -101,7 +108,7 @@ export default function GiftsScreen() {
     setLogTitle("");
     setLogFrom("Us");
     setLogOccasion("christmas");
-    setLogYear(String(currentGiftYear()));
+    setLogYear(currentGiftYear());
     setLogDate(localDateKey());
     setError(null);
   };
@@ -114,7 +121,13 @@ export default function GiftsScreen() {
     setError(null);
     await patch((state) => ({
       ...state,
-      giftPeople: addGiftPerson(state.giftPeople, { name, kind, emoji }),
+      giftPeople: addGiftPerson(state.giftPeople, {
+        name,
+        kind,
+        emoji,
+        hidden: hiddenList,
+        ownerUserId: hiddenList ? user?.id ?? null : null,
+      }),
     }));
     resetPerson();
   };
@@ -129,7 +142,7 @@ export default function GiftsScreen() {
       setError("What did they get?");
       return;
     }
-    const year = Number(logYear);
+    const year = logYear;
     if (!Number.isFinite(year) || year < 1990 || year > currentGiftYear() + 1) {
       setError("Pick a real year.");
       return;
@@ -294,6 +307,14 @@ export default function GiftsScreen() {
                 people={groups.rest}
                 items={data.giftItems}
                 empty="Parents, friends, the people you always shop late for."
+                onOpen={(id) => router.push(`/hub/gifts/${id}` as Href)}
+                onRemove={setRemoveId}
+              />
+              <PersonGroup
+                kicker="Just you"
+                people={groups.privateLists}
+                items={data.giftItems}
+                empty="A list your partner can’t see. Steal from their wish list into this one."
                 onOpen={(id) => router.push(`/hub/gifts/${id}` as Href)}
                 onRemove={setRemoveId}
               />
@@ -583,6 +604,40 @@ export default function GiftsScreen() {
               );
             })}
           </View>
+          <Pressable
+            onPress={() => {
+              setHiddenList((value) => {
+                const next = !value;
+                if (next) setEmoji("🔒");
+                return next;
+              });
+            }}
+            style={{
+              marginTop: 16,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: hiddenList ? T.gold : T.border,
+              backgroundColor: hiddenList ? T.goldSoft : T.surface,
+              padding: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <Ionicons
+              name={hiddenList ? "eye-off" : "eye-outline"}
+              size={18}
+              color={hiddenList ? T.gold : T.muted}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: T.ink, fontWeight: "700", fontSize: 15 }}>
+                Partner can’t see this
+              </Text>
+              <Text style={{ marginTop: 2, color: T.muted, fontSize: 12 }}>
+                A private shopping list. Send wishes here so they don’t spoil.
+              </Text>
+            </View>
+          </Pressable>
           {error ? (
             <Text style={{ marginTop: 12, color: T.ribbon, fontFamily: SERIF }}>
               {error}
@@ -669,14 +724,7 @@ export default function GiftsScreen() {
           <Text style={[label, { marginTop: 14 }]}>Occasion</Text>
           <OccasionChips value={logOccasion} onChange={setLogOccasion} />
           <Text style={[label, { marginTop: 14 }]}>Year</Text>
-          <TextInput
-            value={logYear}
-            onChangeText={setLogYear}
-            keyboardType="number-pad"
-            placeholder="2026"
-            placeholderTextColor={T.dim}
-            style={field}
-          />
+          <YearChips value={logYear} onChange={setLogYear} />
           <CalendarDateField
             label="When"
             value={logDate}
@@ -753,7 +801,7 @@ function PersonGroup({
           {empty}
         </Text>
       ) : (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 4 }}>
           {people.map((person) => {
             const shop = shopCount(items, person.id);
             const wishes = wishCount(items, person.id);
@@ -765,53 +813,48 @@ function PersonGroup({
                   person.slot || !onRemove ? undefined : () => onRemove(person.id)
                 }
                 style={{
-                  borderRadius: 18,
+                  borderRadius: 10,
                   backgroundColor: T.paper,
-                  padding: 14,
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 10,
+                  minHeight: 44,
                 }}
               >
-                <View
-                  style={{
-                    height: 48,
-                    width: 48,
-                    borderRadius: 16,
-                    backgroundColor: T.tag,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ fontSize: 24 }}>{person.emoji}</Text>
-                </View>
+                <Text style={{ fontSize: 18, width: 24, textAlign: "center" }}>
+                  {person.emoji}
+                </Text>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
                       fontFamily: SERIF,
-                      fontSize: 18,
+                      fontSize: 16,
                       color: T.paperInk,
                       fontWeight: "700",
                     }}
+                    numberOfLines={1}
                   >
                     {person.name}
+                    {person.hidden ? "  · private" : ""}
                   </Text>
-                  <Text style={{ marginTop: 2, fontSize: 12, color: T.paperMuted }}>
+                  <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
                     {kindLabel(person.kind)}
                     {wishes ? ` · ${wishes} wish${wishes === 1 ? "" : "es"}` : ""}
                     {shop ? ` · ${shop} to get` : ""}
-                    {!wishes && !shop ? " · lists are empty" : ""}
+                    {!wishes && !shop ? " · empty" : ""}
                   </Text>
                 </View>
                 {person.slot || !onRemove ? (
-                  <Ionicons name="chevron-forward" size={18} color={T.ribbon} />
+                  <Ionicons name="chevron-forward" size={16} color={T.ribbon} />
                 ) : (
                   <Pressable
                     onPress={() => onRemove(person.id)}
                     hitSlop={8}
                     accessibilityLabel={`Remove ${person.name}`}
                   >
-                    <Ionicons name="trash-outline" size={18} color={T.ribbon} />
+                    <Ionicons name="trash-outline" size={16} color={T.ribbon} />
                   </Pressable>
                 )}
               </Pressable>
@@ -845,9 +888,10 @@ function WishCard({
     <Pressable
       onPress={onOpen}
       style={{
-        borderRadius: 18,
+        borderRadius: 12,
         backgroundColor: T.paper,
-        padding: 16,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
       }}
     >
       <Text
@@ -892,6 +936,47 @@ function WishCard({
         </View>
       )}
     </Pressable>
+  );
+}
+
+function YearChips({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (year: number) => void;
+}) {
+  const years = giftYearChoices();
+  return (
+    <View style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      {years.map((year) => {
+        const on = year === value;
+        return (
+          <Pressable
+            key={year}
+            onPress={() => onChange(year)}
+            style={{
+              borderRadius: 999,
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              backgroundColor: on ? T.gold : T.surface,
+              borderWidth: 1,
+              borderColor: on ? T.gold : T.border,
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "700",
+                fontSize: 13,
+                color: on ? "#1A1408" : T.ink,
+              }}
+            >
+              {year}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 

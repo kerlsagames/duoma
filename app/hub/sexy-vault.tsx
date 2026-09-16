@@ -19,6 +19,7 @@ import {
   type SexyVaultKind,
 } from "@/lib/sexy-vault";
 import { useApp } from "@/lib/store";
+import { digitsOnly, isVaultPin, VAULT_PIN_MAX, vaultPinHint } from "@/lib/vault-pin";
 import {
   defaultCustomDateTime,
   formatExactWhen,
@@ -30,6 +31,7 @@ import type { Href } from "expo-router";
 import { createElement, useEffect, useMemo, useState } from "react";
 import {
   Image,
+  Modal,
   Platform,
   Pressable,
   Text,
@@ -88,8 +90,8 @@ export default function SexyVaultScreen() {
   const viewing = items.find((row) => row.id === viewId) ?? null;
 
   const setPin = async (next: string) => {
-    if (!/^\d{4}$/.test(next)) {
-      setError("Four digits. Something you’ll both remember.");
+    if (!isVaultPin(next)) {
+      setError(vaultPinHint());
       return false;
     }
     setError(null);
@@ -380,14 +382,14 @@ function PinSetup({
         one pin, both of you
       </Text>
       <Text style={lede}>
-        Cut a four-digit key. Photos and clips live here. You can hide one until
+        Cut a four- or six-digit key. Photos and clips live here. You can hide one until
         a time you pick — they still get told something is waiting.
       </Text>
       <TextInput
         value={pinDraft}
-        onChangeText={onDraft}
+        onChangeText={(value) => onDraft(digitsOnly(value))}
         keyboardType="number-pad"
-        maxLength={4}
+        maxLength={VAULT_PIN_MAX}
         secureTextEntry
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
@@ -395,9 +397,9 @@ function PinSetup({
       />
       <TextInput
         value={pinConfirm}
-        onChangeText={onConfirm}
+        onChangeText={(value) => onConfirm(digitsOnly(value))}
         keyboardType="number-pad"
-        maxLength={4}
+        maxLength={VAULT_PIN_MAX}
         secureTextEntry
         placeholder="again"
         placeholderTextColor="rgba(228,181,106,0.28)"
@@ -446,9 +448,9 @@ function PinGate({
       </Text>
       <TextInput
         value={gate}
-        onChangeText={onGate}
+        onChangeText={(value) => onGate(digitsOnly(value))}
         keyboardType="number-pad"
-        maxLength={4}
+        maxLength={VAULT_PIN_MAX}
         secureTextEntry
         placeholder="••••"
         placeholderTextColor="rgba(228,181,106,0.28)"
@@ -526,9 +528,9 @@ function VaultHome({
         <View style={{ marginTop: 12 }}>
           <TextInput
             value={pinDraft}
-            onChangeText={onDraft}
+            onChangeText={(value) => onDraft(digitsOnly(value))}
             keyboardType="number-pad"
-            maxLength={4}
+            maxLength={VAULT_PIN_MAX}
             secureTextEntry
             placeholder="new pin"
             placeholderTextColor="rgba(228,181,106,0.28)"
@@ -536,9 +538,9 @@ function VaultHome({
           />
           <TextInput
             value={pinConfirm}
-            onChangeText={onConfirm}
+            onChangeText={(value) => onConfirm(digitsOnly(value))}
             keyboardType="number-pad"
-            maxLength={4}
+            maxLength={VAULT_PIN_MAX}
             secureTextEntry
             placeholder="again"
             placeholderTextColor="rgba(228,181,106,0.28)"
@@ -575,17 +577,30 @@ function VaultHome({
                 }}
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <Ionicons
-                    name={
-                      locked
-                        ? "lock-closed"
-                        : item.kind === "video"
-                          ? "videocam"
-                          : "image"
-                    }
-                    size={20}
-                    color={locked ? gold() : ROSE}
-                  />
+                  {!locked && item.uri && item.kind === "photo" ? (
+                    <Image
+                      source={{ uri: item.uri }}
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        backgroundColor: "#1A0C12",
+                      }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Ionicons
+                      name={
+                        locked
+                          ? "lock-closed"
+                          : item.kind === "video"
+                            ? "videocam"
+                            : "image"
+                      }
+                      size={22}
+                      color={locked ? gold() : ROSE}
+                    />
+                  )}
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: INK, fontWeight: "700", fontSize: 15 }}>
                       {locked
@@ -669,10 +684,13 @@ function Compose({
       <Text style={{ marginTop: 6, fontFamily: HANDWRITING, fontSize: 18, color: ROSE }}>
         for {them}
       </Text>
-      <Pressable onPress={onPick} style={[ghostBtn, { marginTop: 18 }]}>
-        <Text style={ghostBtnText}>
-          {pending ? "Swap the file" : "Choose a photo or video"}
-        </Text>
+      <Pressable onPress={onPick} style={[goldBtn(), { marginTop: 18, height: 64 }]}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Ionicons name="cloud-upload-outline" size={22} color="#1A1008" />
+          <Text style={[goldBtnText, { fontSize: 16 }]}>
+            {pending ? "Swap the file" : "Choose a photo or video"}
+          </Text>
+        </View>
       </Pressable>
       {pending ? <MediaPreview kind={pending.kind} src={pending.preview} /> : null}
       <TextInput
@@ -810,33 +828,103 @@ function Viewer({
   );
 }
 
-function MediaPreview({ kind, src }: { kind: SexyVaultKind; src: string }) {
-  if (kind === "video" && Platform.OS === "web") {
-    return createElement("video", {
-      src,
-      controls: true,
-      playsInline: true,
-      style: {
-        width: "100%",
-        marginTop: 14,
-        borderRadius: 18,
-        backgroundColor: "#000",
-        maxHeight: 420,
-      },
-    });
-  }
+function MediaPreview({
+  kind,
+  src,
+  tappable = true,
+}: {
+  kind: SexyVaultKind;
+  src: string;
+  tappable?: boolean;
+}) {
+  const [full, setFull] = useState(false);
+  const body =
+    kind === "video" && Platform.OS === "web" ? (
+      createElement("video", {
+        src,
+        controls: true,
+        playsInline: true,
+        style: {
+          width: "100%",
+          marginTop: 14,
+          borderRadius: 18,
+          backgroundColor: "#000",
+          maxHeight: 420,
+        },
+      })
+    ) : (
+      <Image
+        source={{ uri: src }}
+        style={{
+          width: "100%",
+          height: 320,
+          marginTop: 14,
+          borderRadius: 18,
+          backgroundColor: "#1A0C12",
+        }}
+        resizeMode="cover"
+      />
+    );
+
   return (
-    <Image
-      source={{ uri: src }}
-      style={{
-        width: "100%",
-        height: 320,
-        marginTop: 14,
-        borderRadius: 18,
-        backgroundColor: "#1A0C12",
-      }}
-      resizeMode="cover"
-    />
+    <View>
+      <Pressable disabled={!tappable} onPress={() => tappable && setFull(true)}>
+        {body}
+        {tappable && kind !== "video" ? (
+          <Text
+            style={{
+              marginTop: 6,
+              textAlign: "center",
+              color: "rgba(246,231,220,0.5)",
+              fontSize: 12,
+            }}
+          >
+            Tap to see full screen
+          </Text>
+        ) : null}
+      </Pressable>
+      <Modal visible={full} transparent animationType="fade" onRequestClose={() => setFull(false)}>
+        <Pressable
+          onPress={() => setFull(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.94)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          {kind === "video" && Platform.OS === "web" ? (
+            createElement("video", {
+              src,
+              controls: true,
+              autoPlay: true,
+              playsInline: true,
+              style: {
+                width: "100%",
+                maxHeight: "90%",
+                backgroundColor: "#000",
+              },
+            })
+          ) : (
+            <Image
+              source={{ uri: src }}
+              style={{ width: "100%", height: "90%" }}
+              resizeMode="contain"
+            />
+          )}
+          <Text
+            style={{
+              marginTop: 12,
+              color: "rgba(246,231,220,0.7)",
+              fontSize: 13,
+            }}
+          >
+            Tap anywhere to close
+          </Text>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }
 

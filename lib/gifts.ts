@@ -24,6 +24,9 @@ export type GiftPerson = {
   emoji: string;
   notes: string;
   slot: GiftPersonSlot | null;
+  /** Partner never sees this list. */
+  hidden: boolean;
+  ownerUserId: string | null;
   createdAt: string;
 };
 
@@ -95,6 +98,11 @@ export function emptyGifts(): { people: GiftPerson[]; items: GiftItem[] } {
 
 export function currentGiftYear(from = new Date()): number {
   return from.getFullYear();
+}
+
+export function giftYearChoices(from = new Date()): number[] {
+  const year = currentGiftYear(from);
+  return [year + 1, year, year - 1, year - 2, year - 3];
 }
 
 export function occasionMeta(id: GiftOccasionId) {
@@ -200,6 +208,8 @@ export function ensureCouplePeople(
         emoji: "✨",
         notes: "",
         slot: "you",
+        hidden: false,
+        ownerUserId: null,
         createdAt: nowIso(),
       },
       ...next,
@@ -220,6 +230,8 @@ export function ensureCouplePeople(
         emoji: "💛",
         notes: "",
         slot: "them",
+        hidden: false,
+        ownerUserId: null,
         createdAt: nowIso(),
       },
       ...next.slice(insertAt),
@@ -232,19 +244,29 @@ export function ensureCouplePeople(
 
 export function addGiftPerson(
   people: GiftPerson[],
-  input: { name: string; kind: Exclude<GiftPersonKind, "you" | "them">; emoji?: string; notes?: string }
+  input: {
+    name: string;
+    kind: Exclude<GiftPersonKind, "you" | "them">;
+    emoji?: string;
+    notes?: string;
+    hidden?: boolean;
+    ownerUserId?: string | null;
+  }
 ): GiftPerson[] {
   const name = input.name.trim();
   if (!name) return people;
+  const hidden = Boolean(input.hidden);
   return [
     ...people,
     {
       id: createId(),
       name,
       kind: input.kind,
-      emoji: input.emoji?.trim() || defaultEmoji(input.kind),
+      emoji: input.emoji?.trim() || (hidden ? "🔒" : defaultEmoji(input.kind)),
       notes: input.notes?.trim() ?? "",
       slot: null,
+      hidden,
+      ownerUserId: hidden ? input.ownerUserId ?? null : null,
       createdAt: nowIso(),
     },
   ];
@@ -323,16 +345,45 @@ export function removeGiftItem(items: GiftItem[], itemId: string): GiftItem[] {
   return items.filter((row) => row.id !== itemId);
 }
 
+export function visibleGiftPeople(
+  people: GiftPerson[],
+  userId: string | undefined
+): GiftPerson[] {
+  return people.filter((row) => !row.hidden || row.ownerUserId === userId);
+}
+
 export function groupedPeople(people: GiftPerson[]): {
   us: GiftPerson[];
   kids: GiftPerson[];
   rest: GiftPerson[];
+  privateLists: GiftPerson[];
 } {
   return {
     us: people.filter((row) => row.slot === "you" || row.slot === "them"),
-    kids: people.filter((row) => row.kind === "child"),
-    rest: people.filter((row) => !row.slot && row.kind !== "child"),
+    kids: people.filter((row) => row.kind === "child" && !row.hidden),
+    rest: people.filter((row) => !row.slot && row.kind !== "child" && !row.hidden),
+    privateLists: people.filter((row) => row.hidden),
   };
+}
+
+export function ensurePrivatePerson(
+  people: GiftPerson[],
+  userId: string
+): { people: GiftPerson[]; person: GiftPerson } {
+  const existing = people.find((row) => row.hidden && row.ownerUserId === userId);
+  if (existing) return { people, person: existing };
+  const person: GiftPerson = {
+    id: createId(),
+    name: "Private list",
+    kind: "other",
+    emoji: "🔒",
+    notes: "Partner can’t see this.",
+    slot: null,
+    hidden: true,
+    ownerUserId: userId,
+    createdAt: nowIso(),
+  };
+  return { people: [...people, person], person };
 }
 
 function defaultEmoji(kind: GiftPersonKind): string {
@@ -384,6 +435,9 @@ export function hydrateGiftPerson(raw: unknown): GiftPerson | null {
     emoji: typeof row.emoji === "string" && row.emoji.trim() ? row.emoji.trim() : defaultEmoji(kind),
     notes: typeof row.notes === "string" ? row.notes : "",
     slot,
+    hidden: Boolean(row.hidden),
+    ownerUserId:
+      typeof row.ownerUserId === "string" && row.ownerUserId ? row.ownerUserId : null,
     createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
   };
 }

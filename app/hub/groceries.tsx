@@ -3,7 +3,10 @@ import { Screen } from "@/components/ui/Screen";
 import { ERRANDS_TONE, HANDWRITING, SERIF } from "@/lib/app-themes";
 import {
   DEFAULT_QUICK_GROCERIES,
+  isOnQuickPad,
+  itemKey,
   QUICK_ADD_EMOJIS,
+  QUICK_GROCERY_CATALOG,
   readErrandPrefs,
   writeErrandPrefs,
   type QuickAddItem,
@@ -691,14 +694,31 @@ function QuickAddSettings({
   const [emoji, setEmoji] = useState("🛒");
   const [error, setError] = useState<string | null>(null);
 
-  const addChip = () => {
+  const catalog = useMemo(() => {
+    const seen = new Set(QUICK_GROCERY_CATALOG.map(itemKey));
+    const extras = items.filter((row) => !seen.has(itemKey(row)));
+    return [...QUICK_GROCERY_CATALOG, ...extras];
+  }, [items]);
+
+  const addChip = (item: QuickAddItem) => {
+    if (isOnQuickPad(items, item)) return;
+    onChange([...items, item]);
+    setError(null);
+  };
+
+  const removeChip = (item: QuickAddItem) => {
+    const key = itemKey(item);
+    onChange(items.filter((row) => itemKey(row) !== key));
+  };
+
+  const addCustom = () => {
     const label = draft.trim();
     if (!label) {
       setError("Type a name first.");
       return;
     }
-    if (items.some((row) => row.label.toLowerCase() === label.toLowerCase())) {
-      setError("That’s already on quick add.");
+    if (items.some((row) => itemKey(row) === label.toLowerCase())) {
+      setError("That’s already on the pad.");
       return;
     }
     onChange([...items, { emoji, label }]);
@@ -745,6 +765,8 @@ function QuickAddSettings({
           }}
         >
           {items.length} chip{items.length === 1 ? "" : "s"} on the grocery pad.
+          Plus puts one on the pad. Minus takes it off the pad — it stays in this
+          list.
         </Text>
       </View>
 
@@ -767,7 +789,7 @@ function QuickAddSettings({
             color: T.muted,
           }}
         >
-          ADD A CHIP
+          ADD YOUR OWN
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {QUICK_ADD_EMOJIS.map((pick) => {
@@ -801,7 +823,7 @@ function QuickAddSettings({
             }}
             placeholder="Oat milk, coriander…"
             placeholderTextColor="rgba(44,36,22,0.32)"
-            onSubmitEditing={addChip}
+            onSubmitEditing={addCustom}
             returnKeyType="done"
             style={{
               flex: 1,
@@ -815,7 +837,7 @@ function QuickAddSettings({
             }}
           />
           <Pressable
-            onPress={addChip}
+            onPress={addCustom}
             disabled={!draft.trim()}
             accessibilityLabel="Add quick-add chip"
             style={{
@@ -836,23 +858,11 @@ function QuickAddSettings({
         ) : null}
       </View>
 
-      {items.length === 0 ? (
-        <View style={{ padding: 18 }}>
-          <Text
-            style={{
-              fontFamily: SERIF,
-              fontSize: 15,
-              color: T.muted,
-              fontStyle: "italic",
-            }}
-          >
-            No chips yet. Add one above, or restore the starter list.
-          </Text>
-        </View>
-      ) : (
-        items.map((item, index) => (
+      {catalog.map((item) => {
+        const onPad = isOnQuickPad(items, item);
+        return (
           <View
-            key={`${item.label}-${index}`}
+            key={itemKey(item)}
             style={{
               minHeight: LINE,
               paddingLeft: 18,
@@ -876,16 +886,27 @@ function QuickAddSettings({
               {item.label}
             </Text>
             <Pressable
-              onPress={() => onChange(items.filter((_, i) => i !== index))}
+              onPress={() => (onPad ? removeChip(item) : addChip(item))}
               hitSlop={10}
-              accessibilityLabel={`Remove ${item.label}`}
-              style={{ padding: 4 }}
+              accessibilityLabel={onPad ? `Remove ${item.label} from pad` : `Add ${item.label}`}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: onPad ? "rgba(44,36,22,0.08)" : T.accentSoft,
+              }}
             >
-              <Ionicons name="close" size={18} color={T.muted} />
+              <Ionicons
+                name={onPad ? "remove" : "add"}
+                size={18}
+                color={onPad ? T.muted : T.accent}
+              />
             </Pressable>
           </View>
-        ))
-      )}
+        );
+      })}
 
       <Pressable
         onPress={() => {

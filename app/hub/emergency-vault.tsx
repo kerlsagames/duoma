@@ -7,6 +7,7 @@ import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { VaultEntry } from "@/lib/mini-content";
+import { digitsOnly, isVaultPin, VAULT_PIN_MAX, vaultPinHint } from "@/lib/vault-pin";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -72,8 +73,8 @@ export default function EmergencyVaultScreen() {
   const pending = data.vault.find((row) => row.id === removeId) ?? null;
 
   const setPin = async () => {
-    if (!/^\d{4}$/.test(pinDraft)) {
-      setError("Four digits. Something you’ll both remember at 2am.");
+    if (!isVaultPin(pinDraft)) {
+      setError(vaultPinHint());
       return;
     }
     setError(null);
@@ -153,8 +154,8 @@ export default function EmergencyVaultScreen() {
   };
 
   const changePin = async () => {
-    if (!/^\d{4}$/.test(pinChange)) {
-      setError("Four digits. Something you’ll both remember at 2am.");
+    if (!isVaultPin(pinChange)) {
+      setError(vaultPinHint());
       return;
     }
     setError(null);
@@ -170,13 +171,13 @@ export default function EmergencyVaultScreen() {
           <View style={{ alignItems: "center" }}>
             <Text style={{ fontFamily: SERIF, fontSize: 32, color: steel() }}>Cut a key</Text>
             <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(197,208,218,0.6)" }}>
-              four digits, shared
+              four or six digits, shared
             </Text>
             <TextInput
               value={pinDraft}
-              onChangeText={setPinDraft}
+              onChangeText={(value) => setPinDraft(digitsOnly(value))}
               keyboardType="number-pad"
-              maxLength={4}
+              maxLength={VAULT_PIN_MAX}
               placeholder="••••"
               placeholderTextColor="rgba(197,208,218,0.3)"
               style={pinStyle()}
@@ -228,9 +229,9 @@ export default function EmergencyVaultScreen() {
             </Text>
             <TextInput
               value={gate}
-              onChangeText={setGate}
+              onChangeText={(value) => setGate(digitsOnly(value))}
               keyboardType="number-pad"
-              maxLength={4}
+              maxLength={VAULT_PIN_MAX}
               secureTextEntry
               placeholder="combination"
               placeholderTextColor="rgba(197,208,218,0.3)"
@@ -420,10 +421,10 @@ export default function EmergencyVaultScreen() {
                 </Text>
                 <TextInput
                   value={pinChange}
-                  onChangeText={setPinChange}
+                  onChangeText={(value) => setPinChange(digitsOnly(value))}
                   keyboardType="number-pad"
-                  maxLength={4}
-                  placeholder="New four digits"
+                  maxLength={VAULT_PIN_MAX}
+                  placeholder="New 4 or 6 digits"
                   placeholderTextColor="rgba(197,208,218,0.3)"
                   style={pinStyle()}
                 />

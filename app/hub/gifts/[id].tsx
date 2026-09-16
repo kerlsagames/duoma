@@ -10,7 +10,9 @@ import { localDateKey } from "@/lib/dates";
 import {
   addGiftItem,
   currentGiftYear,
+  ensurePrivatePerson,
   formatGiftDate,
+  giftYearChoices,
   GIFT_OCCASIONS,
   givenItems,
   kindLabel,
@@ -24,6 +26,8 @@ import {
   type GiftOccasionId,
 } from "@/lib/gifts";
 import { useMiniApps } from "@/lib/mini-apps";
+import { useApp } from "@/lib/store";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -33,6 +37,7 @@ type Sheet = "add" | "give" | null;
 export default function GiftPersonScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useApp();
   const { data, patch } = useMiniApps();
   const person = data.giftPeople.find((row) => row.id === id) ?? null;
 
@@ -41,7 +46,7 @@ export default function GiftPersonScreen() {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [occasion, setOccasion] = useState<GiftOccasionId>("christmas");
-  const [year, setYear] = useState(String(currentGiftYear()));
+  const [year, setYear] = useState(currentGiftYear());
   const [giveId, setGiveId] = useState<string | null>(null);
   const [giveDate, setGiveDate] = useState(localDateKey());
   const [giveFrom, setGiveFrom] = useState("Us");
@@ -77,7 +82,7 @@ export default function GiftPersonScreen() {
     setTitle("");
     setNotes("");
     setOccasion("christmas");
-    setYear(String(currentGiftYear()));
+    setYear(currentGiftYear());
     setError(null);
   };
 
@@ -94,7 +99,7 @@ export default function GiftPersonScreen() {
       setError("Name the gift.");
       return;
     }
-    const parsedYear = Number(year);
+    const parsedYear = year;
     if (!Number.isFinite(parsedYear) || parsedYear < 1990) {
       setError("Pick a real year.");
       return;
@@ -150,7 +155,26 @@ export default function GiftPersonScreen() {
     router.replace("/hub/gifts" as Href);
   };
 
-  if (!person) {
+  const sendToPrivate = async (item: GiftItem) => {
+    if (!user?.id) return;
+    await patch((state) => {
+      const ensured = ensurePrivatePerson(state.giftPeople, user.id);
+      return {
+        ...state,
+        giftPeople: ensured.people,
+        giftItems: addGiftItem(state.giftItems, {
+          personId: ensured.person.id,
+          title: item.title,
+          notes: item.notes,
+          lane: "shop",
+          occasion: item.occasion,
+          year: item.year,
+        }),
+      };
+    });
+  };
+
+  if (!person || (person.hidden && person.ownerUserId !== user?.id)) {
     return (
       <View style={{ flex: 1, backgroundColor: T.background }}>
         <Screen scroll background={T.background}>
@@ -261,6 +285,11 @@ export default function GiftPersonScreen() {
               setGiveDate(localDateKey());
               setSheet("give");
             }}
+            onSecret={
+              person.slot === "them" && !person.hidden
+                ? (item) => void sendToPrivate(item)
+                : undefined
+            }
             onRemove={setRemoveItemId}
           />
 
@@ -443,14 +472,42 @@ export default function GiftPersonScreen() {
             })}
           </View>
           <Text style={[label, { marginTop: 14 }]}>Year</Text>
-          <TextInput
-            value={year}
-            onChangeText={setYear}
-            keyboardType="number-pad"
-            placeholder="2026"
-            placeholderTextColor={T.dim}
-            style={field}
-          />
+          <View
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            {giftYearChoices().map((opt) => {
+              const on = year === opt;
+              return (
+                <Pressable
+                  key={opt}
+                  onPress={() => setYear(opt)}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    backgroundColor: on ? T.gold : T.surface,
+                    borderWidth: 1,
+                    borderColor: on ? T.gold : T.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "700",
+                      fontSize: 13,
+                      color: on ? "#1A1408" : T.ink,
+                    }}
+                  >
+                    {opt}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
           {error ? (
             <Text style={{ marginTop: 12, color: T.ribbon, fontFamily: SERIF }}>
               {error}
@@ -556,6 +613,7 @@ function ListBlock({
   action,
   onAdd,
   onGive,
+  onSecret,
   onRemove,
 }: {
   kicker: string;
@@ -566,10 +624,11 @@ function ListBlock({
   action: string;
   onAdd: () => void;
   onGive: (item: GiftItem) => void;
+  onSecret?: (item: GiftItem) => void;
   onRemove: (id: string) => void;
 }) {
   return (
-    <View style={{ marginTop: 26 }}>
+    <View style={{ marginTop: 22 }}>
       <Text
         style={{
           fontFamily: "SpaceMono",
@@ -582,9 +641,9 @@ function ListBlock({
       </Text>
       <Text
         style={{
-          marginTop: 6,
+          marginTop: 4,
           fontFamily: SERIF,
-          fontSize: 22,
+          fontSize: 20,
           color: T.ink,
         }}
       >
@@ -592,74 +651,79 @@ function ListBlock({
       </Text>
       <Text
         style={{
-          marginTop: 4,
+          marginTop: 2,
           fontFamily: SERIF,
-          fontSize: 13,
-          lineHeight: 18,
+          fontSize: 12,
+          lineHeight: 16,
           color: T.dim,
         }}
       >
         {hint}
       </Text>
-      <View style={{ marginTop: 12, gap: 8 }}>
+      <View
+        style={{
+          marginTop: 10,
+          borderRadius: 12,
+          overflow: "hidden",
+          backgroundColor: T.paper,
+        }}
+      >
         {items.length === 0 ? (
-          <Text style={{ fontFamily: SERIF, fontSize: 14, color: T.muted }}>
+          <Text
+            style={{
+              fontFamily: SERIF,
+              fontSize: 14,
+              color: T.muted,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+            }}
+          >
             {empty}
           </Text>
         ) : (
-          items.map((item) => (
+          items.map((item, index) => (
             <View
               key={item.id}
               style={{
-                borderRadius: 16,
-                backgroundColor: T.surfaceRaised,
-                borderWidth: 1,
-                borderColor: T.border,
-                padding: 14,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderTopWidth: index === 0 ? 0 : 1,
+                borderTopColor: "rgba(42,28,18,0.1)",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                minHeight: 48,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: SERIF,
-                  fontSize: 16,
-                  color: T.ink,
-                }}
-              >
-                {item.title}
-              </Text>
-              <Text style={{ marginTop: 4, fontSize: 12, color: T.muted }}>
-                {occasionMeta(item.occasion).label} · {item.year}
-                {item.notes ? ` · ${item.notes}` : ""}
-              </Text>
-              <View style={{ marginTop: 10, flexDirection: "row", gap: 10 }}>
-                <Pressable
-                  onPress={() => onGive(item)}
+              <View style={{ flex: 1 }}>
+                <Text
                   style={{
-                    borderRadius: 999,
-                    backgroundColor: T.gold,
-                    paddingHorizontal: 12,
-                    paddingVertical: 7,
+                    fontFamily: SERIF,
+                    fontSize: 15,
+                    color: T.paperInk,
                   }}
+                  numberOfLines={1}
                 >
-                  <Text style={{ color: "#1A1408", fontWeight: "800", fontSize: 12 }}>
-                    Mark given
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => onRemove(item.id)}
-                  style={{
-                    borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 7,
-                    borderWidth: 1,
-                    borderColor: T.border,
-                  }}
-                >
-                  <Text style={{ color: T.muted, fontWeight: "700", fontSize: 12 }}>
-                    Remove
-                  </Text>
-                </Pressable>
+                  {item.title}
+                </Text>
+                <Text style={{ marginTop: 1, fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
+                  {occasionMeta(item.occasion).short} · {item.year}
+                  {item.notes ? ` · ${item.notes}` : ""}
+                </Text>
               </View>
+              <Pressable onPress={() => onGive(item)} hitSlop={6}>
+                <Text style={{ color: T.gold, fontWeight: "800", fontSize: 11 }}>Given</Text>
+              </Pressable>
+              {onSecret ? (
+                <Pressable onPress={() => onSecret(item)} hitSlop={6}>
+                  <Text style={{ color: T.ribbon, fontWeight: "800", fontSize: 11 }}>
+                    Private
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Pressable onPress={() => onRemove(item.id)} hitSlop={6}>
+                <Ionicons name="close" size={16} color={T.muted} />
+              </Pressable>
             </View>
           ))
         )}
@@ -667,16 +731,16 @@ function ListBlock({
       <Pressable
         onPress={onAdd}
         style={{
-          marginTop: 12,
-          borderRadius: 16,
+          marginTop: 8,
+          borderRadius: 12,
           borderWidth: 1.5,
           borderStyle: "dashed",
           borderColor: T.gold,
-          paddingVertical: 14,
+          paddingVertical: 10,
           alignItems: "center",
         }}
       >
-        <Text style={{ color: T.gold, fontWeight: "800" }}>+ {action}</Text>
+        <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>+ {action}</Text>
       </Pressable>
     </View>
   );

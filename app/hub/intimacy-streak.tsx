@@ -13,6 +13,7 @@ import {
   buildDayBars,
   collectIntimacyLogs,
   computeFireState,
+  dayConnectionScore,
   fireCaption,
   fireLabel,
   fireScale,
@@ -208,12 +209,16 @@ function Campfire({ level, lit }: { level: number; lit: boolean }) {
   );
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 function dayLabel(date: string): string {
   const parsed = new Date(`${date}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) return date.slice(5);
-  return WEEKDAYS[parsed.getDay()] ?? date.slice(5);
+  if (Number.isNaN(parsed.getTime())) return date.slice(8);
+  return String(parsed.getDate());
+}
+
+function dayMonth(date: string): string {
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString(undefined, { month: "short" });
 }
 
 function prettyDate(date: string): string {
@@ -328,6 +333,7 @@ function ActivityChart({
               }}
             >
               {prettyDate(tipBar.date)}
+              {` · score ${dayConnectionScore(tipBar)}/10`}
               {tipBar.total
                 ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
                 : " · quiet"}
@@ -386,13 +392,14 @@ function ActivityChart({
 
       <View
         style={{
-          height: chartHeight + 26,
+          height: chartHeight + 58,
           flexDirection: "row",
           alignItems: "flex-end",
         }}
       >
         {visible.map((bar) => {
           const active = selected === bar.date || hovered === bar.date;
+          const score = dayConnectionScore(bar);
           const height =
             bar.total === 0
               ? 4
@@ -403,7 +410,7 @@ function ActivityChart({
               onPress={() => onSelect(bar.date)}
               onHoverIn={() => setHovered(bar.date)}
               onHoverOut={() => setHovered((current) => (current === bar.date ? null : current))}
-              accessibilityLabel={`${prettyDate(bar.date)}: ${bar.total} log${bar.total === 1 ? "" : "s"}`}
+              accessibilityLabel={`${prettyDate(bar.date)}: connection ${score} of 10`}
               style={{
                 flex: 1,
                 alignItems: "center",
@@ -411,6 +418,17 @@ function ActivityChart({
                 paddingHorizontal: 3,
               }}
             >
+              <Text
+                style={{
+                  marginBottom: 4,
+                  fontSize: 11,
+                  fontFamily: "SpaceMono",
+                  fontWeight: "700",
+                  color: active ? hot() : score ? "#FFD2B4" : "rgba(255,210,180,0.35)",
+                }}
+              >
+                {score}
+              </Text>
               <View
                 style={{
                   width: "70%",
@@ -445,12 +463,23 @@ function ActivityChart({
               <Text
                 style={{
                   marginTop: 6,
-                  fontSize: 10,
-                  color: active ? hot() : "rgba(255,210,180,0.4)",
+                  fontSize: 12,
+                  fontWeight: "700",
+                  color: active ? hot() : "rgba(255,210,180,0.85)",
                   fontFamily: "SpaceMono",
                 }}
               >
                 {dayLabel(bar.date)}
+              </Text>
+              <Text
+                style={{
+                  marginTop: 1,
+                  fontSize: 9,
+                  color: active ? hot() : "rgba(255,210,180,0.55)",
+                  fontFamily: "SpaceMono",
+                }}
+              >
+                {dayMonth(bar.date)}
               </Text>
             </Pressable>
           );
