@@ -7,12 +7,16 @@ import {
   isExampleAccount,
 } from "@/lib/admin-example";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
+import type { MiniState } from "@/lib/mini-content";
 import { useMiniApps } from "@/lib/mini-apps";
+import { resolveSexyVaultSrc, type SexyVaultItem } from "@/lib/sexy-vault";
 import { useApp } from "@/lib/store";
 import type { Couple, Profile } from "@/lib/types";
-import { useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import {
   Image,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -90,6 +94,8 @@ export function UsersSpreadsheet() {
     unbanAccount,
     canUseDemo,
     ensureDemoPair,
+    user,
+    partner,
   } = useApp();
   const { data: mini } = useMiniApps();
   const { width } = useWindowDimensions();
@@ -286,23 +292,9 @@ export function UsersSpreadsheet() {
           stacked={stacked}
           reason={reason}
           onReason={setReason}
-          photos={
-            open.example
-              ? [
-                  { id: "ex-1", label: "Example · Photo Memory", color: "#5B2A4A" },
-                  { id: "ex-2", label: "Example · Sexy Vault", color: "#2A3A5B" },
-                ]
-              : mini.photos
-                  .filter(
-                    (photo) =>
-                      photo.userId === open.a?.id || photo.userId === open.b?.id
-                  )
-                  .map((photo) => ({
-                    id: photo.id,
-                    label: photo.caption || "Photo Memory",
-                    uri: photo.imageData,
-                  }))
-          }
+          mini={mini}
+          sessionUser={user}
+          sessionPartner={partner}
           onClose={() => setOpenId(null)}
           onBan={(id) =>
             open.example
@@ -320,13 +312,84 @@ export function UsersSpreadsheet() {
   );
 }
 
+function sameEmail(left?: string | null, right?: string | null) {
+  return Boolean(left && right && left.trim().toLowerCase() === right.trim().toLowerCase());
+}
+
+function itemBelongsTo(
+  itemUserId: string,
+  profile: Profile | null,
+  slot: "a" | "b",
+  sessionUser: Profile | null,
+  sessionPartner: Profile | null,
+  row: SheetRow
+) {
+  if (!profile || !itemUserId) return false;
+  if (itemUserId === profile.id) return true;
+  const demoRow = row.example || isDemoPair(row.a, row.b);
+  if (!demoRow) return false;
+  if (slot === "a") {
+    if (sessionUser && itemUserId === sessionUser.id) {
+      return sameEmail(profile.email, sessionUser.email) || isExampleAccount(profile.id);
+    }
+  }
+  if (slot === "b") {
+    if (sessionPartner && itemUserId === sessionPartner.id) return true;
+    if (profile.isDemo && sessionPartner?.isDemo && itemUserId === sessionPartner.id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+type AdminUpload = {
+  id: string;
+  label: string;
+  kind: "photo" | "video";
+  uri?: string | null;
+  vault?: SexyVaultItem;
+};
+
+function uploadsForPerson(
+  profile: Profile | null,
+  slot: "a" | "b",
+  row: SheetRow,
+  mini: MiniState,
+  sessionUser: Profile | null,
+  sessionPartner: Profile | null
+): AdminUpload[] {
+  if (!profile) return [];
+  const mine = (id: string) =>
+    itemBelongsTo(id, profile, slot, sessionUser, sessionPartner, row);
+  const photos: AdminUpload[] = mini.photos
+    .filter((photo) => mine(photo.userId))
+    .map((photo) => ({
+      id: photo.id,
+      label: photo.caption?.trim() || "Photo Memory",
+      kind: "photo" as const,
+      uri: photo.imageData,
+    }));
+  const vault: AdminUpload[] = mini.sexyVault
+    .filter((item) => mine(item.fromId))
+    .map((item) => ({
+      id: item.id,
+      label: item.note?.trim() || (item.kind === "video" ? "Sexy Vault clip" : "Sexy Vault"),
+      kind: item.kind,
+      uri: item.uri,
+      vault: item,
+    }));
+  return [...photos, ...vault];
+}
+
 function CoupleRecord({
   row,
   db,
   stacked,
   reason,
   onReason,
-  photos,
+  mini,
+  sessionUser,
+  sessionPartner,
   onClose,
   onBan,
   onUnban,
@@ -336,13 +399,17 @@ function CoupleRecord({
   stacked: boolean;
   reason: string;
   onReason: (value: string) => void;
-  photos: { id: string; label: string; uri?: string | null; color?: string }[];
+  mini: MiniState;
+  sessionUser: Profile | null;
+  sessionPartner: Profile | null;
   onClose: () => void;
   onBan: (id: string) => void;
   onUnban: (id: string) => void;
 }) {
   const usageA = row.example && row.a ? exampleUsage(row.a.id) : row.a ? usageForProfile(db, row.a) : null;
   const usageB = row.example && row.b ? exampleUsage(row.b.id) : row.b ? usageForProfile(db, row.b) : null;
+  const uploadsA = uploadsForPerson(row.a, "a", row, mini, sessionUser, sessionPartner);
+  const uploadsB = uploadsForPerson(row.b, "b", row, mini, sessionUser, sessionPartner);
 
   return (
     <View
@@ -391,45 +458,138 @@ function CoupleRecord({
           onUnban={onUnban}
           locked={row.example || isDemoPair(row.a, row.b)}
         />
-        <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 22, fontSize: 16 }}>
-          Images
-        </Text>
-        <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 12, lineHeight: 18 }}>
-          Review is allowed only because they ticked 18+ and the privacy notice. Photos on
-          this browser show here. Vault clips on their phones do not upload until they
-          agree and we sync them.
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-          {photos.length === 0 ? (
-            <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 12 }}>
-              No images on this browser for this pair.
-            </Text>
-          ) : (
-            photos.map((photo) => (
-              <View key={photo.id} style={{ width: 150 }}>
-                {photo.uri ? (
-                  <Image
-                    source={{ uri: photo.uri }}
-                    style={{ width: 150, height: 150, borderRadius: 8, backgroundColor: "#1A1A22" }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      width: 150,
-                      height: 150,
-                      borderRadius: 8,
-                      backgroundColor: photo.color ?? "#1A1A22",
-                    }}
-                  />
-                )}
-                <Text style={{ color: "rgba(244,244,246,0.55)", fontSize: 11, marginTop: 4 }}>
-                  {photo.label}
-                </Text>
-              </View>
-            ))
-          )}
-        </View>
+        <UploadBlock name={row.a?.displayName ?? "User A"} items={uploadsA} />
+        <UploadBlock name={row.b?.displayName ?? "User B"} items={uploadsB} hidden={!row.b} />
       </ScrollView>
+    </View>
+  );
+}
+
+function UploadBlock({
+  name,
+  items,
+  hidden = false,
+}: {
+  name: string;
+  items: AdminUpload[];
+  hidden?: boolean;
+}) {
+  const [looking, setLooking] = useState<AdminUpload | null>(null);
+  if (hidden) return null;
+  return (
+    <View style={{ marginTop: 22 }}>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", fontSize: 16 }}>
+        {name}’s uploads
+      </Text>
+      <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 12, lineHeight: 18 }}>
+        Photo Memory and Sexy Vault on this browser. Tap a tile to open it.
+      </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+        {items.length === 0 ? (
+          <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 12 }}>
+            Nothing stored here yet.
+          </Text>
+        ) : (
+          items.map((item) => (
+            <Pressable key={item.id} onPress={() => setLooking(item)} style={{ width: 150 }}>
+              <UploadThumb item={item} size={150} />
+              <Text
+                style={{ color: "rgba(244,244,246,0.55)", fontSize: 11, marginTop: 4 }}
+                numberOfLines={2}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          ))
+        )}
+      </View>
+      <Modal
+        visible={Boolean(looking)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLooking(null)}
+      >
+        <Pressable
+          onPress={() => setLooking(null)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(8,8,12,0.88)",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          {looking ? (
+            <Pressable onPress={(event) => event.stopPropagation?.()}>
+              <UploadThumb item={looking} size={320} />
+              <Text style={{ color: "#F4F4F6", marginTop: 10, fontWeight: "700" }}>
+                {looking.label}
+              </Text>
+              <Text style={{ color: "#FF007F", marginTop: 8, fontWeight: "700" }}>Close</Text>
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+function UploadThumb({ item, size }: { item: AdminUpload; size: number }) {
+  const [src, setSrc] = useState<string | null>(item.uri ?? null);
+
+  useEffect(() => {
+    if (!item.vault) {
+      setSrc(item.uri ?? null);
+      return;
+    }
+    setSrc(item.vault.uri ?? item.uri ?? null);
+    let dead = false;
+    let created: string | null = null;
+    void resolveSexyVaultSrc(item.vault).then((url) => {
+      if (dead) {
+        if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+        return;
+      }
+      created = url && url.startsWith("blob:") ? url : null;
+      setSrc(url);
+    });
+    return () => {
+      dead = true;
+      if (created) URL.revokeObjectURL(created);
+    };
+  }, [item.id, item.kind, item.uri, item.vault?.id]);
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 8,
+        backgroundColor: "#1A1A22",
+        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {src && item.kind === "video" && Platform.OS === "web"
+        ? createElement("video", {
+            src,
+            muted: true,
+            playsInline: true,
+            controls: size > 200,
+            preload: "metadata",
+            style: { width: "100%", height: "100%", objectFit: "cover" },
+          })
+        : src ? (
+            <Image
+              source={{ uri: src }}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11 }}>
+              {item.kind === "video" ? "Clip" : "Photo"}
+            </Text>
+          )}
     </View>
   );
 }
