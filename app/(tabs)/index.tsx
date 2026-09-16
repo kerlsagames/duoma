@@ -466,80 +466,83 @@ export default function HomeScreen() {
             backgroundColor: "#121218",
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: favoriteGap,
-            }}
-          >
-            {favorites.map((featureId, index) => {
-              const cols = Math.min(4, Math.max(2, favorites.length));
-              const tileWidth =
-                favorites.length <= 4
-                  ? undefined
-                  : `${(100 - (cols - 1) * 2) / cols}%`;
-              const app = featureId ? hubAppById(featureId, hubs) : null;
-              if (app) {
-                return (
-                  <Pressable
-                    key={`fav-${index}`}
-                    onPress={() => router.push(app.href as Href)}
-                    onLongPress={() => void clearFavorite(index)}
-                    style={{
-                      flex: favorites.length <= 4 ? 1 : undefined,
-                      width: tileWidth as never,
-                      height: favoriteBox,
-                      borderRadius: 14,
-                      backgroundColor: "#1A1A22",
-                      borderWidth: 1,
-                      borderColor: `${app.accent}55`,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      paddingHorizontal: 4,
-                    }}
-                  >
-                    <Ionicons name={app.icon} size={22} color={app.accent} />
-                    <Text
+          <View style={{ gap: favoriteGap }}>
+            {Array.from(
+              { length: Math.ceil(favorites.length / 4) },
+              (_, rowIndex) => favorites.slice(rowIndex * 4, rowIndex * 4 + 4)
+            ).map((row, rowIndex) => (
+              <View
+                key={`fav-row-${rowIndex}`}
+                style={{ flexDirection: "row", gap: favoriteGap }}
+              >
+                {row.map((featureId, colIndex) => {
+                  const index = rowIndex * 4 + colIndex;
+                  const app = featureId ? hubAppById(featureId, hubs) : null;
+                  if (app) {
+                    return (
+                      <Pressable
+                        key={`fav-${index}`}
+                        onPress={() => router.push(app.href as Href)}
+                        onLongPress={() => void clearFavorite(index)}
+                        style={{
+                          flex: 1,
+                          height: favoriteBox,
+                          borderRadius: 14,
+                          backgroundColor: "#1A1A22",
+                          borderWidth: 1,
+                          borderColor: `${app.accent}55`,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          paddingHorizontal: 4,
+                        }}
+                      >
+                        <Ionicons name={app.icon} size={22} color={app.accent} />
+                        <Text
+                          style={{
+                            marginTop: 4,
+                            color: "#F4F4F6",
+                            fontSize: 10,
+                            fontWeight: "600",
+                            textAlign: "center",
+                          }}
+                          numberOfLines={2}
+                        >
+                          {app.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                  return (
+                    <Pressable
+                      key={`fav-empty-${index}`}
+                      onPress={() => setPickerSlot(index)}
                       style={{
-                        marginTop: 4,
-                        color: "#F4F4F6",
-                        fontSize: 10,
-                        fontWeight: "600",
-                        textAlign: "center",
+                        flex: 1,
+                        height: favoriteBox,
+                        borderRadius: 14,
+                        borderWidth: 1.5,
+                        borderStyle: "dashed",
+                        borderColor: "rgba(244,244,246,0.28)",
+                        backgroundColor: "#1A1A22",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
-                      numberOfLines={2}
                     >
-                      {app.label}
-                    </Text>
-                  </Pressable>
-                );
-              }
-              return (
-                <Pressable
-                  key={`fav-empty-${index}`}
-                  onPress={() => setPickerSlot(index)}
-                  style={{
-                    flex: favorites.length <= 4 ? 1 : undefined,
-                    width: tileWidth as never,
-                    height: favoriteBox,
-                    borderRadius: 14,
-                    borderWidth: 1.5,
-                    borderStyle: "dashed",
-                    borderColor: "rgba(244,244,246,0.28)",
-                    backgroundColor: "#1A1A22",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons
-                    name="add"
-                    size={28}
-                    color="rgba(244,244,246,0.55)"
-                  />
-                </Pressable>
-              );
-            })}
+                      <Ionicons
+                        name="add"
+                        size={28}
+                        color="rgba(244,244,246,0.55)"
+                      />
+                    </Pressable>
+                  );
+                })}
+                {favorites.length > 4 && row.length < 4
+                  ? Array.from({ length: 4 - row.length }, (_, pad) => (
+                      <View key={`fav-pad-${rowIndex}-${pad}`} style={{ flex: 1 }} />
+                    ))
+                  : null}
+              </View>
+            ))}
           </View>
           <Text
             style={{
