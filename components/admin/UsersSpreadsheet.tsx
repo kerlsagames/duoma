@@ -1,4 +1,4 @@
-import { usageForProfile } from "@/lib/account-usage";
+import { groupUsageItems, usageForProfile, type UsageGroup } from "@/lib/account-usage";
 import {
   EXAMPLE_COUPLE,
   EXAMPLE_PROFILES,
@@ -393,6 +393,92 @@ function CoupleRecord({
   );
 }
 
+function ActivityFold({ usage }: { usage: ReturnType<typeof usageForProfile> | null }) {
+  const groups = groupUsageItems(usage);
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (!groups.length) {
+    return (
+      <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8, fontSize: 12 }}>
+        No app use yet
+      </Text>
+    );
+  }
+  return (
+    <View style={{ marginTop: 10 }}>
+      <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11, letterSpacing: 1.2 }}>
+        ACTIVITY · tap a row
+      </Text>
+      {groups.map((group) => (
+        <ActivityGroupRow
+          key={group.id}
+          group={group}
+          open={openId === group.id}
+          onToggle={() => setOpenId(openId === group.id ? null : group.id)}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ActivityGroupRow({
+  group,
+  open,
+  onToggle,
+}: {
+  group: UsageGroup;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <View
+      style={{
+        marginTop: 6,
+        borderWidth: 1,
+        borderColor: open ? "rgba(255,0,127,0.35)" : "rgba(255,255,255,0.08)",
+        borderRadius: 8,
+        overflow: "hidden",
+      }}
+    >
+      <Pressable
+        onPress={onToggle}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 10,
+          paddingVertical: 8,
+          backgroundColor: open ? "rgba(255,0,127,0.08)" : "rgba(255,255,255,0.03)",
+        }}
+      >
+        <Text style={{ flex: 1, color: "#F4F4F6", fontSize: 13, fontWeight: "700" }}>
+          {group.label}
+        </Text>
+        <Text style={{ color: "rgba(244,244,246,0.45)", fontSize: 12, fontFamily: "SpaceMono" }}>
+          {group.count}
+        </Text>
+      </Pressable>
+      {open ? (
+        <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
+          {group.items.length === 0 ? (
+            <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 12, marginTop: 6 }}>
+              Count only — no titles stored for this app yet.
+            </Text>
+          ) : (
+            group.items.map((item, index) => (
+              <Text
+                key={`${item.label}-${index}`}
+                style={{ color: "rgba(244,244,246,0.7)", fontSize: 12, marginTop: 6, lineHeight: 16 }}
+              >
+                {item.label}
+                <Text style={{ color: "rgba(244,244,246,0.38)" }}>{`  ·  ${item.detail}`}</Text>
+              </Text>
+            ))
+          )}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function PersonBlock({
   label,
   profile,
@@ -444,18 +530,7 @@ function PersonBlock({
         {profile.privacyConsentAt ? "yes" : "no"} · image review{" "}
         {profile.moderationConsentAt ? "yes" : "no"}
       </Text>
-      <Text style={{ color: "rgba(244,244,246,0.7)", marginTop: 8, fontSize: 12 }}>
-        {usage?.apps.length
-          ? usage.apps.map((item) => `${item.label} ${item.count}`).join(" · ")
-          : "No app use yet"}
-      </Text>
-      {usage?.cards.slice(0, 8).map((item, index) => (
-        <Text key={`${item.label}-${index}`} style={{ color: "rgba(244,244,246,0.5)", fontSize: 12, marginTop: 4 }}>
-          {item.label}
-          {"\n"}
-          <Text style={{ color: "rgba(244,244,246,0.35)" }}>{item.detail}</Text>
-        </Text>
-      ))}
+      <ActivityFold usage={usage} />
       {banned ? (
         <Pressable onPress={() => onUnban(profile.id)} style={{ marginTop: 10 }}>
           <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>

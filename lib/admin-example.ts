@@ -56,12 +56,14 @@ const MAYA_USAGE: ProfileUsage = {
     { id: "positions", label: "Positions", count: 7 },
   ],
   cards: [
-    { label: "Slow kiss down her stomach", detail: "Get Spicy · played" },
-    { label: "Hold a vibe on F while M fucks her", detail: "Fantasy Matcher · liked" },
-    { label: "The Whisper Order", detail: "Chicken · done" },
-    { label: "Write a dare on their thigh", detail: "Dare Me · accepted" },
-    { label: "The Living Room Fort", detail: "Date Night · saved" },
-    { label: "Face to Face · Lotus", detail: "Positions · to-do" },
+    { group: "Get Spicy", label: "Slow kiss down her stomach", detail: "played" },
+    { group: "Get Spicy", label: "Warm oil, lights down", detail: "played" },
+    { group: "Fantasy Matcher", label: "Hold a vibe on F while M fucks her", detail: "liked" },
+    { group: "Fantasy Matcher", label: "Go down on F", detail: "liked" },
+    { group: "Chicken", label: "The Whisper Order", detail: "done" },
+    { group: "Dare Me", label: "Write a dare on their thigh", detail: "accepted" },
+    { group: "Date Night", label: "The Living Room Fort", detail: "saved" },
+    { group: "Positions", label: "Face to Face · Lotus", detail: "to-do" },
   ],
 };
 
@@ -77,11 +79,11 @@ const JORDAN_USAGE: ProfileUsage = {
     { id: "jar", label: "Gratitude jar", count: 8 },
   ],
   cards: [
-    { label: "Warm oil on his back first", detail: "Get Spicy · played" },
-    { label: "Go down on F", detail: "Fantasy Matcher · liked" },
-    { label: "Sing Happy Birthday to a houseplant", detail: "Chicken · homemade · done" },
-    { label: "What is a secret you have never said out loud?", detail: "Talk · answered" },
-    { label: "You made coffee without being asked", detail: "Jar · opened" },
+    { group: "Get Spicy", label: "Warm oil on his back first", detail: "played" },
+    { group: "Fantasy Matcher", label: "Go down on F", detail: "liked" },
+    { group: "Chicken", label: "Sing Happy Birthday to a houseplant", detail: "done" },
+    { group: "Talk", label: "What is a secret you have never said out loud?", detail: "answered" },
+    { group: "Gratitude jar", label: "You made coffee without being asked", detail: "opened" },
   ],
 };
 
