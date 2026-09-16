@@ -276,7 +276,7 @@ export default function FantasyMatcherScreen() {
   const partnerLabel = partner?.displayName ?? "your partner";
 
   return (
-    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
       <View className="pb-10 pt-4">
         <SettingsDock
           accent={look.accent}

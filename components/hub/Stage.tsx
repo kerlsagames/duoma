@@ -1,7 +1,6 @@
 import { SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { SERIF } from "@/lib/app-themes";
-import { tintCanvas } from "@/lib/color-paint";
 import type { Href } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -26,7 +25,7 @@ export function Stage({
   children: ReactNode;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const canvas = tintCanvas(background, accent, 0.28);
+  const canvas = background;
   const cog = settings ? (
     <SettingsCog
       accent={accent}

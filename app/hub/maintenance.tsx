@@ -81,7 +81,7 @@ export default function MaintenanceScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
         <Stage
           background={BG}
           fallback={"/hub/home-base" as Href}

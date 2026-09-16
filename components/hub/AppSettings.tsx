@@ -349,12 +349,12 @@ export function AppSettingsPanel({
           color: muted,
         }}
       >
-        Colour washes the whole screen. Type size and font restyle this app —
-        not just the heading. Hub colour still paints the tile on Home.
+        Pick a colour only if you want this app’s background to shift. Type size
+        and font restyle the page. Hub colour still paints the tile on Home.
       </Text>
       <PrefSection
         label="Colour"
-        hint="Background, buttons, chips, and titles follow this colour."
+        hint="Only if you pick one. Leave Hub to keep this app’s own background."
         ink={ink}
         muted={muted}
       >

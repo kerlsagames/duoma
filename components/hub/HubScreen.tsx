@@ -62,11 +62,9 @@ export function HubScreen({
     typefaceFamily(typeface) ??
     (serifTitle ? SERIF : undefined);
   const customColour = Boolean(look?.prefs.accent?.trim());
-  const background = tintCanvas(
-    theme.background,
-    color,
-    customColour ? 0.42 : 0.18
-  );
+  const background = customColour
+    ? tintCanvas(theme.background, color, 0.42)
+    : theme.background;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const cog = settings ? (
     <SettingsCog

@@ -244,7 +244,7 @@ export default function SexyVaultScreen() {
 
   return (
     <MediaShield>
-    <Screen scroll={mode !== "view"} background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+    <Screen scroll={mode !== "view"} background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
       <Stage
         background={BG}
         fallback={"/hub/desire" as Href}

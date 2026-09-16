@@ -200,7 +200,7 @@ export default function PositionsScreen() {
       background={T.background}
       density={look.prefs.density}
       typeface={look.prefs.typeface}
-      accent={look.accent}
+      accent={look.wash}
     >
       <View className="pt-4 pb-10">
         <View

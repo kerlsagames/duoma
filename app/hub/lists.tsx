@@ -170,7 +170,7 @@ export default function ListsScreen() {
       background={T.background}
       density={look.prefs.density}
       typeface={look.prefs.typeface}
-      accent={look.accent}
+      accent={look.wash}
     >
       <View className="pb-10 pt-2">
         <BackButton color={T.teal} style={{ marginBottom: 6 }} />

@@ -250,7 +250,7 @@ export default function ApologyScreen() {
   };
 
   return (
-    <Screen scroll background={C.bg} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+    <Screen scroll background={C.bg} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
       <View className="pt-4 pb-12">
         <SettingsDock
           accent={look.accent}

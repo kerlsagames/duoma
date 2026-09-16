@@ -173,7 +173,7 @@ export default function SetupScreen() {
   };
 
   return (
-    <Screen scroll density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+    <Screen scroll density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
       <View className="pt-4 pb-8">
         <BackButton style={{ marginBottom: 12 }} />
         <View className="flex-row items-start justify-between">

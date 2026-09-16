@@ -198,5 +198,6 @@ export function useAppLook<E extends Record<string, string | boolean | number>>(
   const accent = resolveAccent(prefs.accent, fallbackAccent);
   const look = densityLook(prefs.density);
   const fontFamily = typefaceFamily(prefs.typeface);
-  return { prefs, ready, patch, reset, accent, look, fontFamily, fallbackAccent };
+  const wash = prefs.accent.trim() ? accent : undefined;
+  return { prefs, ready, patch, reset, accent, look, fontFamily, fallbackAccent, wash };
 }

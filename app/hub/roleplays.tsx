@@ -178,7 +178,7 @@ export default function RoleplaysScreen() {
     : null;
 
   return (
-    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
       <View className="pt-4 pb-10">
         <SettingsDock
           accent={look.accent}
