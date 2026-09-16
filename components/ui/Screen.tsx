@@ -15,7 +15,8 @@ type Props = {
   scrollRef?: RefObject<ScrollView | null>;
   density?: DensityId;
   typeface?: TypefaceId;
-  accent?: string;
+  /** Only a colour the user picked in this app’s cog. Never the default accent. */
+  wash?: string;
 };
 
 export function Screen({
@@ -25,11 +26,11 @@ export function Screen({
   scrollRef,
   density = "regular",
   typeface = "sans",
-  accent,
+  wash,
 }: Props) {
   const sizes = densityLook(density);
   const padX = density === "compact" ? 16 : density === "roomy" ? 24 : 20;
-  const canvas = accent ? tintCanvas(background, accent, 0.32) : background;
+  const canvas = wash ? tintCanvas(background, wash, 0.32) : background;
   const webAttrs =
     Platform.OS === "web"
       ? ({

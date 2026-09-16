@@ -240,6 +240,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/prediction",
       },
       {
+        id: "crossword",
+        label: "Daily Word",
+        detail: "Same five letters. Who lands it first.",
+        icon: "grid",
+        href: "/hub/daily-word",
+      },
+      {
         id: "photo-challenges",
         label: "Photo Memory Challenges",
         detail: "One shot a week. Shuffle until you both lock it in.",
@@ -259,13 +266,6 @@ export const HUBS: HubDef[] = [
         detail: "Three prompts. Draw. They guess.",
         icon: "brush",
         href: "/hub/doodle",
-      },
-      {
-        id: "crossword",
-        label: "Daily Word",
-        detail: "Same five letters. Who lands it first.",
-        icon: "grid",
-        href: "/hub/crossword",
       },
       {
         id: "fair-share",

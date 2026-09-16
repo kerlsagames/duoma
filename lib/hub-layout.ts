@@ -93,6 +93,7 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
     play: {
       ...play,
       order: migratePlayOrder(play.order),
+      hidden: play.hidden.filter((id) => id !== "crossword"),
     },
     "home-base": {
       ...home,
@@ -168,31 +169,47 @@ function migrateDesireOrder(order: string[]): string[] {
   ];
 }
 
-/** Old catalog had Chicken first. Leave custom orders alone. */
+/** Old catalog had Chicken first, then Daily Word last among games. */
 function migratePlayOrder(order: string[]): string[] {
   if (order.length === 0) return order;
   const known = order.filter((id) => id !== "scoreboard" && id !== "who-did-it");
-  const oldDefault = [
-    "chicken",
-    "coupons",
-    "trivia",
-    "prediction",
-    "photo-challenges",
-    "doodle",
-    "crossword",
-    "fair-share",
+  const oldDefaults = [
+    [
+      "chicken",
+      "coupons",
+      "trivia",
+      "prediction",
+      "photo-challenges",
+      "doodle",
+      "crossword",
+      "fair-share",
+    ],
+    [
+      "coupons",
+      "trivia",
+      "prediction",
+      "photo-challenges",
+      "chicken",
+      "doodle",
+      "crossword",
+      "fair-share",
+    ],
   ];
-  const isOldDefault =
-    known.length === oldDefault.length && known.every((id, i) => id === oldDefault[i]);
-  if (!isOldDefault) return order;
+  const isOldDefault = oldDefaults.some(
+    (old) => known.length === old.length && known.every((id, i) => id === old[i])
+  );
+  if (!isOldDefault) {
+    if (!known.includes("crossword")) return [...order, "crossword"];
+    return order;
+  }
   return [
     "coupons",
     "trivia",
     "prediction",
+    "crossword",
     "photo-challenges",
     "chicken",
     "doodle",
-    "crossword",
     "fair-share",
   ];
 }

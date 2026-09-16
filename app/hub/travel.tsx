@@ -69,7 +69,7 @@ export default function TravelScreen() {
   };
 
   return (
-    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 28 }}

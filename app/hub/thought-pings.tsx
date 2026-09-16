@@ -107,7 +107,7 @@ export default function ThoughtPingsScreen() {
   };
 
   return (
-    <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <Stage
         background={BG}
         fallback={"/hub/connect" as Href}
@@ -366,6 +366,7 @@ export default function ThoughtPingsScreen() {
             data.pings.slice(0, 8).map((ping, i) => {
               const row = PING_KINDS.find((item) => item.id === ping.kind);
               const mine = ping.fromId === user?.id;
+              const when = formatDateAndTime(ping.createdAt);
               const open = openPingId === ping.id;
               return (
                 <Pressable
@@ -376,15 +377,17 @@ export default function ThoughtPingsScreen() {
                     )
                   }
                   accessibilityRole="button"
-                  accessibilityLabel={
-                    open
-                      ? `${mine ? "you" : them} sent ${row?.label ?? "a ping"} ${formatDateAndTime(ping.createdAt)}`
-                      : `Show when this ping was sent`
-                  }
+                  accessibilityLabel={`${mine ? "you" : them} sent ${row?.label ?? "a ping"} ${when}`}
                   style={{
                     alignSelf: mine ? "flex-end" : "flex-start",
-                    maxWidth: "80%",
+                    maxWidth: "88%",
                     gap: 4,
+                    paddingVertical: 10,
+                    paddingHorizontal: 12,
+                    borderRadius: 16,
+                    backgroundColor: open
+                      ? "rgba(255,107,154,0.12)"
+                      : "rgba(255,214,230,0.05)",
                     transform: [{ rotate: i % 2 === 0 ? "1.5deg" : "-2deg" }],
                   }}
                 >
@@ -410,22 +413,20 @@ export default function ThoughtPingsScreen() {
                       {mine ? "you" : them} · {row?.label.toLowerCase()}
                     </Text>
                   </View>
-                  {open ? (
-                    <Text
-                      selectable={false}
-                      style={[
-                        {
-                          color: "rgba(255,214,230,0.7)",
-                          fontSize: 12,
-                          fontFamily: "SpaceMono",
-                          paddingLeft: 26,
-                        },
-                        noSelectText,
-                      ]}
-                    >
-                      {formatDateAndTime(ping.createdAt)}
-                    </Text>
-                  ) : null}
+                  <Text
+                    selectable={false}
+                    style={[
+                      {
+                        color: "rgba(255,214,230,0.78)",
+                        fontSize: 12,
+                        fontFamily: "SpaceMono",
+                        paddingLeft: 26,
+                      },
+                      noSelectText,
+                    ]}
+                  >
+                    sent {when}
+                  </Text>
                 </Pressable>
               );
             })

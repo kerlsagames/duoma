@@ -76,7 +76,7 @@ export default function GroceriesErrandsScreen() {
       background={T.background}
       density={look.prefs.density}
       typeface={look.prefs.typeface}
-      accent={look.wash}
+      wash={look.wash}
     >
       <View className="pt-4 pb-10">
         <BackButton

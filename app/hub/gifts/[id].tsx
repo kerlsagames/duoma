@@ -181,7 +181,7 @@ export default function GiftPersonScreen() {
   if (!person || (person.hidden && person.ownerUserId !== user?.id)) {
     return (
       <View style={{ flex: 1, backgroundColor: T.background }}>
-        <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+        <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
           <Stage
             background={T.background}
             fallback={"/hub/gifts" as Href}
@@ -211,7 +211,7 @@ export default function GiftPersonScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
-      <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+      <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
         <Stage
           background={T.background}
           fallback={"/hub/gifts" as Href}

@@ -8,7 +8,7 @@ import {
   type DensityId,
   type TypefaceId,
 } from "@/lib/app-prefs";
-import { tintCanvas } from "@/lib/color-paint";
+import { sameHex, tintCanvas } from "@/lib/color-paint";
 import { ReactNode, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -61,9 +61,12 @@ export function HubScreen({
     look?.fontFamily ??
     typefaceFamily(typeface) ??
     (serifTitle ? SERIF : undefined);
-  const customColour = Boolean(look?.prefs.accent?.trim());
+  const storedColour = look?.prefs.accent?.trim() ?? "";
+  const customColour = Boolean(
+    storedColour && !sameHex(storedColour, theme.accent)
+  );
   const background = customColour
-    ? tintCanvas(theme.background, color, 0.42)
+    ? tintCanvas(theme.background, storedColour, 0.42)
     : theme.background;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const cog = settings ? (

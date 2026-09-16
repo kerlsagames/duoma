@@ -107,7 +107,7 @@ export default function ChickenScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
-    <Screen scroll={!picked} background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen scroll={!picked} background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <Stage
         background={T.background}
         fallback={"/hub/play" as Href}

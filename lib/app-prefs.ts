@@ -1,3 +1,4 @@
+import { sameHex } from "@/lib/color-paint";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
@@ -82,7 +83,7 @@ export function isDensityId(value: unknown): value is DensityId {
 }
 
 export function appPrefsKey(appId: string) {
-  return `duoma:appPrefs:${appId}`;
+  return `duoma:appPrefs:v2:${appId}`;
 }
 
 async function readRaw(key: string): Promise<string | null> {
@@ -198,6 +199,8 @@ export function useAppLook<E extends Record<string, string | boolean | number>>(
   const accent = resolveAccent(prefs.accent, fallbackAccent);
   const look = densityLook(prefs.density);
   const fontFamily = typefaceFamily(prefs.typeface);
-  const wash = prefs.accent.trim() ? accent : undefined;
+  const stored = prefs.accent.trim();
+  const wash =
+    stored && !sameHex(stored, fallbackAccent) ? stored : undefined;
   return { prefs, ready, patch, reset, accent, look, fontFamily, fallbackAccent, wash };
 }

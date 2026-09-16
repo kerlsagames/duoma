@@ -23,7 +23,7 @@ export default function UpForItScreen() {
   }, []);
 
   return (
-    <Screen scroll background={T.background} scrollRef={scrollRef} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen scroll background={T.background} scrollRef={scrollRef} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <View className="pt-4 pb-8">
         <View
           style={{

@@ -252,7 +252,7 @@ export default function TriviaScreen() {
   };
 
   return (
-    <Screen scroll background={T.background} scrollRef={scrollRef} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen scroll background={T.background} scrollRef={scrollRef} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <Stage
         background={T.background}
         fallback={"/hub/play" as Href}

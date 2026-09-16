@@ -173,7 +173,7 @@ export default function EmergencyVaultScreen() {
       background={BG}
       density={look.prefs.density}
       typeface={look.prefs.typeface}
-      accent={look.wash}
+      wash={look.wash}
     >
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={steel()}>
         {!data.vaultPin ? (

@@ -75,7 +75,7 @@ export default function TheHowScreen() {
       background={T.background}
       density={look.prefs.density}
       typeface={look.prefs.typeface}
-      accent={look.wash}
+      wash={look.wash}
     >
       <Stage
         background={T.background}

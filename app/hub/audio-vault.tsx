@@ -295,7 +295,7 @@ export default function AudioVaultScreen() {
   const clock = recording || playing ? formatTapeTime(elapsed) : "0:00";
 
   return (
-    <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <Stage
         background={BG}
         fallback={"/hub/connect" as Href}

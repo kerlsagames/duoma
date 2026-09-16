@@ -32,7 +32,7 @@ export function WorldShell({
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <Screen background={background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen background={background} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <View style={{ flex: 1 }}>
         <View
           style={{

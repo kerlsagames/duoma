@@ -108,7 +108,7 @@ export default function TripDetailScreen() {
 
   if (!trip) {
     return (
-      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
         <Stage
         background={BG}
         fallback={"/hub/travel" as Href}
@@ -242,7 +242,7 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.wash}>
+    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
