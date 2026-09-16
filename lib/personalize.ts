@@ -106,10 +106,20 @@ function applyGenderTokens(text: string, who: "player" | "partner", gender: Gend
 export function personalize(
   text: string,
   names: NamePair,
-  genders?: GenderPair | null
+  genders?: GenderPair | null,
+  shared = false
 ): string {
   if (!text) return text;
-  let out = text
+  let source = text;
+  if (shared) {
+    source = source
+      .replace(/^\{player\}, /i, "")
+      .replace(/\{player\}, /g, "")
+      .replaceAll("{player}'s", "your")
+      .replaceAll("{player}", "you");
+    source = source.replace(/^[a-z]/, (letter) => letter.toUpperCase());
+  }
+  let out = source
     .replaceAll("{player}", names.player)
     .replaceAll("{partner}", names.partner)
     .replace(/\byour partner[’']s\b/gi, `${names.partner}'s`)
@@ -158,10 +168,11 @@ export function personalize(
 export function personalizeCard(
   card: { title: string; body: string },
   names: NamePair,
-  genders?: GenderPair | null
+  genders?: GenderPair | null,
+  shared = false
 ) {
   return {
-    title: personalize(card.title, names, genders),
-    body: personalize(card.body, names, genders),
+    title: personalize(card.title, names, genders, shared),
+    body: personalize(card.body, names, genders, shared),
   };
 }

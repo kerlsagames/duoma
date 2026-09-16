@@ -27,6 +27,8 @@ type Props = {
   conceal?: boolean;
   concealTitle?: string;
   concealBody?: string;
+  /** Keep it simple: one shared card, no “Alex played.” */
+  shared?: boolean;
 };
 
 export function RealtimeCardStage({
@@ -42,28 +44,43 @@ export function RealtimeCardStage({
   conceal = false,
   concealTitle = "Daytime tease",
   concealBody = "They played a card. You will see what it was when the night starts.",
+  shared = false,
 }: Props) {
   const meta = stage ? STAGE_META[stage] : null;
-  const copy = card ? personalizeCard(card, names, genders) : null;
+  const copy = card ? personalizeCard(card, names, genders, shared) : null;
   const showLive = Boolean(active && copy) && !conceal;
+  const stageLine = meta
+    ? shared
+      ? meta.label
+      : `${meta.heat} · ${meta.label}`
+    : "Shared stage";
 
   return (
-    <View className="flex-1">
-      <View className="mb-4 flex-row items-center justify-between">
-        <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-neon">
-          {meta ? `${meta.heat} · ${meta.label}` : "Shared stage"}
+    <View className={shared ? "" : "flex-1"}>
+      <View className="mb-3 flex-row items-center justify-between gap-3">
+        <Text className="flex-1 text-[12px] font-semibold uppercase tracking-[2px] text-neon">
+          {stageLine}
         </Text>
-        <Text className="text-[12px] text-mist/50">{progressLabel}</Text>
+        <Text className="max-w-[42%] text-right text-[12px] text-mist/50">
+          {progressLabel}
+        </Text>
       </View>
 
-      <View className="flex-1 justify-center">
-        <View className="min-h-[280px] rounded-[28px] border border-neon/30 bg-white/5 p-7">
+      <View className={shared ? "" : "flex-1 justify-center"}>
+        <View
+          className="rounded-[28px] border border-neon/30 bg-white/5 p-6"
+          style={{ minHeight: shared ? 220 : 280 }}
+        >
           {showLive ? (
             <>
-              <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
-                {actorLabel ?? "Live card"}
-              </Text>
-              <Text className="mt-4 text-[15px] font-semibold text-mist/55">
+              {shared ? null : (
+                <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
+                  {actorLabel ?? "Live card"}
+                </Text>
+              )}
+              <Text
+                className={`text-[15px] font-semibold text-mist/55 ${shared ? "" : "mt-4"}`}
+              >
                 {copy!.title}
               </Text>
               {card?.stage === "finish_off" ? (

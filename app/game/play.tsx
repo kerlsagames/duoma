@@ -116,9 +116,7 @@ export default function PlayScreen() {
       : played.filter((item) => item.stage === game?.currentStage).length;
   const progressLabel =
     isSimpleOpenStage(game?.pace, game?.currentStage)
-      ? game?.currentStage === "foreplay"
-        ? `${stagePlayed} this stage · go to Step it up when you want`
-        : `${stagePlayed} this stage · go to Finish off when you want`
+      ? `${stagePlayed} so far`
       : game?.currentStage === "finish_off" && game.finishAwaitingMale
       ? `${stagePlayed} / ${stageNeed} · he finishes next`
       : `${stagePlayed} / ${stageNeed} this stage`;
@@ -451,7 +449,7 @@ export default function PlayScreen() {
       : `Shuffle hand · ${myShufflesRemaining} left`;
 
   return (
-    <Screen scroll={showHand}>
+    <Screen scroll={showHand || simplePace}>
       <View className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}>
         <View className="mb-1.5 flex-row justify-between">
           {stagesForPace(game?.pace).map((stage) => {
@@ -488,8 +486,9 @@ export default function PlayScreen() {
             card={card}
             names={names}
             genders={genders}
-            actorLabel={simplePace ? "Together" : actor ? `${actor} played` : "Live card"}
+            actorLabel={simplePace ? undefined : actor ? `${actor} played` : "Live card"}
             progressLabel={progressLabel}
+            shared={simplePace}
             emptyTitle={
               simplePace && game?.finishAwaitingMale
                 ? "He finishes next…"
@@ -539,13 +538,11 @@ export default function PlayScreen() {
           )}
         </View>
 
-        {active ? (
+        {active && !simplePace ? (
           <Text className="mt-2 text-[14px] leading-5 text-mist/65">
             {concealPreForeplay
               ? "A daytime tease is in play. Tap Complete when they are done — you will see the card after you move on."
-              : simplePace
-                ? "Do this together. Next card keeps you in this stage. Go to Step it up or Finish off when you want."
-                : "When you are both finished with this card, tap Complete to pass the turn."}
+              : "When you are both finished with this card, tap Complete to pass the turn."}
           </Text>
         ) : null}
 
