@@ -54,6 +54,11 @@ import {
   hydrateHowWordsOn,
   type HowNote,
 } from "@/lib/the-how";
+import {
+  emptyPadNotes,
+  hydratePadNotes,
+  type PadNote,
+} from "@/lib/notepad";
 
 export type { BudgetState, MoneyGoal } from "@/lib/money";
 
@@ -482,6 +487,7 @@ export type MiniState = {
   howNotes: HowNote[];
   howWordsOn: string[];
   howPlainOn: boolean;
+  padNotes: PadNote[];
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
@@ -862,6 +868,7 @@ export function emptyMiniState(): MiniState {
     howNotes: emptyHowNotes(),
     howWordsOn: emptyHowWords(),
     howPlainOn: emptyHowPlainOn(),
+    padNotes: emptyPadNotes(),
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
@@ -978,6 +985,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     howNotes: hydrateHowNotes(row.howNotes),
     howWordsOn: hydrateHowWordsOn(row.howWordsOn),
     howPlainOn: hydrateHowPlainOn(row.howPlainOn),
+    padNotes: hydratePadNotes(row.padNotes),
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),

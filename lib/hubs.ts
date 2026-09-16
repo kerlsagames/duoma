@@ -76,6 +76,13 @@ export const HUBS: HubDef[] = [
         href: "/hub/lists",
       },
       {
+        id: "notepad",
+        label: "Notepad",
+        detail: "Shared pages — newest first, pin one, type together",
+        icon: "create",
+        href: "/hub/notepad",
+      },
+      {
         id: "date-night",
         label: "Date Night Generator",
         detail: "Build-a-date spinner: venue, activity & playful rule",
