@@ -56,6 +56,24 @@ export function hexAlpha(hex: string, alpha: number): string {
   return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
 }
 
+export function mixHex(a: string, b: string, amount: number): string {
+  const left = parseHex(a);
+  const right = parseHex(b);
+  if (!left || !right) return a;
+  const t = Math.min(1, Math.max(0, amount));
+  const mix = (from: number, to: number) => Math.round(from + (to - from) * t);
+  const to = (n: number) => n.toString(16).padStart(2, "0");
+  return `#${to(mix(left.r, right.r))}${to(mix(left.g, right.g))}${to(mix(left.b, right.b))}`.toUpperCase();
+}
+
+/** Wash a screen background with the app accent so colour changes the page, not just a heading. */
+export function tintCanvas(base: string, accent: string, amount = 0.28): string {
+  if (!parseHex(base) || !parseHex(accent)) return base;
+  const baseRgb = parseHex(base)!;
+  const darkBase = luminance(baseRgb) < 0.4;
+  return mixHex(base, accent, darkBase ? amount : amount * 0.55);
+}
+
 export function paintString(value: string, fromHex: string, toHex: string): string {
   const from = parseHex(fromHex);
   const to = parseHex(toHex);

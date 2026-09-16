@@ -128,6 +128,7 @@ export default function TalkScreen() {
       kicker="Talk to me"
       body="One topic each per day. Read it out loud, then tap Answered."
       accent={look.accent}
+      look={look}
       settingsLabel="Talk settings"
       settings={
         <AppSettingsPanel {...lookPanelProps(look, THEME.ink, THEME.muted)}>

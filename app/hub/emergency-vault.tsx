@@ -1,8 +1,10 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -32,6 +34,7 @@ const FOLDER_ICONS = [
 
 export default function EmergencyVaultScreen() {
   const { data, ready, patch } = useMiniApps();
+  const look = useAppLook("emergency-vault", steel(), {});
   const [pinDraft, setPinDraft] = useState("");
   const [gate, setGate] = useState("");
   const [open, setOpen] = useState(false);
@@ -165,7 +168,13 @@ export default function EmergencyVaultScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-    <Screen scroll={!compose} background={BG}>
+    <Screen
+      scroll={!compose}
+      background={BG}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
+    >
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={steel()}>
         {!data.vaultPin ? (
           <View style={{ alignItems: "center" }}>
@@ -320,6 +329,7 @@ export default function EmergencyVaultScreen() {
 
             {settingsOpen ? (
               <View style={{ marginTop: 20 }}>
+                <LookPanel look={look} ink="#C5D0DA" muted="rgba(197,208,218,0.55)">
                 <Text
                   style={{
                     fontFamily: "SpaceMono",
@@ -430,6 +440,7 @@ export default function EmergencyVaultScreen() {
                   </Text>
                 </Pressable>
                 {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+                </LookPanel>
               </View>
             ) : (
             <>

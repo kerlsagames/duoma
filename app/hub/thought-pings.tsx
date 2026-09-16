@@ -3,6 +3,7 @@ import { Stage, TwinkleSky } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
+import { formatDateAndTime } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { PING_KINDS, type PingKind } from "@/lib/mini-content";
@@ -56,6 +57,7 @@ export default function ThoughtPingsScreen() {
   });
   const [pressed, setPressed] = useState(false);
   const [burst, setBurst] = useState(false);
+  const [openPingId, setOpenPingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const boom = useRef(new Animated.Value(0)).current;
   const them = partner?.displayName || "them";
@@ -105,7 +107,7 @@ export default function ThoughtPingsScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
+    <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <Stage
         background={BG}
         fallback={"/hub/connect" as Href}
@@ -364,33 +366,67 @@ export default function ThoughtPingsScreen() {
             data.pings.slice(0, 8).map((ping, i) => {
               const row = PING_KINDS.find((item) => item.id === ping.kind);
               const mine = ping.fromId === user?.id;
+              const open = openPingId === ping.id;
               return (
-                <View
+                <Pressable
                   key={ping.id}
+                  onPress={() =>
+                    setOpenPingId((current) =>
+                      current === ping.id ? null : ping.id
+                    )
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    open
+                      ? `${mine ? "you" : them} sent ${row?.label ?? "a ping"} ${formatDateAndTime(ping.createdAt)}`
+                      : `Show when this ping was sent`
+                  }
                   style={{
                     alignSelf: mine ? "flex-end" : "flex-start",
                     maxWidth: "80%",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
+                    gap: 4,
                     transform: [{ rotate: i % 2 === 0 ? "1.5deg" : "-2deg" }],
                   }}
                 >
-                  <Ionicons
-                    name={row?.icon ?? "heart"}
-                    size={18}
-                    color={row?.color ?? "#FF6B9A"}
-                  />
-                  <Text
-                    selectable={false}
-                    style={[
-                      { color: row?.color ?? "#FF6B9A", fontFamily: SERIF },
-                      noSelectText,
-                    ]}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
                   >
-                    {mine ? "you" : them} · {row?.label.toLowerCase()}
-                  </Text>
-                </View>
+                    <Ionicons
+                      name={row?.icon ?? "heart"}
+                      size={18}
+                      color={row?.color ?? "#FF6B9A"}
+                    />
+                    <Text
+                      selectable={false}
+                      style={[
+                        { color: row?.color ?? "#FF6B9A", fontFamily: SERIF },
+                        noSelectText,
+                      ]}
+                    >
+                      {mine ? "you" : them} · {row?.label.toLowerCase()}
+                    </Text>
+                  </View>
+                  {open ? (
+                    <Text
+                      selectable={false}
+                      style={[
+                        {
+                          color: "rgba(255,214,230,0.7)",
+                          fontSize: 12,
+                          fontFamily: "SpaceMono",
+                          paddingLeft: 26,
+                        },
+                        noSelectText,
+                      ]}
+                    >
+                      {formatDateAndTime(ping.createdAt)}
+                    </Text>
+                  ) : null}
+                </Pressable>
               );
             })
           )}

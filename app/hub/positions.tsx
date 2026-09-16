@@ -1,3 +1,4 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { PlayRatingsToggle, PlayTabs } from "@/components/hub/PlayTabs";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { BackButton } from "@/components/ui/BackButton";
@@ -5,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { addDaysToDateKey, localDateKey, upcomingWeekday } from "@/lib/dates";
 import {
   categoryMeta,
@@ -51,6 +53,7 @@ export default function PositionsScreen() {
     ratePlayItem,
   } = useApp();
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
+  const look = useAppLook("positions", T.accent, {});
   const partnerName = partner?.displayName ?? "them";
   const [tab, setTab] = useState<Tab>("pick");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -192,7 +195,13 @@ export default function PositionsScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen
+      scroll
+      background={T.background}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
+    >
       <View className="pt-4 pb-10">
         <View
           style={{
@@ -202,7 +211,7 @@ export default function PositionsScreen() {
             marginBottom: 12,
           }}
         >
-          <BackButton color={T.accent} />
+          <BackButton color={look.accent} />
           <Pressable
             onPress={() => setSettingsOpen((value) => !value)}
             hitSlop={10}
@@ -219,7 +228,7 @@ export default function PositionsScreen() {
             <Ionicons
               name={settingsOpen ? "close" : "settings-outline"}
               size={20}
-              color={T.accent}
+              color={look.accent}
             />
           </Pressable>
         </View>
@@ -261,12 +270,14 @@ export default function PositionsScreen() {
 
         {settingsOpen ? (
           <View style={{ marginTop: 22 }}>
-            <PlayRatingsToggle
-              on={prefs.ratingsOn}
-              accent={T.accent}
-              ink={T.ink}
-              onToggle={() => void savePrefs({ ratingsOn: !prefs.ratingsOn })}
-            />
+            <LookPanel look={look} ink={T.ink} muted={T.muted}>
+              <PlayRatingsToggle
+                on={prefs.ratingsOn}
+                accent={look.accent}
+                ink={T.ink}
+                onToggle={() => void savePrefs({ ratingsOn: !prefs.ratingsOn })}
+              />
+            </LookPanel>
           </View>
         ) : (
           <>

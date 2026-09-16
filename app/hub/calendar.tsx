@@ -15,6 +15,7 @@ import {
 import {
   CALENDAR_KIND_OPTIONS,
   CALENDAR_LAYOUT_OPTIONS,
+  defaultCalendarPrefs,
   type CalendarLayout,
 } from "@/lib/calendar-prefs";
 import {
@@ -79,14 +80,19 @@ export default function CalendarScreen() {
   }, [selected, prefs.listMode, lane, prefs.layout]);
 
   useEffect(() => {
-    if (!prefs.showPeriodLane && lane === "cycle") setLane("life");
-  }, [prefs.showPeriodLane, lane]);
+    if (lane === "cycle") setLane("life");
+  }, [lane]);
 
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
-    const laneRows = activitiesForLane(allActivities, lane);
-    return laneRows.filter((row) => prefs.enabledKinds[row.kind] !== false);
-  }, [allActivities, lane, prefs.enabledKinds]);
+    return allActivities.filter((row) => {
+      if (row.kind === "period") {
+        return prefs.showPeriodLane && lane === "life";
+      }
+      if (prefs.enabledKinds[row.kind] === false) return false;
+      return laneForKind(row.kind) === lane;
+    });
+  }, [allActivities, lane, prefs.enabledKinds, prefs.showPeriodLane]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
   const dayItems = useMemo(
     () => activitiesForDate(activities, selected),
@@ -138,19 +144,13 @@ export default function CalendarScreen() {
   };
 
   const handleAdd = (date = selected) => {
-    if (lane === "cycle") {
-      router.push("/hub/period" as Href);
-      return;
-    }
     openAdd(date);
   };
 
   const emptyCopy =
     lane === "together"
       ? "Nothing recorded this day."
-        : lane === "cycle"
-        ? "No cycle notes this day. Open Period Tracker to log flow or symptoms."
-        : "No birthdays, holidays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
+      : "No birthdays, holidays, trips, or jobs this day. Tap + for a note, a birthday, or a reminder.";
 
   return (
     <HubScreen
@@ -177,7 +177,6 @@ export default function CalendarScreen() {
       <View style={fillPage ? { flex: 1, minHeight: 0 } : undefined}>
         <LaneTabs
           lane={lane}
-          showPeriod={prefs.showPeriodLane}
           onChange={(next) => {
             setLane(next);
             setExpanded(false);
@@ -217,9 +216,7 @@ export default function CalendarScreen() {
                     <Text style={{ fontSize: 15, color: "rgba(22,24,29,0.5)" }}>
                       {lane === "together"
                         ? "Nothing on this month yet."
-                        : lane === "cycle"
-                          ? "No cycle notes this month."
-                          : "No birthdays, trips, or jobs this month. Tap + to add one."}
+                        : "No birthdays, trips, or jobs this month. Tap + to add one."}
                     </Text>
                   ) : null}
                 </View>
@@ -610,7 +607,7 @@ export default function CalendarScreen() {
                 })}
               </View>
 
-              <SectionLabel>Calendar buttons</SectionLabel>
+              <SectionLabel>Period on calendar</SectionLabel>
               <Text
                 style={{
                   marginTop: -4,
@@ -620,8 +617,8 @@ export default function CalendarScreen() {
                   lineHeight: 18,
                 }}
               >
-                Desire & Connect sits beside General. Turn Period
-                Tracker on to add a third calendar from Home Base.
+                When this is on, logged and predicted cycle days sync onto
+                General automatically.
               </Text>
               <Pressable
                 onPress={() =>
@@ -654,7 +651,7 @@ export default function CalendarScreen() {
                       color: "#16181D",
                     }}
                   >
-                    Period Tracker
+                    Show period on calendar
                   </Text>
                   <Text
                     style={{
@@ -663,7 +660,7 @@ export default function CalendarScreen() {
                       color: "rgba(22,24,29,0.5)",
                     }}
                   >
-                    Third button — cycle, symptoms, next period.
+                    Flow, predicted days, fertile window, and ovulation.
                   </Text>
                 </View>
                 <Ionicons
@@ -680,9 +677,7 @@ export default function CalendarScreen() {
               <SectionLabel>
                 {lane === "together"
                   ? "Show on Desire & Connect"
-                  : lane === "cycle"
-                    ? "Show on Period"
-                    : "Show on General"}
+                  : "Show on General"}
               </SectionLabel>
               <Text
                 style={{
@@ -695,9 +690,7 @@ export default function CalendarScreen() {
               >
                 {lane === "together"
                   ? "Play, talks, and nights you already logged."
-                  : lane === "cycle"
-                    ? "Logged days, predicted period, fertile window, and ovulation from Home Base."
-                    : "Birthdays, holidays, trips, jobs, and notes you add yourself."}
+                  : "Birthdays, holidays, trips, jobs, and notes you add yourself."}
               </Text>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_KIND_OPTIONS.filter(
@@ -851,6 +844,28 @@ export default function CalendarScreen() {
                   </View>
                 </>
               ) : null}
+              <Pressable
+                onPress={() => savePrefs(defaultCalendarPrefs())}
+                style={{
+                  marginTop: 8,
+                  height: 44,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: "rgba(22,24,29,0.18)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "rgba(22,24,29,0.55)",
+                    fontWeight: "700",
+                    fontSize: 13,
+                  }}
+                >
+                  Restore defaults
+                </Text>
+              </Pressable>
             </ScrollView>
           </View>
         </View>
@@ -932,11 +947,9 @@ function ViewModeBar({
 
 function LaneTabs({
   lane,
-  showPeriod,
   onChange,
 }: {
   lane: CalendarLane;
-  showPeriod: boolean;
   onChange: (lane: CalendarLane) => void;
 }) {
   const tabs = [
@@ -952,16 +965,6 @@ function LaneTabs({
       hint: "Nights, talks",
       grow: 1,
     },
-    ...(showPeriod
-      ? [
-          {
-            id: "cycle" as const,
-            label: "Period",
-            hint: "Cycle",
-            grow: 0.85,
-          },
-        ]
-      : []),
   ];
 
   return (

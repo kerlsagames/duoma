@@ -1,5 +1,11 @@
+import {
+  densityLook,
+  type DensityId,
+  type TypefaceId,
+} from "@/lib/app-prefs";
+import { tintCanvas } from "@/lib/color-paint";
 import { ReactNode, RefObject } from "react";
-import { ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
@@ -7,6 +13,9 @@ type Props = {
   scroll?: boolean;
   background?: string;
   scrollRef?: RefObject<ScrollView | null>;
+  density?: DensityId;
+  typeface?: TypefaceId;
+  accent?: string;
 };
 
 export function Screen({
@@ -14,23 +23,40 @@ export function Screen({
   scroll,
   background = "#0B0B0E",
   scrollRef,
+  density = "regular",
+  typeface = "sans",
+  accent,
 }: Props) {
+  const sizes = densityLook(density);
+  const padX = density === "compact" ? 16 : density === "roomy" ? 24 : 20;
+  const canvas = accent ? tintCanvas(background, accent, 0.32) : background;
+  const webAttrs =
+    Platform.OS === "web"
+      ? ({
+          dataSet: { appDensity: density, appTypeface: typeface },
+        } as object)
+      : {};
+
   if (scroll) {
     return (
       <SafeAreaView
         className="flex-1"
-        style={{ flex: 1, backgroundColor: background }}
+        style={{ flex: 1, backgroundColor: canvas }}
         edges={["top", "left", "right"]}
+        {...webAttrs}
       >
         <ScrollView
           ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+          contentContainerStyle={{
+            paddingHorizontal: padX,
+            paddingBottom: 20 + sizes.gap,
+          }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          style={{ backgroundColor: background }}
+          style={{ backgroundColor: canvas }}
         >
-          {children}
+          <View>{children}</View>
         </ScrollView>
       </SafeAreaView>
     );
@@ -39,10 +65,17 @@ export function Screen({
   return (
     <SafeAreaView
       className="flex-1"
-      style={{ flex: 1, backgroundColor: background }}
+      style={{ flex: 1, backgroundColor: canvas }}
       edges={["top", "left", "right"]}
+      {...webAttrs}
     >
-      <View className="flex-1 px-5" style={{ backgroundColor: background }}>
+      <View
+        className="flex-1"
+        style={{
+          backgroundColor: canvas,
+          paddingHorizontal: padX,
+        }}
+      >
         {children}
       </View>
     </SafeAreaView>

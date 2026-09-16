@@ -129,6 +129,10 @@ export function seedToPreview(seed: DefaultCardSeed) {
 
 export const HAND_SIZE = 3;
 
+export function handSizeForPace(pace: string | null | undefined): number {
+  return pace === "simple" ? 1 : HAND_SIZE;
+}
+
 /** Passes ("I don't participate"): 0–5. */
 export function normalizePassLimit(value: number): number {
   if (!Number.isFinite(value)) return 1;

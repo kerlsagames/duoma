@@ -1,7 +1,9 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { HowPlainToggle } from "@/components/hub/HowPlainToggle";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HOW_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { formatWeekRange } from "@/lib/dates";
 import {
   chapterMeta,
@@ -34,7 +36,7 @@ export default function TheHowScreen() {
   const { data, patch } = useMiniApps();
   const [tab, setTab] = useState<Tab>("studio");
   const [chapterId, setChapterId] = useState<HowChapterId | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("the-how", T.rose, {});
   const weekKey = thisWeekKey();
   const week = useMemo(
     () => weekTechnique(data.howNotes, weekKey),
@@ -68,31 +70,34 @@ export default function TheHowScreen() {
   const weekVoice = howVoice(week, data.howPlainOn);
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen
+      scroll
+      background={T.background}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
+    >
       <Stage
         background={T.background}
         fallback={"/hub/desire" as Href}
-        accent={T.rose}
-        right={
-          <Pressable
-            onPress={() => setSettingsOpen((value) => !value)}
-            hitSlop={10}
-            accessibilityLabel={settingsOpen ? "Close The How settings" : "The How settings"}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.06)",
-            }}
-          >
-            <Ionicons
-              name={settingsOpen ? "close" : "settings-outline"}
-              size={20}
-              color={T.rose}
-            />
-          </Pressable>
+        accent={look.accent}
+        settingsLabel="The How"
+        settings={
+          <LookPanel look={look} ink={T.ink} muted={T.muted}>
+            <HowPlainToggle on={data.howPlainOn} onToggle={() => void togglePlain()} />
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: SERIF,
+                fontSize: 14,
+                lineHeight: 21,
+                color: T.dim,
+              }}
+            >
+              The try itself does not change — only the reading. Open Words for
+              the full body map.
+            </Text>
+          </LookPanel>
         }
       >
         <Text
@@ -131,24 +136,6 @@ export default function TheHowScreen() {
           mons are translated on the card.
         </Text>
 
-        {settingsOpen ? (
-          <View style={{ marginTop: 22, gap: 14 }}>
-            <HowPlainToggle on={data.howPlainOn} onToggle={() => void togglePlain()} />
-            <Text
-              style={{
-                fontFamily: SERIF,
-                fontSize: 14,
-                lineHeight: 21,
-                color: T.dim,
-              }}
-            >
-              The try itself does not change — only the reading. Open Words for
-              the full body map.
-            </Text>
-          </View>
-        ) : null}
-
-        {!settingsOpen ? (
         <>
         <View
           style={{
@@ -632,7 +619,6 @@ export default function TheHowScreen() {
           </View>
         ) : null}
         </>
-        ) : null}
       </Stage>
     </Screen>
   );

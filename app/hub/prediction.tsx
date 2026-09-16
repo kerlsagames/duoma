@@ -319,7 +319,7 @@ export default function PredictionScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <Stage
         background={T.background}
         fallback={"/hub/play" as Href}

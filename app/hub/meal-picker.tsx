@@ -97,7 +97,7 @@ export default function MealPickerScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <View className="pt-4 pb-10">
         <SettingsDock
           accent={look.accent}

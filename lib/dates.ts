@@ -25,6 +25,14 @@ export function formatMonthYear(year: number, month: number): string {
   });
 }
 
+/** e.g. Wed, Sep 16 · 9:43 pm */
+export function formatDateAndTime(iso: string): string {
+  const time = formatClockTime(iso);
+  const key = dateKeyFromIso(iso);
+  if (!time) return formatLongDate(key);
+  return `${formatLongDate(key)} · ${time}`;
+}
+
 /** e.g. 9:43 pm */
 export function formatClockTime(iso: string): string {
   const date = new Date(iso);

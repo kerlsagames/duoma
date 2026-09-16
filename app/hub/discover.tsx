@@ -244,7 +244,7 @@ export default function DiscoverScreen() {
     (current && current.prompt.length > 90 ? 18 : 20) + (look.prefs.jumbo ? 6 : 0);
 
   return (
-    <Screen scroll={!onDeck} background={T.background}>
+    <Screen scroll={!onDeck} background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <View
         style={{
           flex: onDeck ? 1 : undefined,

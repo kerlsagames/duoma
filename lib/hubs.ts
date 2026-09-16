@@ -178,13 +178,6 @@ export const HUBS: HubDef[] = [
         href: "/hub/positions",
       },
       {
-        id: "the-how",
-        label: "The How",
-        detail: "Four parts. Timed tries. Keep what actually works.",
-        icon: "book",
-        href: "/hub/the-how",
-      },
-      {
         id: "fantasy-matcher",
         label: "Fantasy Matcher",
         detail: "Swipe yes or no. To-do, completed, and passed.",
@@ -204,6 +197,13 @@ export const HUBS: HubDef[] = [
         detail: "Private pics and clips. Shared pin. Hide until a time you set.",
         icon: "lock-closed",
         href: "/hub/sexy-vault",
+      },
+      {
+        id: "the-how",
+        label: "The How",
+        detail: "Four parts. Timed tries. Keep what actually works.",
+        icon: "book",
+        href: "/hub/the-how",
       },
     ],
   },

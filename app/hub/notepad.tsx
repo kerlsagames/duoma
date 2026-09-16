@@ -242,7 +242,7 @@ export default function NotepadScreen() {
   if (openNote) {
     return (
       <View style={{ flex: 1, backgroundColor: C.bg }}>
-        <Screen scroll background={C.bg}>
+        <Screen scroll background={C.bg} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
@@ -373,7 +373,7 @@ export default function NotepadScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Screen scroll background={C.bg}>
+      <Screen scroll background={C.bg} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
         <Stage
           background={C.bg}
           fallback={"/" as Href}

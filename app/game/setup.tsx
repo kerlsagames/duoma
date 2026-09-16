@@ -25,15 +25,15 @@ import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 const SETUP_RULES = [
   {
     title: "Deal three",
-    body: "On your turn the app deals three cards. Tap one to play. Then it is your partner’s turn.",
+    body: "Detailed: on your turn the app deals three cards. Tap one to play. Then it is your partner’s turn.",
   },
   {
     title: "Shuffle",
-    body: "Do not like the three you got? Shuffle redraws your hand. Setup sets how many shuffles each of you gets — or unlimited.",
+    body: "Detailed only. Do not like the three you got? Shuffle redraws your hand. Setup sets how many shuffles each of you gets — or unlimited.",
   },
   {
     title: "Pass",
-    body: "You cannot pass your own card. If your partner played something you do not want to do, Pass — I don’t participate. They deal again.",
+    body: "Detailed only. You cannot pass your own card. If your partner played something you do not want to do, Pass — I don’t participate. They deal again.",
   },
   {
     title: "Daytime pause",
@@ -41,7 +41,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "Three stages only — Foreplay, Step it up, Finish Off. Keep flipping cards in a stage until you tap Ready to move on. Then the next stage. No passes or shuffles. Finish Off still tags F, M, or both.",
+    body: "One card in the middle, like the swipe apps. Three stages — Foreplay, Step it up, Finish Off. Flip cards until you tap Move on to stage 2 or stage 3. No passes or shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -173,7 +173,7 @@ export default function SetupScreen() {
   };
 
   return (
-    <Screen scroll>
+    <Screen scroll density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <View className="pt-4 pb-8">
         <BackButton style={{ marginBottom: 12 }} />
         <View className="flex-row items-start justify-between">

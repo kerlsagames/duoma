@@ -21,6 +21,7 @@ export type WordlePrefs = {
   themeId: WordleThemeId;
   colorBlind: boolean;
   hardMode: boolean;
+  showScoreboard: boolean;
 };
 
 export type WordleState = {
@@ -146,7 +147,12 @@ export const WORDLE_THEMES: WordleTheme[] = [
 
 export function emptyWordle(): WordleState {
   return {
-    prefs: { themeId: "classic", colorBlind: false, hardMode: false },
+    prefs: {
+      themeId: "classic",
+      colorBlind: false,
+      hardMode: false,
+      showScoreboard: true,
+    },
     days: [],
   };
 }
@@ -166,6 +172,7 @@ export function hydrateWordle(raw: unknown): WordleState {
         : "classic",
       colorBlind: Boolean(prefs.colorBlind),
       hardMode: Boolean(prefs.hardMode),
+      showScoreboard: prefs.showScoreboard !== false,
     },
     days: Array.isArray(row.days)
       ? row.days
@@ -341,6 +348,62 @@ export function winnerOf(day: WordleDay): WordlePlayer | null {
     if (t !== 0) return t;
     return a.guesses.length - b.guesses.length;
   })[0]!;
+}
+
+export type WordleRecord = {
+  wins: number;
+  losses: number;
+  ties: number;
+  avgGuesses: number | null;
+  played: number;
+};
+
+export function coupleWordleRecord(
+  state: WordleState,
+  youId: string,
+  themId: string
+): WordleRecord {
+  let wins = 0;
+  let losses = 0;
+  let ties = 0;
+  let guessSum = 0;
+  let guessN = 0;
+  let played = 0;
+  for (const day of state.days) {
+    const mine = playerFor(day, youId);
+    const theirs = playerFor(day, themId);
+    if (!finished(mine) && !finished(theirs)) continue;
+    played += 1;
+    if (finished(mine) && mine.guesses.length > 0) {
+      guessSum += mine.guesses.length;
+      guessN += 1;
+    }
+    const meSolved = Boolean(mine.solvedAt);
+    const theySolved = Boolean(theirs.solvedAt);
+    if (meSolved && theySolved) {
+      if (mine.guesses.length < theirs.guesses.length) wins += 1;
+      else if (mine.guesses.length > theirs.guesses.length) losses += 1;
+      else {
+        const t = (mine.solvedAt ?? "").localeCompare(theirs.solvedAt ?? "");
+        if (t < 0) wins += 1;
+        else if (t > 0) losses += 1;
+        else ties += 1;
+      }
+    } else if (meSolved) {
+      wins += 1;
+    } else if (theySolved) {
+      losses += 1;
+    } else {
+      ties += 1;
+    }
+  }
+  return {
+    wins,
+    losses,
+    ties,
+    avgGuesses: guessN ? guessSum / guessN : null,
+    played,
+  };
 }
 
 export function everSolved(state: WordleState): boolean {

@@ -1,3 +1,4 @@
+import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
 import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
@@ -427,6 +428,19 @@ export default function PhotoChallengesScreen() {
                 </Pressable>
               );
             })}
+            <RestoreDefaultsButton
+              ink={CREAM}
+              muted="rgba(246,214,214,0.65)"
+              onReset={() =>
+                void patch((state) => ({
+                  ...state,
+                  photoPrefs: {
+                    dealAfterComplete: false,
+                    categories: PHOTO_CATEGORIES.map((row) => row.id),
+                  },
+                }))
+              }
+            />
           </View>
         ) : null}
 

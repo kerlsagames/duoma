@@ -3,6 +3,7 @@ import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
 import {
   applyGuess,
+  coupleWordleRecord,
   emptyWordle,
   ensureWordleDay,
   finished,
@@ -16,6 +17,7 @@ import {
   WORDLE_THEMES,
   type LetterMark,
   type WordlePlayer,
+  type WordleRecord,
   type WordleTheme,
 } from "@/lib/daily-word";
 import { formatClockTime, formatLongDate, localDateKey } from "@/lib/dates";
@@ -193,6 +195,14 @@ export default function DailyWordScreen() {
               reveal={showTheirGrid}
             />
           )}
+          {wordle.prefs.showScoreboard ? (
+            <WordleScoreboard
+              theme={theme}
+              youName={youName}
+              themName={themName}
+              record={coupleWordleRecord(wordle, youId, themId)}
+            />
+          ) : null}
           <View style={{ height: 24 }} />
         </Stage>
       </Screen>
@@ -203,6 +213,7 @@ export default function DailyWordScreen() {
           themeId={wordle.prefs.themeId}
           colorBlind={wordle.prefs.colorBlind}
           hardMode={wordle.prefs.hardMode}
+          showScoreboard={wordle.prefs.showScoreboard}
           onClose={() => setSettingsOpen(false)}
           onTheme={(themeId) =>
             void patch((state) => {
@@ -229,6 +240,21 @@ export default function DailyWordScreen() {
                 ...state,
                 wordle: { ...current, prefs: { ...current.prefs, hardMode } },
               };
+            })
+          }
+          onShowScoreboard={(showScoreboard) =>
+            void patch((state) => {
+              const current = state.wordle ?? emptyWordle();
+              return {
+                ...state,
+                wordle: { ...current, prefs: { ...current.prefs, showScoreboard } },
+              };
+            })
+          }
+          onReset={() =>
+            void patch((state) => {
+              const current = state.wordle ?? emptyWordle();
+              return { ...state, wordle: { ...current, prefs: emptyWordle().prefs } };
             })
           }
         />
@@ -484,24 +510,98 @@ function PartnerBoard({
   );
 }
 
+function WordleScoreboard({
+  theme,
+  youName,
+  themName,
+  record,
+}: {
+  theme: WordleTheme;
+  youName: string;
+  themName: string;
+  record: WordleRecord;
+}) {
+  const avg =
+    record.avgGuesses == null ? "—" : record.avgGuesses.toFixed(1);
+  return (
+    <View
+      style={{
+        marginTop: 18,
+        borderWidth: 1,
+        borderColor: theme.border,
+        backgroundColor: theme.surface,
+        padding: 14,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: "SpaceMono",
+          fontSize: 10,
+          letterSpacing: 2,
+          color: theme.muted,
+        }}
+      >
+        {youName.toUpperCase()} VS {themName.toUpperCase()}
+      </Text>
+      <View style={{ marginTop: 10, flexDirection: "row" }}>
+        {(
+          [
+            ["W", String(record.wins)],
+            ["L", String(record.losses)],
+            ["T", String(record.ties)],
+            ["AVG", avg],
+          ] as const
+        ).map(([label, value]) => (
+          <View key={label} style={{ flex: 1, alignItems: "center" }}>
+            <Text style={{ color: theme.muted, fontSize: 11, letterSpacing: 1 }}>
+              {label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF,
+                fontSize: 22,
+                color: theme.text,
+              }}
+            >
+              {value}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <Text style={{ marginTop: 8, color: theme.muted, fontSize: 12, textAlign: "center" }}>
+        {record.played
+          ? `${record.played} finished word${record.played === 1 ? "" : "s"} · avg guesses is yours`
+          : "Play a few days. Wins, losses, ties and your average guesses land here."}
+      </Text>
+    </View>
+  );
+}
+
 function SettingsSheet({
   theme,
   themeId,
   colorBlind,
   hardMode,
+  showScoreboard,
   onClose,
   onTheme,
   onColorBlind,
   onHard,
+  onShowScoreboard,
+  onReset,
 }: {
   theme: WordleTheme;
   themeId: string;
   colorBlind: boolean;
   hardMode: boolean;
+  showScoreboard: boolean;
   onClose: () => void;
   onTheme: (id: (typeof WORDLE_THEMES)[number]["id"]) => void;
   onColorBlind: (on: boolean) => void;
   onHard: (on: boolean) => void;
+  onShowScoreboard: (on: boolean) => void;
+  onReset: () => void;
 }) {
   return (
     <View
@@ -625,6 +725,43 @@ function SettingsSheet({
               size={22}
               color={hardMode ? theme.accent : theme.muted}
             />
+          </Pressable>
+          <Pressable
+            onPress={() => onShowScoreboard(!showScoreboard)}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: 12,
+            }}
+          >
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={{ color: theme.text, fontSize: 16 }}>Scoreboard</Text>
+              <Text style={{ marginTop: 2, color: theme.muted, fontSize: 12 }}>
+                Wins, losses, ties and your average guesses under the board.
+              </Text>
+            </View>
+            <Ionicons
+              name={showScoreboard ? "checkbox" : "square-outline"}
+              size={22}
+              color={showScoreboard ? theme.accent : theme.muted}
+            />
+          </Pressable>
+          <Pressable
+            onPress={onReset}
+            style={{
+              marginTop: 12,
+              height: 44,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: theme.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: theme.muted, fontWeight: "700", fontSize: 13 }}>
+              Restore defaults
+            </Text>
           </Pressable>
         </ScrollView>
       </View>

@@ -10,7 +10,6 @@ import {
 } from "@/lib/app-themes";
 import {
   CHICKEN_BADGES,
-  CHICKEN_DARES,
   CHICKEN_PACKS,
   CHICKEN_YARDS,
   chickenBoard,
@@ -108,7 +107,7 @@ export default function ChickenScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
-    <Screen scroll={!picked} background={T.background}>
+    <Screen scroll={!picked} background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <Stage
         background={T.background}
         fallback={"/hub/play" as Href}
@@ -184,7 +183,7 @@ export default function ChickenScreen() {
             color: T.muted,
           }}
         >
-          {CHICKEN_DARES.length} silly dares. Send one to {them}. They cluck out, or they do it.
+          Silly dares. Send one to {them}. They cluck out, or they do it.
           Eggs go on the board.
         </Text>
 
@@ -709,7 +708,7 @@ function CoopSection({
   userId,
   partnerName,
   outgoing,
-  demo,
+  demo: _demo,
   onIn,
   onCluck,
   onDone,
@@ -754,8 +753,8 @@ function CoopSection({
         <View style={{ marginTop: 8, gap: 8 }}>
           {rows.map((row) => {
             const catalog = chickenDareById(row.dareId);
-            const mine = row.toUserId === userId;
-            const canAct = mine || (Boolean(demo) && outgoing);
+            const recipient = row.toUserId === userId;
+            const waitingOnThem = Boolean(outgoing) && row.status === "offered";
             return (
               <View
                 key={row.id}
@@ -797,7 +796,7 @@ function CoopSection({
                 >
                   {row.text}
                 </Text>
-                {row.status === "offered" && canAct ? (
+                {row.status === "offered" && recipient ? (
                   <View style={{ marginTop: 10, flexDirection: "row", gap: 8 }}>
                     <Pressable
                       onPress={() => onIn(row.id)}
@@ -829,7 +828,19 @@ function CoopSection({
                     </Pressable>
                   </View>
                 ) : null}
-                {row.status === "accepted" && canAct ? (
+                {waitingOnThem ? (
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontFamily: SERIF,
+                      fontSize: 13,
+                      color: T.creamMuted,
+                    }}
+                  >
+                    Waiting on {partnerName} to tap I’m in or Chicken.
+                  </Text>
+                ) : null}
+                {row.status === "accepted" && recipient ? (
                   <Pressable
                     onPress={() => onDone(row.id)}
                     style={{

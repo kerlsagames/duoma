@@ -116,7 +116,7 @@ export default function PeriodScreen() {
   const laterStarts = upcomingStarts.slice(1, 4);
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <Stage
         background={T.background}
         fallback={"/hub/home-base" as Href}

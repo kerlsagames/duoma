@@ -171,7 +171,7 @@ export default function FairShareScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <Screen scroll background={BG}>
+      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
         <Stage
           background={BG}
           fallback={"/hub/play" as Href}

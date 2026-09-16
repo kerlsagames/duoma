@@ -1,7 +1,9 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { LISTS_DISPLAY, LISTS_ROUNDED, LISTS_TONE } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { listFieldCopy, starterDef } from "@/lib/lists";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -105,6 +107,7 @@ export default function ListsScreen() {
   const [emoji, setEmoji] = useState("✨");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const look = useAppLook("lists", T.accent, {});
 
   useEffect(() => {
     void ensureStarterLists();
@@ -162,7 +165,13 @@ export default function ListsScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen
+      scroll
+      background={T.background}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
+    >
       <View className="pb-10 pt-2">
         <BackButton color={T.teal} style={{ marginBottom: 6 }} />
         <View className="mb-1 flex-row items-center justify-between">
@@ -542,6 +551,7 @@ export default function ListsScreen() {
                 </Text>
               </Pressable>
             </View>
+            <LookPanel look={look} ink={T.ink} muted={T.muted}>
             <Text
               style={{
                 fontFamily: LISTS_ROUNDED,
@@ -623,6 +633,7 @@ export default function ListsScreen() {
                 })
               )}
             </View>
+            </LookPanel>
           </View>
         </View>
       </Modal>

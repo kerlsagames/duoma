@@ -1,3 +1,4 @@
+import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
@@ -5,6 +6,7 @@ import {
   applyDoodleScore,
   categoryForPrompt,
   chooseDoodlePrompt,
+  DEFAULT_DOODLE_CATEGORIES,
   dealDoodleOptions,
   DOODLE_CATEGORIES,
   doodleCategoryLabel,
@@ -518,6 +520,14 @@ export default function DoodleScreen() {
             updatedBy: youId,
           }))
         }
+        onReset={() =>
+          updateBoard((current) => ({
+            ...current,
+            enabledCategories: [...DEFAULT_DOODLE_CATEGORIES],
+            updatedAt: nowIso(),
+            updatedBy: youId,
+          }))
+        }
       />
     ) : null}
     </View>
@@ -630,10 +640,12 @@ function SettingsSheet({
   enabled,
   onToggle,
   onClose,
+  onReset,
 }: {
   enabled: string[];
   onToggle: (id: (typeof DOODLE_CATEGORIES)[number]["id"]) => void;
   onClose: () => void;
+  onReset: () => void;
 }) {
   return (
     <View
@@ -751,6 +763,11 @@ function SettingsSheet({
               </Pressable>
             );
           })}
+          <RestoreDefaultsButton
+            ink={PAPER}
+            muted={MUTED}
+            onReset={onReset}
+          />
         </ScrollView>
       </View>
     </View>

@@ -37,7 +37,7 @@ export default function WorldsScreen() {
   };
 
   return (
-    <Screen scroll background="#0C0E14">
+    <Screen scroll background="#0C0E14" density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <SettingsDock
         accent={look.accent}
         fallback={"/(tabs)" as Href}

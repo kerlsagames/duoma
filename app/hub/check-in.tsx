@@ -153,9 +153,9 @@ export default function CheckInScreen() {
   const myCheckIn = checkIns.find(
     (row) => row.userId === user?.id && row.date === today
   );
-  const partnerCheckIn = checkIns.find(
-    (row) => row.userId === partner?.id && row.date === today
-  );
+  const partnerCheckIn = checkIns
+    .filter((row) => row.userId === partner?.id)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0];
 
   const [mode, setMode] = useState<"checkin" | "request">("checkin");
   const [loveOn, setLoveOn] = useState(false);
@@ -168,7 +168,15 @@ export default function CheckInScreen() {
   const look = useAppLook("check-in", "#3ECFBF", {
     hideHeat: false,
     hideNudge: false,
+    showLove: true,
+    showBattery: true,
+    showMood: true,
+    showSocial: true,
+    showNeed: true,
+    showDesire: true,
+    showTonight: true,
   });
+  const [peekPartner, setPeekPartner] = useState(false);
   const [loveTank, setLoveTank] = useState(0);
   const [energy, setEnergy] = useState(0);
   const [mood, setMood] = useState<MoodWeather | null>(null);
@@ -280,6 +288,7 @@ export default function CheckInScreen() {
       kicker="Check-in"
       title="Daily Check in"
       accent={look.accent}
+      look={look}
       settingsLabel="Check-in settings"
       settings={
         <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)")}>
@@ -307,6 +316,27 @@ export default function CheckInScreen() {
                 muted="rgba(244,244,246,0.6)"
                 onToggle={() => look.patch({ hideNudge: !look.prefs.hideNudge })}
               />
+              {(
+                [
+                  ["showLove", "Love language / tank"],
+                  ["showBattery", "Energy & battery"],
+                  ["showMood", "Mood radar"],
+                  ["showSocial", "Stress / social meter"],
+                  ["showNeed", "Need from you today"],
+                  ["showDesire", "Intimacy temperature"],
+                  ["showTonight", "Bedtime wind-down"],
+                ] as const
+              ).map(([key, label]) => (
+                <PrefToggle
+                  key={key}
+                  on={Boolean(look.prefs[key])}
+                  label={`Show ${label.toLowerCase()}`}
+                  accent={look.accent}
+                  ink="#F4F4F6"
+                  muted="rgba(244,244,246,0.6)"
+                  onToggle={() => look.patch({ [key]: !look.prefs[key] })}
+                />
+              ))}
             </View>
           </PrefSection>
         </AppSettingsPanel>
@@ -353,6 +383,46 @@ export default function CheckInScreen() {
 
       {(mode === "checkin" || look.prefs.hideNudge) ? (
         <View>
+          {partner ? (
+            <Pressable
+              onPress={() => setPeekPartner((on) => !on)}
+              className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+            >
+              <Text
+                className="text-center text-[13px] font-semibold"
+                style={{ color: look.accent }}
+              >
+                {peekPartner
+                  ? "Back to your check-in"
+                  : `${partner.displayName}'s mood`}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {peekPartner ? (
+            partnerCheckIn ? (
+              <View className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
+                  {partner?.displayName} · {partnerCheckIn.date}
+                </Text>
+                {checkInLines(partnerCheckIn).map((line) => (
+                  <Text key={line} className="mt-1.5 text-[15px] text-mist">
+                    {line}
+                  </Text>
+                ))}
+                <Text className="mt-3 text-[13px] leading-5 text-mist/60">
+                  {partnerHint(partnerCheckIn)}
+                </Text>
+              </View>
+            ) : (
+              <Text className="mb-4 text-center text-[14px] leading-5 text-mist/60">
+                Nothing from them yet. Request an update if you need it.
+              </Text>
+            )
+          ) : null}
+
+          {peekPartner ? null : (
+          <>
           {incomingCheckInRequest && !myCheckIn ? (
             <View className="mb-4 rounded-2xl border border-crimson/40 bg-crimson/10 px-4 py-3">
               <Text className="text-[12px] font-bold uppercase tracking-[2px] text-crimson">
@@ -368,6 +438,7 @@ export default function CheckInScreen() {
             Toggle on only the areas you want to share right now.
           </Text>
 
+          {look.prefs.showLove ? (
           <MetricCard
             icon="heart-outline"
             title={`Love language / tank${loveOn && loveTank > 0 ? ` (${loveTank}/10)` : ""}`}
@@ -381,7 +452,9 @@ export default function CheckInScreen() {
               </Text>
             ) : null}
           </MetricCard>
+          ) : null}
 
+          {look.prefs.showBattery ? (
           <MetricCard
             icon="battery-charging-outline"
             title={`Energy & battery${
@@ -397,7 +470,9 @@ export default function CheckInScreen() {
               </Text>
             ) : null}
           </MetricCard>
+          ) : null}
 
+          {look.prefs.showMood ? (
           <MetricCard
             icon="partly-sunny-outline"
             title="Mood radar"
@@ -414,7 +489,9 @@ export default function CheckInScreen() {
               onChange={setMood}
             />
           </MetricCard>
+          ) : null}
 
+          {look.prefs.showSocial ? (
           <MetricCard
             icon="people-outline"
             title="Stress / social meter"
@@ -432,7 +509,9 @@ export default function CheckInScreen() {
               columns={1}
             />
           </MetricCard>
+          ) : null}
 
+          {look.prefs.showNeed ? (
           <MetricCard
             icon="compass-outline"
             title="Need from you today"
@@ -449,9 +528,11 @@ export default function CheckInScreen() {
               onChange={setTodayNeed}
             />
           </MetricCard>
+          ) : null}
 
           {look.prefs.hideHeat ? null : (
             <>
+          {look.prefs.showDesire ? (
           <MetricCard
             icon="flame-outline"
             title="Intimacy temperature"
@@ -468,7 +549,9 @@ export default function CheckInScreen() {
               onChange={setDesireGauge}
             />
           </MetricCard>
+          ) : null}
 
+          {look.prefs.showTonight ? (
           <MetricCard
             icon="sparkles-outline"
             title="Bedtime wind-down"
@@ -486,6 +569,7 @@ export default function CheckInScreen() {
               columns={1}
             />
           </MetricCard>
+          ) : null}
             </>
           )}
 
@@ -501,6 +585,8 @@ export default function CheckInScreen() {
             disabled={!canSave}
             onPress={() => void save()}
           />
+          </>
+          )}
         </View>
       ) : (
         <View>
@@ -555,26 +641,6 @@ export default function CheckInScreen() {
           ) : null}
         </View>
       )}
-
-      {partnerCheckIn ? (
-        <View className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
-            What they shared
-          </Text>
-          {checkInLines(partnerCheckIn).map((line) => (
-            <Text key={line} className="mt-1.5 text-[15px] text-mist">
-              {line}
-            </Text>
-          ))}
-          <Text className="mt-3 text-[13px] leading-5 text-mist/60">
-            {partnerHint(partnerCheckIn)}
-          </Text>
-        </View>
-      ) : partner ? (
-        <Text className="mt-5 text-[14px] leading-5 text-mist/60">
-          Nothing from them yet today. Request an update if you need it.
-        </Text>
-      ) : null}
     </HubScreen>
   );
 }

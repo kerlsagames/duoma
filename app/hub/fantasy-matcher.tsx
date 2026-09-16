@@ -47,6 +47,7 @@ export default function FantasyMatcherScreen() {
     fantasyTonightAsks,
     fantasyCompletions,
     swipeFantasy,
+    forgetFantasySwipe,
     askFantasyTonight,
     respondFantasyTonight,
     completeFantasyMatch,
@@ -275,7 +276,7 @@ export default function FantasyMatcherScreen() {
   const partnerLabel = partner?.displayName ?? "your partner";
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <View className="pb-10 pt-4">
         <SettingsDock
           accent={look.accent}
@@ -444,10 +445,10 @@ export default function FantasyMatcherScreen() {
               }}
             >
               {remaining.length
-                ? `${remaining.length} left in your deck · ${catalogCount} short fantasies`
+                ? "Swipe yes or no. Review anytime. You can change your mind."
                 : seenCount
-                  ? `You swiped ${seenCount} of ${catalogCount} — check your matches`
-                  : `${catalogCount} short fantasies ready when you are`}
+                  ? "That’s the last card. Review below, or change your mind."
+                  : "Short fantasies. Swipe when you’re ready."}
             </Text>
 
             <View style={{ height: 420, alignItems: "center" }}>
@@ -612,7 +613,7 @@ export default function FantasyMatcherScreen() {
                   >
                     {remaining.length
                       ? "Keep going"
-                      : "You’re caught up"}
+                      : "That’s the last card"}
                   </Text>
                   <Text
                     style={{
@@ -625,29 +626,40 @@ export default function FantasyMatcherScreen() {
                     }}
                   >
                     {remaining.length
-                      ? `${remaining.length} scenario${
-                          remaining.length === 1 ? "" : "s"
-                        } still waiting in the deck.`
-                      : matches.length
-                        ? `You have ${todoMatches.length} on to-do. Open To-do to browse them.`
-                        : `Every scenario is swiped. When new ones land, they’ll show up here — or wait for ${partnerLabel} to catch up.`}
+                      ? "Swipe or tap below."
+                      : "Review your yeses and nos. Change your mind whenever you want."}
                   </Text>
-                  {matches.length ? (
+                  <View style={{ marginTop: 18, gap: 8, width: "100%" }}>
                     <Pressable
                       onPress={() => setTab("todo")}
                       style={{
-                        marginTop: 18,
                         borderRadius: 999,
                         backgroundColor: T.accent,
                         paddingHorizontal: 18,
                         paddingVertical: 10,
+                        alignItems: "center",
                       }}
                     >
                       <Text style={{ fontWeight: "700", color: "#1A0508" }}>
-                        Open to-do
+                        Review matches
                       </Text>
                     </Pressable>
-                  ) : null}
+                    <Pressable
+                      onPress={() => setTab("passed")}
+                      style={{
+                        borderRadius: 999,
+                        borderWidth: 1,
+                        borderColor: T.border,
+                        paddingHorizontal: 18,
+                        paddingVertical: 10,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "700", color: T.ink }}>
+                        Review nos — change your mind
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
               )}
             </View>
@@ -843,6 +855,19 @@ export default function FantasyMatcherScreen() {
                             >
                               {nameTitle(idea)}
                             </Text>
+                            {passedWho === "you" ? (
+                              <View style={{ marginTop: 12, gap: 8 }}>
+                                <PrimaryButton
+                                  label="Yes — change my mind"
+                                  onPress={() => void swipeFantasy(idea.id, true)}
+                                />
+                                <PrimaryButton
+                                  label="Put back in the deck"
+                                  tone="ghost"
+                                  onPress={() => void forgetFantasySwipe(idea.id)}
+                                />
+                              </View>
+                            ) : null}
                           </View>
                         ))}
                       </View>

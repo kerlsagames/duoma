@@ -6,7 +6,7 @@ import {
   DEFAULT_STAGE_COUNTS,
   SIMPLE_STAGE_COUNTS,
   firstActiveStage,
-  HAND_SIZE,
+  handSizeForPace,
   isSimpleOpenStage,
   nextActiveStage,
   normalizePassLimit,
@@ -21,7 +21,7 @@ import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-cl
 import { resolveCardGenders } from "@/lib/personalize";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
-import { daysUntil, localDateKey } from "@/lib/dates";
+import { daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
 import {
   ALL_DESIRE_OPTIONS,
   hashPick,
@@ -696,7 +696,7 @@ type AppContextValue = {
     targetId: string,
     stars: number
   ) => Promise<void>;
-  sendDateNightAsk: (bucketId: string) => Promise<void>;
+  sendDateNightAsk: (bucketId: string, dateKey?: string) => Promise<void>;
   respondDateNightAsk: (
     id: string,
     status: "accepted" | "declined"
@@ -765,6 +765,7 @@ type AppContextValue = {
     fantasyId: string,
     liked: boolean
   ) => Promise<{ matched: boolean }>;
+  forgetFantasySwipe: (fantasyId: string) => Promise<void>;
   askFantasyTonight: (fantasyId: string) => Promise<void>;
   respondFantasyTonight: (
     id: string,
@@ -2793,6 +2794,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       partnerId: partnerIdOf(user.id),
       playedById: user.id,
     });
+    const size = handSizeForPace(game.pace);
     const dealt =
       stage === "finish_off"
         ? dealFinishHandFromBank(
@@ -2801,11 +2803,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
             game.flavorTags,
             game.finishAwaitingMale ? "M" : "F",
             finishGenders,
-            HAND_SIZE
+            size
           )
-        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+        : dealHandFromBank(cards, stage, used, game.flavorTags, size);
     if (dealt.length === 0) {
       throw new Error("No cards left for this stage. Add more in the bank or change flavors.");
+    }
+
+    if (game.pace === "simple") {
+      const pick = dealt[0]!;
+      const maxOrder = deckRows.reduce(
+        (max, item) => Math.max(max, item.sortOrder),
+        -1
+      );
+      const activeRow: DeckCard = {
+        id: createId(),
+        gameId: game.id,
+        cardId: pick.id,
+        stage: pick.stage,
+        sortOrder: maxOrder + 1,
+        status: "active",
+        playedBy: user.id,
+      };
+      db = {
+        ...db,
+        deck: [
+          ...db.deck.filter((item) => item.gameId !== game.id),
+          ...deckRows,
+          activeRow,
+        ],
+        games: db.games.map((row) =>
+          row.id === game.id
+            ? sessionFields(row, {
+                handCardIds: [],
+                activeCardId: activeRow.id,
+                activePlayedBy: user.id,
+                turnUserId: user.id,
+              })
+            : row
+        ),
+      };
+      await persist();
+      return;
     }
 
     db = {
@@ -2866,9 +2905,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             game.flavorTags,
             game.finishAwaitingMale ? "M" : "F",
             finishGenders,
-            HAND_SIZE
+            handSizeForPace(game.pace)
           )
-        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+        : dealHandFromBank(cards, stage, used, game.flavorTags, handSizeForPace(game.pace));
     if (dealt.length === 0) {
       throw new Error("No alternate cards left to shuffle in.");
     }
@@ -3052,9 +3091,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             game.flavorTags,
             game.finishAwaitingMale ? "M" : "F",
             finishGenders,
-            HAND_SIZE
+            handSizeForPace(game.pace)
           )
-        : dealHandFromBank(cards, stage, used, game.flavorTags, HAND_SIZE);
+        : dealHandFromBank(cards, stage, used, game.flavorTags, handSizeForPace(game.pace));
     if (dealt.length === 0) return;
 
     const pick = dealt[Math.floor(Math.random() * dealt.length)] ?? dealt[0];
@@ -3290,12 +3329,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!isSimpleOpenStage(game.pace, game.currentStage)) {
       throw new Error("Finish this stage's cards, or use Detailed counts.");
     }
-    if (game.activeCardId) {
-      throw new Error("Complete the live card first.");
-    }
-    const stageCounts = normalizeStageCounts(game.stageCounts);
     const from = game.currentStage;
     if (!from) return;
+    const stageCounts = normalizeStageCounts(game.stageCounts);
     const next = nextActiveStage(stageCounts, from);
     if (!next) {
       throw new Error("Nothing left after this stage.");
@@ -3303,8 +3339,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const needsReveal =
       (next === "finish_off" || next === "afterglow") &&
       !game.finishPickerId;
+    const deckRows = db.deck.filter((item) => item.gameId === game.id);
+    const nextDeck = deckRows.map((item) =>
+      item.status === "active" ? { ...item, status: "played" as const } : item
+    );
     db = {
       ...db,
+      deck: [
+        ...db.deck.filter((item) => item.gameId !== game.id),
+        ...nextDeck,
+      ],
       games: db.games.map((row) =>
         row.id === game.id
           ? sessionFields(row, {
@@ -3425,16 +3469,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const endGame = useCallback(async () => {
     if (!game) return;
-    const status =
-      game.status === "rating" || game.status === "playing"
-        ? game.status === "rating"
-          ? "completed"
-          : "cancelled"
-        : "cancelled";
+    if (game.status === "playing") {
+      const deckRows = db.deck.filter((item) => item.gameId === game.id);
+      const nextDeck = deckRows.map((item) =>
+        item.status === "active" ? { ...item, status: "played" as const } : item
+      );
+      const hasPlayed = nextDeck.some((item) => item.status === "played");
+      db = {
+        ...db,
+        deck: [
+          ...db.deck.filter((item) => item.gameId !== game.id),
+          ...nextDeck,
+        ],
+        games: db.games.map((row) =>
+          row.id === game.id
+            ? sessionFields(row, {
+                status: hasPlayed ? "rating" : "cancelled",
+                activeCardId: null,
+                activePlayedBy: null,
+                handCardIds: [],
+              })
+            : row
+        ),
+      };
+      await persist();
+      return;
+    }
     db = {
       ...db,
       games: db.games.map((row) =>
-        row.id === game.id ? sessionFields(row, { status }) : row
+        row.id === game.id ? sessionFields(row, { status: "completed" }) : row
       ),
     };
     await persist();
@@ -4245,8 +4309,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user) return;
       const existing = (db.chickenPlays ?? []).find((row) => row.id === id);
       if (!existing || existing.status !== "offered") return;
-      const demoHold = Boolean(partner?.isDemo && existing.toUserId === partner.id);
-      if (existing.toUserId !== user.id && !demoHold) return;
+      if (existing.toUserId !== user.id) return;
       db = {
         ...db,
         chickenPlays: (db.chickenPlays ?? []).map((row) =>
@@ -4272,12 +4335,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db = {
         ...db,
         chickenPlays: (db.chickenPlays ?? []).map((row) => {
-          const involved = row.fromUserId === user.id || row.toUserId === user.id;
-          const demoHold = Boolean(
-            partner?.isDemo &&
-              (row.toUserId === partner.id || row.fromUserId === partner.id)
-          );
-          if (row.id === id && row.status === "accepted" && (involved || demoHold)) {
+          if (row.id === id && row.status === "accepted" && row.toUserId === user.id) {
             return { ...row, status: "done" as const, completedAt: nowIso() };
           }
           return row;
@@ -4525,19 +4583,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const sendDateNightAsk = useCallback(
-    async (bucketId: string) => {
+    async (bucketId: string, dateKey?: string) => {
       if (!user || !couple) {
-        throw new Error("Pair first, then ask for tonight.");
+        throw new Error("Pair first, then ask for a date.");
       }
       const toUserId = otherUserId(couple, user.id);
       if (!toUserId) {
-        throw new Error("Pair up before asking for tonight.");
+        throw new Error("Pair up before asking.");
       }
       const item = db.bucketItems.find(
         (row) => row.id === bucketId && row.coupleId === couple.id
       );
       if (!item) throw new Error("That date is gone.");
-      const nightKey = localDateKey();
+      const nightKey =
+        dateKey && /^\d{4}-\d{2}-\d{2}$/.test(dateKey)
+          ? dateKey
+          : localDateKey();
       const already = (db.dateNightAsks ?? []).find(
         (row) =>
           row.coupleId === couple.id &&
@@ -4546,7 +4607,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           (row.status === "offered" || row.status === "accepted")
       );
       if (already?.status === "accepted") {
-        throw new Error("Tonight's already a yes on this one.");
+        throw new Error("This date is already a yes.");
       }
       if (already?.status === "offered") {
         if (already.fromUserId === user.id) {
@@ -4568,8 +4629,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db = { ...db, dateNightAsks: [...(db.dateNightAsks ?? []), row] };
       await persist();
       pingPartner(couple, user, partner, {
-        title: "Try this tonight?",
-        body: `${user.displayName} wants to do: ${item.title}`,
+        title: "Date night?",
+        body: `${user.displayName} wants to do: ${item.title} · ${formatLongDate(nightKey)}`,
         url: "/hub/planner",
       });
     },
@@ -4583,7 +4644,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!existing || existing.status !== "offered") return;
       if (existing.toUserId !== user.id) return;
       const item = db.bucketItems.find((row) => row.id === existing.bucketId);
-      const today = localDateKey();
+      const nightKey = existing.nightKey || localDateKey();
+      let calendarEvents = db.calendarEvents;
+      if (status === "accepted" && couple && item) {
+        const stamp = nowIso();
+        calendarEvents = [
+          ...db.calendarEvents,
+          {
+            id: createId(),
+            coupleId: couple.id,
+            title: item.title,
+            notes: item.notes || "Date night",
+            date: nightKey,
+            happenedAt: stamp,
+            allDay: true,
+            createdBy: user.id,
+            createdAt: stamp,
+            updatedAt: stamp,
+          },
+        ];
+      }
       db = {
         ...db,
         dateNightAsks: (db.dateNightAsks ?? []).map((row) =>
@@ -4593,18 +4673,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
           status === "accepted"
             ? db.bucketItems.map((row) =>
                 row.id === existing.bucketId
-                  ? { ...row, scheduledOn: row.scheduledOn ?? today }
+                  ? { ...row, scheduledOn: nightKey }
                   : row
               )
             : db.bucketItems,
+        calendarEvents,
       };
       await persist();
       pingPartner(couple, user, partner, {
-        title: status === "accepted" ? "Tonight's on" : "Not tonight",
+        title: status === "accepted" ? "Date's on" : "Not that night",
         body:
           status === "accepted"
-            ? `${user.displayName} said yes — ${item?.title ?? "that date"} is on tonight.`
-            : `${user.displayName} said not tonight for ${item?.title ?? "that one"}.`,
+            ? `${user.displayName} said yes — ${item?.title ?? "that date"} is on ${formatLongDate(nightKey)}.`
+            : `${user.displayName} said no to ${item?.title ?? "that one"}.`,
         url: "/hub/planner",
       });
     },
@@ -5357,6 +5438,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return { matched };
     },
     [couple, partner, user]
+  );
+
+  const forgetFantasySwipe = useCallback(
+    async (fantasyId: string) => {
+      if (!user || !couple) return;
+      db = {
+        ...db,
+        fantasySwipes: db.fantasySwipes.filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.userId === user.id &&
+              row.fantasyId === fantasyId
+            )
+        ),
+      };
+      await persist();
+    },
+    [couple, user]
   );
 
   const askFantasyTonight = useCallback(
@@ -6172,6 +6272,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     removeMealFromMenu,
     toggleDesire,
     swipeFantasy,
+    forgetFantasySwipe,
     askFantasyTonight,
     respondFantasyTonight,
     completeFantasyMatch,

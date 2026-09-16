@@ -529,3 +529,67 @@ export const CHICKEN_DISPLAY: TextStyle["fontFamily"] = Platform.select({
   default:
     '"Avenir Next Condensed", "Trebuchet MS", "Segoe UI Condensed", Impact, sans-serif',
 });
+
+/** Neon marquee / ticket stub for Date Night Generator. */
+const DATE_NIGHT_TONE_BASE = {
+  background: "#0A0614",
+  velvet: "#160B22",
+  marquee: "#F5C14A",
+  neon: "#FF4FA3",
+  neonSoft: "rgba(255,79,163,0.18)",
+  ticket: "#F7E7C8",
+  ticketInk: "#1A120C",
+  ink: "#F8EED8",
+  muted: "rgba(248,238,216,0.62)",
+  surface: "#1A1028",
+  surfaceRaised: "#241636",
+  border: "rgba(245,193,74,0.32)",
+} as const;
+
+export const DATE_NIGHT_TONE = liveTone(
+  "connect",
+  DATE_NIGHT_TONE_BASE,
+  DATE_NIGHT_TONE_BASE.neon
+);
+
+/** Midnight clock face for Countdowns. */
+const COUNTDOWN_TONE_BASE = {
+  background: "#070B12",
+  face: "#101820",
+  gold: "#E4C37A",
+  goldSoft: "rgba(228,195,122,0.16)",
+  hand: "#7EC8E3",
+  ink: "#E8EEF4",
+  muted: "rgba(232,238,244,0.58)",
+  surface: "#121A24",
+  surfaceRaised: "#1A2430",
+  border: "rgba(228,195,122,0.28)",
+} as const;
+
+export const COUNTDOWN_TONE = liveTone(
+  "home-base",
+  COUNTDOWN_TONE_BASE,
+  COUNTDOWN_TONE_BASE.gold
+);
+
+/** Passport / boarding-pass paper for trips. */
+const TRAVEL_TONE_BASE = {
+  background: "#12241F",
+  cover: "#1C332C",
+  paper: "#F3E6C8",
+  paperInk: "#1A140C",
+  stamp: "#C45C4A",
+  foil: "#D4A84B",
+  sky: "#4A90A4",
+  ink: "#F4EBD0",
+  muted: "rgba(244,235,208,0.62)",
+  surface: "#1A2E28",
+  surfaceRaised: "#243830",
+  border: "rgba(212,168,75,0.32)",
+} as const;
+
+export const TRAVEL_TONE = liveTone(
+  "home-base",
+  TRAVEL_TONE_BASE,
+  TRAVEL_TONE_BASE.foil
+);

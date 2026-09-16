@@ -48,6 +48,7 @@ export default function PlayScreen() {
 
   useEffect(() => {
     if (!game) router.replace("/(tabs)");
+    if (game?.status === "cancelled") router.replace("/(tabs)");
   }, [game, router]);
 
   const active = deck.find((item) => item.status === "active") ?? null;
@@ -326,7 +327,18 @@ export default function PlayScreen() {
     return (
       <Screen scroll>
         <View className="pt-2 pb-8">
-          <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
+          <Pressable
+            onPress={() => {
+              void finishRatings();
+              router.replace("/(tabs)");
+            }}
+            className="self-start rounded-full border border-white/15 px-4 py-2"
+          >
+            <Text className="text-[13px] font-semibold text-mist/70">
+              Skip this time
+            </Text>
+          </Pressable>
+          <Text className="mt-4 text-[12px] font-semibold uppercase tracking-[3px] text-neon">
             Rate the night
           </Text>
           <Text className="mt-3 text-[32px] font-bold text-mist">Best cards</Text>
@@ -385,14 +397,6 @@ export default function PlayScreen() {
                 router.replace("/(tabs)");
               }}
             />
-            <PrimaryButton
-              label="Skip for tonight"
-              tone="ghost"
-              onPress={() => {
-                void finishRatings();
-                router.replace("/(tabs)");
-              }}
-            />
           </View>
         </View>
       </Screen>
@@ -430,7 +434,9 @@ export default function PlayScreen() {
     !game?.privateUnlocked &&
     (active?.playedBy ?? game?.activePlayedBy) !== user?.id;
 
-  const showHand = myTurn && !active && handCards.length > 0;
+  const showHand = Boolean(
+    myTurn && !active && handCards.length > 0 && game?.pace !== "simple"
+  );
   const simplePace = game?.pace === "simple";
   const shuffleLabel =
     myShufflesRemaining < 0
@@ -488,7 +494,9 @@ export default function PlayScreen() {
               myTurn && game?.finishAwaitingMale
                 ? "She came. This next hand is how he finishes."
                 : myTurn
-                  ? "Cards will deal to you in a moment. Pick one when they land."
+                  ? simplePace
+                    ? "Your card is coming."
+                    : "Cards will deal to you in a moment. Pick one when they land."
                   : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
             }
           
@@ -539,9 +547,13 @@ export default function PlayScreen() {
               onPress={() => void onShuffle()}
             />
           ) : null}
-          {isSimpleOpenStage(game?.pace, game?.currentStage) && !active ? (
+          {isSimpleOpenStage(game?.pace, game?.currentStage) ? (
             <PrimaryButton
-              label="Ready to move on"
+              label={
+                game?.currentStage === "foreplay"
+                  ? "Move on to stage 2"
+                  : "Move on to stage 3"
+              }
               tone="ghost"
               disabled={animating}
               onPress={() => void onReadyToMoveOn()}
@@ -559,8 +571,10 @@ export default function PlayScreen() {
             label="End session"
             tone="ghost"
             onPress={() => {
-              void endGame();
-              router.replace("/(tabs)");
+              const hadPlayed = played.length > 0 || Boolean(active);
+              void endGame().then(() => {
+                if (!hadPlayed) router.replace("/(tabs)");
+              });
             }}
           />
         </View>

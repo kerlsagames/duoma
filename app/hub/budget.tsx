@@ -357,7 +357,7 @@ export default function BudgetScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
-      <Screen scroll background={T.background}>
+      <Screen scroll background={T.background} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
         <Stage
           background={T.background}
           fallback={"/hub/home-base" as Href}

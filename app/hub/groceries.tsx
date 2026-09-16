@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { ERRANDS_TONE, HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   DEFAULT_QUICK_GROCERIES,
   isOnQuickPad,
@@ -39,6 +41,7 @@ export default function GroceriesErrandsScreen() {
   const router = useRouter();
   const [pad, setPad] = useState<ErrandKind>("grocery");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("groceries", T.accent, {});
   const [quickAdd, setQuickAdd] = useState<QuickAddItem[]>(() =>
     DEFAULT_QUICK_GROCERIES.map((row) => ({ ...row }))
   );
@@ -68,7 +71,13 @@ export default function GroceriesErrandsScreen() {
   const onGroceries = pad === "grocery";
 
   return (
-    <Screen scroll background={T.background}>
+    <Screen
+      scroll
+      background={T.background}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
+    >
       <View className="pt-4 pb-10">
         <BackButton
           color="#E8D9C4"
@@ -155,7 +164,9 @@ export default function GroceriesErrandsScreen() {
 
         {settingsOpen ? (
           <View style={{ marginTop: 18 }}>
-            <QuickAddSettings items={quickAdd} onChange={persistQuick} />
+            <LookPanel look={look} ink={T.ink} muted={T.muted}>
+              <QuickAddSettings items={quickAdd} onChange={persistQuick} />
+            </LookPanel>
           </View>
         ) : (
           <>

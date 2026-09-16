@@ -86,7 +86,10 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
   const home = hydrateHubLayout(row["home-base"]);
   return {
     connect: hydrateHubLayout(row.connect),
-    desire: hydrateHubLayout(row.desire),
+    desire: {
+      ...hydrateHubLayout(row.desire),
+      order: migrateDesireOrder(hydrateHubLayout(row.desire).order),
+    },
     play: {
       ...play,
       order: migratePlayOrder(play.order),
@@ -134,6 +137,35 @@ function migrateHomeBaseOrder(order: string[]): string[] {
     }
   }
   return next;
+}
+
+/** Old catalog had The How in slot 5. Leave custom orders alone. */
+function migrateDesireOrder(order: string[]): string[] {
+  if (order.length === 0) return order;
+  const oldDefault = [
+    "spicy",
+    "up-for-it",
+    "roleplays",
+    "positions",
+    "the-how",
+    "fantasy-matcher",
+    "intimacy-streak",
+    "sexy-vault",
+  ];
+  const isOldDefault =
+    order.length === oldDefault.length &&
+    order.every((id, i) => id === oldDefault[i]);
+  if (!isOldDefault) return order;
+  return [
+    "spicy",
+    "up-for-it",
+    "roleplays",
+    "positions",
+    "fantasy-matcher",
+    "intimacy-streak",
+    "sexy-vault",
+    "the-how",
+  ];
 }
 
 /** Old catalog had Chicken first. Leave custom orders alone. */

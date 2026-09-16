@@ -136,7 +136,7 @@ const LIFE_KINDS = new Set<CalendarActivityKind>([
 ]);
 
 export function laneForKind(kind: CalendarActivityKind): CalendarLane {
-  if (kind === "period") return "cycle";
+  if (kind === "period") return "life";
   return LIFE_KINDS.has(kind) ? "life" : "together";
 }
 

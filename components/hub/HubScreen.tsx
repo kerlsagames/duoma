@@ -2,8 +2,22 @@ import { SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { HUB_TONES, SERIF, type HubTone } from "@/lib/app-themes";
+import {
+  densityLook,
+  typefaceFamily,
+  type DensityId,
+  type TypefaceId,
+} from "@/lib/app-prefs";
+import { tintCanvas } from "@/lib/color-paint";
 import { ReactNode, useState } from "react";
 import { Text, View } from "react-native";
+
+type LookBits = {
+  accent: string;
+  look: ReturnType<typeof densityLook>;
+  fontFamily?: string;
+  prefs: { accent: string; density: DensityId; typeface?: TypefaceId };
+};
 
 type Props = {
   kicker: string;
@@ -20,6 +34,7 @@ type Props = {
   scroll?: boolean;
   /** Override the tone accent (and kicker) with a hub colour. */
   accent?: string;
+  look?: LookBits;
 };
 
 export function HubScreen({
@@ -34,10 +49,24 @@ export function HubScreen({
   showBack = true,
   scroll = true,
   accent,
+  look,
 }: Props) {
   const theme = HUB_TONES[tone];
   const serifTitle = tone !== "default";
-  const color = accent ?? theme.accent;
+  const color = look?.accent ?? accent ?? theme.accent;
+  const density = look?.prefs.density ?? "regular";
+  const typeface = look?.prefs.typeface ?? "sans";
+  const sizes = look?.look ?? densityLook(density);
+  const fontFamily =
+    look?.fontFamily ??
+    typefaceFamily(typeface) ??
+    (serifTitle ? SERIF : undefined);
+  const customColour = Boolean(look?.prefs.accent?.trim());
+  const background = tintCanvas(
+    theme.background,
+    color,
+    customColour ? 0.42 : 0.18
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const cog = settings ? (
     <SettingsCog
@@ -47,20 +76,26 @@ export function HubScreen({
       label={settingsLabel ?? title ?? kicker}
     />
   ) : null;
-  const trailing = cog && headerRight ? (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      {headerRight}
-      {cog}
-    </View>
-  ) : cog ?? headerRight;
+  const trailing =
+    cog && headerRight ? (
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {headerRight}
+        {cog}
+      </View>
+    ) : cog ?? headerRight;
 
   return (
-    <Screen scroll={scroll} background={theme.background}>
+    <Screen
+      scroll={scroll}
+      background={background}
+      density={density}
+      typeface={typeface}
+    >
       <View className={scroll ? "pt-4 pb-6" : "flex-1 pt-3 pb-3"}>
         {showBack ? (
           <BackButton
             color={color}
-            style={{ marginBottom: scroll ? 14 : 8 }}
+            style={{ marginBottom: scroll ? sizes.gap + 2 : 8 }}
           />
         ) : null}
         <View
@@ -78,8 +113,9 @@ export function HubScreen({
               fontWeight: "600",
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: color,
-              fontFamily: tone === "talk" ? "SpaceMono" : undefined,
+              color,
+              fontFamily:
+                typeface === "sans" && tone === "talk" ? "SpaceMono" : fontFamily,
             }}
           >
             {kicker}
@@ -89,12 +125,12 @@ export function HubScreen({
         {title ? (
           <Text
             style={{
-              marginTop: 10,
-              fontSize: serifTitle ? 34 : 32,
+              marginTop: sizes.gap,
+              fontSize: sizes.title,
               fontWeight: serifTitle ? "500" : "700",
               color: theme.ink,
-              fontFamily: serifTitle ? SERIF : undefined,
-              lineHeight: serifTitle ? 40 : 38,
+              fontFamily: serifTitle && typeface === "sans" ? SERIF : fontFamily,
+              lineHeight: sizes.titleLine,
             }}
           >
             {title}
@@ -103,17 +139,19 @@ export function HubScreen({
         {body ? (
           <Text
             style={{
-              marginTop: 10,
-              fontSize: 16,
-              lineHeight: 24,
+              marginTop: sizes.gap,
+              fontSize: sizes.body + 1,
+              lineHeight: sizes.bodyLine + 2,
               color: theme.muted,
-              fontFamily: serifTitle ? SERIF : undefined,
+              fontFamily,
             }}
           >
             {body}
           </Text>
         ) : null}
-        <View className={`${title || body ? "mt-6" : "mt-3"}${scroll ? "" : " flex-1"}`}>
+        <View
+          className={`${title || body ? "mt-6" : "mt-3"}${scroll ? "" : " flex-1"}`}
+        >
           {settingsOpen && settings ? settings : children}
         </View>
       </View>

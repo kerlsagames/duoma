@@ -1,7 +1,12 @@
-import { HubScreen } from "@/components/hub/HubScreen";
+import { LookPanel } from "@/components/hub/AppSettings";
+import { Stage } from "@/components/hub/Stage";
 import { PlayRatingsToggle, PlayTabs } from "@/components/hub/PlayTabs";
 import { ScoreSlider } from "@/components/ScoreSlider";
+import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { Screen } from "@/components/ui/Screen";
+import { DATE_NIGHT_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   DATE_COST_FILTERS,
   DATE_LOCATION_FILTERS,
@@ -19,7 +24,6 @@ import {
   type DateVibeTag,
 } from "@/lib/dateIdeas";
 import { formatLongDate, localDateKey } from "@/lib/dates";
-import { sectionAccent } from "@/lib/hub-theme";
 import {
   dateAskForBucket,
   myPlayRating,
@@ -38,10 +42,10 @@ import type {
   PlayItemRating,
 } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
+import type { Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const accent = () => sectionAccent("connect", "#FF6B9A");
 const KINDS: BucketKind[] = ["place", "meal", "trip", "other"];
 type Tab = "ideas" | "todo" | "done";
 
@@ -73,11 +77,13 @@ function FilterRow<T extends string>({
   options,
   value,
   onChange,
+  accent,
 }: {
   label: string;
   options: { id: T; label: string }[];
   value: T;
   onChange: (id: T) => void;
+  accent: string;
 }) {
   return (
     <View style={{ marginBottom: 14 }}>
@@ -88,7 +94,7 @@ function FilterRow<T extends string>({
           fontWeight: "700",
           letterSpacing: 1.5,
           textTransform: "uppercase",
-          color: "rgba(244,244,246,0.45)",
+          color: T.muted,
         }}
       >
         {label}
@@ -105,17 +111,15 @@ function FilterRow<T extends string>({
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderWidth: 1,
-                borderColor: on ? accent() : "rgba(255,255,255,0.12)",
-                backgroundColor: on
-                  ? "rgba(255,107,154,0.18)"
-                  : "rgba(255,255,255,0.04)",
+                borderColor: on ? accent : T.border,
+                backgroundColor: on ? T.neonSoft : T.surface,
               }}
             >
               <Text
                 style={{
                   fontSize: 13,
                   fontWeight: "600",
-                  color: on ? "#FFB3CB" : "rgba(244,244,246,0.7)",
+                  color: on ? T.marquee : T.muted,
                 }}
               >
                 {opt.label}
@@ -143,11 +147,14 @@ export default function PlannerScreen() {
     ratePlayItem,
   } = useApp();
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(DATE_NIGHT_PREFS_KEY);
+  const look = useAppLook("date-night", T.neon, {
+    hideMarquee: false,
+  });
+  const accent = () => look.accent;
   const partnerName = partner?.displayName ?? "them";
   const today = localDateKey();
 
   const [tab, setTab] = useState<Tab>("ideas");
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState<DateIdeaFilters>(DEFAULT_DATE_FILTERS);
   const [picked, setPicked] = useState<DateIdea | null>(null);
   const [title, setTitle] = useState("");
@@ -159,6 +166,7 @@ export default function PlannerScreen() {
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [askOn, setAskOn] = useState(localDateKey());
 
   const pool = useMemo(() => filterDateIdeas(filters), [filters]);
   const browse = useMemo(
@@ -171,7 +179,6 @@ export default function PlannerScreen() {
     (row) =>
       user &&
       row.toUserId === user.id &&
-      row.nightKey === today &&
       (row.status === "offered" || row.status === "accepted")
   );
 
@@ -205,7 +212,7 @@ export default function PlannerScreen() {
     setError(null);
     try {
       const row = await saveIdea(picked);
-      await sendDateNightAsk(row.id);
+      await sendDateNightAsk(row.id, askOn || today);
       setTab("todo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send");
@@ -235,54 +242,87 @@ export default function PlannerScreen() {
   };
 
   return (
-    <HubScreen
-      kicker="Connect · Date night"
-      title="Date Night Generator"
-      body="Spin or search, save it to To-do, then tick it off. Tap one to ask them tonight."
-      accent={accent()}
-      headerRight={
-        <Pressable
-          onPress={() => setSettingsOpen((value) => !value)}
-          hitSlop={10}
-          accessibilityLabel="Date night settings"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255,255,255,0.06)",
-          }}
-        >
-          <Ionicons
-            name={settingsOpen ? "close" : "settings-outline"}
-            size={20}
-            color={accent()}
-          />
-        </Pressable>
-      }
+    <Screen
+      scroll
+      background={T.background}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      accent={look.accent}
     >
-      {settingsOpen ? (
-        <View>
-          <Text
+      <Stage
+        background={T.background}
+        fallback={"/hub/connect" as Href}
+        accent={look.accent}
+        settingsLabel="Date night"
+        settings={
+          <LookPanel
+            look={look}
+            ink={T.ink}
+            muted={T.muted}
+            toggles={[
+              {
+                key: "hideMarquee",
+                label: "Skip the marquee title",
+                hint: "A quieter header.",
+              },
+            ]}
+          >
+            <PlayRatingsToggle
+              on={prefs.ratingsOn}
+              accent={look.accent}
+              onToggle={() => void savePrefs({ ratingsOn: !prefs.ratingsOn })}
+            />
+          </LookPanel>
+        }
+      >
+        {look.prefs.hideMarquee ? null : (
+          <View
             style={{
-              marginBottom: 12,
-              fontSize: 12,
-              fontWeight: "700",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: "rgba(244,244,246,0.45)",
+              marginBottom: 16,
+              borderRadius: 8,
+              borderWidth: 3,
+              borderColor: T.marquee,
+              backgroundColor: T.velvet,
+              paddingVertical: 14,
+              paddingHorizontal: 12,
+              alignItems: "center",
             }}
           >
-            Settings
-          </Text>
-          <PlayRatingsToggle
-            on={prefs.ratingsOn}
-            accent={accent()}
-            onToggle={() => void savePrefs({ ratingsOn: !prefs.ratingsOn })}
-          />
-        </View>
-      ) : (
+            <Text
+              style={{
+                fontFamily: "SpaceMono",
+                fontSize: 10,
+                letterSpacing: 4,
+                color: T.marquee,
+              }}
+            >
+              NOW SHOWING
+            </Text>
+            <Text
+              style={{
+                marginTop: 6,
+                fontFamily: SERIF,
+                fontSize: look.look.title,
+                lineHeight: look.look.titleLine,
+                color: T.marquee,
+                textAlign: "center",
+              }}
+            >
+              Date Night
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF,
+                fontSize: 14,
+                color: T.muted,
+                textAlign: "center",
+              }}
+            >
+              Spin a ticket. Schedule it. They say yes — it lands on the calendar.
+            </Text>
+          </View>
+        )}
         <>
           <PlayTabs
             tabs={[
@@ -292,7 +332,7 @@ export default function PlannerScreen() {
             ]}
             current={tab}
             onChange={setTab}
-            accent={accent()}
+            accent={look.accent}
           />
 
           {error ? (
@@ -310,6 +350,9 @@ export default function PlannerScreen() {
               browse={browse}
               filters={filters}
               savedFlash={savedFlash}
+              accent={look.accent}
+              askOn={askOn}
+              onAskOn={setAskOn}
               onSpin={() => {
                 setSavedFlash(false);
                 setPicked(pickRandomDateIdea(filters, picked?.id ?? null));
@@ -346,12 +389,15 @@ export default function PlannerScreen() {
               onSpin={() => void spinBucket()}
               onDone={(id) => void markBucketDone(id)}
               onAsk={(id) =>
-                void sendDateNightAsk(id).catch((err) =>
+                void sendDateNightAsk(id, askOn || today).catch((err) =>
                   setError(err instanceof Error ? err.message : "Could not send")
                 )
               }
               onRespond={(id, status) => void respondDateNightAsk(id, status)}
               onAdd={() => void saveCustom()}
+              askOn={askOn}
+              onAskOn={setAskOn}
+              accent={look.accent}
               bucketById={(id) => bucketItems.find((row) => row.id === id) ?? null}
             />
           ) : null}
@@ -364,11 +410,12 @@ export default function PlannerScreen() {
               userId={user?.id ?? null}
               partnerName={partnerName}
               onRate={(id, stars) => void ratePlayItem("date", id, stars)}
+              accent={look.accent}
             />
           ) : null}
         </>
-      )}
-    </HubScreen>
+      </Stage>
+    </Screen>
   );
 }
 
@@ -380,6 +427,9 @@ function IdeasTab({
   browse,
   filters,
   savedFlash,
+  accent,
+  askOn,
+  onAskOn,
   onSpin,
   onToggleBrowse,
   onQuery,
@@ -395,6 +445,9 @@ function IdeasTab({
   browse: DateIdea[];
   filters: DateIdeaFilters;
   savedFlash: boolean;
+  accent: string;
+  askOn: string;
+  onAskOn: (value: string) => void;
   onSpin: () => void;
   onToggleBrowse: () => void;
   onQuery: (value: string) => void;
@@ -445,30 +498,29 @@ function IdeasTab({
         <View
           style={{
             marginTop: 16,
-            borderRadius: 24,
-            borderWidth: 1,
-            borderColor: "rgba(255,107,154,0.45)",
-            backgroundColor: "rgba(255,107,154,0.12)",
+            borderRadius: 6,
+            backgroundColor: T.ticket,
             padding: 18,
+            transform: [{ rotate: "-0.4deg" }],
           }}
         >
           <Text
             style={{
-              fontSize: 11,
-              fontWeight: "700",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: accent(),
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              letterSpacing: 2.4,
+              color: T.neon,
             }}
           >
-            Tonight&apos;s pick
+            ADMIT ONE · {formatLongDate(askOn)}
           </Text>
           <Text
             style={{
               marginTop: 8,
+              fontFamily: SERIF,
               fontSize: 24,
               fontWeight: "700",
-              color: "#F4F4F6",
+              color: T.ticketInk,
               lineHeight: 30,
             }}
           >
@@ -477,9 +529,10 @@ function IdeasTab({
           <Text
             style={{
               marginTop: 10,
+              fontFamily: SERIF,
               fontSize: 15,
               lineHeight: 22,
-              color: "rgba(244,244,246,0.72)",
+              color: "rgba(26,18,12,0.72)",
             }}
           >
             {picked.blurb}
@@ -502,25 +555,36 @@ function IdeasTab({
                 key={tag}
                 style={{
                   borderRadius: 999,
-                  backgroundColor: "rgba(255,255,255,0.08)",
+                  backgroundColor: "rgba(26,18,12,0.08)",
                   paddingHorizontal: 10,
                   paddingVertical: 5,
                 }}
               >
-                <Text style={{ fontSize: 12, color: "rgba(244,244,246,0.7)" }}>
-                  {tag}
-                </Text>
+                <Text style={{ fontSize: 12, color: T.ticketInk }}>{tag}</Text>
               </View>
             ))}
           </View>
           {savedFlash ? (
-            <Text style={{ marginTop: 12, color: accent(), fontWeight: "600" }}>
+            <Text style={{ marginTop: 12, color: T.neon, fontWeight: "700" }}>
               Saved to To-do.
             </Text>
           ) : null}
+          <CalendarDateField
+            label="Night you want"
+            value={askOn}
+            onChange={onAskOn}
+            accent={accent}
+            ink={T.ticketInk}
+            muted="rgba(26,18,12,0.5)"
+            background={T.ticket}
+            allowClear={false}
+          />
           <View style={{ marginTop: 14, gap: 10 }}>
             <PrimaryButton label="Save to to-do" tone="ghost" onPress={onSave} />
-            <PrimaryButton label="Try this tonight?" onPress={onAsk} />
+            <PrimaryButton
+              label={`Ask them for ${formatLongDate(askOn)}`}
+              onPress={onAsk}
+            />
           </View>
         </View>
       ) : null}
@@ -543,24 +607,28 @@ function IdeasTab({
         options={DATE_LOCATION_FILTERS}
         value={filters.location}
         onChange={(location) => onFilters({ ...filters, location })}
+        accent={accent}
       />
       <FilterRow
         label="Time of day"
         options={DATE_TIME_FILTERS}
         value={filters.time}
         onChange={(time) => onFilters({ ...filters, time })}
+        accent={accent}
       />
       <FilterRow
         label="Budget"
         options={DATE_COST_FILTERS}
         value={filters.cost}
         onChange={(cost) => onFilters({ ...filters, cost })}
+        accent={accent}
       />
       <FilterRow
         label="Vibe / energy"
         options={DATE_VIBE_FILTERS}
         value={filters.vibe}
         onChange={(vibe) => onFilters({ ...filters, vibe })}
+        accent={accent}
       />
 
       {showBrowse ? (
@@ -652,7 +720,7 @@ function TodoTab({
   open,
   incoming,
   asks,
-  today,
+  today: _today,
   userId,
   partnerName,
   spunId,
@@ -669,6 +737,9 @@ function TodoTab({
   onAsk,
   onRespond,
   onAdd,
+  askOn,
+  onAskOn,
+  accent,
   bucketById,
 }: {
   open: BucketItem[];
@@ -691,6 +762,9 @@ function TodoTab({
   onAsk: (id: string) => void;
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onAdd: () => void;
+  askOn: string;
+  onAskOn: (value: string) => void;
+  accent: string;
   bucketById: (id: string) => BucketItem | null;
 }) {
   return (
@@ -706,7 +780,7 @@ function TodoTab({
               color: "rgba(244,244,246,0.45)",
             }}
           >
-            Tonight?
+            Asks
           </Text>
           {incoming.map((ask) => {
             const item = bucketById(ask.bucketId);
@@ -734,16 +808,16 @@ function TodoTab({
                     lineHeight: 18,
                   }}
                 >
-                  {tonightAskCopy(ask.status, mine, partnerName, "date")}
+                  {tonightAskCopy(ask.status, mine, partnerName, "date", ask.nightKey)}
                 </Text>
                 {ask.status === "offered" && !mine ? (
                   <View style={{ marginTop: 12, gap: 8 }}>
                     <PrimaryButton
-                      label="Yes — tonight"
+                      label={`Yes — ${formatLongDate(ask.nightKey)}`}
                       onPress={() => onRespond(ask.id, "accepted")}
                     />
                     <PrimaryButton
-                      label="Not tonight"
+                      label="Not that night"
                       tone="ghost"
                       onPress={() => onRespond(ask.id, "declined")}
                     />
@@ -755,6 +829,16 @@ function TodoTab({
         </View>
       ) : null}
 
+      <CalendarDateField
+        label="Night to ask for"
+        value={askOn}
+        onChange={onAskOn}
+        accent={accent}
+        ink={T.ink}
+        muted={T.muted}
+        background={T.velvet}
+        allowClear={false}
+      />
       <PrimaryButton label="Spin from to-do" tone="ghost" onPress={onSpin} />
       {spunId ? (
         <View
@@ -767,7 +851,7 @@ function TodoTab({
             padding: 14,
           }}
         >
-          <Text style={{ color: accent(), fontSize: 11, fontWeight: "700" }}>
+          <Text style={{ color: accent, fontSize: 11, fontWeight: "700" }}>
             TO-DO SPIN
           </Text>
           <Text
@@ -791,7 +875,7 @@ function TodoTab({
           </Text>
         ) : (
           open.map((item) => {
-            const ask = dateAskForBucket(asks, item.id, today);
+            const ask = dateAskForBucket(asks, item.id);
             const mine = ask ? ask.fromUserId === userId : true;
             return (
               <View
@@ -851,24 +935,24 @@ function TodoTab({
                     color: "rgba(244,244,246,0.5)",
                   }}
                 >
-                  {tonightAskCopy(ask?.status ?? null, mine, partnerName, "date")}
+                  {tonightAskCopy(ask?.status ?? null, mine, partnerName, "date", ask?.nightKey ?? askOn)}
                 </Text>
                 <View style={{ marginTop: 12, gap: 8 }}>
                   {ask?.status === "offered" && !mine ? (
                     <>
                       <PrimaryButton
-                        label="Yes — tonight"
+                        label={`Yes — ${formatLongDate(ask.nightKey)}`}
                         onPress={() => onRespond(ask.id, "accepted")}
                       />
                       <PrimaryButton
-                        label="Not tonight"
+                        label="Not that night"
                         tone="ghost"
                         onPress={() => onRespond(ask.id, "declined")}
                       />
                     </>
                   ) : !ask ? (
                     <PrimaryButton
-                      label="Try this tonight?"
+                      label={`Ask them for ${formatLongDate(askOn)}`}
                       onPress={() => onAsk(item.id)}
                     />
                   ) : null}
@@ -910,12 +994,15 @@ function TodoTab({
         placeholderTextColor="rgba(244,244,246,0.35)"
         className="mt-3 h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
       />
-      <TextInput
+      <CalendarDateField
+        label="Optional date"
         value={scheduledOn}
-        onChangeText={onScheduledOn}
-        placeholder="Optional date YYYY-MM-DD"
-        placeholderTextColor="rgba(244,244,246,0.35)"
-        className="mt-3 h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+        onChange={onScheduledOn}
+        accent={accent}
+        ink={T.ink}
+        muted={T.muted}
+        background={T.velvet}
+        allowClear
       />
       <View className="mt-3 flex-row flex-wrap gap-2">
         {KINDS.map((item) => (
@@ -951,6 +1038,7 @@ function DoneTab({
   userId,
   partnerName,
   onRate,
+  accent,
 }: {
   done: BucketItem[];
   ratingsOn: boolean;
@@ -958,6 +1046,7 @@ function DoneTab({
   userId: string | null;
   partnerName: string;
   onRate: (id: string, stars: number) => void;
+  accent: string;
 }) {
   if (!done.length) {
     return (
@@ -1013,7 +1102,7 @@ function DoneTab({
                 <ScoreSlider
                   value={mine?.stars ?? 7.5}
                   onChange={(stars) => onRate(item.id, stars)}
-                  accent={accent()}
+                  accent={accent}
                 />
               </View>
             ) : null}

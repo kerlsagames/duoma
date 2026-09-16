@@ -3,10 +3,9 @@ import { Stage } from "@/components/hub/Stage";
 import { ClockTimeField, formatClockLabel } from "@/components/ui/ClockTimeField";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
-import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF, TRAVEL_TONE as T } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { hexAlpha, inkOnAccent } from "@/lib/color-paint";
-import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { money, parseMoney } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -32,11 +31,11 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 
-const BG = "#0C1218";
-const PAPER = "#E8EEF4";
-const MUTED = "rgba(232,238,244,0.55)";
-const CARD = "#15202B";
-const fallbackAccent = () => sectionAccent("home-base", "#3D8BDB");
+const BG = T.background;
+const PAPER = T.ink;
+const MUTED = T.muted;
+const CARD = T.surface;
+const fallbackAccent = () => T.foil;
 
 type Tab = "days" | "bookings" | "pack";
 
@@ -109,7 +108,7 @@ export default function TripDetailScreen() {
 
   if (!trip) {
     return (
-      <Screen scroll background={BG}>
+      <Screen scroll background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
         <Stage
         background={BG}
         fallback={"/hub/travel" as Href}
@@ -243,7 +242,7 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <Screen background={BG}>
+    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}

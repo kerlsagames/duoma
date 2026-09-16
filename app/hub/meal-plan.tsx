@@ -1,3 +1,4 @@
+import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
@@ -407,6 +408,14 @@ export default function MealPlanScreen() {
             onPalette={(palette) =>
               void updatePlan((current) => ({ ...current, palette }))
             }
+            onRestoreLook={() =>
+              void updatePlan((current) => ({
+                ...current,
+                view: "board",
+                size: "m",
+                palette: "mix",
+              }))
+            }
             regulars={plan.regulars}
             ideas={filteredIdeas}
             ideaTotal={plan.ideas.length}
@@ -758,6 +767,7 @@ function SettingsPanel({
   onView,
   onSize,
   onPalette,
+  onRestoreLook,
   regulars,
   ideas,
   ideaTotal,
@@ -790,6 +800,7 @@ function SettingsPanel({
   onView: (view: MealPlanView) => void;
   onSize: (size: MealPlanSize) => void;
   onPalette: (palette: MealPlanPalette) => void;
+  onRestoreLook: () => void;
   regulars: MealRegular[];
   ideas: MealPlanIdea[];
   ideaTotal: number;
@@ -984,6 +995,11 @@ function SettingsPanel({
               );
             })}
           </View>
+          <RestoreDefaultsButton
+            ink={T.ink}
+            muted={T.muted}
+            onReset={onRestoreLook}
+          />
         </View>
       ) : tab === "regulars" ? (
         <View style={{ marginTop: 18 }}>

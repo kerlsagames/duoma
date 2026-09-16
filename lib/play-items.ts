@@ -1,3 +1,4 @@
+import { formatLongDate } from "@/lib/dates";
 import type {
   DateNightAsk,
   PlayItemRating,
@@ -10,16 +11,17 @@ import type {
 export function dateAskForBucket(
   asks: DateNightAsk[],
   bucketId: string,
-  nightKey: string
+  nightKey?: string
 ): DateNightAsk | null {
-  return (
-    asks.find(
-      (row) =>
-        row.bucketId === bucketId &&
-        row.nightKey === nightKey &&
-        (row.status === "offered" || row.status === "accepted")
-    ) ?? null
+  const live = asks.filter(
+    (row) =>
+      row.bucketId === bucketId &&
+      (row.status === "offered" || row.status === "accepted")
   );
+  if (nightKey) {
+    return live.find((row) => row.nightKey === nightKey) ?? live[0] ?? null;
+  }
+  return live[0] ?? null;
 }
 
 export function positionAskForPose(
@@ -87,22 +89,31 @@ export function tonightAskCopy(
   status: "offered" | "accepted" | "declined" | "done" | null,
   mine: boolean,
   partnerLabel: string,
-  kind: "date" | "position" | "roleplay"
+  kind: "date" | "position" | "roleplay",
+  nightKey?: string | null
 ): string {
   const thing =
     kind === "date" ? "date" : kind === "position" ? "pose" : "scene";
+  const when =
+    kind === "date" && nightKey && /^\d{4}-\d{2}-\d{2}$/.test(nightKey)
+      ? formatLongDate(nightKey)
+      : kind === "date"
+        ? "that night"
+        : "tonight";
   if (!status || status === "done") {
-    return `Send ${partnerLabel} “try this tonight?” They answer yes or no.`;
+    return kind === "date"
+      ? `Pick a night, then send ${partnerLabel} the ask. If they say yes, it lands on the calendar.`
+      : `Send ${partnerLabel} “try this tonight?” They answer yes or no.`;
   }
   if (status === "offered") {
     return mine
-      ? `Sent. Waiting on ${partnerLabel} to say yes or not tonight.`
-      : `${partnerLabel} asked. Yes means this ${thing} is on tonight.`;
+      ? `Sent for ${when}. Waiting on ${partnerLabel} to say yes or not.`
+      : `${partnerLabel} asked for ${when}. Yes puts this ${thing} on the calendar.`;
   }
   if (status === "accepted") {
-    return `It’s a go. ${partnerLabel} said yes — tonight’s on.`;
+    return `It’s a go — ${when} is on the calendar.`;
   }
   return mine
-    ? `${partnerLabel} said not tonight.`
-    : `You said not tonight.`;
+    ? `${partnerLabel} said not ${when}.`
+    : `You said not ${when}.`;
 }

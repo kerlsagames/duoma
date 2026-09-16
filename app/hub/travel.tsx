@@ -3,10 +3,9 @@ import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
-import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { HANDWRITING, SERIF, TRAVEL_TONE as T } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { hexAlpha, inkOnAccent } from "@/lib/color-paint";
-import { sectionAccent } from "@/lib/hub-theme";
 import { money } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
 import { createTrip, todayKey, tripPlanCost, tripSummary } from "@/lib/trips";
@@ -15,11 +14,11 @@ import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-const BG = "#0C1218";
-const PAPER = "#E8EEF4";
-const MUTED = "rgba(232,238,244,0.55)";
-const CARD = "#15202B";
-const fallbackAccent = () => sectionAccent("home-base", "#3D8BDB");
+const BG = T.background;
+const PAPER = T.ink;
+const MUTED = T.muted;
+const CARD = T.surface;
+const fallbackAccent = () => T.foil;
 
 export default function TravelScreen() {
   const router = useRouter();
@@ -70,7 +69,7 @@ export default function TravelScreen() {
   };
 
   return (
-    <Screen background={BG}>
+    <Screen background={BG} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 28 }}
@@ -103,13 +102,24 @@ export default function TravelScreen() {
       >
         <Text
           style={{
+            fontFamily: "SpaceMono",
+            fontSize: 11,
+            letterSpacing: 3,
+            color: T.foil,
+          }}
+        >
+          PASSPORT
+        </Text>
+        <Text
+          style={{
             fontFamily: SERIF,
             fontSize: 34,
             color: tint,
             letterSpacing: -0.5,
+            marginTop: 4,
           }}
         >
-          Trip plans
+          Trips
         </Text>
         <Text
           style={{
@@ -119,7 +129,7 @@ export default function TravelScreen() {
             color: MUTED,
           }}
         >
-          Pick the days on a calendar. Times use a clock, same as the shared month.
+          Stamps, boarding passes, the days you picked. Costs hide if you want.
         </Text>
 
         <Pressable

@@ -31,3 +31,19 @@ body,
   will-change: transform;
   animation: duoma-ticker-marquee var(--duoma-ticker-duration, 16s) linear infinite;
 }
+
+[data-app-typeface="serif"] {
+  font-family: Georgia, "Iowan Old Style", Palatino, serif;
+}
+
+[data-app-typeface="mono"] {
+  font-family: "Space Mono", ui-monospace, Menlo, monospace;
+}
+
+[data-app-density="compact"] {
+  letter-spacing: -0.01em;
+}
+
+[data-app-density="roomy"] {
+  letter-spacing: 0.01em;
+}

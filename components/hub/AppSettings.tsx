@@ -3,7 +3,9 @@ import { BackButton } from "@/components/ui/BackButton";
 import { SERIF } from "@/lib/app-themes";
 import {
   DENSITY_OPTIONS,
+  TYPEFACE_OPTIONS,
   type DensityId,
+  type TypefaceId,
 } from "@/lib/app-prefs";
 import { hexAlpha, luminance, parseHex } from "@/lib/color-paint";
 import { HUB_COLOR_SWATCHES } from "@/lib/hub-theme";
@@ -313,9 +315,11 @@ export function AppSettingsPanel({
   ink,
   muted,
   density,
+  typeface,
   storedAccent,
   onAccent,
   onDensity,
+  onTypeface,
   onReset,
   children,
   hideDensity,
@@ -325,9 +329,11 @@ export function AppSettingsPanel({
   ink: string;
   muted: string;
   density: DensityId;
+  typeface: TypefaceId;
   storedAccent: string;
   onAccent: (hex: string) => void;
   onDensity: (id: DensityId) => void;
+  onTypeface: (id: TypefaceId) => void;
   onReset: () => void;
   children?: ReactNode;
   hideDensity?: boolean;
@@ -343,12 +349,12 @@ export function AppSettingsPanel({
           color: muted,
         }}
       >
-        Colour, size, and extras for this app only. Hub colour still paints the
-        tile on Home.
+        Colour washes the whole screen. Type size and font restyle this app —
+        not just the heading. Hub colour still paints the tile on Home.
       </Text>
       <PrefSection
         label="Colour"
-        hint="Titles, buttons, chips, and borders in this app follow this colour."
+        hint="Background, buttons, chips, and titles follow this colour."
         ink={ink}
         muted={muted}
       >
@@ -362,7 +368,7 @@ export function AppSettingsPanel({
       {hideDensity ? null : (
         <PrefSection
           label="Type size"
-          hint="Like the meal-plan post-its — shrink or stretch the page."
+          hint="Compact, regular, or roomy type and spacing on this page."
           ink={ink}
           muted={muted}
         >
@@ -375,24 +381,54 @@ export function AppSettingsPanel({
           />
         </PrefSection>
       )}
-      {children}
-      <Pressable
-        onPress={onReset}
-        style={{
-          marginTop: 4,
-          height: 44,
-          borderRadius: 14,
-          borderWidth: 1,
-          borderColor: wash(ink, 0.18),
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+      <PrefSection
+        label="Font"
+        hint="Sans is the default. Serif or mono restyles the page."
+        ink={ink}
+        muted={muted}
       >
-        <Text style={{ color: muted, fontWeight: "700", fontSize: 13 }}>
-          Reset this app
-        </Text>
-      </Pressable>
+        <PrefChoices
+          value={typeface}
+          options={TYPEFACE_OPTIONS}
+          onChange={onTypeface}
+          accent={accent}
+          ink={ink}
+        />
+      </PrefSection>
+      {children}
+      <RestoreDefaultsButton muted={muted} ink={ink} onReset={onReset} />
     </View>
+  );
+}
+
+export function RestoreDefaultsButton({
+  muted,
+  ink,
+  onReset,
+}: {
+  muted: string;
+  ink: string;
+  onReset: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onReset}
+      accessibilityRole="button"
+      accessibilityLabel="Restore defaults"
+      style={{
+        marginTop: 12,
+        height: 44,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: wash(ink, 0.18),
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text style={{ color: muted, fontWeight: "700", fontSize: 13 }}>
+        Restore defaults
+      </Text>
+    </Pressable>
   );
 }
 
@@ -400,7 +436,7 @@ export function lookPanelProps(
   look: {
     accent: string;
     fallbackAccent: string;
-    prefs: { accent: string; density: DensityId };
+    prefs: { accent: string; density: DensityId; typeface: TypefaceId };
     patch: (partial: Record<string, string | boolean | number>) => void;
     reset: () => void;
   },
@@ -413,9 +449,11 @@ export function lookPanelProps(
     ink,
     muted,
     density: look.prefs.density,
+    typeface: look.prefs.typeface ?? "sans",
     storedAccent: look.prefs.accent,
     onAccent: (hex: string) => look.patch({ accent: hex }),
     onDensity: (id: DensityId) => look.patch({ density: id }),
+    onTypeface: (id: TypefaceId) => look.patch({ typeface: id }),
     onReset: look.reset,
   };
 }
@@ -431,7 +469,7 @@ export function LookPanel({
   look: {
     accent: string;
     fallbackAccent: string;
-    prefs: { accent: string; density: DensityId } & Record<
+    prefs: { accent: string; density: DensityId; typeface: TypefaceId } & Record<
       string,
       string | boolean | number
     >;

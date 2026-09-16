@@ -193,7 +193,7 @@ export default function JarScreen() {
     nextNote?.fromUserId === user?.id ? youName : partnerName;
 
   return (
-    <Screen scroll background={T.background} scrollRef={scrollRef}>
+    <Screen scroll background={T.background} scrollRef={scrollRef} density={look.prefs.density} typeface={look.prefs.typeface} accent={look.accent}>
       <View className="pt-2 pb-8">
         <SettingsDock
           accent={look.accent}
