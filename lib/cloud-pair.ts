@@ -155,6 +155,11 @@ function asProfile(row: {
   banned_at?: string | null;
   banned_reason?: string | null;
   last_seen_at?: string | null;
+  over18_at?: string | null;
+  privacy_consent_at?: string | null;
+  moderation_consent_at?: string | null;
+  timezone?: string | null;
+  active_seconds?: number | null;
   created_at: string;
 }): Profile {
   return {
@@ -165,6 +170,11 @@ function asProfile(row: {
     bannedAt: row.banned_at ?? null,
     bannedReason: row.banned_reason ?? null,
     lastSeenAt: row.last_seen_at ?? null,
+    over18At: row.over18_at ?? null,
+    privacyConsentAt: row.privacy_consent_at ?? null,
+    moderationConsentAt: row.moderation_consent_at ?? null,
+    timezone: row.timezone ?? null,
+    activeSeconds: typeof row.active_seconds === "number" ? row.active_seconds : 0,
     createdAt: row.created_at,
   };
 }
@@ -189,6 +199,7 @@ export async function absorbCloudSession(): Promise<{
   const code = pending?.code || metaCode || undefined;
   const intent: "create" | "join" = pending?.intent ?? (code ? "join" : "create");
 
+  const consentedAt = new Date().toISOString();
   await supabase
     .from("profiles")
     .update({
@@ -197,7 +208,11 @@ export async function absorbCloudSession(): Promise<{
         (typeof meta.display_name === "string" ? meta.display_name : undefined),
       gender: pending?.gender ?? (meta.gender === "male" || meta.gender === "female" ? meta.gender : undefined),
       email,
-      last_seen_at: new Date().toISOString(),
+      last_seen_at: consentedAt,
+      over18_at: consentedAt,
+      privacy_consent_at: consentedAt,
+      moderation_consent_at: consentedAt,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
     .eq("id", userId);
 

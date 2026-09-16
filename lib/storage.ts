@@ -141,6 +141,11 @@ function hydrateProfile(row: AppDB["profiles"][number]): AppDB["profiles"][numbe
     bannedAt: row.bannedAt ?? null,
     bannedReason: row.bannedReason ?? null,
     lastSeenAt: row.lastSeenAt ?? null,
+    over18At: row.over18At ?? null,
+    privacyConsentAt: row.privacyConsentAt ?? null,
+    moderationConsentAt: row.moderationConsentAt ?? null,
+    timezone: row.timezone ?? null,
+    activeSeconds: typeof row.activeSeconds === "number" ? row.activeSeconds : 0,
   };
 }
 

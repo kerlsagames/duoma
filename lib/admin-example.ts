@@ -12,6 +12,11 @@ export const EXAMPLE_PROFILES: Profile[] = [
     gender: "female",
     email: "maya.example@duoma.app",
     lastSeenAt: "2026-09-14T21:12:00.000Z",
+    over18At: "2026-08-02T10:00:00.000Z",
+    privacyConsentAt: "2026-08-02T10:00:00.000Z",
+    moderationConsentAt: "2026-08-02T10:00:00.000Z",
+    timezone: "Australia/Sydney",
+    activeSeconds: 14_640,
     createdAt: "2026-08-02T10:00:00.000Z",
   },
   {
@@ -20,6 +25,11 @@ export const EXAMPLE_PROFILES: Profile[] = [
     gender: "male",
     email: "jordan.example@duoma.app",
     lastSeenAt: "2026-09-14T21:18:00.000Z",
+    over18At: "2026-08-02T10:04:00.000Z",
+    privacyConsentAt: "2026-08-02T10:04:00.000Z",
+    moderationConsentAt: "2026-08-02T10:04:00.000Z",
+    timezone: "Australia/Sydney",
+    activeSeconds: 12_300,
     createdAt: "2026-08-02T10:04:00.000Z",
   },
 ];

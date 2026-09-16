@@ -144,6 +144,7 @@ import {
   fantasyIdeas,
 } from "@/lib/fantasy-matcher";
 import { subscribeCatalog } from "@/lib/catalog-overlay";
+import { deviceTimezone } from "@/lib/legal";
 import {
   absorbCloudSession,
   cloudAccountsOn,
@@ -886,6 +887,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (timer) clearInterval(timer);
     };
   }, [ready, couple?.id, couple?.partnerB]);
+
+  useEffect(() => {
+    if (!ready || !user?.id) return;
+    const pulse = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const current = db.profiles.find((row) => row.id === user.id);
+      if (!current) return;
+      const nextSeconds = (current.activeSeconds ?? 0) + 30;
+      const seen = nowIso();
+      const zone = deviceTimezone();
+      db = {
+        ...db,
+        profiles: db.profiles.map((row) =>
+          row.id === user.id
+            ? { ...row, activeSeconds: nextSeconds, lastSeenAt: seen, timezone: zone ?? row.timezone }
+            : row
+        ),
+      };
+      await persist();
+      if (supabase) {
+        void supabase
+          .from("profiles")
+          .update({
+            active_seconds: nextSeconds,
+            last_seen_at: seen,
+            timezone: zone,
+          })
+          .eq("id", user.id);
+      }
+    };
+    const timer = setInterval(() => void pulse(), 30_000);
+    return () => clearInterval(timer);
+  }, [ready, user?.id]);
+
   const allProfiles = useMemo(
     () => db.profiles,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1289,6 +1324,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       email: trimmedEmail || null,
       bannedAt: null,
       lastSeenAt: nowIso(),
+      over18At: nowIso(),
+      privacyConsentAt: nowIso(),
+      moderationConsentAt: nowIso(),
+      timezone: deviceTimezone(),
+      activeSeconds: 0,
       createdAt: nowIso(),
     };
     const coupleRow: Couple = {
@@ -1345,6 +1385,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       email: trimmedEmail || null,
       bannedAt: null,
       lastSeenAt: nowIso(),
+      over18At: nowIso(),
+      privacyConsentAt: nowIso(),
+      moderationConsentAt: nowIso(),
+      timezone: deviceTimezone(),
+      activeSeconds: 0,
       createdAt: nowIso(),
     };
     db = {

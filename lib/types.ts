@@ -44,6 +44,11 @@ export type Profile = {
   bannedAt?: string | null;
   bannedReason?: string | null;
   lastSeenAt?: string | null;
+  over18At?: string | null;
+  privacyConsentAt?: string | null;
+  moderationConsentAt?: string | null;
+  timezone?: string | null;
+  activeSeconds?: number;
   isDemo?: boolean;
   createdAt: string;
 };

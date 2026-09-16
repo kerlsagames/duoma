@@ -1,4 +1,5 @@
 import { looksLikeEmail } from "@/lib/account-usage";
+import { ConsentChecks } from "@/components/ConsentChecks";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -14,6 +15,8 @@ export default function CreateAccountScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
+  const [over18, setOver18] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +29,10 @@ export default function CreateAccountScreen() {
     }
     if (trimmedEmail && !looksLikeEmail(trimmedEmail)) {
       setError("That email does not look right.");
+      return;
+    }
+    if (!over18 || !privacy) {
+      setError("Tick 18+ and the privacy notice to continue.");
       return;
     }
     setError(null);
@@ -81,13 +88,20 @@ export default function CreateAccountScreen() {
           <GenderPicker value={gender} onChange={setGender} label="I am" />
         </View>
 
+        <ConsentChecks
+          over18={over18}
+          privacy={privacy}
+          onOver18={setOver18}
+          onPrivacy={setPrivacy}
+        />
+
         {error ? <Text className="mt-3 text-[14px] text-crimson">{error}</Text> : null}
 
         <View className="mt-8 gap-3">
           <PrimaryButton
             label={usingCloud ? "Email me the link" : "Generate my code"}
             loading={loading}
-            disabled={!name.trim() || !gender || (usingCloud && !email.trim())}
+            disabled={!name.trim() || !gender || !over18 || !privacy || (usingCloud && !email.trim())}
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />

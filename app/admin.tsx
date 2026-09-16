@@ -16,13 +16,7 @@ import {
   rowInGroup,
 } from "@/lib/catalog-rows";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
-import { usageForProfile } from "@/lib/account-usage";
-import {
-  EXAMPLE_COUPLE,
-  EXAMPLE_PROFILES,
-  exampleUsage,
-  isExampleAccount,
-} from "@/lib/admin-example";
+import { UsersSpreadsheet } from "@/components/admin/UsersSpreadsheet";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
@@ -67,11 +61,8 @@ export default function AdminScreen() {
     allProfiles,
     allCouples,
     allCards,
-    adminDb,
     ready,
     usingCloud,
-    banAccount,
-    unbanAccount,
     refreshCloudAccounts,
   } = useApp();
   const { width } = useWindowDimensions();
@@ -211,13 +202,7 @@ export default function AdminScreen() {
         ) : tab === "setup" ? (
           <SetupPane />
         ) : tab === "users" ? (
-          <UsersPane
-            profiles={allProfiles}
-            couples={allCouples}
-            db={adminDb}
-            onBan={banAccount}
-            onUnban={unbanAccount}
-          />
+          <UsersSpreadsheet />
         ) : tab === "spicyLive" ? (
           <LiveSpicyPane cards={allCards} profiles={allProfiles} couples={allCouples} />
         ) : (
@@ -279,187 +264,9 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007_grants.sql if tables 404 or writes fail. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com'; Catalog edits and bans then apply for every couple."
-          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 007_grants.sql. Turn on Auth → Email (magic link). Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then: update profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007 and 008 if columns or grants are missing. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'kerlsagameshq@gmail.com';"
+          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 008_consent.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
       </Text>
-    </ScrollView>
-  );
-}
-
-function UsersPane({
-  profiles,
-  couples,
-  db,
-  onBan,
-  onUnban,
-}: {
-  profiles: ReturnType<typeof useApp>["allProfiles"];
-  couples: ReturnType<typeof useApp>["allCouples"];
-  db: ReturnType<typeof useApp>["adminDb"];
-  onBan: ReturnType<typeof useApp>["banAccount"];
-  onUnban: ReturnType<typeof useApp>["unbanAccount"];
-}) {
-  const [openId, setOpenId] = useState<string | null>(EXAMPLE_PROFILES[0]!.id);
-  const [reason, setReason] = useState("Used inappropriately");
-  const [exampleBanned, setExampleBanned] = useState<Record<string, string | null>>({});
-  const shownProfiles = [
-    ...EXAMPLE_PROFILES.map((profile) => ({
-      ...profile,
-      bannedAt: exampleBanned[profile.id] ? profile.createdAt : null,
-      bannedReason: exampleBanned[profile.id] ?? null,
-    })),
-    ...profiles.filter((profile) => !isExampleAccount(profile.id)),
-  ];
-  const shownCouples = [
-    EXAMPLE_COUPLE,
-    ...couples.filter((couple) => !isExampleAccount(couple.id)),
-  ];
-  return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
-      <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>
-        Users · {shownProfiles.length}
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4 }}>
-        Maya and Jordan are a fake pair so you can click in. Real cloud accounts
-        appear under them once you are signed in as admin. Ban on the example is
-        only a preview.
-      </Text>
-      {shownProfiles.map((profile) => {
-        const couple = shownCouples.find(
-          (row) => row.partnerA === profile.id || row.partnerB === profile.id
-        );
-        const otherId =
-          couple?.partnerA === profile.id ? couple.partnerB : couple?.partnerA ?? null;
-        const other = shownProfiles.find((row) => row.id === otherId);
-        const usage = exampleUsage(profile.id) ?? usageForProfile(db, profile);
-        const example = isExampleAccount(profile.id);
-        const open = openId === profile.id;
-        const banned = Boolean(profile.bannedAt);
-        return (
-          <View
-            key={profile.id}
-            style={{
-              marginTop: 12,
-              borderWidth: 1,
-              borderColor: banned ? "rgba(255,138,138,0.5)" : "rgba(255,255,255,0.1)",
-              borderRadius: 10,
-              padding: 12,
-            }}
-          >
-            <Text style={{ color: "#F4F4F6", fontWeight: "800", fontSize: 16 }}>
-              {profile.displayName}
-              {example ? " · example" : ""}
-              {profile.isDemo ? " · demo" : ""}
-              {banned ? " · BANNED" : ""}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 4, fontSize: 12 }}>
-              {profile.email || "no email"} · {profile.gender ?? "unset"}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 2, fontSize: 12 }}>
-              couple {couple?.inviteCode ?? "none"} · partner {other?.displayName ?? "waiting"}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 2, fontSize: 11 }}>
-              last seen {profile.lastSeenAt ?? "never"} · id {profile.id}
-            </Text>
-            <Text style={{ color: "rgba(244,244,246,0.7)", marginTop: 8, fontSize: 12 }}>
-              {usage.apps.length
-                ? usage.apps.map((row) => `${row.label} ${row.count}`).join(" · ")
-                : "No app use yet"}
-            </Text>
-            <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-              <Pressable onPress={() => setOpenId(open ? null : profile.id)}>
-                <Text style={{ color: "#FF007F", fontWeight: "700", fontSize: 12 }}>
-                  {open ? "Hide detail" : "See apps & cards"}
-                </Text>
-              </Pressable>
-              {banned ? (
-                <Pressable
-                  onPress={() =>
-                    example
-                      ? setExampleBanned((row) => ({ ...row, [profile.id]: null }))
-                      : void onUnban(profile.id)
-                  }
-                >
-                  <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>
-                </Pressable>
-              ) : (
-                <Pressable
-                  onPress={() =>
-                    example
-                      ? setExampleBanned((row) => ({ ...row, [profile.id]: reason }))
-                      : void onBan(profile.id, reason)
-                  }
-                >
-                  <Text style={{ color: "#FF8A8A", fontWeight: "700", fontSize: 12 }}>Ban</Text>
-                </Pressable>
-              )}
-            </View>
-            {open ? (
-              <View style={{ marginTop: 10 }}>
-                {usage.apps.map((row) => (
-                  <Text key={row.id} style={{ color: "rgba(244,244,246,0.75)", fontSize: 12, marginTop: 2 }}>
-                    {row.label} · {row.count}
-                  </Text>
-                ))}
-                {usage.cards.length ? (
-                  <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11, marginTop: 10 }}>
-                    CARDS
-                  </Text>
-                ) : null}
-                {usage.cards.map((row, index) => (
-                  <Text
-                    key={`${row.label}-${index}`}
-                    style={{ color: "rgba(244,244,246,0.7)", fontSize: 12, marginTop: 4 }}
-                  >
-                    {row.label}
-                    {"\n"}
-                    <Text style={{ color: "rgba(244,244,246,0.4)" }}>{row.detail}</Text>
-                  </Text>
-                ))}
-                {!banned ? (
-                  <TextInput
-                    value={reason}
-                    onChangeText={setReason}
-                    placeholder="Ban reason"
-                    placeholderTextColor="rgba(244,244,246,0.35)"
-                    style={field}
-                  />
-                ) : (
-                  <Text style={{ color: "#FF8A8A", marginTop: 8, fontSize: 12 }}>
-                    {profile.bannedReason}
-                  </Text>
-                )}
-              </View>
-            ) : null}
-          </View>
-        );
-      })}
-      <Text style={{ color: "#F4F4F6", fontSize: 18, fontWeight: "800", marginTop: 28 }}>
-        Couples · {shownCouples.length}
-      </Text>
-      {shownCouples.map((couple) => (
-        <View
-          key={couple.id}
-          style={{
-            marginTop: 10,
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.1)",
-            borderRadius: 10,
-            padding: 12,
-          }}
-        >
-          <Text style={{ color: "#FF007F", fontFamily: "SpaceMono" }}>
-            {couple.inviteCode}
-            {isExampleAccount(couple.id) ? " · example" : ""}
-          </Text>
-          <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 4, fontSize: 12 }}>
-            {couple.id}
-          </Text>
-          <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 2, fontSize: 12 }}>
-            A {couple.partnerA} · B {couple.partnerB ?? "empty"} · paired {couple.pairedAt ?? "no"}
-          </Text>
-        </View>
-      ))}
     </ScrollView>
   );
 }
