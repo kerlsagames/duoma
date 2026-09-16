@@ -348,7 +348,7 @@ export function AppSettingsPanel({
       </Text>
       <PrefSection
         label="Colour"
-        hint="Tint the chrome, titles, and highlights in here."
+        hint="Titles, buttons, chips, and borders in this app follow this colour."
         ink={ink}
         muted={muted}
       >
@@ -426,6 +426,7 @@ export function LookPanel({
   muted,
   toggles,
   choices,
+  children,
 }: {
   look: {
     accent: string;
@@ -446,6 +447,7 @@ export function LookPanel({
     hint?: string;
     options: { id: string; label: string }[];
   }[];
+  children?: ReactNode;
 }) {
   return (
     <AppSettingsPanel {...lookPanelProps(look, ink, muted)}>
@@ -502,6 +504,7 @@ export function LookPanel({
           </View>
         </PrefSection>
       ) : null}
+      {children}
     </AppSettingsPanel>
   );
 }

@@ -5,6 +5,7 @@ import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
+import { hexAlpha, inkOnAccent } from "@/lib/color-paint";
 import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { money, parseMoney } from "@/lib/money";
@@ -13,7 +14,6 @@ import type {
   Trip,
   TripBooking,
   TripBookingKind,
-  TripDay,
   TripPlanItem,
 } from "@/lib/mini-content";
 import { BOOKING_KINDS, emptyTripDay, sortPlanItems, tripDayCount, tripPlanCost, tripSummary } from "@/lib/trips";
@@ -36,7 +36,7 @@ const BG = "#0C1218";
 const PAPER = "#E8EEF4";
 const MUTED = "rgba(232,238,244,0.55)";
 const CARD = "#15202B";
-const inkBlue = () => sectionAccent("home-base", "#3D8BDB");
+const fallbackAccent = () => sectionAccent("home-base", "#3D8BDB");
 
 type Tab = "days" | "bookings" | "pack";
 
@@ -53,10 +53,12 @@ export default function TripDetailScreen() {
   const [packText, setPackText] = useState("");
   const [notes, setNotes] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const look = useAppLook("travel", inkBlue(), {
+  const look = useAppLook("travel", fallbackAccent(), {
     hideCosts: false,
     compact: false,
   });
+  const tint = look.accent;
+  const onTint = inkOnAccent(tint);
 
   const [itemTitle, setItemTitle] = useState("");
   const [itemDetail, setItemDetail] = useState("");
@@ -137,7 +139,7 @@ export default function TripDetailScreen() {
             Trip not found
           </Text>
           <Pressable onPress={() => router.replace("/hub/travel" as Href)}>
-            <Text style={{ marginTop: 12, color: inkBlue() }}>Back to trip plans</Text>
+            <Text style={{ marginTop: 12, color: tint }}>Back to trip plans</Text>
           </Pressable>
         </Stage>
       </Screen>
@@ -284,7 +286,7 @@ export default function TripDetailScreen() {
             marginTop: 4,
             fontFamily: SERIF,
             fontSize: 32,
-            color: PAPER,
+            color: tint,
             letterSpacing: -0.4,
           }}
         >
@@ -295,9 +297,9 @@ export default function TripDetailScreen() {
         </Text>
 
         <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          <Pill text={`${tripDayCount(trip)} days`} />
-          <Pill text={`Est. ${money(total)}`} />
-          <Pill text={`${trip.bookings.length} bookings`} />
+          <Pill text={`${tripDayCount(trip)} days`} accent={tint} />
+          {look.prefs.hideCosts ? null : <Pill text={`Est. ${money(total)}`} accent={tint} />}
+          <Pill text={`${trip.bookings.length} bookings`} accent={tint} />
         </View>
 
         <View
@@ -308,6 +310,8 @@ export default function TripDetailScreen() {
             backgroundColor: CARD,
             borderRadius: 14,
             padding: 4,
+            borderWidth: 1,
+            borderColor: hexAlpha(tint, 0.25),
           }}
         >
           {(
@@ -326,13 +330,13 @@ export default function TripDetailScreen() {
                   flex: 1,
                   paddingVertical: 10,
                   borderRadius: 11,
-                  backgroundColor: on ? inkBlue() : "transparent",
+                  backgroundColor: on ? tint : "transparent",
                   alignItems: "center",
                 }}
               >
                 <Text
                   style={{
-                    color: on ? "#071018" : MUTED,
+                    color: on ? onTint : MUTED,
                     fontWeight: "700",
                     fontSize: 12,
                     textAlign: "center",
@@ -358,12 +362,14 @@ export default function TripDetailScreen() {
                       paddingHorizontal: 12,
                       paddingVertical: 8,
                       borderRadius: 999,
-                      backgroundColor: on ? inkBlue() : CARD,
+                      backgroundColor: on ? tint : CARD,
+                      borderWidth: 1,
+                      borderColor: on ? tint : hexAlpha(tint, 0.22),
                     }}
                   >
                     <Text
                       style={{
-                        color: on ? "#071018" : PAPER,
+                        color: on ? onTint : PAPER,
                         fontSize: 12,
                         fontWeight: "700",
                       }}
@@ -380,10 +386,10 @@ export default function TripDetailScreen() {
                   paddingVertical: 8,
                   borderRadius: 999,
                   borderWidth: 1,
-                  borderColor: inkBlue(),
+                  borderColor: tint,
                 }}
               >
-                <Text style={{ color: inkBlue(), fontWeight: "700", fontSize: 12 }}>
+                <Text style={{ color: tint, fontWeight: "700", fontSize: 12 }}>
                   + Day
                 </Text>
               </Pressable>
@@ -396,6 +402,8 @@ export default function TripDetailScreen() {
                   backgroundColor: CARD,
                   borderRadius: 18,
                   padding: 14,
+                  borderWidth: 1,
+                  borderColor: hexAlpha(tint, 0.25),
                 }}
               >
                 <Text style={{ fontFamily: SERIF, fontSize: 22, color: PAPER }}>
@@ -424,6 +432,8 @@ export default function TripDetailScreen() {
                       <DayItemRow
                         key={item.id}
                         item={item}
+                        accent={tint}
+                        hideCost={look.prefs.hideCosts}
                         onToggle={() => {
                           void update((current) => ({
                             ...current,
@@ -471,12 +481,12 @@ export default function TripDetailScreen() {
                     marginTop: 14,
                     height: 46,
                     borderRadius: 23,
-                    backgroundColor: inkBlue(),
+                    backgroundColor: tint,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#071018", fontWeight: "800" }}>
+                  <Text style={{ color: onTint, fontWeight: "800" }}>
                     Add to this day
                   </Text>
                 </Pressable>
@@ -489,6 +499,8 @@ export default function TripDetailScreen() {
                 backgroundColor: CARD,
                 borderRadius: 18,
                 padding: 14,
+                borderWidth: 1,
+                borderColor: hexAlpha(tint, 0.22),
               }}
             >
               <Text style={{ fontFamily: "SpaceMono", fontSize: 10, color: MUTED }}>
@@ -530,12 +542,12 @@ export default function TripDetailScreen() {
                 borderRadius: 14,
                 borderWidth: 1,
                 borderStyle: "dashed",
-                borderColor: inkBlue(),
+                borderColor: tint,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: inkBlue(), fontWeight: "700" }}>
+              <Text style={{ color: tint, fontWeight: "700" }}>
                 + Stay, flight, ticket…
               </Text>
             </Pressable>
@@ -557,6 +569,8 @@ export default function TripDetailScreen() {
                 <BookingCard
                   key={row.id}
                   booking={row}
+                  accent={tint}
+                  hideCost={look.prefs.hideCosts}
                   onRemove={() =>
                     void update((current) => ({
                       ...current,
@@ -602,12 +616,12 @@ export default function TripDetailScreen() {
                 style={{
                   width: 48,
                   borderRadius: 12,
-                  backgroundColor: inkBlue(),
+                  backgroundColor: tint,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="add" size={22} color="#071018" />
+                <Ionicons name="add" size={22} color={onTint} />
               </Pressable>
             </View>
             <View style={{ marginTop: 12, gap: 6 }}>
@@ -629,13 +643,15 @@ export default function TripDetailScreen() {
                     paddingVertical: 10,
                     paddingHorizontal: 12,
                     borderRadius: 12,
-                    backgroundColor: CARD,
+                    backgroundColor: row.packed ? hexAlpha(tint, 0.14) : CARD,
+                    borderWidth: 1,
+                    borderColor: hexAlpha(tint, row.packed ? 0.45 : 0.22),
                   }}
                 >
                   <Ionicons
                     name={row.packed ? "checkbox" : "square-outline"}
                     size={20}
-                    color={row.packed ? inkBlue() : MUTED}
+                    color={row.packed ? tint : MUTED}
                   />
                   <Text
                     style={{
@@ -685,7 +701,7 @@ export default function TripDetailScreen() {
             onChange={setItemTime}
             ink={PAPER}
             muted={MUTED}
-            accent={inkBlue()}
+            accent={tint}
             background="#0F1822"
           />
           <Field label="Details" value={itemDetail} onChangeText={setItemDetail} placeholder="Booked under Alex" />
@@ -698,7 +714,7 @@ export default function TripDetailScreen() {
             keyboardType="decimal-pad"
           />
           {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-          <Primary label="Save to day" onPress={() => void saveItem()} />
+          <Primary label="Save to day" onPress={() => void saveItem()} accent={tint} />
         </SheetOverlay>
       ) : null}
 
@@ -722,12 +738,12 @@ export default function TripDetailScreen() {
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     borderRadius: 999,
-                    backgroundColor: on ? inkBlue() : "#0F1822",
+                    backgroundColor: on ? tint : "#0F1822",
                   }}
                 >
                   <Text
                     style={{
-                      color: on ? "#071018" : PAPER,
+                      color: on ? onTint : PAPER,
                       fontSize: 12,
                       fontWeight: "700",
                     }}
@@ -770,44 +786,48 @@ export default function TripDetailScreen() {
               height: 46,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: "rgba(61,139,219,0.45)",
+              borderColor: hexAlpha(tint, 0.45),
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: inkBlue(), fontWeight: "700" }}>
+            <Text style={{ color: tint, fontWeight: "700" }}>
               {bookFileName ? `Attached · ${bookFileName}` : "Upload ticket / photo"}
             </Text>
           </Pressable>
           {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-          <Primary label="Save booking" onPress={() => void saveBooking()} />
+          <Primary label="Save booking" onPress={() => void saveBooking()} accent={tint} />
         </SheetOverlay>
       ) : null}
     </Screen>
   );
 }
 
-function Pill({ text }: { text: string }) {
+function Pill({ text, accent }: { text: string; accent: string }) {
   return (
     <View
       style={{
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 999,
-        backgroundColor: "rgba(61,139,219,0.16)",
+        backgroundColor: hexAlpha(accent, 0.16),
       }}
     >
-      <Text style={{ color: inkBlue(), fontSize: 12, fontWeight: "700" }}>{text}</Text>
+      <Text style={{ color: accent, fontSize: 12, fontWeight: "700" }}>{text}</Text>
     </View>
   );
 }
 
 function DayItemRow({
   item,
+  accent,
+  hideCost,
   onToggle,
   onRemove,
 }: {
   item: TripPlanItem;
+  accent: string;
+  hideCost: boolean;
   onToggle: () => void;
   onRemove: () => void;
 }) {
@@ -826,7 +846,7 @@ function DayItemRow({
         <Ionicons
           name={item.done ? "checkmark-circle" : "ellipse-outline"}
           size={22}
-          color={item.done ? inkBlue() : MUTED}
+          color={item.done ? accent : MUTED}
         />
       </Pressable>
       <View style={{ flex: 1 }}>
@@ -845,12 +865,12 @@ function DayItemRow({
           <Text style={{ marginTop: 2, color: MUTED, fontSize: 13 }}>{item.detail}</Text>
         ) : null}
         <View style={{ marginTop: 4, flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {item.cost > 0 ? (
-            <Text style={{ color: inkBlue(), fontSize: 12 }}>{money(item.cost)}</Text>
+          {item.cost > 0 && !hideCost ? (
+            <Text style={{ color: accent, fontSize: 12 }}>{money(item.cost)}</Text>
           ) : null}
           {item.url ? (
             <Pressable onPress={() => void Linking.openURL(item.url)}>
-              <Text style={{ color: inkBlue(), fontSize: 12 }}>Open link</Text>
+              <Text style={{ color: accent, fontSize: 12 }}>Open link</Text>
             </Pressable>
           ) : null}
           <Pressable onPress={onRemove}>
@@ -864,21 +884,33 @@ function DayItemRow({
 
 function BookingCard({
   booking,
+  accent,
+  hideCost,
   onRemove,
 }: {
   booking: TripBooking;
+  accent: string;
+  hideCost: boolean;
   onRemove: () => void;
 }) {
   const meta = BOOKING_KINDS.find((item) => item.id === booking.kind);
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14 }}>
+    <View
+      style={{
+        backgroundColor: CARD,
+        borderRadius: 16,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: hexAlpha(accent, 0.25),
+      }}
+    >
       <View style={{ flexDirection: "row", gap: 10 }}>
         <View
           style={{
             width: 36,
             height: 36,
             borderRadius: 12,
-            backgroundColor: "rgba(61,139,219,0.18)",
+            backgroundColor: hexAlpha(accent, 0.18),
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -886,7 +918,7 @@ function BookingCard({
           <Ionicons
             name={(meta?.icon as keyof typeof Ionicons.glyphMap) ?? "link"}
             size={18}
-            color={inkBlue()}
+            color={accent}
           />
         </View>
         <View style={{ flex: 1 }}>
@@ -896,7 +928,7 @@ function BookingCard({
           <Text style={{ marginTop: 2, color: MUTED, fontSize: 12 }}>
             {meta?.label ?? "Booking"}
             {booking.dayDate ? ` · ${booking.dayDate}` : ""}
-            {booking.cost > 0 ? ` · ${money(booking.cost)}` : ""}
+            {booking.cost > 0 && !hideCost ? ` · ${money(booking.cost)}` : ""}
           </Text>
           {booking.note ? (
             <Text style={{ marginTop: 6, color: MUTED, fontSize: 13 }}>
@@ -906,12 +938,12 @@ function BookingCard({
           <View style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             {booking.url ? (
               <Pressable onPress={() => void Linking.openURL(booking.url)}>
-                <Text style={{ color: inkBlue(), fontSize: 13 }}>Open link</Text>
+                <Text style={{ color: accent, fontSize: 13 }}>Open link</Text>
               </Pressable>
             ) : null}
             {booking.fileUri ? (
               <Pressable onPress={() => void Linking.openURL(booking.fileUri)}>
-                <Text style={{ color: inkBlue(), fontSize: 13 }}>
+                <Text style={{ color: accent, fontSize: 13 }}>
                   {booking.fileName || "Open file"}
                 </Text>
               </Pressable>
@@ -932,12 +964,14 @@ function Field({
   onChangeText,
   placeholder,
   keyboardType,
+  accent,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   keyboardType?: "decimal-pad";
+  accent?: string;
 }) {
   return (
     <View style={{ marginTop: 12 }}>
@@ -965,13 +999,23 @@ function Field({
           backgroundColor: "#0F1822",
           color: PAPER,
           fontSize: 16,
+          borderWidth: 1,
+          borderColor: hexAlpha(accent ?? fallbackAccent(), 0.28),
         }}
       />
     </View>
   );
 }
 
-function Primary({ label, onPress }: { label: string; onPress: () => void }) {
+function Primary({
+  label,
+  onPress,
+  accent,
+}: {
+  label: string;
+  onPress: () => void;
+  accent: string;
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -979,12 +1023,12 @@ function Primary({ label, onPress }: { label: string; onPress: () => void }) {
         marginTop: 16,
         height: 52,
         borderRadius: 26,
-        backgroundColor: inkBlue(),
+        backgroundColor: accent,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Text style={{ color: "#071018", fontWeight: "800" }}>{label}</Text>
+      <Text style={{ color: inkOnAccent(accent), fontWeight: "800" }}>{label}</Text>
     </Pressable>
   );
 }

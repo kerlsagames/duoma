@@ -40,6 +40,16 @@ export function luminance(rgb: Rgb): number {
   return 0.2126 * lin(rgb.r) + 0.7152 * lin(rgb.g) + 0.0722 * lin(rgb.b);
 }
 
+export function inkOnAccent(
+  hex: string,
+  light = "#F6F3F0",
+  dark = "#161018"
+): string {
+  const rgb = parseHex(hex);
+  if (!rgb) return dark;
+  return luminance(rgb) > 0.48 ? dark : light;
+}
+
 export function hexAlpha(hex: string, alpha: number): string {
   const rgb = parseHex(hex);
   if (!rgb) return `rgba(255,255,255,${alpha})`;

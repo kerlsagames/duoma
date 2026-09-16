@@ -5,6 +5,7 @@ import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
+import { hexAlpha, inkOnAccent } from "@/lib/color-paint";
 import { sectionAccent } from "@/lib/hub-theme";
 import { money } from "@/lib/money";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -18,16 +19,18 @@ const BG = "#0C1218";
 const PAPER = "#E8EEF4";
 const MUTED = "rgba(232,238,244,0.55)";
 const CARD = "#15202B";
-const accent = () => sectionAccent("home-base", "#3D8BDB");
+const fallbackAccent = () => sectionAccent("home-base", "#3D8BDB");
 
 export default function TravelScreen() {
   const router = useRouter();
   const { data, ready, patch } = useMiniApps();
   const [compose, setCompose] = useState(false);
-  const look = useAppLook("travel", accent(), {
+  const look = useAppLook("travel", fallbackAccent(), {
     hideCosts: false,
     compact: false,
   });
+  const tint = look.accent;
+  const wash = (alpha: number) => hexAlpha(tint, alpha);
   const [title, setTitle] = useState("");
   const [where, setWhere] = useState("");
   const [start, setStart] = useState("");
@@ -76,7 +79,7 @@ export default function TravelScreen() {
       <Stage
         background={BG}
         fallback={"/hub/home-base" as Href}
-        accent={look.accent}
+        accent={tint}
         settingsLabel="Travel"
         settings={
           <LookPanel
@@ -102,7 +105,7 @@ export default function TravelScreen() {
           style={{
             fontFamily: SERIF,
             fontSize: 34,
-            color: PAPER,
+            color: tint,
             letterSpacing: -0.5,
           }}
         >
@@ -132,16 +135,16 @@ export default function TravelScreen() {
             borderRadius: 18,
             borderWidth: 1.5,
             borderStyle: "dashed",
-            borderColor: accent(),
-            backgroundColor: "rgba(61,139,219,0.12)",
+            borderColor: tint,
+            backgroundColor: wash(0.12),
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
             gap: 8,
           }}
         >
-          <Ionicons name="add" size={22} color={accent()} />
-          <Text style={{ color: accent(), fontWeight: "800", fontSize: 16 }}>
+          <Ionicons name="add" size={22} color={tint} />
+          <Text style={{ color: tint, fontWeight: "800", fontSize: 16 }}>
             Add trip plan
           </Text>
         </Pressable>
@@ -171,9 +174,9 @@ export default function TravelScreen() {
                   style={{
                     backgroundColor: CARD,
                     borderRadius: 18,
-                    padding: 16,
+                    padding: look.prefs.compact ? 12 : 16,
                     borderWidth: 1,
-                    borderColor: "rgba(61,139,219,0.25)",
+                    borderColor: wash(0.28),
                   }}
                 >
                   <View
@@ -188,18 +191,18 @@ export default function TravelScreen() {
                         width: 42,
                         height: 42,
                         borderRadius: 14,
-                        backgroundColor: "rgba(61,139,219,0.18)",
+                        backgroundColor: wash(0.18),
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Ionicons name="airplane" size={20} color={accent()} />
+                      <Ionicons name="airplane" size={20} color={tint} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
                           fontFamily: SERIF,
-                          fontSize: 22,
+                          fontSize: look.prefs.compact ? 20 : 22,
                           color: PAPER,
                         }}
                       >
@@ -224,7 +227,7 @@ export default function TravelScreen() {
                         marginTop: 10,
                         fontFamily: "SpaceMono",
                         fontSize: 12,
-                        color: accent(),
+                        color: tint,
                       }}
                     >
                       Est. {money(cost)}
@@ -252,12 +255,14 @@ export default function TravelScreen() {
             value={title}
             onChangeText={setTitle}
             placeholder="Anniversary in Kyoto"
+            accent={tint}
           />
           <Field
             label="Where"
             value={where}
             onChangeText={setWhere}
             placeholder="City, region, or road trip"
+            accent={tint}
           />
           <CalendarDateField
             label="Starts"
@@ -268,7 +273,7 @@ export default function TravelScreen() {
             }}
             ink={PAPER}
             muted={MUTED}
-            accent={accent()}
+            accent={tint}
             background="#0F1822"
           />
           <CalendarDateField
@@ -280,7 +285,7 @@ export default function TravelScreen() {
             }}
             ink={PAPER}
             muted={MUTED}
-            accent={accent()}
+            accent={tint}
             background="#0F1822"
           />
           <Text style={{ marginTop: 6, color: MUTED, fontSize: 12, lineHeight: 17 }}>
@@ -296,12 +301,12 @@ export default function TravelScreen() {
               marginTop: 16,
               height: 52,
               borderRadius: 26,
-              backgroundColor: accent(),
+              backgroundColor: tint,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#071018", fontWeight: "800" }}>Create trip</Text>
+            <Text style={{ color: inkOnAccent(tint), fontWeight: "800" }}>Create trip</Text>
           </Pressable>
         </SheetOverlay>
       ) : null}
@@ -314,11 +319,13 @@ function Field({
   value,
   onChangeText,
   placeholder,
+  accent,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
+  accent: string;
 }) {
   return (
     <View style={{ marginTop: 12 }}>
@@ -345,6 +352,8 @@ function Field({
           backgroundColor: "#0F1822",
           color: PAPER,
           fontSize: 16,
+          borderWidth: 1,
+          borderColor: hexAlpha(accent, 0.28),
         }}
       />
     </View>
