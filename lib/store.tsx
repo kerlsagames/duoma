@@ -633,6 +633,7 @@ type AppContextValue = {
   blockCard: () => Promise<void>;
   unlockPrivate: () => Promise<void>;
   readyToMoveOn: () => Promise<void>;
+  skipSimpleCard: () => Promise<void>;
   rateCard: (cardId: string, stars: number) => Promise<void>;
   finishRatings: () => Promise<void>;
   endGame: () => Promise<void>;
@@ -3412,6 +3413,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     await persist();
   }, [game]);
+
+  const skipSimpleCard = useCallback(async () => {
+    if (!game || !user || game.status !== "playing") return;
+    if (game.pace !== "simple") {
+      throw new Error("Skip is for Keep it simple.");
+    }
+    const deckRows = db.deck.filter((item) => item.gameId === game.id);
+    const active = deckRows.find((item) => item.status === "active");
+    if (!active) {
+      throw new Error("No card to skip.");
+    }
+    db = {
+      ...db,
+      deck: db.deck.map((item) =>
+        item.id === active.id ? { ...item, status: "blocked" as const } : item
+      ),
+      games: db.games.map((row) =>
+        row.id === game.id
+          ? sessionFields(row, {
+              activeCardId: null,
+              activePlayedBy: null,
+              handCardIds: [],
+            })
+          : row
+      ),
+    };
+    await persist();
+  }, [game, user]);
 
   const blockCard = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
@@ -6265,6 +6294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     blockCard,
     unlockPrivate,
     readyToMoveOn,
+    skipSimpleCard,
     rateCard,
     finishRatings,
     endGame,

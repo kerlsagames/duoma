@@ -41,7 +41,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then Go to Step it up. Same for Finish off. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
+    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then tap the big Go to Step it up. Same for Finish off. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",

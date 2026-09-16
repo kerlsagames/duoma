@@ -10,6 +10,8 @@ type Props = PressableProps & {
   label: string;
   tone?: "neon" | "crimson" | "ghost" | "danger" | "gold" | "teal";
   loading?: boolean;
+  /** Taller type for a stage jump that has to read as the main move. */
+  size?: "default" | "loud";
 };
 
 export function PrimaryButton({
@@ -17,16 +19,26 @@ export function PrimaryButton({
   tone = "neon",
   loading,
   disabled,
+  size = "default",
   ...rest
 }: Props) {
+  const loud = size === "loud";
+  const height = loud ? 60 : 52;
+  const radius = loud ? 20 : 18;
+  const typeSize = loud ? 18 : 16;
+
   if (tone === "ghost") {
     return (
       <Pressable
         disabled={disabled || loading}
-        className="h-12 items-center justify-center rounded-2xl border border-white/15"
+        className="items-center justify-center rounded-2xl border border-white/15"
+        style={{ height: loud ? 56 : 48 }}
         {...rest}
       >
-        <Text className="text-[15px] font-semibold tracking-wide text-mist">
+        <Text
+          className="font-semibold tracking-wide text-mist"
+          style={{ fontSize: loud ? 16 : 15 }}
+        >
           {label}
         </Text>
       </Pressable>
@@ -62,8 +74,8 @@ export function PrimaryButton({
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            height: 52,
-            borderRadius: 18,
+            height,
+            borderRadius: radius,
             alignItems: "center",
             justifyContent: "center",
             opacity: disabled || loading ? 0.55 : 1,
@@ -74,8 +86,8 @@ export function PrimaryButton({
           ) : (
             <Text
               style={{
-                fontSize: 16,
-                fontWeight: "700",
+                fontSize: typeSize,
+                fontWeight: "800",
                 letterSpacing: 0.4,
                 color: labelColor,
               }}
@@ -98,21 +110,24 @@ export function PrimaryButton({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
           style={{
-            height: 52,
-            borderRadius: 18,
+            height,
+            borderRadius: radius,
             alignItems: "center",
             justifyContent: "center",
             opacity: disabled || loading ? 0.55 : 1,
             shadowColor: "#FF007F",
-            shadowOpacity: 0.55,
-            shadowRadius: 16,
+            shadowOpacity: loud ? 0.75 : 0.55,
+            shadowRadius: loud ? 22 : 16,
             shadowOffset: { width: 0, height: 0 },
           }}
       >
         {loading ? (
           <ActivityIndicator color="#F4F4F6" />
         ) : (
-          <Text className="text-[16px] font-bold tracking-wide text-mist">
+          <Text
+            className="font-bold tracking-wide text-mist"
+            style={{ fontSize: typeSize }}
+          >
             {label}
           </Text>
         )}

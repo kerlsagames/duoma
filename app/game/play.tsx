@@ -1,4 +1,5 @@
 import { DealHand } from "@/components/DealHand";
+import { FinishOffSpray } from "@/components/FinishOffSpray";
 import { FinishReveal } from "@/components/FinishReveal";
 import { RealtimeCardStage } from "@/components/RealtimeCardStage";
 import { ScoreSlider } from "@/components/ScoreSlider";
@@ -13,7 +14,7 @@ import {
 import { useApp } from "@/lib/store";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 export default function PlayScreen() {
@@ -32,6 +33,7 @@ export default function PlayScreen() {
     blockCard,
     unlockPrivate,
     readyToMoveOn,
+    skipSimpleCard,
     rateCard,
     finishRatings,
     endGame,
@@ -45,11 +47,27 @@ export default function PlayScreen() {
   const [animating, setAnimating] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
   const [animationMode, setAnimationMode] = useState<"deal" | "shuffle">("deal");
+  const [sprayKey, setSprayKey] = useState(0);
+  const prevStage = useRef(game?.currentStage);
 
   useEffect(() => {
     if (!game) router.replace("/(tabs)");
     if (game?.status === "cancelled") router.replace("/(tabs)");
   }, [game, router]);
+
+  useEffect(() => {
+    if (game?.pace !== "simple") {
+      prevStage.current = game?.currentStage;
+      return;
+    }
+    if (
+      prevStage.current === "step_it_up" &&
+      game.currentStage === "finish_off"
+    ) {
+      setSprayKey((key) => key + 1);
+    }
+    prevStage.current = game.currentStage;
+  }, [game?.currentStage, game?.pace]);
 
   const active = deck.find((item) => item.status === "active") ?? null;
   const card = cards.find((item) => item.id === active?.cardId);
@@ -256,9 +274,23 @@ export default function PlayScreen() {
   const onReadyToMoveOn = async () => {
     setError(null);
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    } catch {
+      // native-only
+    }
+    try {
       await readyToMoveOn();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not move on");
+    }
+  };
+
+  const onSkipCard = async () => {
+    setError(null);
+    try {
+      await skipSimpleCard();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not skip");
     }
   };
 
@@ -451,6 +483,7 @@ export default function PlayScreen() {
   return (
     <Screen scroll={showHand || simplePace}>
       <View className={`flex-1 ${showHand ? "pt-1 pb-3" : "py-3"}`}>
+        {simplePace ? <FinishOffSpray playKey={sprayKey} /> : null}
         <View className="mb-1.5 flex-row justify-between">
           {stagesForPace(game?.pace).map((stage) => {
             const on = game?.currentStage === stage;
@@ -549,6 +582,25 @@ export default function PlayScreen() {
         {error ? <Text className="mt-2 text-[13px] text-crimson">{error}</Text> : null}
 
         <View className="mt-4 gap-3 pb-3">
+          {simplePace && isSimpleOpenStage(game?.pace, game?.currentStage) ? (
+            <View>
+              <PrimaryButton
+                label={
+                  game?.currentStage === "foreplay"
+                    ? "Go to Step it up"
+                    : "Go to Finish off"
+                }
+                tone={game?.currentStage === "foreplay" ? "crimson" : "gold"}
+                size="loud"
+                onPress={() => void onReadyToMoveOn()}
+              />
+              <Text className="mt-2 text-center text-[12px] leading-4 text-mist/55">
+                {game?.currentStage === "foreplay"
+                  ? "Stay in Foreplay as long as you want. This is the jump to the next stage."
+                  : "Stay in Step it up as long as you want. This is the jump to Finish off."}
+              </Text>
+            </View>
+          ) : null}
           {active ? (
             <PrimaryButton
               label={
@@ -556,7 +608,19 @@ export default function PlayScreen() {
                   ? "Next card"
                   : "Complete"
               }
+              tone={
+                simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
+                  ? "ghost"
+                  : "neon"
+              }
               onPress={() => void onComplete()}
+            />
+          ) : null}
+          {simplePace && active ? (
+            <PrimaryButton
+              label="Skip, try another card"
+              tone="ghost"
+              onPress={() => void onSkipCard()}
             />
           ) : null}
           {showHand && !simplePace ? (
@@ -565,17 +629,6 @@ export default function PlayScreen() {
               tone="ghost"
               disabled={!myTurn || animating || myShufflesRemaining === 0}
               onPress={() => void onShuffle()}
-            />
-          ) : null}
-          {isSimpleOpenStage(game?.pace, game?.currentStage) ? (
-            <PrimaryButton
-              label={
-                game?.currentStage === "foreplay"
-                  ? "Go to Step it up"
-                  : "Go to Finish off"
-              }
-              tone="ghost"
-              onPress={() => void onReadyToMoveOn()}
             />
           ) : null}
           {simplePace ? null : (
