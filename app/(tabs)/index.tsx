@@ -62,6 +62,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 export default function HomeScreen() {
@@ -776,6 +777,8 @@ function HomeSettingsSheet({
   } = useApp();
   const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
   const [safetyError, setSafetyError] = useState<string | null>(null);
+  const { height: winH } = useWindowDimensions();
+  const sheetH = Math.round(Math.min(winH * 0.88, winH - 78));
   const hubThemes = useHubThemes();
   const hubs = useThemedHubs();
   const names = resolveCardNames({
@@ -813,9 +816,12 @@ function HomeSettingsSheet({
         }}
       />
       <View
+        pointerEvents="auto"
         style={{
           width: "100%",
-          maxHeight: "88%",
+          height: sheetH,
+          maxHeight: sheetH,
+          overflow: "hidden",
           backgroundColor: "#14141A",
           paddingHorizontal: 16,
           paddingTop: 16,
@@ -848,10 +854,12 @@ function HomeSettingsSheet({
           </Pressable>
         </View>
         <ScrollView
+          style={{ flex: 1, minHeight: 0 }}
           nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator
-          contentContainerStyle={{ paddingBottom: 28 }}
+          contentContainerStyle={{ paddingBottom: 36 }}
         >
           <HomeDemoFlip />
           <Text
@@ -1201,6 +1209,66 @@ function HomeSettingsSheet({
               router.push("/legal" as Href);
             }}
           />
+          <Text
+            style={{
+              marginTop: 10,
+              fontFamily: "SpaceMono",
+              fontSize: 11,
+              letterSpacing: 1.6,
+              color: "rgba(244,244,246,0.45)",
+              marginBottom: 4,
+            }}
+          >
+            SAFETY
+          </Text>
+          <Pressable
+            onPress={() => {
+              setSafetyError(null);
+              setDanger("report");
+            }}
+            style={{ marginTop: 4, paddingVertical: 12 }}
+          >
+            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+              Report content / abuse
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Goes to Duoma, not your partner. We review within 24 hours.
+            </Text>
+          </Pressable>
+          {partner ? (
+            <Pressable
+              onPress={() => {
+                setSafetyError(null);
+                setDanger("unpair");
+              }}
+              style={{ marginTop: 4, paddingVertical: 12 }}
+            >
+              <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+                Unpair / break up
+              </Text>
+              <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+                Ends the connection. Shared photos, vault, and lists on this pair
+                are wiped on both sides.
+              </Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              setSafetyError(null);
+              setDanger("delete");
+            }}
+            style={{ marginTop: 4, paddingVertical: 12 }}
+          >
+            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
+              Delete account
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Closes your Duoma account and wipes this phone’s copy of the pair.
+            </Text>
+          </Pressable>
+          {safetyError ? (
+            <Text style={{ marginTop: 8, color: "#FF6B7A", fontSize: 13 }}>{safetyError}</Text>
+          ) : null}
           <View
             style={{
               marginBottom: 8,
@@ -1397,54 +1465,6 @@ function HomeSettingsSheet({
               Does not unpair you. Continue as {user?.displayName ?? "you"} next time.
             </Text>
           </Pressable>
-          <Pressable
-            onPress={() => {
-              setSafetyError(null);
-              setDanger("report");
-            }}
-            style={{ marginTop: 4, paddingVertical: 12 }}
-          >
-            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
-              Report content / abuse
-            </Text>
-            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
-              Goes to Duoma, not your partner. We review within 24 hours.
-            </Text>
-          </Pressable>
-          {partner ? (
-            <Pressable
-              onPress={() => {
-                setSafetyError(null);
-                setDanger("unpair");
-              }}
-              style={{ marginTop: 4, paddingVertical: 12 }}
-            >
-              <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
-                Unpair / break up
-              </Text>
-              <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
-                Ends the connection. Shared photos, vault, and lists on this pair
-                are wiped on both sides.
-              </Text>
-            </Pressable>
-          ) : null}
-          <Pressable
-            onPress={() => {
-              setSafetyError(null);
-              setDanger("delete");
-            }}
-            style={{ marginTop: 4, paddingVertical: 12 }}
-          >
-            <Text style={{ color: "#FF6B7A", fontSize: 15, fontWeight: "700" }}>
-              Delete account
-            </Text>
-            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
-              Closes your Duoma account and wipes this phone’s copy of the pair.
-            </Text>
-          </Pressable>
-          {safetyError ? (
-            <Text style={{ marginTop: 8, color: "#FF6B7A", fontSize: 13 }}>{safetyError}</Text>
-          ) : null}
         </ScrollView>
       </View>
       <ConfirmDialog
