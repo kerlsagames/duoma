@@ -1,22 +1,19 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { looksLikeEmail } from "@/lib/account-usage";
 import { useApp } from "@/lib/store";
-import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
-export function HomeForgotPassword() {
-  const { user, usingCloud, requestEmailCode, demoMode } = useApp();
+export function ForgotPassword() {
+  const router = useRouter();
+  const { usingCloud, requestEmailCode } = useApp();
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState(user?.email ?? "");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.email) setEmail(user.email);
-  }, [user?.email]);
-
-  if (!usingCloud || demoMode) return null;
+  if (!usingCloud) return null;
 
   const send = async () => {
     const trimmed = email.trim();
@@ -28,7 +25,7 @@ export function HomeForgotPassword() {
     setLoading(true);
     try {
       await requestEmailCode(trimmed);
-      setSent(true);
+      router.replace("/check-email");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send the email.");
     } finally {
@@ -36,18 +33,15 @@ export function HomeForgotPassword() {
     }
   };
 
-  if (!open && !sent) {
+  if (!open) {
     return (
-      <View style={{ marginBottom: 16 }}>
-        <PrimaryButton label="Forgot password" tone="ghost" onPress={() => setOpen(true)} />
-      </View>
+      <PrimaryButton label="Forgot password" tone="ghost" onPress={() => setOpen(true)} />
     );
   }
 
   return (
     <View
       style={{
-        marginBottom: 16,
         padding: 16,
         borderRadius: 18,
         borderWidth: 1,
@@ -74,14 +68,14 @@ export function HomeForgotPassword() {
           lineHeight: 20,
         }}
       >
-        There is no password. We email a sign-in link to this address so you can
-        open the pair on a new phone.
+        There is no password. We email a 6-digit sign-in code so you can open
+        the pair on this phone.
       </Text>
       <TextInput
         value={email}
         onChangeText={(value) => {
           setEmail(value);
-          setSent(false);
+          setError(null);
         }}
         placeholder="Email"
         placeholderTextColor="rgba(244,244,246,0.35)"
@@ -103,15 +97,9 @@ export function HomeForgotPassword() {
       {error ? (
         <Text style={{ marginTop: 8, color: "#FF8A8A", fontSize: 13 }}>{error}</Text>
       ) : null}
-      {sent ? (
-        <Text style={{ marginTop: 8, color: "#F4F4F6", fontSize: 13, lineHeight: 18 }}>
-          Sent to {email.trim()}. Open the link, or type the 6-digit code on
-          Check your email.
-        </Text>
-      ) : null}
       <View style={{ marginTop: 12, gap: 10 }}>
         <PrimaryButton
-          label={sent ? "Send again" : "Email me the link"}
+          label="Email me the code"
           loading={loading}
           onPress={() => void send()}
         />
@@ -120,7 +108,6 @@ export function HomeForgotPassword() {
           tone="ghost"
           onPress={() => {
             setOpen(false);
-            setSent(false);
             setError(null);
           }}
         />
