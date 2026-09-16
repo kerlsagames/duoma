@@ -363,80 +363,51 @@ export default function HomeScreen() {
           Daily rhythm
         </Text>
 
-        <View style={{ gap: 8 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
           {dailyWidgets.map((widget) => (
             <Pressable
               key={widget.id}
               onPress={() => router.push(widget.href as Href)}
+              accessibilityRole="button"
+              accessibilityLabel={widget.label}
               style={{
-                flexDirection: "row",
+                flex: 1,
                 alignItems: "center",
-                gap: 10,
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                borderRadius: 14,
-                backgroundColor: "#14141A",
-                borderWidth: 1,
-                borderColor: `${widget.accent}44`,
+                paddingVertical: 2,
               }}
             >
               <View
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 11,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
                   backgroundColor: `${widget.accent}22`,
+                  borderWidth: 1,
+                  borderColor: `${widget.accent}66`,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={widget.icon} size={18} color={widget.accent} />
+                <Ionicons name={widget.icon} size={22} color={widget.accent} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: "#F4F4F6",
-                    fontSize: 14,
-                    fontWeight: "700",
-                  }}
-                >
-                  {widget.label}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 1,
-                    color: "rgba(244,244,246,0.5)",
-                    fontSize: 11,
-                    lineHeight: 15,
-                  }}
-                  numberOfLines={1}
-                >
-                  {widget.detail}
-                </Text>
-              </View>
-              {widget.id === "calendar" ? (
-                <Pressable
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    router.push("/hub/milestones");
-                  }}
-                  hitSlop={8}
-                  style={{
-                    paddingHorizontal: 8,
-                    paddingVertical: 6,
-                    borderRadius: 10,
-                    backgroundColor: `${widget.accent}22`,
-                  }}
-                >
-                  <Ionicons name="timer" size={16} color={widget.accent} />
-                </Pressable>
-              ) : (
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color="rgba(244,244,246,0.35)"
-                />
-              )}
+              <Text
+                style={{
+                  marginTop: 6,
+                  color: "#F4F4F6",
+                  fontSize: 11,
+                  fontWeight: "700",
+                  textAlign: "center",
+                }}
+                numberOfLines={1}
+              >
+                {widget.shortLabel}
+              </Text>
             </Pressable>
           ))}
         </View>

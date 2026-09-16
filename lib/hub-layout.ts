@@ -121,6 +121,18 @@ function migrateHomeBaseOrder(order: string[]): string[] {
     next[pairAt] = "gifts";
     next[pairAt + 1] = prev;
   }
+  if (!next.includes("countdowns")) {
+    const giftsAt = next.indexOf("gifts");
+    if (giftsAt >= 0) {
+      next = [
+        ...next.slice(0, giftsAt + 1),
+        "countdowns",
+        ...next.slice(giftsAt + 1),
+      ];
+    } else {
+      next = ["countdowns", ...next];
+    }
+  }
   return next;
 }
 

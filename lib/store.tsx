@@ -19,7 +19,7 @@ import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-cl
 import { resolveCardGenders } from "@/lib/personalize";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
-import { localDateKey } from "@/lib/dates";
+import { daysUntil, localDateKey } from "@/lib/dates";
 import {
   ALL_DESIRE_OPTIONS,
   hashPick,
@@ -709,6 +709,7 @@ type AppContextValue = {
     kind: MilestoneKind;
     date: string;
   }) => Promise<void>;
+  setFeaturedMilestone: (id: string) => Promise<void>;
   removeMilestone: (id: string) => Promise<void>;
   addCalendarEvent: (input: {
     title: string;
@@ -1913,6 +1914,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           date: localDateKey(anniversary),
           createdBy: demo.id,
           createdAt: nowIso(),
+          featured: true,
         },
       ],
       jarNotes: [
@@ -4711,6 +4713,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) return;
       const title = input.title.trim();
       if (!title || !input.date) throw new Error("Add a title and a date.");
+      const ours = db.milestones.filter((row) => row.coupleId === couple.id);
       const row: Milestone = {
         id: createId(),
         coupleId: couple.id,
@@ -4719,6 +4722,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         date: input.date,
         createdBy: user.id,
         createdAt: nowIso(),
+        featured: ours.length === 0 || !ours.some((item) => item.featured),
       };
       db = { ...db, milestones: [...db.milestones, row] };
       await persist();
@@ -4726,8 +4730,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const setFeaturedMilestone = useCallback(
+    async (id: string) => {
+      if (!couple) return;
+      db = {
+        ...db,
+        milestones: db.milestones.map((row) =>
+          row.coupleId === couple.id
+            ? { ...row, featured: row.id === id }
+            : row
+        ),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
   const removeMilestone = useCallback(async (id: string) => {
-    db = { ...db, milestones: db.milestones.filter((row) => row.id !== id) };
+    const removed = db.milestones.find((row) => row.id === id);
+    let next = db.milestones.filter((row) => row.id !== id);
+    if (removed?.featured && removed.coupleId) {
+      const ours = next.filter((row) => row.coupleId === removed.coupleId);
+      if (ours.length > 0 && !ours.some((row) => row.featured)) {
+        const pick =
+          ours
+            .filter((row) => daysUntil(row.date) >= 0)
+            .sort((a, b) => a.date.localeCompare(b.date))[0] ?? ours[0]!;
+        next = next.map((row) =>
+          row.coupleId === removed.coupleId
+            ? { ...row, featured: row.id === pick.id }
+            : row
+        );
+      }
+    }
+    db = { ...db, milestones: next };
     await persist();
   }, []);
 
@@ -6066,6 +6102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveRoleplay,
     markRoleplaySaveDone,
     addMilestone,
+    setFeaturedMilestone,
     removeMilestone,
     addCalendarEvent,
     updateCalendarEvent,

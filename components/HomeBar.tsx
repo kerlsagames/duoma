@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HomeCountdownTicker } from "@/components/home/HomeCountdownTicker";
 import { requestHomeSettings, requestHomeStats } from "@/lib/home-chrome";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -78,13 +79,14 @@ export function HomeBar() {
         backgroundColor: "#07070A",
         borderTopColor: "rgba(255,0,127,0.35)",
         borderTopWidth: 1,
-        paddingTop: 8,
+        paddingTop: atHome ? 6 : 8,
         paddingBottom: Math.max(insets.bottom, 8),
         shadowColor: "#FF007F",
         shadowOpacity: 0.35,
         shadowRadius: 16,
       }}
     >
+      {atHome ? <HomeCountdownTicker /> : null}
       <View
         style={{
           flexDirection: "row",

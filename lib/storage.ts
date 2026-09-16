@@ -176,7 +176,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     checkInRequests: raw.checkInRequests ?? [],
     curiosityAnswers: (raw.curiosityAnswers ?? []).map(hydrateCuriosity),
     curiositySkips: raw.curiositySkips ?? [],
-    milestones: raw.milestones ?? [],
+    milestones: (raw.milestones ?? []).map(hydrateMilestone),
     desireToggles: raw.desireToggles ?? [],
     fantasySwipes: raw.fantasySwipes ?? [],
     fantasyTonightAsks: raw.fantasyTonightAsks ?? [],
@@ -332,6 +332,15 @@ function hydrateCalendarEvent(
     happenedAt: row.happenedAt ?? row.createdAt,
     allDay: row.allDay !== false,
     updatedAt: row.updatedAt ?? row.createdAt,
+  };
+}
+
+function hydrateMilestone(
+  row: AppDB["milestones"][number]
+): AppDB["milestones"][number] {
+  return {
+    ...row,
+    featured: Boolean(row.featured),
   };
 }
 

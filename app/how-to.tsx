@@ -17,17 +17,17 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily Check-In and the shared calendar sit at the top. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. Saved countdowns can run as a ticker just above that bar.",
   },
   {
     kicker: "Shared world",
     title: "Optional. Off until you add it",
-    body: "Home settings has a Shared world toggle. Leave it off if you just want Check-In and Calendar. Turn it on to pick Sanctuary, Pocket Ecosystem, Town, Odyssey, or Constellation. Activity you already do feeds whichever one you lock in.",
+    body: "Home settings has a Shared world toggle. Leave it off if you just want Check-In, Calendar, and Notepad. Turn it on to pick Sanctuary, Pocket Ecosystem, Town, Odyssey, or Constellation. Activity you already do feeds whichever one you lock in.",
   },
   {
     kicker: "Connect",
     title: "Talk, plan, leave a note",
-    body: "Lists, notepad (shared pages, pin one, type together), date nights, Flirtatious findings, Talk to Me, voice notes (real microphone), the gratitude jar, apology, and thought pings. Use it when you want a conversation, not a dare.",
+    body: "Lists, date nights, Flirtatious findings, Talk to Me, voice notes (real microphone), the gratitude jar, apology, and thought pings. Use it when you want a conversation, not a dare.",
   },
   {
     kicker: "Desire",
@@ -42,7 +42,7 @@ const STEPS = [
   {
     kicker: "Home Base",
     title: "The life admin, shared",
-    body: "Groceries, birthdays, gifts (wish lists, shopping, and a year-by-year book of what people got), the meal plan, travel, shared goals, a detailed budget (pay, bills, spending), jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
+    body: "Groceries, birthdays, gifts (wish lists, shopping, and a year-by-year book of what people got), countdowns (star one for the home ticker, or run them all), the meal plan, travel, shared goals, a detailed budget (pay, bills, spending), jobs around the house, period tracking. Birthdays and trips also land on the calendar.",
   },
   {
     kicker: "Calendar",

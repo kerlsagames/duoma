@@ -252,6 +252,8 @@ export type Milestone = {
   date: string;
   createdBy: string;
   createdAt: string;
+  /** The one that runs on the home ticker when ticker-all is off. */
+  featured?: boolean;
 };
 
 export type DesireToggle = {

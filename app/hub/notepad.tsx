@@ -248,7 +248,7 @@ export default function NotepadScreen() {
           >
             <Stage
               background={C.bg}
-              fallback={"/hub/connect" as Href}
+              fallback={"/" as Href}
               accent={look.accent}
               settingsLabel="Notepad"
               settings={settings}
@@ -376,7 +376,7 @@ export default function NotepadScreen() {
       <Screen scroll background={C.bg}>
         <Stage
           background={C.bg}
-          fallback={"/hub/connect" as Href}
+          fallback={"/" as Href}
           accent={look.accent}
           settingsLabel="Notepad"
           settings={settings}

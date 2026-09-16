@@ -82,7 +82,7 @@ const OLD_KIND_TO_SECTION: Record<string, NotificationSection> = {
   jar: "connect",
   lists: "connect",
   coupons: "play",
-  milestones: "calendar",
+  milestones: "home_base",
   date_night: "calendar",
 };
 
@@ -95,7 +95,7 @@ const OLD_KIND_TO_APP: Record<string, string> = {
   jar: "jar",
   lists: "lists",
   coupons: "coupons",
-  milestones: "calendar",
+  milestones: "countdowns",
   date_night: "date-night",
 };
 
@@ -108,6 +108,7 @@ export function allNotifiableAppIds(): string[] {
     ...HUBS.flatMap((hub) => hub.features.map((feature) => feature.id)),
     "check-in",
     "calendar",
+    "notepad",
   ];
 }
 
