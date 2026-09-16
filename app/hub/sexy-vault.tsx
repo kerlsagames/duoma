@@ -28,10 +28,12 @@ import {
 } from "@/lib/useTiming";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { createElement, useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Image,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   Text,
@@ -50,7 +52,7 @@ export default function SexyVaultScreen() {
   const [gate, setGate] = useState("");
   const look = useAppLook("sexy-vault", gold(), {
     blurLocked: true,
-    twoCol: false,
+    twoCol: true,
   });
   const [pinDraft, setPinDraft] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
@@ -88,6 +90,10 @@ export default function SexyVaultScreen() {
     [data.sexyVault]
   );
   const viewing = items.find((row) => row.id === viewId) ?? null;
+  const album = useMemo(
+    () => items.filter((row) => !isSexyVaultLocked(row, user?.id, now)),
+    [items, user?.id, now]
+  );
 
   const setPin = async (next: string) => {
     if (!isVaultPin(next)) {
@@ -201,6 +207,13 @@ export default function SexyVaultScreen() {
     }
   };
 
+  const stepView = (dir: number) => {
+    if (!viewId) return;
+    const index = album.findIndex((row) => row.id === viewId);
+    const next = album[index + dir];
+    if (next) void openItem(next);
+  };
+
   const removeItem = async (id: string) => {
     await deleteSexyVaultBlob(id);
     await patch((state) => ({
@@ -214,7 +227,7 @@ export default function SexyVaultScreen() {
   };
 
   return (
-    <Screen scroll background={BG}>
+    <Screen scroll={mode !== "view"} background={BG}>
       <Stage
         background={BG}
         fallback={"/hub/desire" as Href}
@@ -234,7 +247,7 @@ export default function SexyVaultScreen() {
               {
                 key: "twoCol",
                 label: "Two-column grid",
-                hint: "More tiles on the page.",
+                hint: "Thumbnails in a tile grid.",
               },
             ]}
           />
@@ -288,8 +301,10 @@ export default function SexyVaultScreen() {
         ) : mode === "view" && viewing ? (
           <Viewer
             item={viewing}
+            album={album}
             mine={viewing.fromId === user?.id}
             them={them}
+            onStep={stepView}
             onBack={() => {
               setViewId(null);
               setMode("list");
@@ -302,6 +317,8 @@ export default function SexyVaultScreen() {
             userId={user?.id}
             them={them}
             now={now}
+            twoCol={look.prefs.twoCol}
+            blurLocked={look.prefs.blurLocked}
             changingPin={changingPin}
             pinDraft={pinDraft}
             pinConfirm={pinConfirm}
@@ -470,6 +487,8 @@ function VaultHome({
   userId,
   them,
   now,
+  twoCol,
+  blurLocked,
   changingPin,
   pinDraft,
   pinConfirm,
@@ -487,6 +506,8 @@ function VaultHome({
   userId?: string;
   them: string;
   now: number;
+  twoCol: boolean;
+  blurLocked: boolean;
   changingPin: boolean;
   pinDraft: string;
   pinConfirm: string;
@@ -557,6 +578,61 @@ function VaultHome({
         <Text style={[lede, { marginTop: 28 }]}>
           Empty. Leave {them} something, or wait for them to.
         </Text>
+      ) : twoCol ? (
+        <View
+          style={{
+            marginTop: 22,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          {items.map((item) => {
+            const mine = item.fromId === userId;
+            const locked = isSexyVaultLocked(item, userId, now);
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => onOpen(item)}
+                onLongPress={mine ? () => onRemove(item.id) : undefined}
+                style={{
+                  width: "48%",
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  backgroundColor: "#1C0C12",
+                  borderWidth: 1,
+                  borderColor: locked
+                    ? "rgba(228,181,106,0.22)"
+                    : "rgba(255,107,138,0.28)",
+                }}
+              >
+                <VaultThumb
+                  item={item}
+                  locked={locked}
+                  blurLocked={blurLocked}
+                  size={168}
+                  square
+                />
+                <View style={{ paddingHorizontal: 10, paddingVertical: 8 }}>
+                  <Text
+                    style={{ color: INK, fontWeight: "700", fontSize: 13 }}
+                    numberOfLines={1}
+                  >
+                    {locked
+                      ? "Hidden"
+                      : mine
+                        ? item.kind === "video"
+                          ? "Your clip"
+                          : "Your photo"
+                        : item.kind === "video"
+                          ? `${them}’s clip`
+                          : `${them}’s photo`}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       ) : (
         <View style={{ marginTop: 22, gap: 10 }}>
           {items.map((item) => {
@@ -573,34 +649,16 @@ function VaultHome({
                     ? "rgba(228,181,106,0.22)"
                     : "rgba(255,107,138,0.28)",
                   backgroundColor: locked ? "#160A0E" : "#1C0C12",
-                  padding: 14,
+                  padding: 10,
                 }}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  {!locked && item.uri && item.kind === "photo" ? (
-                    <Image
-                      source={{ uri: item.uri }}
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 12,
-                        backgroundColor: "#1A0C12",
-                      }}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Ionicons
-                      name={
-                        locked
-                          ? "lock-closed"
-                          : item.kind === "video"
-                            ? "videocam"
-                            : "image"
-                      }
-                      size={22}
-                      color={locked ? gold() : ROSE}
-                    />
-                  )}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <VaultThumb
+                    item={item}
+                    locked={locked}
+                    blurLocked={blurLocked}
+                    size={88}
+                  />
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: INK, fontWeight: "700", fontSize: 15 }}>
                       {locked
@@ -764,26 +822,22 @@ function Compose({
   );
 }
 
-function Viewer({
-  item,
-  mine,
-  them,
-  onBack,
-  onRemove,
-}: {
-  item: SexyVaultItem;
-  mine: boolean;
-  them: string;
-  onBack: () => void;
-  onRemove: () => void;
-}) {
-  const [src, setSrc] = useState<string | null>(item.uri ?? null);
+function useVaultSrc(item: SexyVaultItem | null) {
+  const [src, setSrc] = useState<string | null>(item?.uri ?? null);
 
   useEffect(() => {
+    if (!item) {
+      setSrc(null);
+      return;
+    }
+    setSrc(item.uri ?? null);
     let dead = false;
     let created: string | null = null;
     void resolveSexyVaultSrc(item).then((url) => {
-      if (dead) return;
+      if (dead) {
+        if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+        return;
+      }
       created = url && url.startsWith("blob:") ? url : null;
       setSrc(url);
     });
@@ -791,18 +845,239 @@ function Viewer({
       dead = true;
       if (created) URL.revokeObjectURL(created);
     };
-  }, [item]);
+  }, [item?.id]);
+
+  return src;
+}
+
+function VaultThumb({
+  item,
+  locked,
+  blurLocked,
+  size,
+  square = false,
+}: {
+  item: SexyVaultItem;
+  locked: boolean;
+  blurLocked: boolean;
+  size: number;
+  square?: boolean;
+}) {
+  const src = useVaultSrc(locked && !blurLocked ? null : item);
+  const frost = locked && Boolean(src);
+  const box = square
+    ? {
+        width: "100%" as const,
+        aspectRatio: 1,
+        borderRadius: 0,
+        backgroundColor: "#1A0C12",
+        overflow: "hidden" as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+      }
+    : {
+        width: size,
+        height: size,
+        borderRadius: 14,
+        backgroundColor: "#1A0C12",
+        overflow: "hidden" as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+      };
+
+  return (
+    <View style={box}>
+      {src && item.kind === "video" && Platform.OS === "web"
+        ? createElement("video", {
+            src,
+            muted: true,
+            playsInline: true,
+            preload: "metadata",
+            style: {
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: frost ? "blur(14px)" : undefined,
+            },
+          })
+        : src ? (
+            <Image
+              source={{ uri: src }}
+              style={{
+                width: "100%",
+                height: "100%",
+                opacity: frost ? 0.45 : 1,
+              }}
+              blurRadius={frost ? 16 : 0}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons
+              name={
+                locked ? "lock-closed" : item.kind === "video" ? "videocam" : "image"
+              }
+              size={22}
+              color={locked ? gold() : ROSE}
+            />
+          )}
+      {item.kind === "video" && !locked ? (
+        <View
+          style={{
+            position: "absolute",
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: "rgba(0,0,0,0.55)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name="play" size={14} color={INK} />
+        </View>
+      ) : null}
+      {locked ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: frost ? "rgba(16,6,10,0.28)" : "transparent",
+          }}
+        >
+          <Ionicons name="lock-closed" size={20} color={gold()} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function Viewer({
+  item,
+  album,
+  mine,
+  them,
+  onStep,
+  onBack,
+  onRemove,
+}: {
+  item: SexyVaultItem;
+  album: SexyVaultItem[];
+  mine: boolean;
+  them: string;
+  onStep: (dir: number) => void;
+  onBack: () => void;
+  onRemove: () => void;
+}) {
+  const src = useVaultSrc(item);
+  const [full, setFull] = useState(false);
+  const index = album.findIndex((row) => row.id === item.id);
+  const hasPrev = index > 0;
+  const hasNext = index >= 0 && index < album.length - 1;
+  const pan = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    pan.setValue(0);
+  }, [item.id, pan]);
+
+  const responder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.2,
+        onPanResponderMove: Animated.event([null, { dx: pan }], {
+          useNativeDriver: false,
+        }),
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx < -56 && hasNext) onStep(1);
+          else if (gesture.dx > 56 && hasPrev) onStep(-1);
+          Animated.spring(pan, {
+            toValue: 0,
+            friction: 7,
+            useNativeDriver: false,
+          }).start();
+        },
+      }),
+    [hasNext, hasPrev, item.id, onStep, pan]
+  );
+
+  const frame = (
+    <Animated.View
+      {...responder.panHandlers}
+      style={{ transform: [{ translateX: pan }] }}
+    >
+      {src ? (
+        <Pressable onPress={() => setFull(true)}>
+          <MediaPreview kind={item.kind} src={src} tappable={false} />
+          {item.kind !== "video" ? (
+            <Text
+              style={{
+                marginTop: 6,
+                textAlign: "center",
+                color: "rgba(246,231,220,0.5)",
+                fontSize: 12,
+              }}
+            >
+              Tap for full screen · swipe for the next
+            </Text>
+          ) : (
+            <Text
+              style={{
+                marginTop: 6,
+                textAlign: "center",
+                color: "rgba(246,231,220,0.5)",
+                fontSize: 12,
+              }}
+            >
+              Swipe for the next clip
+            </Text>
+          )}
+        </Pressable>
+      ) : (
+        <Text style={lede}>Finding the file…</Text>
+      )}
+    </Animated.View>
+  );
 
   return (
     <View>
       <Text style={{ fontFamily: SERIF, fontSize: 28, color: gold() }}>
         {mine ? "You left this" : `From ${them}`}
       </Text>
-      {src ? (
-        <MediaPreview kind={item.kind} src={src} />
-      ) : (
-        <Text style={lede}>Finding the file…</Text>
-      )}
+      {album.length > 1 ? (
+        <View
+          style={{
+            marginTop: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Pressable
+            onPress={() => hasPrev && onStep(-1)}
+            disabled={!hasPrev}
+            hitSlop={10}
+            style={{ opacity: hasPrev ? 1 : 0.25, padding: 6 }}
+          >
+            <Ionicons name="chevron-back" size={22} color={gold()} />
+          </Pressable>
+          <Text style={{ color: "rgba(246,231,220,0.6)", fontSize: 13 }}>
+            {index + 1} of {album.length}
+          </Text>
+          <Pressable
+            onPress={() => hasNext && onStep(1)}
+            disabled={!hasNext}
+            hitSlop={10}
+            style={{ opacity: hasNext ? 1 : 0.25, padding: 6 }}
+          >
+            <Ionicons name="chevron-forward" size={22} color={gold()} />
+          </Pressable>
+        </View>
+      ) : null}
+      {frame}
       {item.note ? (
         <Text
           style={{
@@ -824,6 +1099,81 @@ function Viewer({
           <Text style={ghostBtnText}>Remove</Text>
         </Pressable>
       ) : null}
+
+      <Modal visible={full} transparent animationType="fade" onRequestClose={() => setFull(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.94)" }}>
+          <Animated.View
+            {...responder.panHandlers}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 16,
+              transform: [{ translateX: pan }],
+            }}
+          >
+            <Pressable
+              onPress={() => setFull(false)}
+              style={{ width: "100%", flex: 1, alignItems: "center", justifyContent: "center" }}
+            >
+              {src && item.kind === "video" && Platform.OS === "web"
+                ? createElement("video", {
+                    src,
+                    controls: true,
+                    autoPlay: true,
+                    playsInline: true,
+                    style: {
+                      width: "100%",
+                      maxHeight: "82%",
+                      backgroundColor: "#000",
+                    },
+                  })
+                : src ? (
+                    <Image
+                      source={{ uri: src }}
+                      style={{ width: "100%", height: "82%" }}
+                      resizeMode="contain"
+                    />
+                  ) : null}
+            </Pressable>
+            {album.length > 1 ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Pressable
+                  onPress={() => hasPrev && onStep(-1)}
+                  disabled={!hasPrev}
+                  hitSlop={12}
+                  style={{ opacity: hasPrev ? 1 : 0.25, padding: 8 }}
+                >
+                  <Ionicons name="chevron-back" size={28} color="#F6E7DC" />
+                </Pressable>
+                <Text style={{ color: "rgba(246,231,220,0.7)", fontSize: 13 }}>
+                  {index + 1} of {album.length} · swipe or tap to close
+                </Text>
+                <Pressable
+                  onPress={() => hasNext && onStep(1)}
+                  disabled={!hasNext}
+                  hitSlop={12}
+                  style={{ opacity: hasNext ? 1 : 0.25, padding: 8 }}
+                >
+                  <Ionicons name="chevron-forward" size={28} color="#F6E7DC" />
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={{ color: "rgba(246,231,220,0.7)", fontSize: 13 }}>
+                Tap to close
+              </Text>
+            )}
+          </Animated.View>
+        </View>
+      </Modal>
     </View>
   );
 }
