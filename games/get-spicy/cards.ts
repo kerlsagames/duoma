@@ -14,6 +14,7 @@ import finishOff from "./cards/finish-off.json";
 import finishOff2 from "./cards/finish-off-2.json";
 import finishOff3 from "./cards/finish-off-3.json";
 import finishOff4 from "./cards/finish-off-4.json";
+import finishOff5 from "./cards/finish-off-5.json";
 import afterglow from "./cards/afterglow.json";
 import afterglow2 from "./cards/afterglow-2.json";
 import afterglow3 from "./cards/afterglow-3.json";
@@ -39,6 +40,7 @@ export const GET_SPICY_SEEDS = [
   ...(finishOff2 as DefaultCardSeed[]),
   ...(finishOff3 as DefaultCardSeed[]),
   ...(finishOff4 as DefaultCardSeed[]),
+  ...(finishOff5 as DefaultCardSeed[]),
   ...(afterglow as DefaultCardSeed[]),
   ...(afterglow2 as DefaultCardSeed[]),
   ...(afterglow3 as DefaultCardSeed[]),

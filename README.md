@@ -28,7 +28,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Coupons** — 200 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles, Pick me a Position, search the whole list, save to To-do, tick off, ask them tonight, or schedule this Saturday. Rating sliders stay off until you turn them on in the cog.
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture.
-- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Finish Off cards are tagged F, M, or both; she generally cums first, and an F-only card deals a second hand for him.
+- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Finish Off cards are tagged F, M, or both; she generally cums first, and an F-only card deals a second hand of M-cums cards only.
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 

@@ -153,7 +153,7 @@ export function dealHandFromBank(
   return pickRandomFromBank(bank, stage, count, excludeIds, enabledFlavorTags);
 }
 
-/** Finish Off: first hand is F or FM; after an F-only card, deal M or FM. */
+/** Finish Off: first hand is F or FM; after an F-only card, deal M-only. */
 export function dealFinishHandFromBank(
   bank: Card[],
   excludeIds: Set<string>,
@@ -162,16 +162,21 @@ export function dealFinishHandFromBank(
   genders: GenderPair | null | undefined,
   count: number = HAND_SIZE
 ): Card[] {
-  const pool = bank.filter(
-    (card) =>
-      card.stage === "finish_off" &&
-      card.isActive &&
-      !excludeIds.has(card.id) &&
-      cardAllowedByFlavorTags(card, enabledFlavorTags ?? null) &&
-      finishCardFitsBeat(card, beat, genders)
-  );
-  const picked = shuffle(pool).slice(0, Math.max(0, count));
+  const fits = (ignoreFlavor: boolean) =>
+    bank.filter(
+      (card) =>
+        card.stage === "finish_off" &&
+        card.isActive &&
+        !excludeIds.has(card.id) &&
+        (ignoreFlavor ||
+          cardAllowedByFlavorTags(card, enabledFlavorTags ?? null)) &&
+        finishCardFitsBeat(card, beat, genders)
+    );
+  const picked = shuffle(fits(false)).slice(0, Math.max(0, count));
   if (picked.length > 0) return picked;
+  const wider = shuffle(fits(true)).slice(0, Math.max(0, count));
+  if (wider.length > 0) return wider;
+  if (beat === "M") return [];
   return pickRandomFromBank(
     bank,
     "finish_off",

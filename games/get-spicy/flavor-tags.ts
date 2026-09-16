@@ -439,6 +439,7 @@ export const SPICY_FLAVOR_TAGS: SpicyFlavorTag[] = [
     "swallow",
     "throat",
     "lips and chin",
+    "69",
   ]),
   tag("finish_off", "toys", "Toy-assisted finish", [
     "toy",

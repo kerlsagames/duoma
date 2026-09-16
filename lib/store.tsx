@@ -287,11 +287,19 @@ function syncDefaultCards(): boolean {
         if (card.coupleId !== couple.id || !card.isDefault) return card;
         const seed = seedByTitle.get(card.title);
         if (!seed) return card;
+        const nextClimax =
+          seed.category === "finish_off"
+            ? seed.climax ??
+              climaxHintForCard({
+                title: seed.title,
+                body: seed.description,
+              })
+            : card.climax;
         if (
           card.stage !== seed.category ||
           card.body !== seed.description ||
           card.sortOrder !== seed.order ||
-          (seed.category === "finish_off" && !card.climax)
+          card.climax !== nextClimax
         ) {
           changed = true;
           return {
@@ -299,14 +307,7 @@ function syncDefaultCards(): boolean {
             stage: seed.category,
             body: seed.description,
             sortOrder: seed.order,
-            climax:
-              seed.climax ??
-              (seed.category === "finish_off"
-                ? climaxHintForCard({
-                    title: seed.title,
-                    body: seed.description,
-                  })
-                : card.climax),
+            climax: nextClimax,
           };
         }
         return card;

@@ -39,7 +39,7 @@ const SETUP_RULES = [
   },
   {
     title: "Finish Off",
-    body: "Before Finish Off and Afterglow, a reveal picks who chooses Finish Off. The other person chooses Afterglow. Finish Off deals her climax first, or both together. If the card is F-only, a second hand is dealt so he cums too. Defaults are one finish sequence.",
+    body: "Before Finish Off and Afterglow, a reveal picks who chooses Finish Off. The other person chooses Afterglow. Finish Off deals her climax first, or both together. If the card is F-only, the next hand is only M cums cards. Defaults are one finish sequence.",
   },
 ];
 

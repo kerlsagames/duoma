@@ -131,6 +131,25 @@ export function personalize(
     out = out.replace(/handsome\/beautiful/gi, () =>
       genders.partner === "male" ? "handsome" : "beautiful"
     );
+    const f =
+      genders.player === "female"
+        ? names.player
+        : genders.partner === "female"
+          ? names.partner
+          : null;
+    const m =
+      genders.player === "male"
+        ? names.player
+        : genders.partner === "male"
+          ? names.partner
+          : null;
+    if (f && m) {
+      out = out
+        .replace(/\bF's\b/g, `${f}'s`)
+        .replace(/\bM's\b/g, `${m}'s`)
+        .replace(/\bF\b/g, f)
+        .replace(/\bM\b/g, m);
+    }
   }
 
   return out;
