@@ -1029,7 +1029,7 @@ function HomeSettingsSheet({
           />
           <LinkRow
             label="Terms and privacy"
-            hint="Who is responsible if an email or sign-in code is stolen."
+            hint="The contract you ticked when you created the pair."
             onPress={() => {
               onClose();
               router.push("/legal" as Href);

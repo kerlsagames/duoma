@@ -1,7 +1,7 @@
 export const AGE_CONSENT_LABEL = "I am 18 or older.";
 
 export const PRIVACY_CONSENT_LABEL =
-  "I agree to the Terms of Use and Privacy Policy, including that I am responsible if someone else uses my email or sign-in code.";
+  "I agree to the Terms of Use and Privacy Policy.";
 
 export const LEGAL_EFFECTIVE = "16 September 2026";
 export const LEGAL_OPERATOR = "Kerlsagames / Duoma";
