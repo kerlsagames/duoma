@@ -1,6 +1,7 @@
 import { PlayRatingsToggle, PlayTabs } from "@/components/hub/PlayTabs";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { BackButton } from "@/components/ui/BackButton";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
@@ -63,6 +64,9 @@ export default function PositionsScreen() {
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [scheduledFlash, setScheduledFlash] = useState<string | null>(null);
+  const [askWhen, setAskWhen] = useState<{ dateKey: string; label: string } | null>(
+    null
+  );
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -114,6 +118,8 @@ export default function PositionsScreen() {
     setError(null);
     setSentFlash(false);
     setSavedFlash(false);
+    setScheduledFlash(null);
+    setAskWhen(null);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -134,6 +140,7 @@ export default function PositionsScreen() {
     setSentFlash(false);
     setSavedFlash(false);
     setScheduledFlash(null);
+    setAskWhen(null);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -414,55 +421,48 @@ export default function PositionsScreen() {
                 onPress={() => void send()}
               />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                <Pressable
-                  onPress={() => void scheduleOn(localDateKey(), "tonight")}
-                  style={{
-                    borderRadius: 999,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.16)",
-                  }}
-                >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
-                    Tonight
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    void scheduleOn(upcomingWeekday(6), "this Saturday")
-                  }
-                  style={{
-                    borderRadius: 999,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.16)",
-                  }}
-                >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
-                    This Saturday
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    void scheduleOn(
-                      addDaysToDateKey(upcomingWeekday(6), 7),
-                      "next Saturday"
-                    )
-                  }
-                  style={{
-                    borderRadius: 999,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.16)",
-                  }}
-                >
-                  <Text style={{ color: T.accent, fontWeight: "700", fontSize: 16 }}>
-                    Next Saturday
-                  </Text>
-                </Pressable>
+                {(
+                  [
+                    { dateKey: localDateKey(), label: "tonight", title: "Tonight" },
+                    {
+                      dateKey: upcomingWeekday(6),
+                      label: "this Saturday",
+                      title: "This Saturday",
+                    },
+                    {
+                      dateKey: addDaysToDateKey(upcomingWeekday(6), 7),
+                      label: "next Saturday",
+                      title: "Next Saturday",
+                    },
+                  ] as const
+                ).map((chip) => {
+                  const on =
+                    askWhen?.label === chip.label || scheduledFlash === chip.label;
+                  return (
+                    <Pressable
+                      key={chip.label}
+                      onPress={() => setAskWhen({ dateKey: chip.dateKey, label: chip.label })}
+                      style={{
+                        borderRadius: 999,
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        borderWidth: 1,
+                        borderColor: on ? T.accent : "rgba(255,255,255,0.16)",
+                        backgroundColor: on ? "rgba(255,0,127,0.18)" : "transparent",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: T.accent,
+                          fontWeight: "700",
+                          fontSize: 16,
+                        }}
+                      >
+                        {chip.title}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
               <PrimaryButton label="Skip" tone="ghost" onPress={skip} />
             </View>
@@ -708,6 +708,19 @@ export default function PositionsScreen() {
           </>
         )}
       </View>
+      <ConfirmDialog
+        open={Boolean(askWhen)}
+        title={`Ask ${partnerName} to confirm?`}
+        body={`${askWhen?.label === "tonight" ? "Tonight" : askWhen?.label === "this Saturday" ? "This Saturday" : "Next Saturday"} stays off the calendar until they say yes.`}
+        confirmLabel="Ask them"
+        cancelLabel="Not now"
+        onCancel={() => setAskWhen(null)}
+        onConfirm={() => {
+          const next = askWhen;
+          setAskWhen(null);
+          if (next) void scheduleOn(next.dateKey, next.label);
+        }}
+      />
     </Screen>
   );
 }

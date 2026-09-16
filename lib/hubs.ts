@@ -276,13 +276,6 @@ export const HUBS: HubDef[] = [
     href: "/hub/home-base",
     features: [
       {
-        id: "todos",
-        label: "Groceries & Errands",
-        detail: "Groceries or errands — one notepad at a time",
-        icon: "cart",
-        href: "/hub/groceries",
-      },
-      {
         id: "meal-plan",
         label: "Meal Plan",
         detail: "Seven post-its. What’s for dinner?",
@@ -295,6 +288,13 @@ export const HUBS: HubDef[] = [
         detail: "Wish lists, what to buy, and what they got each year",
         icon: "ribbon",
         href: "/hub/gifts",
+      },
+      {
+        id: "todos",
+        label: "Groceries & Errands",
+        detail: "Groceries or errands — one notepad at a time",
+        icon: "cart",
+        href: "/hub/groceries",
       },
       {
         id: "birthdays",

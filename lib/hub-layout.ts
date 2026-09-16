@@ -98,24 +98,30 @@ export function hydrateHubLayouts(raw: unknown): HubLayouts {
   };
 }
 
-/** Keep Gifts immediately after Meal Plan on Home Base. */
+/** Keep Meal Plan | Gifts on the same two-column row. */
 function migrateHomeBaseOrder(order: string[]): string[] {
   if (order.length === 0) return order;
   const without = order.filter((id) => id !== "gifts");
-  if (without.length === order.length && !order.includes("gifts")) {
-    const meal = without.indexOf("meal-plan");
-    if (meal < 0) return order;
-    return [...without.slice(0, meal + 1), "gifts", ...without.slice(meal + 1)];
-  }
   const meal = without.indexOf("meal-plan");
-  if (meal >= 0) {
-    return [...without.slice(0, meal + 1), "gifts", ...without.slice(meal + 1)];
+  let next =
+    meal >= 0
+      ? [...without.slice(0, meal + 1), "gifts", ...without.slice(meal + 1)]
+      : null;
+  if (!next) {
+    const todos = without.indexOf("todos");
+    next =
+      todos >= 0
+        ? [...without.slice(0, todos + 1), "gifts", ...without.slice(todos + 1)]
+        : ["gifts", ...without];
   }
-  const todos = without.indexOf("todos");
-  if (todos >= 0) {
-    return [...without.slice(0, todos + 1), "gifts", ...without.slice(todos + 1)];
+  const pairAt = next.indexOf("meal-plan");
+  if (pairAt >= 0 && pairAt % 2 === 1 && next[pairAt + 1] === "gifts") {
+    const prev = next[pairAt - 1]!;
+    next[pairAt - 1] = "meal-plan";
+    next[pairAt] = "gifts";
+    next[pairAt + 1] = prev;
   }
-  return ["gifts", ...without];
+  return next;
 }
 
 /** Old catalog had Chicken first. Leave custom orders alone. */
