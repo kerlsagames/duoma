@@ -220,7 +220,6 @@ export default function HomeScreen() {
         ) : null}
 
         <HomeConnectButton />
-        <HomeDemoFlip />
 
         <Text
           style={{
@@ -812,6 +811,7 @@ function HomeSettingsSheet({
           showsVerticalScrollIndicator
           contentContainerStyle={{ paddingBottom: 28 }}
         >
+          <HomeDemoFlip />
           <Text
             style={{
               fontFamily: "SpaceMono",
@@ -1078,7 +1078,6 @@ function HomeSettingsSheet({
                 ? `You stay paired with ${partner.displayName}${partner.isDemo ? " in the Riley sandbox" : ""}. Sign out does not unpair you.`
                 : "Share this code so your partner can join."}
             </Text>
-            <HomeDemoFlip />
           </View>
           <View
             style={{

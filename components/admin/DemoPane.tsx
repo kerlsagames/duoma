@@ -53,7 +53,8 @@ export function DemoPane() {
       <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800" }}>Demo pair</Text>
       <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 8, lineHeight: 20 }}>
         Your sandbox only. Riley lives on a separate local pair so flipping in does not
-        overwrite your real partner. Home has the same flip.
+        overwrite your real partner. The cog on Home has the same flip. Users shows
+        Craig × Riley so demo play lands in Backstage.
       </Text>
       {demoMode ? (
         <Text style={{ color: "#3ECFBF", marginTop: 16, fontWeight: "700" }}>

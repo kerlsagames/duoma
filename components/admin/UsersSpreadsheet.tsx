@@ -3,13 +3,14 @@ import {
   EXAMPLE_COUPLE,
   EXAMPLE_PROFILES,
   exampleUsage,
+  isDemoPair,
   isExampleAccount,
 } from "@/lib/admin-example";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { Couple, Profile } from "@/lib/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -40,6 +41,7 @@ type SheetRow = {
 
 function statusOf(row: SheetRow): string {
   if (row.a?.bannedAt || row.b?.bannedAt) return "Banned";
+  if (row.example || isDemoPair(row.a, row.b)) return "Demo";
   if (!row.b) return "Waiting";
   return "Live";
 }
@@ -80,7 +82,15 @@ function Cell({
 }
 
 export function UsersSpreadsheet() {
-  const { allProfiles, allCouples, adminDb, banAccount, unbanAccount } = useApp();
+  const {
+    allProfiles,
+    allCouples,
+    adminDb,
+    banAccount,
+    unbanAccount,
+    canUseDemo,
+    ensureDemoPair,
+  } = useApp();
   const { data: mini } = useMiniApps();
   const { width } = useWindowDimensions();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -88,22 +98,41 @@ export function UsersSpreadsheet() {
   const [exampleBanned, setExampleBanned] = useState<Record<string, string | null>>({});
   const [query, setQuery] = useState("");
 
+  useEffect(() => {
+    if (!canUseDemo) return;
+    void ensureDemoPair();
+  }, [canUseDemo, ensureDemoPair]);
+
+  const hasLiveDemo = useMemo(
+    () =>
+      allCouples.some((couple) => {
+        const a = allProfiles.find((profile) => profile.id === couple.partnerA);
+        const b = allProfiles.find((profile) => profile.id === couple.partnerB);
+        return isDemoPair(a ?? null, b ?? null);
+      }),
+    [allCouples, allProfiles]
+  );
+
   const profiles = useMemo(() => {
+    const live = allProfiles.filter((profile) => !isExampleAccount(profile.id));
+    if (hasLiveDemo) return live;
     return [
       ...EXAMPLE_PROFILES.map((profile) => ({
         ...profile,
         bannedAt: exampleBanned[profile.id] ? profile.createdAt : null,
         bannedReason: exampleBanned[profile.id] ?? null,
       })),
-      ...allProfiles.filter((profile) => !isExampleAccount(profile.id)),
+      ...live,
     ];
-  }, [allProfiles, exampleBanned]);
+  }, [allProfiles, exampleBanned, hasLiveDemo]);
 
   const rows = useMemo(() => {
-    const couples = [
-      EXAMPLE_COUPLE,
-      ...allCouples.filter((couple) => !isExampleAccount(couple.id)),
-    ];
+    const couples = hasLiveDemo
+      ? allCouples.filter((couple) => !isExampleAccount(couple.id))
+      : [
+          EXAMPLE_COUPLE,
+          ...allCouples.filter((couple) => !isExampleAccount(couple.id)),
+        ];
     const find = (id: string | null) =>
       id ? profiles.find((profile) => profile.id === id) ?? null : null;
     const list: SheetRow[] = couples.map((couple) => ({
@@ -131,14 +160,19 @@ export function UsersSpreadsheet() {
         example: isExampleAccount(profile.id),
       });
     }
+    const ranked = [...list].sort((left, right) => {
+      const demoLeft = isDemoPair(left.a, left.b) || left.example ? 0 : 1;
+      const demoRight = isDemoPair(right.a, right.b) || right.example ? 0 : 1;
+      return demoLeft - demoRight;
+    });
     const needle = query.trim().toLowerCase();
-    if (!needle) return list;
-    return list.filter((row) =>
+    if (!needle) return ranked;
+    return ranked.filter((row) =>
       [row.couple.inviteCode, row.a?.displayName, row.b?.displayName, row.a?.email, row.b?.email]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle))
     );
-  }, [allCouples, profiles, query]);
+  }, [allCouples, hasLiveDemo, profiles, query]);
 
   const open = rows.find((row) => row.couple.id === openId) ?? null;
   const stacked = width < 720;
@@ -150,9 +184,8 @@ export function UsersSpreadsheet() {
           Users · {rows.length} pairs
         </Text>
         <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 13, lineHeight: 18 }}>
-          Spreadsheet of couples. Click a row for the full record. Location is timezone from
-          their phone — not GPS. Images only if they agreed at signup and the photos are on
-          this browser or later synced.
+          Spreadsheet of couples. Craig × Riley is the demo pair at the top — play in demo
+          and the record fills in. Click a row for activity. Location is timezone, not GPS.
         </Text>
         <TextInput
           value={query}
@@ -227,7 +260,13 @@ export function UsersSpreadsheet() {
                     width={COL.status}
                     children={statusOf(row)}
                     color={
-                      banned ? "#FF8A8A" : statusOf(row) === "Waiting" ? "#E4C37A" : "#3ECFBF"
+                      banned
+                        ? "#FF8A8A"
+                        : statusOf(row) === "Waiting"
+                          ? "#E4C37A"
+                          : statusOf(row) === "Demo"
+                            ? "#FF007F"
+                            : "#3ECFBF"
                     }
                   />
                   <Cell
@@ -326,7 +365,7 @@ function CoupleRecord({
         </Pressable>
         <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800", marginTop: 8 }}>
           {row.couple.inviteCode}
-          {row.example ? " · example" : ""}
+          {row.example || isDemoPair(row.a, row.b) ? " · demo" : ""}
         </Text>
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 4, fontSize: 12 }}>
           {row.a?.displayName ?? "—"} × {row.b?.displayName ?? "waiting"} · paired{" "}
@@ -340,6 +379,7 @@ function CoupleRecord({
           onReason={onReason}
           onBan={onBan}
           onUnban={onUnban}
+          locked={row.example || isDemoPair(row.a, row.b)}
         />
         <PersonBlock
           label="User B"
@@ -349,6 +389,7 @@ function CoupleRecord({
           onReason={onReason}
           onBan={onBan}
           onUnban={onUnban}
+          locked={row.example || isDemoPair(row.a, row.b)}
         />
         <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 22, fontSize: 16 }}>
           Images
@@ -487,6 +528,7 @@ function PersonBlock({
   onReason,
   onBan,
   onUnban,
+  locked = false,
 }: {
   label: string;
   profile: Profile | null;
@@ -495,6 +537,7 @@ function PersonBlock({
   onReason: (value: string) => void;
   onBan: (id: string) => void;
   onUnban: (id: string) => void;
+  locked?: boolean;
 }) {
   if (!profile) {
     return (
@@ -531,7 +574,11 @@ function PersonBlock({
         {profile.moderationConsentAt ? "yes" : "no"}
       </Text>
       <ActivityFold usage={usage} />
-      {banned ? (
+      {locked ? (
+        <Text style={{ color: "rgba(244,244,246,0.4)", marginTop: 10, fontSize: 12 }}>
+          Demo pair — cannot be banned.
+        </Text>
+      ) : banned ? (
         <Pressable onPress={() => onUnban(profile.id)} style={{ marginTop: 10 }}>
           <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>
         </Pressable>

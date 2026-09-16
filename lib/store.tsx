@@ -550,6 +550,7 @@ type AppContextValue = {
   addDemoPartner: (name?: string, gender?: Gender) => Promise<void>;
   enterDemo: (name?: string, gender?: Gender) => Promise<void>;
   leaveDemo: () => Promise<void>;
+  ensureDemoPair: () => Promise<void>;
   demoMode: boolean;
   canUseDemo: boolean;
   setProfileGender: (who: "you" | "partner", gender: Gender) => Promise<void>;
@@ -1657,7 +1658,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const stampSplit = nowIso();
         const demoYou: Profile = {
           id: createId(),
-          displayName: attached?.displayName || creator.displayName || "You",
+          displayName:
+            attached?.displayName && attached.displayName !== "You"
+              ? attached.displayName
+              : creator.displayName && creator.displayName !== "You"
+                ? creator.displayName
+                : "Craig",
           gender: attached?.gender ?? (gender === "female" ? "male" : "female"),
           email: attached?.email ?? creator.email,
           lastSeenAt: stampSplit,
@@ -1696,9 +1702,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const stamp = nowIso();
     const you: Profile = {
       id: createId(),
-      displayName: creator.displayName || "You",
+      displayName:
+        creator.displayName && creator.displayName !== "You" ? creator.displayName : "Craig",
       gender: creator.gender ?? (gender === "female" ? "male" : "female"),
-      email: creator.email,
+      email: creator.email ?? "craigmkerlin@gmail.com",
       lastSeenAt: stamp,
       over18At: creator.over18At ?? stamp,
       privacyConsentAt: creator.privacyConsentAt ?? stamp,
@@ -1728,7 +1735,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: createId(),
       displayName: name,
       gender,
+      email: "riley.demo@duoma.app",
       isDemo: true,
+      lastSeenAt: stamp,
+      over18At: stamp,
+      privacyConsentAt: stamp,
+      moderationConsentAt: stamp,
+      timezone: creator.timezone ?? deviceTimezone(),
+      activeSeconds: 0,
       createdAt: stamp,
     };
     const today = localDateKey();
@@ -1939,6 +1953,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addDemoPartner = enterDemo;
+
+  const ensureDemoPair = useCallback(async () => {
+    if (!creatorOnThisPhone()) return;
+    if (findDemoCouple()) {
+      const existing = findDemoCouple();
+      if (existing) {
+        const youId = demoYouIdForCouple(existing);
+        if (youId && demoUserId !== youId) {
+          demoUserId = youId;
+          await writeDemoUserId(youId);
+        }
+      }
+      return;
+    }
+    const keepSession = sessionUserId;
+    await enterDemo();
+    sessionUserId = keepSession;
+    await writeSessionUserId(keepSession);
+    emit();
+  }, [enterDemo]);
 
   const leaveDemo = useCallback(async () => {
     const live =
@@ -5562,6 +5596,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addDemoPartner,
     enterDemo,
     leaveDemo,
+    ensureDemoPair,
     demoMode,
     canUseDemo,
     setProfileGender,

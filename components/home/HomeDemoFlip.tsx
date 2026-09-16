@@ -28,36 +28,44 @@ export function HomeDemoFlip() {
         disabled={busy}
         onPress={() => void flip()}
         style={{
-          borderRadius: 14,
+          flexDirection: "row",
+          alignItems: "center",
+          borderRadius: 12,
           borderWidth: 1,
-          borderColor: demoMode ? "rgba(62,207,191,0.45)" : "rgba(255,0,127,0.28)",
+          borderColor: demoMode ? "rgba(62,207,191,0.4)" : "rgba(255,0,127,0.28)",
           backgroundColor: demoMode ? "rgba(62,207,191,0.10)" : "rgba(255,0,127,0.08)",
-          paddingVertical: 12,
-          paddingHorizontal: 14,
+          paddingVertical: 10,
+          paddingHorizontal: 12,
           opacity: busy ? 0.65 : 1,
         }}
       >
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text
+            style={{
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              letterSpacing: 1.4,
+              color: demoMode ? "#3ECFBF" : "#FF007F",
+            }}
+          >
+            RILEY DEMO
+          </Text>
+          <Text style={{ marginTop: 2, color: "#F4F4F6", fontSize: 13, fontWeight: "700" }}>
+            {busy
+              ? "Switching…"
+              : demoMode
+                ? `On · ${partner?.displayName ?? "Riley"}`
+                : "Off · tap to open"}
+          </Text>
+        </View>
         <Text
           style={{
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.6,
-            color: demoMode ? "#3ECFBF" : "#FF007F",
+            color: demoMode ? "#3ECFBF" : "rgba(244,244,246,0.55)",
+            fontSize: 12,
+            fontWeight: "700",
           }}
         >
-          {demoMode ? "DEMO" : "CREATOR"}
-        </Text>
-        <Text style={{ marginTop: 4, color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
-          {busy
-            ? "Switching…"
-            : demoMode
-              ? "Back to my pair"
-              : "Open Riley demo"}
-        </Text>
-        <Text style={{ marginTop: 3, color: "rgba(244,244,246,0.5)", fontSize: 12, lineHeight: 17 }}>
-          {demoMode
-            ? `You are in the Riley sandbox${partner?.displayName ? ` with ${partner.displayName}` : ""}. This does not touch your real partner.`
-            : "Only your inbox. Flip in, try things, flip back to the live pair."}
+          {demoMode ? "Leave" : "Open"}
         </Text>
       </Pressable>
       {error ? (
