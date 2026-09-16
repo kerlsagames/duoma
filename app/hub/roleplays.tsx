@@ -191,6 +191,7 @@ export default function RoleplaysScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "hideBlurb",

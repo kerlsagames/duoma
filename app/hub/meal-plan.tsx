@@ -1,8 +1,9 @@
-import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, MEAL_PLAN_TONE as T, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   addIdea,
   addMealWeek,
@@ -32,7 +33,7 @@ import { MEAL_CATEGORIES, mealCategoryMeta, type MealCategoryId } from "@/lib/me
 import { useMiniApps } from "@/lib/mini-apps";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentProps } from "react";
 import {
   Modal,
   Pressable,
@@ -50,6 +51,7 @@ export default function MealPlanScreen() {
   const { data, patch } = useMiniApps();
   const plan = data.mealPlan;
   const look = noteSize(plan.size);
+  const pageLook = useAppLook("meal-plan", T.accent, {});
 
   const [panel, setPanel] = useState<Panel>("board");
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("look");
@@ -214,8 +216,14 @@ export default function MealPlanScreen() {
   };
 
   return (
-    <Screen scroll background={T.background}>
-      <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={T.accent}>
+    <Screen
+      scroll
+      background={T.background}
+      density={pageLook.prefs.density}
+      typeface={pageLook.prefs.typeface}
+      wash={pageLook.wash}
+    >
+      <Stage background={T.background} fallback={"/hub/home-base" as Href} accent={pageLook.accent}>
         <View className="flex-row items-start justify-between">
           <View className="flex-1 pr-3">
             <Text
@@ -400,6 +408,7 @@ export default function MealPlanScreen() {
           <SettingsPanel
             tab={settingsTab}
             onTab={setSettingsTab}
+            pageLook={pageLook}
             view={plan.view}
             size={plan.size}
             palette={plan.palette}
@@ -761,6 +770,7 @@ function NoteAction({
 function SettingsPanel({
   tab,
   onTab,
+  pageLook,
   view,
   size,
   palette,
@@ -794,6 +804,7 @@ function SettingsPanel({
 }: {
   tab: SettingsTab;
   onTab: (tab: SettingsTab) => void;
+  pageLook: ComponentProps<typeof LookPanel>["look"];
   view: MealPlanView;
   size: MealPlanSize;
   palette: MealPlanPalette;
@@ -874,132 +885,142 @@ function SettingsPanel({
       </View>
 
       {tab === "look" ? (
-        <View style={{ marginTop: 18, gap: 16 }}>
-          <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
-            Two post-its side by side, or a simple list.
-          </Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {(
-              [
-                { id: "board" as const, label: "Post-its" },
-                { id: "list" as const, label: "List" },
-              ] as const
-            ).map((item) => {
-              const on = view === item.id;
-              return (
-                <Pressable
-                  key={item.id}
-                  onPress={() => onView(item.id)}
-                  style={{
-                    flex: 1,
-                    height: 42,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: on ? T.accent : T.surfaceRaised,
-                    borderWidth: 1,
-                    borderColor: on ? T.accent : T.border,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: "SpaceMono",
-                      fontSize: 12,
-                      color: on ? T.paperInk : T.ink,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
-            Note size
-          </Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {NOTE_SIZES.map((item) => {
-              const on = size === item.id;
-              return (
-                <Pressable
-                  key={item.id}
-                  onPress={() => onSize(item.id)}
-                  style={{
-                    flex: 1,
-                    height: 42,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: on ? T.accent : T.surfaceRaised,
-                    borderWidth: 1,
-                    borderColor: on ? T.accent : T.border,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: "SpaceMono",
-                      fontSize: 12,
-                      color: on ? T.paperInk : T.ink,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
-            Colours
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {NOTE_PALETTES.map((item) => {
-              const on = palette === item.id;
-              return (
-                <Pressable
-                  key={item.id}
-                  onPress={() => onPalette(item.id)}
-                  style={{
-                    width: "31%",
-                    paddingVertical: 10,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    backgroundColor: on ? T.surfaceRaised : T.surface,
-                    borderWidth: 1,
-                    borderColor: on ? T.accent : T.border,
-                  }}
-                >
-                  <View style={{ flexDirection: "row", gap: 4 }}>
-                    {item.papers.slice(0, 3).map((color) => (
-                      <View
-                        key={color}
-                        style={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: 4,
-                          backgroundColor: color,
-                        }}
-                      />
-                    ))}
-                  </View>
-                  <Text
-                    style={{
-                      marginTop: 6,
-                      fontFamily: "SpaceMono",
-                      fontSize: 10,
-                      color: T.ink,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <RestoreDefaultsButton
+        <View style={{ marginTop: 18 }}>
+          <LookPanel
+            look={{
+              ...pageLook,
+              reset: () => {
+                pageLook.reset();
+                onRestoreLook();
+              },
+            }}
             ink={T.ink}
             muted={T.muted}
-            onReset={onRestoreLook}
-          />
+            pageColor={T.background}
+          >
+            <View style={{ gap: 16 }}>
+              <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
+                Two post-its side by side, or a simple list.
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {(
+                  [
+                    { id: "board" as const, label: "Post-its" },
+                    { id: "list" as const, label: "List" },
+                  ] as const
+                ).map((item) => {
+                  const on = view === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => onView(item.id)}
+                      style={{
+                        flex: 1,
+                        height: 42,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: on ? T.accent : T.surfaceRaised,
+                        borderWidth: 1,
+                        borderColor: on ? T.accent : T.border,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SpaceMono",
+                          fontSize: 12,
+                          color: on ? T.paperInk : T.ink,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
+                Note size
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {NOTE_SIZES.map((item) => {
+                  const on = size === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => onSize(item.id)}
+                      style={{
+                        flex: 1,
+                        height: 42,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: on ? T.accent : T.surfaceRaised,
+                        borderWidth: 1,
+                        borderColor: on ? T.accent : T.border,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "SpaceMono",
+                          fontSize: 12,
+                          color: on ? T.paperInk : T.ink,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text style={{ fontFamily: SERIF, fontSize: 15, color: T.muted }}>
+                Note colours
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {NOTE_PALETTES.map((item) => {
+                  const on = palette === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => onPalette(item.id)}
+                      style={{
+                        width: "31%",
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        backgroundColor: on ? T.surfaceRaised : T.surface,
+                        borderWidth: 1,
+                        borderColor: on ? T.accent : T.border,
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", gap: 4 }}>
+                        {item.papers.slice(0, 3).map((color) => (
+                          <View
+                            key={color}
+                            style={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: 4,
+                              backgroundColor: color,
+                            }}
+                          />
+                        ))}
+                      </View>
+                      <Text
+                        style={{
+                          marginTop: 6,
+                          fontFamily: "SpaceMono",
+                          fontSize: 10,
+                          color: T.ink,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </LookPanel>
         </View>
       ) : tab === "regulars" ? (
         <View style={{ marginTop: 18 }}>

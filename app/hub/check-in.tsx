@@ -291,7 +291,7 @@ export default function CheckInScreen() {
       look={look}
       settingsLabel="Check-in settings"
       settings={
-        <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)")}>
+        <AppSettingsPanel {...lookPanelProps(look, "#F4F4F6", "rgba(244,244,246,0.6)", "#0B0B0E")}>
           <PrefSection
             label="This app"
             ink="#F4F4F6"

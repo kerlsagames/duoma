@@ -182,6 +182,7 @@ export default function FairShareScreen() {
               look={look}
               ink="#E8FFF8"
               muted="rgba(232,255,248,0.62)"
+            pageColor={BG}
               toggles={[
                 {
                   key: "hideLast",

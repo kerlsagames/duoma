@@ -7,9 +7,9 @@ export type DensityId = "compact" | "regular" | "roomy";
 export type TypefaceId = "sans" | "serif" | "mono";
 
 export const DENSITY_OPTIONS: { id: DensityId; label: string }[] = [
-  { id: "compact", label: "Compact" },
+  { id: "compact", label: "Smaller" },
   { id: "regular", label: "Regular" },
-  { id: "roomy", label: "Roomy" },
+  { id: "roomy", label: "Bigger" },
 ];
 
 export const TYPEFACE_OPTIONS: { id: TypefaceId; label: string }[] = [
@@ -21,24 +21,24 @@ export const TYPEFACE_OPTIONS: { id: TypefaceId; label: string }[] = [
 export function densityLook(density: DensityId | string | undefined) {
   if (density === "compact") {
     return {
-      title: 28,
-      titleLine: 32,
-      body: 14,
-      bodyLine: 20,
-      gap: 8,
-      pad: 12,
-      scale: 0.94,
+      title: 26,
+      titleLine: 30,
+      body: 13,
+      bodyLine: 18,
+      gap: 6,
+      pad: 10,
+      scale: 0.88,
     };
   }
   if (density === "roomy") {
     return {
-      title: 40,
-      titleLine: 46,
-      body: 18,
-      bodyLine: 26,
-      gap: 18,
-      pad: 22,
-      scale: 1.06,
+      title: 42,
+      titleLine: 48,
+      body: 19,
+      bodyLine: 28,
+      gap: 20,
+      pad: 24,
+      scale: 1.14,
     };
   }
   return {

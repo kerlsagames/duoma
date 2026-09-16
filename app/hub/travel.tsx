@@ -85,6 +85,7 @@ export default function TravelScreen() {
             look={look}
             ink={PAPER}
             muted={MUTED}
+            pageColor={BG}
             toggles={[
               {
                 key: "hideCosts",

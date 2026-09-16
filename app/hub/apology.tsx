@@ -264,6 +264,7 @@ export default function ApologyScreen() {
             look={look}
             ink={C.ink}
             muted={C.muted}
+            pageColor={C.bg}
             toggles={[
               {
                 key: "gentle",

@@ -270,7 +270,7 @@ export default function PositionsScreen() {
 
         {settingsOpen ? (
           <View style={{ marginTop: 22 }}>
-            <LookPanel look={look} ink={T.ink} muted={T.muted}>
+            <LookPanel look={look} ink={T.ink} muted={T.muted} pageColor={T.background}>
               <PlayRatingsToggle
                 on={prefs.ratingsOn}
                 accent={look.accent}

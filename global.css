@@ -41,9 +41,11 @@ body,
 }
 
 [data-app-density="compact"] {
+  zoom: 0.9;
   letter-spacing: -0.01em;
 }
 
 [data-app-density="roomy"] {
+  zoom: 1.14;
   letter-spacing: 0.01em;
 }

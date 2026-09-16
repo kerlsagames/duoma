@@ -1,7 +1,8 @@
-import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   applyDoodleScore,
   categoryForPrompt,
@@ -24,7 +25,7 @@ import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import {
   PanResponder,
   Pressable,
@@ -70,6 +71,7 @@ export default function DoodleScreen() {
   const [guess, setGuess] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const look = useAppLook("doodle", PAPER, {});
 
   const board = data.doodle;
   const round = board.round;
@@ -300,8 +302,14 @@ export default function DoodleScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-    <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={PAPER}>
+    <Screen
+      scroll
+      background={BG}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      wash={look.wash}
+    >
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={look.accent}>
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text
@@ -510,6 +518,7 @@ export default function DoodleScreen() {
     </Screen>
     {settingsOpen ? (
       <SettingsSheet
+        look={look}
         enabled={board.enabledCategories}
         onClose={() => setSettingsOpen(false)}
         onToggle={(id) =>
@@ -637,11 +646,13 @@ function ScoreSeat({
 }
 
 function SettingsSheet({
+  look,
   enabled,
   onToggle,
   onClose,
   onReset,
 }: {
+  look: ComponentProps<typeof LookPanel>["look"];
   enabled: string[];
   onToggle: (id: (typeof DOODLE_CATEGORIES)[number]["id"]) => void;
   onClose: () => void;
@@ -706,16 +717,29 @@ function SettingsSheet({
             <Ionicons name="close" size={22} color={PAPER} />
           </Pressable>
         </View>
-        <Text style={{ fontFamily: SERIF, fontSize: 15, color: MUTED, marginBottom: 10 }}>
-          Prompts come from the categories you leave on. Naughty stays off until you flip it.
-        </Text>
         <ScrollView
           nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
           style={{ maxHeight: 420 }}
-          contentContainerStyle={{ paddingBottom: 28, gap: 8 }}
+          contentContainerStyle={{ paddingBottom: 28 }}
         >
+          <LookPanel
+            look={{
+              ...look,
+              reset: () => {
+                look.reset();
+                onReset();
+              },
+            }}
+            ink={PAPER}
+            muted={MUTED}
+            pageColor={BG}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 15, color: MUTED, marginBottom: 10 }}>
+              Prompts come from the categories you leave on. Naughty stays off until you flip it.
+            </Text>
+            <View style={{ gap: 8 }}>
           {DOODLE_CATEGORIES.map((category) => {
             const on = enabled.includes(category.id);
             const naughty = category.id === "naughty";
@@ -763,11 +787,8 @@ function SettingsSheet({
               </Pressable>
             );
           })}
-          <RestoreDefaultsButton
-            ink={PAPER}
-            muted={MUTED}
-            onReset={onReset}
-          />
+            </View>
+          </LookPanel>
         </ScrollView>
       </View>
     </View>

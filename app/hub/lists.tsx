@@ -551,7 +551,7 @@ export default function ListsScreen() {
                 </Text>
               </Pressable>
             </View>
-            <LookPanel look={look} ink={T.ink} muted={T.muted}>
+            <LookPanel look={look} ink={T.ink} muted={T.muted} pageColor={T.background}>
             <Text
               style={{
                 fontFamily: LISTS_ROUNDED,

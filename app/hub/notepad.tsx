@@ -224,6 +224,7 @@ export default function NotepadScreen() {
       look={look}
       ink="#F6EEDC"
       muted="rgba(246,238,220,0.62)"
+            pageColor={C.bg}
       toggles={[
         {
           key: "linedPaper",

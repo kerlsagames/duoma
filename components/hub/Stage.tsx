@@ -8,7 +8,7 @@ import { Animated, Easing, Text, View } from "react-native";
 
 /** Unique page shell: no shared “kicker + serif title” chrome. */
 export function Stage({
-  background,
+  background: _background,
   fallback,
   accent,
   right,
@@ -16,7 +16,8 @@ export function Stage({
   settingsLabel,
   children,
 }: {
-  background: string;
+  /** Kept so callers compile. Screen paints the canvas so a colour wash fills the page. */
+  background?: string;
   fallback: Href;
   accent: string;
   right?: ReactNode;
@@ -25,7 +26,7 @@ export function Stage({
   children: ReactNode;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const canvas = background;
+  void _background;
   const cog = settings ? (
     <SettingsCog
       accent={accent}
@@ -42,7 +43,7 @@ export function Stage({
   ) : cog ?? right ?? null;
 
   return (
-    <View className="pt-3 pb-14" style={{ backgroundColor: canvas }}>
+    <View className="pt-3 pb-14">
       {trailing ? (
         <View
           style={{

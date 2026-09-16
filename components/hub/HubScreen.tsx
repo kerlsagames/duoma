@@ -66,7 +66,7 @@ export function HubScreen({
     storedColour && !sameHex(storedColour, theme.accent)
   );
   const background = customColour
-    ? tintCanvas(theme.background, storedColour, 0.42)
+    ? tintCanvas(theme.background, storedColour, 0.58)
     : theme.background;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const cog = settings ? (

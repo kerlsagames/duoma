@@ -208,6 +208,7 @@ export default function SetupScreen() {
             look={look}
             ink="#F4F4F6"
             muted="rgba(244,244,246,0.6)"
+            pageColor="#0B0B0E"
             toggles={[
               {
                 key: "remember",

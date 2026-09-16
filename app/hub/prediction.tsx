@@ -330,6 +330,7 @@ export default function PredictionScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "hideTape",

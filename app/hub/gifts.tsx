@@ -198,6 +198,7 @@ export default function GiftsScreen() {
               look={look}
               ink={T.ink}
               muted={T.muted}
+            pageColor={T.background}
               toggles={[
                 {
                   key: "hideLedger",

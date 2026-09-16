@@ -131,7 +131,7 @@ export default function TalkScreen() {
       look={look}
       settingsLabel="Talk settings"
       settings={
-        <AppSettingsPanel {...lookPanelProps(look, THEME.ink, THEME.muted)}>
+        <AppSettingsPanel {...lookPanelProps(look, THEME.ink, THEME.muted, THEME.background)}>
           <PrefSection label="This app" ink={THEME.ink} muted={THEME.muted}>
             <View style={{ gap: 8 }}>
               <PrefToggle

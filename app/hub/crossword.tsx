@@ -1,6 +1,8 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import {
   applyGuess,
   coupleWordleRecord,
@@ -26,7 +28,7 @@ import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function DailyWordScreen() {
@@ -40,6 +42,7 @@ export default function DailyWordScreen() {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("daily-word", "#E8C56A", {});
 
   useEffect(() => {
     if (!ready) return;
@@ -111,8 +114,14 @@ export default function DailyWordScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <Screen scroll background={theme.bg}>
-        <Stage background={theme.bg} fallback={"/hub/play" as Href} accent={theme.accent}>
+      <Screen
+        scroll
+        background={theme.bg}
+        density={look.prefs.density}
+        typeface={look.prefs.typeface}
+        wash={look.wash}
+      >
+        <Stage background={theme.bg} fallback={"/hub/play" as Href} accent={look.accent}>
           <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text
@@ -209,6 +218,7 @@ export default function DailyWordScreen() {
 
       {settingsOpen ? (
         <SettingsSheet
+          look={look}
           theme={theme}
           themeId={wordle.prefs.themeId}
           colorBlind={wordle.prefs.colorBlind}
@@ -573,6 +583,7 @@ function WordleScoreboard({
 }
 
 function SettingsSheet({
+  look,
   theme,
   themeId,
   colorBlind,
@@ -585,6 +596,7 @@ function SettingsSheet({
   onShowScoreboard,
   onReset,
 }: {
+  look: ComponentProps<typeof LookPanel>["look"];
   theme: WordleTheme;
   themeId: string;
   colorBlind: boolean;
@@ -658,6 +670,18 @@ function SettingsSheet({
           </Pressable>
         </View>
         <ScrollView nestedScrollEnabled contentContainerStyle={{ paddingBottom: 28 }}>
+          <LookPanel
+            look={{
+              ...look,
+              reset: () => {
+                look.reset();
+                onReset();
+              },
+            }}
+            ink={theme.text}
+            muted={theme.muted}
+            pageColor={theme.bg}
+          >
           <Text style={{ color: theme.muted, fontSize: 13, marginBottom: 10 }}>
             Same word for both of you today. Six tries. Green stays, gold moves, grey is out.
           </Text>
@@ -741,22 +765,7 @@ function SettingsSheet({
               color={showScoreboard ? theme.accent : theme.muted}
             />
           </Pressable>
-          <Pressable
-            onPress={onReset}
-            style={{
-              marginTop: 12,
-              height: 44,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: theme.border,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ color: theme.muted, fontWeight: "700", fontSize: 13 }}>
-              Restore defaults
-            </Text>
-          </Pressable>
+          </LookPanel>
         </ScrollView>
       </View>
     </View>

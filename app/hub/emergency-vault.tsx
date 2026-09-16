@@ -329,7 +329,7 @@ export default function EmergencyVaultScreen() {
 
             {settingsOpen ? (
               <View style={{ marginTop: 20 }}>
-                <LookPanel look={look} ink="#C5D0DA" muted="rgba(197,208,218,0.55)">
+                <LookPanel look={look} ink="#C5D0DA" muted="rgba(197,208,218,0.55)" pageColor={BG}>
                 <Text
                   style={{
                     fontFamily: "SpaceMono",

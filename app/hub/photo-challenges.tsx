@@ -1,9 +1,10 @@
-import { RestoreDefaultsButton } from "@/components/hub/AppSettings";
+import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
 import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
+import { useAppLook } from "@/lib/app-prefs";
 import { formatLongDate } from "@/lib/dates";
 import { sectionAccent } from "@/lib/hub-theme";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -59,6 +60,7 @@ export default function PhotoChallengesScreen() {
   const [reportOpen, setReportOpen] = useState(false);
   const [looking, setLooking] = useState<PhotoMemory | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useAppLook("photo-challenges", red(), {});
 
   useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), 1000);
@@ -83,8 +85,14 @@ export default function PhotoChallengesScreen() {
   if (!ready || !week) {
     return (
       <MediaShield>
-      <Screen scroll background={BG}>
-        <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
+      <Screen
+        scroll
+        background={BG}
+        density={look.prefs.density}
+        typeface={look.prefs.typeface}
+        wash={look.wash}
+      >
+        <Stage background={BG} fallback={"/hub/play" as Href} accent={look.accent}>
           <Text
             style={{
               textAlign: "center",
@@ -222,8 +230,14 @@ export default function PhotoChallengesScreen() {
 
   return (
     <MediaShield>
-    <Screen scroll background={BG}>
-      <Stage background={BG} fallback={"/hub/play" as Href} accent={red()}>
+    <Screen
+      scroll
+      background={BG}
+      density={look.prefs.density}
+      typeface={look.prefs.typeface}
+      wash={look.wash}
+    >
+      <Stage background={BG} fallback={"/hub/play" as Href} accent={look.accent}>
         <View
           style={{
             flexDirection: "row",
@@ -311,6 +325,24 @@ export default function PhotoChallengesScreen() {
                 <Ionicons name="close" size={20} color={PINK} />
               </Pressable>
             </View>
+            <LookPanel
+              look={{
+                ...look,
+                reset: () => {
+                  look.reset();
+                  void patch((state) => ({
+                    ...state,
+                    photoPrefs: {
+                      dealAfterComplete: false,
+                      categories: PHOTO_CATEGORIES.map((row) => row.id),
+                    },
+                  }));
+                },
+              }}
+              ink={CREAM}
+              muted="rgba(246,214,214,0.65)"
+              pageColor={BG}
+            >
             <Text
               style={{
                 marginTop: 10,
@@ -428,19 +460,7 @@ export default function PhotoChallengesScreen() {
                 </Pressable>
               );
             })}
-            <RestoreDefaultsButton
-              ink={CREAM}
-              muted="rgba(246,214,214,0.65)"
-              onReset={() =>
-                void patch((state) => ({
-                  ...state,
-                  photoPrefs: {
-                    dealAfterComplete: false,
-                    categories: PHOTO_CATEGORIES.map((row) => row.id),
-                  },
-                }))
-              }
-            />
+            </LookPanel>
           </View>
         ) : null}
 

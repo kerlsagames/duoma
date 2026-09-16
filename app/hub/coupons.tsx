@@ -480,6 +480,7 @@ export default function CouponsScreen() {
             look={look}
             ink={T.onCover}
             muted={T.onCoverMuted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "hidePast",

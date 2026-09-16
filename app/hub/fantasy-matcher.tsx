@@ -290,6 +290,7 @@ export default function FantasyMatcherScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "jumbo",

@@ -4,6 +4,7 @@ import { SERIF } from "@/lib/app-themes";
 import {
   DENSITY_OPTIONS,
   TYPEFACE_OPTIONS,
+  densityLook,
   type DensityId,
   type TypefaceId,
 } from "@/lib/app-prefs";
@@ -22,6 +23,15 @@ function onAccent(accent: string) {
   const rgb = parseHex(accent);
   if (!rgb) return "#161018";
   return luminance(rgb) > 0.48 ? "#161018" : "#F6F3F0";
+}
+
+/** Ink that stays readable on a settings panel sitting on `canvas`. */
+export function settingsInk(canvas: string) {
+  const rgb = parseHex(canvas);
+  if (rgb && luminance(rgb) > 0.42) {
+    return { ink: "#1A1410", muted: "rgba(26,20,16,0.62)" };
+  }
+  return { ink: "#F6EFE2", muted: "rgba(246,239,226,0.72)" };
 }
 
 export function SettingsCog({
@@ -144,37 +154,53 @@ export function PrefSection({
 export function PrefColor({
   value,
   fallback,
+  originalColor,
   onChange,
   ink,
 }: {
   value: string;
   fallback: string;
+  originalColor?: string;
   onChange: (hex: string) => void;
   ink: string;
 }) {
   const current = value.trim() || fallback;
-  const matchingHub = !value.trim();
+  const matchingOriginal = !value.trim();
+  const originalSwatch = originalColor || fallback;
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
       <Pressable
         onPress={() => onChange("")}
-        accessibilityLabel="Match hub colour"
+        accessibilityLabel="Original colour"
         style={{
-          height: 32,
-          paddingHorizontal: 10,
-          borderRadius: 16,
-          borderWidth: matchingHub ? 2 : 1,
-          borderColor: matchingHub ? ink : wash(ink, 0.22),
+          height: 36,
+          paddingLeft: 6,
+          paddingRight: 12,
+          borderRadius: 18,
+          borderWidth: matchingOriginal ? 2 : 1,
+          borderColor: matchingOriginal ? ink : wash(ink, 0.22),
           alignItems: "center",
           justifyContent: "center",
+          flexDirection: "row",
+          gap: 8,
           backgroundColor: wash(ink, 0.08),
         }}
       >
-        <Text style={{ color: ink, fontSize: 12, fontWeight: "700" }}>Hub</Text>
+        <View
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            backgroundColor: originalSwatch,
+            borderWidth: 1,
+            borderColor: wash(ink, 0.35),
+          }}
+        />
+        <Text style={{ color: ink, fontSize: 13, fontWeight: "700" }}>Original</Text>
       </Pressable>
       {HUB_COLOR_SWATCHES.map((swatch) => {
         const on =
-          !matchingHub && swatch.hex.toUpperCase() === current.toUpperCase();
+          !matchingOriginal && swatch.hex.toUpperCase() === current.toUpperCase();
         return (
           <Pressable
             key={swatch.id}
@@ -191,6 +217,76 @@ export function PrefColor({
           />
         );
       })}
+    </View>
+  );
+}
+
+export function PrefDensity({
+  value,
+  onChange,
+  accent,
+  ink,
+}: {
+  value: DensityId;
+  onChange: (id: DensityId) => void;
+  accent: string;
+  ink: string;
+}) {
+  const sample = densityLook(value);
+  const chipSize: Record<DensityId, number> = {
+    compact: 12,
+    regular: 15,
+    roomy: 19,
+  };
+  const currentLabel =
+    DENSITY_OPTIONS.find((row) => row.id === value)?.label.toLowerCase() ?? "regular";
+  return (
+    <View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {DENSITY_OPTIONS.map((option) => {
+          const on = option.id === value;
+          return (
+            <Pressable
+              key={option.id}
+              onPress={() => onChange(option.id)}
+              accessibilityLabel={`${option.label} type`}
+              style={{
+                minHeight: 52,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 16,
+                backgroundColor: on ? accent : wash(ink, 0.08),
+                borderWidth: 1,
+                borderColor: on ? accent : wash(ink, 0.16),
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: on ? onAccent(accent) : ink,
+                  fontSize: chipSize[option.id],
+                  fontWeight: "700",
+                  lineHeight: chipSize[option.id] + 6,
+                }}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text
+        style={{
+          marginTop: 12,
+          fontFamily: SERIF,
+          fontSize: sample.body,
+          lineHeight: sample.bodyLine,
+          color: ink,
+        }}
+      >
+        This is how writing looks with {currentLabel} type.
+      </Text>
     </View>
   );
 }
@@ -323,6 +419,7 @@ export function AppSettingsPanel({
   onReset,
   children,
   hideDensity,
+  originalColor,
 }: {
   accent: string;
   fallbackAccent: string;
@@ -337,6 +434,7 @@ export function AppSettingsPanel({
   onReset: () => void;
   children?: ReactNode;
   hideDensity?: boolean;
+  originalColor?: string;
 }) {
   return (
     <View>
@@ -349,18 +447,19 @@ export function AppSettingsPanel({
           color: muted,
         }}
       >
-        Pick a colour only if you want this app’s background to shift. Type size
-        and font restyle the page. Hub colour still paints the tile on Home.
+        Original keeps this app’s own background. A colour tints the whole page.
+        Smaller, regular, or bigger changes how large the writing is.
       </Text>
       <PrefSection
         label="Colour"
-        hint="Only if you pick one. Leave Hub to keep this app’s own background."
+        hint="Original is this app’s own colour. Tap it to go back."
         ink={ink}
         muted={muted}
       >
         <PrefColor
           value={storedAccent}
           fallback={fallbackAccent}
+          originalColor={originalColor ?? fallbackAccent}
           onChange={onAccent}
           ink={ink}
         />
@@ -368,13 +467,12 @@ export function AppSettingsPanel({
       {hideDensity ? null : (
         <PrefSection
           label="Type size"
-          hint="Compact, regular, or roomy type and spacing on this page."
+          hint="Smaller packs the writing tighter. Bigger makes it larger and easier to read. You can see it change on this page."
           ink={ink}
           muted={muted}
         >
-          <PrefChoices
+          <PrefDensity
             value={density}
-            options={DENSITY_OPTIONS}
             onChange={onDensity}
             accent={accent}
             ink={ink}
@@ -414,7 +512,7 @@ export function RestoreDefaultsButton({
     <Pressable
       onPress={onReset}
       accessibilityRole="button"
-      accessibilityLabel="Restore defaults"
+      accessibilityLabel="Back to original look"
       style={{
         marginTop: 12,
         height: 44,
@@ -426,7 +524,7 @@ export function RestoreDefaultsButton({
       }}
     >
       <Text style={{ color: muted, fontWeight: "700", fontSize: 13 }}>
-        Restore defaults
+        Back to original look
       </Text>
     </Pressable>
   );
@@ -441,7 +539,8 @@ export function lookPanelProps(
     reset: () => void;
   },
   ink: string,
-  muted: string
+  muted: string,
+  originalColor?: string
 ) {
   return {
     accent: look.accent,
@@ -451,6 +550,7 @@ export function lookPanelProps(
     density: look.prefs.density,
     typeface: look.prefs.typeface ?? "sans",
     storedAccent: look.prefs.accent,
+    originalColor,
     onAccent: (hex: string) => look.patch({ accent: hex }),
     onDensity: (id: DensityId) => look.patch({ density: id }),
     onTypeface: (id: TypefaceId) => look.patch({ typeface: id }),
@@ -462,6 +562,7 @@ export function LookPanel({
   look,
   ink,
   muted,
+  pageColor,
   toggles,
   choices,
   children,
@@ -478,6 +579,7 @@ export function LookPanel({
   };
   ink: string;
   muted: string;
+  pageColor?: string;
   toggles?: { key: string; label: string; hint?: string }[];
   choices?: {
     key: string;
@@ -488,7 +590,7 @@ export function LookPanel({
   children?: ReactNode;
 }) {
   return (
-    <AppSettingsPanel {...lookPanelProps(look, ink, muted)}>
+    <AppSettingsPanel {...lookPanelProps(look, ink, muted, pageColor)}>
       {toggles?.length || choices?.length ? (
         <PrefSection label="This app" ink={ink} muted={muted}>
           <View style={{ gap: 10 }}>

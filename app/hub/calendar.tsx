@@ -1,3 +1,4 @@
+import { LookPanel } from "@/components/hub/AppSettings";
 import { MonthGrid } from "@/components/hub/MonthGrid";
 import { WeekGrid } from "@/components/hub/WeekGrid";
 import { HubScreen } from "@/components/hub/HubScreen";
@@ -23,6 +24,8 @@ import {
 } from "@/lib/calendar-reminders";
 import { ReminderLeads } from "@/components/hub/ReminderLeads";
 import { useCalendarPrefs } from "@/lib/useCalendarPrefs";
+import { useAppLook } from "@/lib/app-prefs";
+import { HUB_TONES } from "@/lib/app-themes";
 import {
   formatClockTime,
   formatLongDate,
@@ -71,6 +74,7 @@ export default function CalendarScreen() {
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { prefs, save: savePrefs } = useCalendarPrefs();
+  const look = useAppLook("calendar", HUB_TONES.calendar.accent, {});
   const [expanded, setExpanded] = useState(false);
   const [lane, setLane] = useState<CalendarLane>("life");
   const allActivities = useCalendarActivities();
@@ -157,6 +161,8 @@ export default function CalendarScreen() {
       tone="calendar"
       kicker="Shared calendar"
       scroll={!fillPage}
+      accent={look.accent}
+      look={look}
       headerRight={
         <Pressable
           onPress={() => setSettingsOpen(true)}
@@ -548,6 +554,12 @@ export default function CalendarScreen() {
               style={{ flexGrow: 0 }}
               contentContainerStyle={{ paddingBottom: 8 }}
             >
+              <LookPanel
+                look={look}
+                ink="#16181D"
+                muted="rgba(22,24,29,0.58)"
+                pageColor={HUB_TONES.calendar.background}
+              />
               <SectionLabel>Calendar view</SectionLabel>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_LAYOUT_OPTIONS.map((row) => {

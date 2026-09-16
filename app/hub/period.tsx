@@ -127,6 +127,7 @@ export default function PeriodScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "discreet",

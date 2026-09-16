@@ -255,6 +255,7 @@ export default function SexyVaultScreen() {
             look={look}
             ink={INK}
             muted="rgba(246,231,220,0.6)"
+            pageColor={BG}
             toggles={[
               {
                 key: "blurLocked",

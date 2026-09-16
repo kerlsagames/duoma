@@ -206,6 +206,7 @@ export default function JarScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "hideCounts",

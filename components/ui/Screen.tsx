@@ -29,36 +29,36 @@ export function Screen({
   wash,
 }: Props) {
   const sizes = densityLook(density);
-  const padX = density === "compact" ? 16 : density === "roomy" ? 24 : 20;
-  const canvas = wash ? tintCanvas(background, wash, 0.32) : background;
+  const padX = density === "compact" ? 14 : density === "roomy" ? 28 : 20;
+  const canvas = wash ? tintCanvas(background, wash, 0.58) : background;
   const webAttrs =
     Platform.OS === "web"
       ? ({
           dataSet: { appDensity: density, appTypeface: typeface },
         } as object)
       : {};
-
   if (scroll) {
     return (
       <SafeAreaView
         className="flex-1"
         style={{ flex: 1, backgroundColor: canvas }}
         edges={["top", "left", "right"]}
-        {...webAttrs}
       >
-        <ScrollView
-          ref={scrollRef}
-          className="flex-1"
-          contentContainerStyle={{
-            paddingHorizontal: padX,
-            paddingBottom: 20 + sizes.gap,
-          }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          style={{ backgroundColor: canvas }}
-        >
-          <View>{children}</View>
-        </ScrollView>
+        <View className="flex-1" style={{ backgroundColor: canvas }} {...webAttrs}>
+          <ScrollView
+            ref={scrollRef}
+            className="flex-1"
+            contentContainerStyle={{
+              paddingHorizontal: padX,
+              paddingBottom: 20 + sizes.gap,
+            }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            style={{ backgroundColor: canvas }}
+          >
+            <View>{children}</View>
+          </ScrollView>
+        </View>
       </SafeAreaView>
     );
   }
@@ -68,7 +68,6 @@ export function Screen({
       className="flex-1"
       style={{ flex: 1, backgroundColor: canvas }}
       edges={["top", "left", "right"]}
-      {...webAttrs}
     >
       <View
         className="flex-1"
@@ -76,6 +75,7 @@ export function Screen({
           backgroundColor: canvas,
           paddingHorizontal: padX,
         }}
+        {...webAttrs}
       >
         {children}
       </View>

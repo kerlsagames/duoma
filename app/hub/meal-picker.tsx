@@ -111,6 +111,7 @@ export default function MealPickerScreen() {
             look={look}
             ink={T.ink}
             muted={T.muted}
+            pageColor={T.background}
             toggles={[
               {
                 key: "hideVotes",

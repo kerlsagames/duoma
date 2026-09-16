@@ -585,6 +585,7 @@ export default function IntimacyStreakScreen() {
             look={look}
             ink="#F6E7DC"
             muted="rgba(246,231,220,0.6)"
+            pageColor={BG}
             toggles={[
               {
                 key: "hideGraph",

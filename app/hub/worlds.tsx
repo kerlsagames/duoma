@@ -50,6 +50,7 @@ export default function WorldsScreen() {
           look={look}
           ink="#F4F4F6"
           muted="rgba(244,244,246,0.55)"
+            pageColor="#0C0E14"
           toggles={[
             {
               key: "hideLockedHint",

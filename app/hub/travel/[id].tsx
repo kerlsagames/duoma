@@ -119,6 +119,7 @@ export default function TripDetailScreen() {
             look={look}
             ink={PAPER}
             muted={MUTED}
+            pageColor={BG}
             toggles={[
               {
                 key: "hideCosts",
@@ -262,6 +263,7 @@ export default function TripDetailScreen() {
             look={look}
             ink={PAPER}
             muted={MUTED}
+            pageColor={BG}
             toggles={[
               {
                 key: "hideCosts",

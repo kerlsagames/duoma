@@ -83,7 +83,7 @@ export default function TheHowScreen() {
         accent={look.accent}
         settingsLabel="The How"
         settings={
-          <LookPanel look={look} ink={T.ink} muted={T.muted}>
+          <LookPanel look={look} ink={T.ink} muted={T.muted} pageColor={T.background}>
             <HowPlainToggle on={data.howPlainOn} onToggle={() => void togglePlain()} />
             <Text
               style={{

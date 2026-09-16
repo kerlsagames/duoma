@@ -118,6 +118,7 @@ export default function ThoughtPingsScreen() {
             look={look}
             ink="#FFD6E6"
             muted="rgba(255,214,230,0.65)"
+            pageColor={BG}
             toggles={[
               {
                 key: "softHaptic",

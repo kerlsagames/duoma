@@ -88,7 +88,7 @@ export default function MaintenanceScreen() {
           accent={tint}
           settingsLabel="Maintenance"
           settings={
-            <LookPanel look={look} ink={PAPER} muted={muted}>
+            <LookPanel look={look} ink={PAPER} muted={muted} pageColor={BG}>
               <PrefSection label="View" hint="How the jobs hang." ink={PAPER} muted={muted}>
                 <Choice
                   label="List"
