@@ -2442,7 +2442,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (finishResolved === "F") {
         return {
           currentStage: "finish_off",
-          turnUserId: exclusiveTurnForStage(row, "finish_off", currentUserId),
+          turnUserId:
+            row.pace === "simple"
+              ? null
+              : exclusiveTurnForStage(row, "finish_off", currentUserId),
           handCardIds: [],
           awaitingFinishReveal: false,
           finishAwaitingMale: true,
@@ -2453,7 +2456,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (units < stageCounts.finish_off) {
         return {
           currentStage: "finish_off",
-          turnUserId: exclusiveTurnForStage(row, "finish_off", passToUserId),
+          turnUserId:
+            row.pace === "simple"
+              ? null
+              : exclusiveTurnForStage(row, "finish_off", passToUserId),
           handCardIds: [],
           awaitingFinishReveal: false,
           finishAwaitingMale: false,
@@ -2475,7 +2481,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return {
         currentStage: next,
-        turnUserId: exclusiveTurnForStage(row, next, passToUserId),
+        turnUserId:
+          row.pace === "simple"
+            ? null
+            : exclusiveTurnForStage(row, next, passToUserId),
         handCardIds: [],
         awaitingFinishReveal: false,
         finishAwaitingMale: false,
@@ -2490,7 +2499,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!stageDone) {
       return {
         currentStage: justPlayedStage,
-        turnUserId: exclusiveTurnForStage(row, justPlayedStage, passToUserId),
+        turnUserId: openEnded
+          ? null
+          : exclusiveTurnForStage(row, justPlayedStage, passToUserId),
         handCardIds: [],
         awaitingFinishReveal: false,
       };
@@ -2623,6 +2634,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 afterglowPickerId: null,
                 finishAwaitingMale: false,
                 finishUnitsDone: 0,
+                ...(pace === "simple"
+                  ? { turnUserId: null, awaitingFinishReveal: false }
+                  : {}),
               })
             : row
         ),
@@ -2763,18 +2777,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dealHand = useCallback(async () => {
     if (!game || !user || !couple || game.status !== "playing") return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
-    if (game.turnUserId && game.turnUserId !== user.id) {
+    const simple = game.pace === "simple";
+    if (!simple && game.turnUserId && game.turnUserId !== user.id) {
       throw new Error(`It's ${profileName(game.turnUserId)}'s turn.`);
     }
     const stage = game.currentStage;
     if (!stage) return;
     if (
-      (stage === "finish_off" &&
+      !simple &&
+      ((stage === "finish_off" &&
         game.finishPickerId &&
         game.finishPickerId !== user.id) ||
-      (stage === "afterglow" &&
-        game.afterglowPickerId &&
-        game.afterglowPickerId !== user.id)
+        (stage === "afterglow" &&
+          game.afterglowPickerId &&
+          game.afterglowPickerId !== user.id))
     ) {
       throw new Error("This stage belongs to your partner.");
     }
@@ -2823,7 +2839,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         stage: pick.stage,
         sortOrder: maxOrder + 1,
         status: "active",
-        playedBy: user.id,
+        playedBy: null,
       };
       db = {
         ...db,
@@ -2837,8 +2853,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? sessionFields(row, {
                 handCardIds: [],
                 activeCardId: activeRow.id,
-                activePlayedBy: user.id,
-                turnUserId: user.id,
+                activePlayedBy: null,
+                turnUserId: null,
               })
             : row
         ),
@@ -2997,11 +3013,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw new Error("No live card to complete.");
     }
 
-    const playedBy = active.playedBy ?? game.activePlayedBy ?? user.id;
+    const simple = game.pace === "simple";
+    const playedBy = simple
+      ? user.id
+      : active.playedBy ?? game.activePlayedBy ?? user.id;
     const partnerId = partnerIdOf(user.id);
     const otherId =
       playedBy === user.id ? partnerId ?? user.id : user.id;
-    const passTo = exclusiveTurnForStage(game, active.stage, otherId);
+    const passTo = simple
+      ? user.id
+      : exclusiveTurnForStage(game, active.stage, otherId);
 
     const playedCard = cards.find((item) => item.id === active.cardId);
     const finishGenders = resolveCardGenders({
@@ -3053,6 +3074,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const playDemoPartnerTurn = useCallback(async () => {
     if (!game || !user || !couple || game.status !== "playing") return;
+    if (game.pace === "simple") return;
     if (!partner?.isDemo) return;
     if (game.turnUserId !== partner.id) return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
@@ -3135,6 +3157,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const resolveFinishReveal = useCallback(async () => {
     if (!game || !couple?.partnerA || !couple.partnerB) return;
     if (!game.awaitingFinishReveal) return;
+    if (game.pace === "simple") {
+      db = {
+        ...db,
+        games: db.games.map((row) =>
+          row.id === game.id
+            ? sessionFields(row, {
+                awaitingFinishReveal: false,
+                finishPickerId: null,
+                afterglowPickerId: null,
+                turnUserId: null,
+                handCardIds: [],
+                activeCardId: null,
+                activePlayedBy: null,
+              })
+            : row
+        ),
+      };
+      await persist();
+      return;
+    }
     const pickFinish =
       Math.random() < 0.5 ? couple.partnerA : couple.partnerB;
     const pickAfterglow =
@@ -3301,7 +3343,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const unlockPrivate = useCallback(async () => {
     if (!game || !game.awaitingPrivate) return;
     const stage = game.currentStage;
+    const simple = game.pace === "simple";
     const needsReveal =
+      !simple &&
       (stage === "finish_off" || stage === "afterglow") &&
       !game.finishPickerId;
 
@@ -3313,9 +3357,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
               awaitingPrivate: false,
               privateUnlocked: true,
               awaitingFinishReveal: Boolean(needsReveal),
-              turnUserId: needsReveal
+              turnUserId: simple
                 ? null
-                : exclusiveTurnForStage(row, stage, row.turnUserId ?? row.initiatorId),
+                : needsReveal
+                  ? null
+                  : exclusiveTurnForStage(row, stage, row.turnUserId ?? row.initiatorId),
               handCardIds: [],
             })
           : row
@@ -3336,9 +3382,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!next) {
       throw new Error("Nothing left after this stage.");
     }
-    const needsReveal =
-      (next === "finish_off" || next === "afterglow") &&
-      !game.finishPickerId;
     const deckRows = db.deck.filter((item) => item.gameId === game.id);
     const nextDeck = deckRows.map((item) =>
       item.status === "active" ? { ...item, status: "played" as const } : item
@@ -3353,14 +3396,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         row.id === game.id
           ? sessionFields(row, {
               currentStage: next,
-              turnUserId: needsReveal
-                ? null
-                : exclusiveTurnForStage(row, next, row.turnUserId ?? row.initiatorId),
+              turnUserId: null,
               handCardIds: [],
               activeCardId: null,
               activePlayedBy: null,
-              awaitingPrivate: true,
+              awaitingPrivate: false,
               awaitingFinishReveal: false,
+              finishPickerId: null,
+              afterglowPickerId: null,
+              finishAwaitingMale: false,
+              privateUnlocked: true,
             })
           : row
       ),

@@ -54,7 +54,9 @@ export default function PlayScreen() {
   const active = deck.find((item) => item.status === "active") ?? null;
   const card = cards.find((item) => item.id === active?.cardId);
   const played = deck.filter((item) => item.status === "played");
-  const myTurn = !game?.turnUserId || game.turnUserId === user?.id;
+  const simplePace = game?.pace === "simple";
+  const myTurn =
+    simplePace || !game?.turnUserId || game.turnUserId === user?.id;
 
   const handCards = useMemo(
     () =>
@@ -84,20 +86,26 @@ export default function PlayScreen() {
     partnerName: partner?.displayName,
     userId: user?.id,
     partnerId: partner?.id,
-    playedById: active?.playedBy ?? game?.activePlayedBy ?? user?.id,
+    playedById: simplePace
+      ? user?.id
+      : active?.playedBy ?? game?.activePlayedBy ?? user?.id,
   });
   const genders = resolveCardGenders({
     userGender: user?.gender,
     partnerGender: partner?.gender,
     userId: user?.id,
     partnerId: partner?.id,
-    playedById: active?.playedBy ?? game?.activePlayedBy ?? user?.id,
+    playedById: simplePace
+      ? user?.id
+      : active?.playedBy ?? game?.activePlayedBy ?? user?.id,
   });
 
   const actor =
-    (active?.playedBy ?? game?.activePlayedBy) === partner?.id
-      ? partner?.displayName
-      : user?.displayName;
+    simplePace
+      ? null
+      : (active?.playedBy ?? game?.activePlayedBy) === partner?.id
+        ? partner?.displayName
+        : user?.displayName;
 
   const stageNeed = game?.currentStage
     ? game.stageCounts[game.currentStage]
@@ -108,9 +116,11 @@ export default function PlayScreen() {
       : played.filter((item) => item.stage === game?.currentStage).length;
   const progressLabel =
     isSimpleOpenStage(game?.pace, game?.currentStage)
-      ? `${stagePlayed} this stage · until you move on`
+      ? game?.currentStage === "foreplay"
+        ? `${stagePlayed} this stage · go to Step it up when you want`
+        : `${stagePlayed} this stage · go to Finish off when you want`
       : game?.currentStage === "finish_off" && game.finishAwaitingMale
-      ? `${stagePlayed} / ${stageNeed} · M next`
+      ? `${stagePlayed} / ${stageNeed} · he finishes next`
       : `${stagePlayed} / ${stageNeed} this stage`;
 
   // Fetch a hand, then play the deal animation — only on your turn with no live card.
@@ -126,10 +136,15 @@ export default function PlayScreen() {
     void (async () => {
       try {
         setError(null);
-        setAnimationMode("deal");
-        setAnimating(true);
+        if (game.pace !== "simple") {
+          setAnimationMode("deal");
+          setAnimating(true);
+        }
         await dealHand();
-        if (!cancelled) setAnimationKey((key) => key + 1);
+        if (!cancelled) {
+          setAnimationKey((key) => key + 1);
+          if (game.pace === "simple") setAnimating(false);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Could not deal");
@@ -153,6 +168,7 @@ export default function PlayScreen() {
   // Demo partner: after your Complete, Riley plays a card you can see.
   useEffect(() => {
     if (!game || game.status !== "playing") return;
+    if (game.pace === "simple") return;
     if (!partner?.isDemo) return;
     if (game.turnUserId !== partner.id) return;
     if (game.awaitingPrivate || game.awaitingFinishReveal) return;
@@ -181,6 +197,12 @@ export default function PlayScreen() {
     partner?.isDemo,
     playDemoPartnerTurn,
   ]);
+
+  useEffect(() => {
+    if (!game || game.pace !== "simple" || game.status !== "playing") return;
+    if (game.awaitingPrivate) void unlockPrivate();
+    else if (game.awaitingFinishReveal) void resolveFinishReveal();
+  }, [game, resolveFinishReveal, unlockPrivate]);
 
   const onPick = async (cardId: string) => {
     setError(null);
@@ -242,34 +264,20 @@ export default function PlayScreen() {
     }
   };
 
-  if (game?.awaitingPrivate) {
-    const next = game.currentStage;
-    const simple = game.pace === "simple";
-    const kicker = simple
-      ? next === "finish_off"
-        ? "Step it up closed"
-        : "Foreplay closed"
-      : "Stage 1 closed";
-    const title = simple
-      ? next === "finish_off"
-        ? "Step it up is done."
-        : "Foreplay is done."
-      : "Pre-foreplay is done.";
-    const body = simple
-      ? next === "finish_off"
-        ? "When you are both ready to finish, tap below."
-        : "When you are both ready to step it up, tap below."
-      : "That was the daytime tease. When you are both ready for what comes next, tap below. Foreplay will not start until you do.";
+  if (game?.awaitingPrivate && game.pace !== "simple") {
     return (
       <Screen>
         <View className="flex-1 justify-center">
           <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-neon">
-            {kicker}
+            Stage 1 closed
           </Text>
           <Text className="mt-3 text-[34px] font-bold leading-10 text-mist">
-            {title}
+            Pre-foreplay is done.
           </Text>
-          <Text className="mt-4 text-[16px] leading-7 text-mist/70">{body}</Text>
+          <Text className="mt-4 text-[16px] leading-7 text-mist/70">
+            That was the daytime tease. When you are both ready for what comes
+            next, tap below. Foreplay will not start until you do.
+          </Text>
           <View className="mt-8 gap-3">
             <PrimaryButton
               label="We are ready to move on"
@@ -286,7 +294,7 @@ export default function PlayScreen() {
     );
   }
 
-  if (game?.awaitingFinishReveal) {
+  if (game?.awaitingFinishReveal && game.pace !== "simple") {
     const finishName =
       game.finishPickerId === user?.id
         ? user?.displayName
@@ -435,9 +443,8 @@ export default function PlayScreen() {
     (active?.playedBy ?? game?.activePlayedBy) !== user?.id;
 
   const showHand = Boolean(
-    myTurn && !active && handCards.length > 0 && game?.pace !== "simple"
+    myTurn && !active && handCards.length > 0 && !simplePace
   );
-  const simplePace = game?.pace === "simple";
   const shuffleLabel =
     myShufflesRemaining < 0
       ? "Shuffle hand · unlimited"
@@ -481,23 +488,29 @@ export default function PlayScreen() {
             card={card}
             names={names}
             genders={genders}
-            actorLabel={actor ? `${actor} played` : "Live card"}
+            actorLabel={simplePace ? "Together" : actor ? `${actor} played` : "Live card"}
             progressLabel={progressLabel}
             emptyTitle={
-              myTurn && game?.finishAwaitingMale
-                ? "M — your turn is coming…"
-                : myTurn
-                  ? "Shuffling your deck…"
-                  : `Waiting on ${partner?.displayName ?? "them"}`
+              simplePace && game?.finishAwaitingMale
+                ? "He finishes next…"
+                : simplePace
+                  ? "Dealing…"
+                  : myTurn && game?.finishAwaitingMale
+                    ? "M — your turn is coming…"
+                    : myTurn
+                      ? "Shuffling your deck…"
+                      : `Waiting on ${partner?.displayName ?? "them"}`
             }
             emptyBody={
-              myTurn && game?.finishAwaitingMale
-                ? "She came. This next hand is how he finishes."
-                : myTurn
-                  ? simplePace
-                    ? "Your card is coming."
-                    : "Cards will deal to you in a moment. Pick one when they land."
-                  : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
+              simplePace && game?.finishAwaitingMale
+                ? "She came. This next card is how he finishes."
+                : simplePace
+                  ? "One card in the middle for both of you."
+                  : myTurn && game?.finishAwaitingMale
+                    ? "She came. This next hand is how he finishes."
+                    : myTurn
+                      ? "Cards will deal to you in a moment. Pick one when they land."
+                      : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
             }
           
             conceal={concealPreForeplay}
@@ -508,11 +521,15 @@ export default function PlayScreen() {
 
         <View className="mt-4 flex-row justify-between">
           <Text className="text-[13px] text-mist/50">
-            {active
-              ? "Live card"
-              : myTurn
-                ? "Your turn"
-                : `${partner?.displayName ?? "Partner"}'s turn`}
+            {simplePace
+              ? active
+                ? "Playing together"
+                : "One shared card"
+              : active
+                ? "Live card"
+                : myTurn
+                  ? "Your turn"
+                  : `${partner?.displayName ?? "Partner"}'s turn`}
           </Text>
           {simplePace ? null : (
             <Text className="text-[13px] text-mist/50">
@@ -526,7 +543,9 @@ export default function PlayScreen() {
           <Text className="mt-2 text-[14px] leading-5 text-mist/65">
             {concealPreForeplay
               ? "A daytime tease is in play. Tap Complete when they are done — you will see the card after you move on."
-              : "When you are both finished with this card, tap Complete to pass the turn."}
+              : simplePace
+                ? "Do this together. Next card keeps you in this stage. Go to Step it up or Finish off when you want."
+                : "When you are both finished with this card, tap Complete to pass the turn."}
           </Text>
         ) : null}
 
@@ -535,7 +554,11 @@ export default function PlayScreen() {
         <View className="mt-4 gap-3 pb-3">
           {active ? (
             <PrimaryButton
-              label="Complete"
+              label={
+                simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
+                  ? "Next card"
+                  : "Complete"
+              }
               onPress={() => void onComplete()}
             />
           ) : null}
@@ -551,11 +574,10 @@ export default function PlayScreen() {
             <PrimaryButton
               label={
                 game?.currentStage === "foreplay"
-                  ? "Move on to stage 2"
-                  : "Move on to stage 3"
+                  ? "Go to Step it up"
+                  : "Go to Finish off"
               }
               tone="ghost"
-              disabled={animating}
               onPress={() => void onReadyToMoveOn()}
             />
           ) : null}

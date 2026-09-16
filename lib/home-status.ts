@@ -117,7 +117,10 @@ function gameAlert(input: {
     return { id: gameId, line: "Spicy Game · unlock private time", when: "Now", href, sortAt };
   }
 
-  const turn = whoseTurn(game, input.user, input.partner);
+  const turn =
+    game.pace === "simple"
+      ? "Together"
+      : whoseTurn(game, input.user, input.partner);
   const stage = game.currentStage
     ? STAGE_META[game.currentStage].short
     : "in play";

@@ -52,7 +52,7 @@ const STEPS = [
   {
     kicker: "Get Spicy",
     title: "If you open that game",
-    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Setup has Detailed (all five stages, set the counts) or Keep it simple (Foreplay, Step it up, Finish Off — flip cards until you tap Ready to move on). Daytime cards in Detailed stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand of M-cums cards only.",
+    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Setup has Detailed (all five stages, set the counts) or Keep it simple (one shared card, Foreplay then Step it up then Finish Off — flip as many as you want, then Go to Step it up or Go to Finish off). Daytime cards in Detailed stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand of M-cums cards only.",
   },
   {
     kicker: "Safety",

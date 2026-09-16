@@ -41,7 +41,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One card in the middle, like the swipe apps. Three stages — Foreplay, Step it up, Finish Off. Flip cards until you tap Move on to stage 2 or stage 3. No passes or shuffles. Finish Off still tags F, M, or both.",
+    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then Go to Step it up. Same for Finish off. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -234,7 +234,7 @@ export default function SetupScreen() {
               {
                 id: "simple" as const,
                 label: "Keep it simple",
-                hint: "Foreplay, Step it up, Finish Off. Flip until you move on. No passes or shuffles.",
+                hint: "Foreplay, Step it up, Finish Off. Shared cards. Flip until you go on.",
               },
             ] as const
           ).map((option) => {
