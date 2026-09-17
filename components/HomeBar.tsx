@@ -1,9 +1,12 @@
 import type { ComponentProps } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FeedbackSheet } from "@/components/FeedbackSheet";
 import { HomeCountdownTicker } from "@/components/home/HomeCountdownTicker";
+import { feedbackSourceFromPath } from "@/lib/feedback";
 import { requestHomeSettings, requestHomeStats } from "@/lib/home-chrome";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -70,6 +73,8 @@ export function HomeBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const atHome = isHomePath(pathname);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const source = feedbackSourceFromPath(pathname);
 
   if (HIDDEN.has(pathname)) return null;
 
@@ -91,9 +96,8 @@ export function HomeBar() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: atHome ? "space-between" : "center",
-          paddingHorizontal: atHome ? 18 : 0,
-          gap: atHome ? 0 : 48,
+          justifyContent: "space-between",
+          paddingHorizontal: 18,
         }}
       >
         {atHome ? (
@@ -121,8 +125,38 @@ export function HomeBar() {
             label="Stats"
             onPress={() => requestHomeStats()}
           />
-        ) : null}
+        ) : (
+          <Pressable
+            onPress={() => setFeedbackOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Send feedback"
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 2,
+              minWidth: 64,
+            }}
+          >
+            <Text style={{ fontSize: 22, lineHeight: 26 }}>✉️</Text>
+            <Text
+              style={{
+                marginTop: 2,
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 0.4,
+                color: "#FF007F",
+              }}
+            >
+              Note
+            </Text>
+          </Pressable>
+        )}
       </View>
+      <FeedbackSheet
+        open={feedbackOpen}
+        source={source}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </View>
   );
 }

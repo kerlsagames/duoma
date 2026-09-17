@@ -7,6 +7,7 @@ import { HomeNotificationCards } from "@/components/home/HomeNotificationCards";
 import { HomePingNudge } from "@/components/home/HomePingNudge";
 import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { HubGlyph } from "@/components/hub/HubGlyph";
+import { FeedbackSheet } from "@/components/FeedbackSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -62,7 +63,6 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -749,16 +749,11 @@ function HomeSettingsSheet({
     unpairAndWipe,
     deleteOwnAccount,
     submitContentReport,
-    sendFeedback,
     setProfileGender,
   } = useApp();
   const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
   const [safetyError, setSafetyError] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [helpBody, setHelpBody] = useState("");
-  const [helpSending, setHelpSending] = useState(false);
-  const [helpError, setHelpError] = useState<string | null>(null);
-  const [helpFlash, setHelpFlash] = useState<string | null>(null);
   const [areaH, setAreaH] = useState(0);
   const sheetH = areaH > 0 ? Math.max(280, areaH - 20) : undefined;
   const hubThemes = useHubThemes();
@@ -984,11 +979,7 @@ function HomeSettingsSheet({
           ) : null}
 
           <Pressable
-            onPress={() => {
-              setHelpOpen(true);
-              setHelpError(null);
-              setHelpFlash(null);
-            }}
+            onPress={() => setHelpOpen(true)}
             accessibilityRole="button"
             accessibilityLabel="Help, feedback or suggestions"
             style={{
@@ -1012,7 +1003,7 @@ function HomeSettingsSheet({
                 lineHeight: 18,
               }}
             >
-              Send to Duoma Admin. It lands on the admin page with your name.
+              Send a note to Duoma Admin.
             </Text>
           </Pressable>
 
@@ -1324,134 +1315,11 @@ function HomeSettingsSheet({
           </Pressable>
         </ScrollView>
       </View>
-      <Modal
-        visible={helpOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setHelpOpen(false)}
-      >
-        <Pressable
-          onPress={() => setHelpOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(8,8,12,0.72)",
-            justifyContent: "center",
-            paddingHorizontal: 18,
-          }}
-        >
-          <Pressable
-            onPress={(event) => event.stopPropagation?.()}
-            style={{
-              borderRadius: 22,
-              backgroundColor: "#14141A",
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.12)",
-              padding: 18,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.6,
-                textTransform: "uppercase",
-                color: "#FF007F",
-              }}
-            >
-              Duoma Admin
-            </Text>
-            <Text
-              style={{
-                marginTop: 6,
-                fontFamily: SERIF,
-                fontSize: 22,
-                color: "#F4F4F6",
-              }}
-            >
-              Help, feedback or suggestions
-            </Text>
-            <TextInput
-              value={helpBody}
-              onChangeText={setHelpBody}
-              placeholder="What’s stuck, what you want, or an idea."
-              placeholderTextColor="rgba(244,244,246,0.35)"
-              multiline
-              style={{
-                marginTop: 14,
-                minHeight: 140,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.12)",
-                backgroundColor: "#1A1A22",
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                color: "#F4F4F6",
-                fontSize: 16,
-                lineHeight: 22,
-                textAlignVertical: "top",
-              }}
-            />
-            {helpError ? (
-              <Text style={{ marginTop: 10, color: "#FF8A8A", fontSize: 13 }}>
-                {helpError}
-              </Text>
-            ) : null}
-            {helpFlash ? (
-              <Text style={{ marginTop: 10, color: "#7CFFB2", fontSize: 13 }}>
-                {helpFlash}
-              </Text>
-            ) : null}
-            <View style={{ marginTop: 14, flexDirection: "row", gap: 10 }}>
-              <Pressable
-                onPress={() => setHelpOpen(false)}
-                style={{
-                  flex: 1,
-                  height: 48,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(255,255,255,0.06)",
-                }}
-              >
-                <Text style={{ color: "#F4F4F6", fontWeight: "700" }}>Close</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  void (async () => {
-                    setHelpSending(true);
-                    setHelpError(null);
-                    try {
-                      await sendFeedback(helpBody);
-                      setHelpBody("");
-                      setHelpFlash("Sent. Duoma Admin will see it.");
-                    } catch (err) {
-                      setHelpError(
-                        err instanceof Error ? err.message : "Could not send."
-                      );
-                    } finally {
-                      setHelpSending(false);
-                    }
-                  })();
-                }}
-                disabled={helpSending}
-                style={{
-                  flex: 1,
-                  height: 48,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#FF007F",
-                  opacity: helpSending ? 0.6 : 1,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "800" }}>
-                  {helpSending ? "Sending…" : "Send"}
-                </Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <FeedbackSheet
+        open={helpOpen}
+        source="Home"
+        onClose={() => setHelpOpen(false)}
+      />
       <ConfirmDialog
         open={danger === "unpair"}
         title="End this pairing?"

@@ -37,7 +37,8 @@ export function FeedbackPane() {
         Feedback
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
-        Help, feedback, and suggestions from Home settings. Newest first.
+        Help, feedback, and suggestions. Newest first. The app they were in is
+        tagged on each note.
       </Text>
       {!ready ? (
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 24 }}>
@@ -62,6 +63,7 @@ export function FeedbackPane() {
             >
               <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", fontSize: 11 }}>
                 {whenLabel(row.createdAt)}
+                {row.source ? ` · ${row.source}` : ""}
               </Text>
               <Text
                 style={{

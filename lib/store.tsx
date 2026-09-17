@@ -56,6 +56,7 @@ import { nightAskLabel } from "@/lib/play-items";
 import {
   buildFeedbackNote,
   hydrateFeedbackNote,
+  prefixFeedbackBody,
   readLocalFeedback,
   writeLocalFeedback,
   type FeedbackNote,
@@ -710,7 +711,7 @@ type AppContextValue = {
     action: "dismiss" | "action_taken"
   ) => Promise<void>;
   contentReports: import("@/lib/reports").ContentReport[];
-  sendFeedback: (body: string) => Promise<void>;
+  sendFeedback: (body: string, source?: string) => Promise<void>;
   feedbackNotes: import("@/lib/feedback").FeedbackNote[];
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
@@ -2484,7 +2485,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const sendFeedback = useCallback(
-    async (body: string) => {
+    async (body: string, source?: string) => {
       if (!user) throw new Error("Sign in first.");
       const text = body.trim();
       if (!text) throw new Error("Write a note first.");
@@ -2494,6 +2495,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         email: user.email,
         coupleId: couple?.id ?? null,
         body: text,
+        source: source ?? null,
       });
       db = { ...db, feedbackNotes: [...(db.feedbackNotes ?? []), row] };
       await writeLocalFeedback(db.feedbackNotes);
@@ -2506,7 +2508,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             display_name: row.displayName,
             email: row.email,
             couple_id: row.coupleId,
-            body: row.body,
+            body: prefixFeedbackBody(row.body, row.source),
             created_at: row.createdAt,
           });
         } catch {
