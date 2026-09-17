@@ -104,9 +104,9 @@ export default function SetupScreen() {
   const look = useAppLook("get-spicy", "#FF007F", {
     remember: true,
     hideRules: false,
-    pace: "detailed",
+    dealPace: "simple",
   });
-  const [pace, setPace] = useState<SpicyPace>("detailed");
+  const [pace, setPace] = useState<SpicyPace>("simple");
 
   useEffect(() => {
     if (!game) {
@@ -120,14 +120,14 @@ export default function SetupScreen() {
 
   useEffect(() => {
     if (!look.ready) return;
-    if (look.prefs.pace === "simple" || look.prefs.pace === "detailed") {
-      setPace(look.prefs.pace);
+    if (look.prefs.dealPace === "simple" || look.prefs.dealPace === "detailed") {
+      setPace(look.prefs.dealPace);
     }
-  }, [look.prefs.pace, look.ready]);
+  }, [look.prefs.dealPace, look.ready]);
 
   const choosePace = (next: SpicyPace) => {
     setPace(next);
-    look.patch({ pace: next });
+    look.patch({ dealPace: next });
   };
 
   const bump = (stage: keyof StageCounts, delta: number) => {
@@ -228,14 +228,14 @@ export default function SetupScreen() {
           {(
             [
               {
-                id: "detailed" as const,
-                label: "Detailed",
-                hint: "All five stages. You set how many cards.",
-              },
-              {
                 id: "simple" as const,
                 label: "Keep it simple",
                 hint: "Foreplay, Step it up, Finish Off. Shared cards. Flip until you go on.",
+              },
+              {
+                id: "detailed" as const,
+                label: "Detailed",
+                hint: "All five stages. You set how many cards.",
               },
             ] as const
           ).map((option) => {

@@ -292,24 +292,39 @@ export function DealHand({
       </Text>
 
       <View className="relative items-center" style={{ minHeight: stageHeight }}>
-        <Animated.View
+        <View
           pointerEvents="none"
           style={{
-            opacity: deckOpacity,
-            transform: [
-              { translateX: deckTranslateX },
-              { rotate: deckRotateZ },
-            ],
+            position: "absolute",
+            top: 18,
+            left: 0,
+            right: 0,
+            alignItems: "center",
             zIndex: 2,
           }}
-          className="absolute top-0 h-[96px] w-[70px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
         >
-          <View className="absolute inset-1 rounded-xl border border-[#FF4D9A]/30" />
-          <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
-            Deck
-          </Text>
-          <Ionicons name="flame" size={22} color={FLAME} style={{ marginTop: 4 }} />
-        </Animated.View>
+          <Animated.View
+            style={{
+              opacity: deckOpacity,
+              transform: [
+                { translateX: deckTranslateX },
+                { rotate: deckRotateZ },
+              ],
+            }}
+            className="h-[96px] w-[70px] items-center justify-center rounded-2xl border border-neon/45 bg-[#1A0B14]"
+          >
+            <View className="absolute inset-1 rounded-xl border border-[#FF4D9A]/30" />
+            <Text className="text-[11px] font-semibold uppercase tracking-[2px] text-neon">
+              Deck
+            </Text>
+            <Ionicons
+              name="flame"
+              size={22}
+              color={FLAME}
+              style={{ marginTop: 2, transform: [{ translateY: 1 }] }}
+            />
+          </Animated.View>
+        </View>
 
         {phase === "shuffle"
           ? [0, 1, 2].map((i) => (
@@ -317,6 +332,11 @@ export function DealHand({
                 key={`flutter-${i}`}
                 pointerEvents="none"
                 style={{
+                  position: "absolute",
+                  top: 22,
+                  left: 0,
+                  right: 0,
+                  alignItems: "center",
                   opacity: 0.5,
                   zIndex: 1,
                   transform: [
@@ -340,8 +360,9 @@ export function DealHand({
                     },
                   ],
                 }}
-                className="absolute top-3 h-[92px] w-[66px] rounded-2xl border border-white/15 bg-[#12080F]"
-              />
+              >
+                <View className="h-[92px] w-[66px] rounded-2xl border border-white/15 bg-[#12080F]" />
+              </Animated.View>
             ))
           : null}
 
@@ -395,7 +416,12 @@ export function DealHand({
                   style={{ opacity: backOpacity }}
                   className="absolute inset-0 items-center justify-center rounded-[22px] border border-neon/40 bg-[#1A0B14]"
                 >
-                  <Ionicons name="flame" size={32} color={FLAME} />
+                  <Ionicons
+                    name="flame"
+                    size={32}
+                    color={FLAME}
+                    style={{ transform: [{ translateY: 2 }] }}
+                  />
                 </Animated.View>
                 <Animated.View
                   pointerEvents="none"

@@ -2307,7 +2307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shuffleLimit: 3,
       stageCounts: { ...DEFAULT_STAGE_COUNTS },
       flavorTags: defaultEnabledFlavorTags(),
-      pace: "detailed",
+      pace: "simple",
       currentStage: null,
       activeCardId: null,
       turnUserId: user.id,
