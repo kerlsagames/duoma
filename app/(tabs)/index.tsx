@@ -6,6 +6,7 @@ import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { HomeNotificationCards } from "@/components/home/HomeNotificationCards";
 import { HomePingNudge } from "@/components/home/HomePingNudge";
 import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
+import { HubGlyph } from "@/components/hub/HubGlyph";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -472,7 +473,12 @@ export default function HomeScreen() {
                           paddingHorizontal: 4,
                         }}
                       >
-                        <Ionicons name={app.icon} size={22} color={app.accent} />
+                        <HubGlyph
+                          icon={app.icon}
+                          emoji={app.emoji}
+                          size={22}
+                          color={app.accent}
+                        />
                         <Text
                           style={{
                             marginTop: 4,
@@ -652,8 +658,9 @@ export default function HomeScreen() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons
-                              name={app.icon}
+                            <HubGlyph
+                              icon={app.icon}
+                              emoji={app.emoji}
                               size={20}
                               color={hub.accent}
                             />
@@ -1005,7 +1012,7 @@ function HomeSettingsSheet({
                 lineHeight: 18,
               }}
             >
-              Write to Craig. It lands on the admin page with your name.
+              Send to Duoma Admin. It lands on the admin page with your name.
             </Text>
           </Pressable>
 
@@ -1351,7 +1358,7 @@ function HomeSettingsSheet({
                 color: "#FF007F",
               }}
             >
-              Write to Craig
+              Duoma Admin
             </Text>
             <Text
               style={{
@@ -1416,7 +1423,7 @@ function HomeSettingsSheet({
                     try {
                       await sendFeedback(helpBody);
                       setHelpBody("");
-                      setHelpFlash("Sent. Craig will see it on the admin page.");
+                      setHelpFlash("Sent. Duoma Admin will see it.");
                     } catch (err) {
                       setHelpError(
                         err instanceof Error ? err.message : "Could not send."

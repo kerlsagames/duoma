@@ -1,4 +1,5 @@
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
+import { HubGlyph } from "@/components/hub/HubGlyph";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
@@ -17,7 +18,7 @@ import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View, type DimensionValue } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 /** Feature directory for one of the four top-level hubs. */
 export function HubDirectory({ hubId }: { hubId: HubId }) {
@@ -63,24 +64,16 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
 
   const showDetails = layout.view !== "compact" && layout.showDetails;
   const catalog = catalogOrder(hub);
-  const fillGrid =
-    hubId !== "desire" &&
-    layout.view === "grid" &&
-    visible.length > 0 &&
-    visible.length <= 8;
 
   return (
     <HomeBackdrop>
-      <Screen scroll={!fillGrid} background="transparent">
-        <View
-          className={fillGrid ? "flex-1 pt-2 pb-2" : "pt-4 pb-10"}
-          style={fillGrid ? { flex: 1, minHeight: 0 } : undefined}
-        >
+      <Screen scroll background="transparent">
+        <View className="pt-4 pb-10">
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              marginBottom: fillGrid ? 4 : 6,
+              marginBottom: 6,
             }}
           >
             <BackButton
@@ -93,8 +86,8 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               onPress={() => setSettingsOpen(true)}
               accessibilityLabel={`${hub.label} settings`}
               style={{
-                width: fillGrid ? 40 : 44,
-                height: fillGrid ? 40 : 44,
+                width: 44,
+                height: 44,
                 borderRadius: 16,
                 backgroundColor: "#14141A",
                 borderWidth: 1,
@@ -110,41 +103,27 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
           <View
             style={{
               alignItems: "center",
-              marginBottom: fillGrid ? 10 : 18,
+              marginBottom: 18,
             }}
           >
             <View
               style={{
-                width: fillGrid ? 48 : 44,
-                height: fillGrid ? 48 : 44,
+                width: 44,
+                height: 44,
                 borderRadius: 16,
                 backgroundColor: hub.accentSoft,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name={hub.icon} size={fillGrid ? 26 : 24} color={hub.accent} />
+              <Ionicons name={hub.icon} size={24} color={hub.accent} />
             </View>
-            {fillGrid ? null : (
-              <Text
-                style={{
-                  marginTop: 8,
-                  fontFamily: "SpaceMono",
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: hub.accent,
-                }}
-              >
-                Hub
-              </Text>
-            )}
             <Text
               style={{
-                marginTop: fillGrid ? 8 : 2,
+                marginTop: 10,
                 fontFamily: SERIF,
-                fontSize: fillGrid ? 28 : 30,
-                lineHeight: fillGrid ? 32 : 36,
+                fontSize: 30,
+                lineHeight: 36,
                 color: "#F4F4F6",
                 textAlign: "center",
               }}
@@ -155,8 +134,8 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               style={{
                 marginTop: 4,
                 fontFamily: SERIF,
-                fontSize: fillGrid ? 14 : 16,
-                lineHeight: fillGrid ? 20 : 24,
+                fontSize: 16,
+                lineHeight: 24,
                 color: "rgba(244,244,246,0.58)",
                 textAlign: "center",
               }}
@@ -238,13 +217,10 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
           ) : layout.view === "grid" ? (
             <View
               style={{
-                flex: fillGrid ? 1 : undefined,
-                minHeight: 0,
                 flexDirection: "row",
                 flexWrap: "wrap",
                 justifyContent: "space-between",
-                alignContent: fillGrid ? "stretch" : undefined,
-                rowGap: fillGrid ? 6 : 10,
+                rowGap: 10,
               }}
             >
               {visible.map((feature) => (
@@ -254,8 +230,6 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                   accent={hub.accent}
                   accentSoft={hub.accentSoft}
                   showDetails={showDetails}
-                  fill={fillGrid}
-                  rows={Math.ceil(visible.length / 2)}
                   onPress={() => void openFeature(feature.id, feature.href)}
                 />
               ))}
@@ -668,7 +642,12 @@ function ListRow({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={feature.icon} size={compact ? 18 : 22} color={accent} />
+        <HubGlyph
+          icon={feature.icon}
+          emoji={feature.emoji}
+          size={compact ? 18 : 22}
+          color={accent}
+        />
       </View>
       <View style={{ flex: 1 }}>
         <Text
@@ -703,32 +682,23 @@ function GridTile({
   accent,
   accentSoft,
   showDetails,
-  fill,
-  rows,
   onPress,
 }: {
   feature: HubFeature;
   accent: string;
   accentSoft: string;
   showDetails: boolean;
-  fill?: boolean;
-  rows?: number;
   onPress: () => void;
 }) {
-  const rowCount = Math.max(1, rows ?? 4);
   return (
     <Pressable
       onPress={onPress}
       style={{
         width: "48.2%",
-        minHeight: fill ? 0 : showDetails ? 132 : 108,
-        height: fill
-          ? (`${(100 / rowCount - 1.6).toFixed(2)}%` as DimensionValue)
-          : undefined,
-        paddingVertical: fill ? 10 : 14,
-        paddingHorizontal: fill ? 8 : 12,
-        marginBottom: fill ? 0 : undefined,
-        borderRadius: fill ? 16 : 18,
+        height: showDetails ? 148 : 118,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderRadius: 18,
         backgroundColor: "#14141A",
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.08)",
@@ -738,23 +708,28 @@ function GridTile({
     >
       <View
         style={{
-          width: fill ? 44 : 40,
-          height: fill ? 44 : 40,
-          borderRadius: fill ? 14 : 13,
+          width: 40,
+          height: 40,
+          borderRadius: 13,
           backgroundColor: accentSoft,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={feature.icon} size={fill ? 22 : 20} color={accent} />
+        <HubGlyph
+          icon={feature.icon}
+          emoji={feature.emoji}
+          size={20}
+          color={accent}
+        />
       </View>
       <Text
         style={{
-          marginTop: fill ? 8 : 12,
+          marginTop: 10,
           color: "#F4F4F6",
-          fontSize: fill ? 15 : 15,
+          fontSize: 15,
           fontWeight: "700",
-          lineHeight: fill ? 19 : 20,
+          lineHeight: 20,
           textAlign: "center",
         }}
         numberOfLines={2}
@@ -763,12 +738,12 @@ function GridTile({
       </Text>
       {showDetails ? (
         <Text
-          numberOfLines={fill ? 2 : 2}
+          numberOfLines={2}
           style={{
-            marginTop: fill ? 3 : 4,
+            marginTop: 4,
             color: "rgba(244,244,246,0.5)",
-            fontSize: fill ? 11 : 12,
-            lineHeight: fill ? 14 : 16,
+            fontSize: 12,
+            lineHeight: 16,
             textAlign: "center",
             paddingHorizontal: 2,
           }}

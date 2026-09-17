@@ -10,6 +10,8 @@ export type HubFeature = {
   label: string;
   detail: string;
   icon: IconName;
+  /** When set, the hub tile shows this instead of the Ionicons glyph. */
+  emoji?: string;
   href: string;
 };
 
@@ -160,7 +162,8 @@ export const HUBS: HubDef[] = [
         id: "spark",
         label: "Spark",
         detail: "200 slow burns. From afar, or in the same room.",
-        icon: "bonfire",
+        icon: "flash",
+        emoji: "⚡",
         href: "/hub/spark",
       },
       {
@@ -168,6 +171,7 @@ export const HUBS: HubDef[] = [
         label: "Dare Me",
         detail: "18 packs. 200 dares. Send one or take one.",
         icon: "flash",
+        emoji: "🫦",
         href: "/hub/up-for-it",
       },
       {
@@ -196,6 +200,7 @@ export const HUBS: HubDef[] = [
         label: "Intimacy Streak Tracker",
         detail: "Grows with dares, spicy nights, pings & Connect.",
         icon: "flame",
+        emoji: "🔥",
         href: "/hub/intimacy-streak",
       },
       {
