@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FeedbackSheet } from "@/components/FeedbackSheet";
-import { HubGlyph } from "@/components/hub/HubGlyph";
 import { HomeCountdownTicker } from "@/components/home/HomeCountdownTicker";
 import { feedbackSourceFromPath } from "@/lib/feedback";
 import { requestHomeSettings, requestHomeStats } from "@/lib/home-chrome";
@@ -34,12 +33,10 @@ function isHomePath(pathname: string) {
 
 function BarButton({
   icon,
-  emoji,
   label,
   onPress,
 }: {
   icon: IconName;
-  emoji?: string;
   label: string;
   onPress: () => void;
 }) {
@@ -55,11 +52,7 @@ function BarButton({
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      {emoji ? (
-        <HubGlyph icon={icon} emoji={emoji} size={22} color="#FF007F" />
-      ) : (
-        <Ionicons name={icon} size={24} color="#FF007F" />
-      )}
+      <Ionicons name={icon} size={24} color="#FF007F" />
       <Text
         style={{
           marginTop: 2,
@@ -135,7 +128,6 @@ export function HomeBar() {
         ) : (
           <BarButton
             icon="mail"
-            emoji="✉️"
             label="Contact"
             onPress={() => setFeedbackOpen(true)}
           />

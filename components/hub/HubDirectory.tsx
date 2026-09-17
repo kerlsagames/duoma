@@ -644,7 +644,7 @@ function ListRow({
       >
         <HubGlyph
           icon={feature.icon}
-          emoji={feature.emoji}
+          mark={feature.mark}
           size={compact ? 18 : 22}
           color={accent}
         />
@@ -718,7 +718,7 @@ function GridTile({
       >
         <HubGlyph
           icon={feature.icon}
-          emoji={feature.emoji}
+          mark={feature.mark}
           size={20}
           color={accent}
         />

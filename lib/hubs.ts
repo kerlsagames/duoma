@@ -5,13 +5,15 @@ type IconName = ComponentProps<typeof Ionicons>["name"];
 
 export type HubId = "connect" | "desire" | "play" | "home-base";
 
+export type HubMark = "lips";
+
 export type HubFeature = {
   id: string;
   label: string;
   detail: string;
   icon: IconName;
-  /** When set, the hub tile shows this instead of the Ionicons glyph. */
-  emoji?: string;
+  /** Extra drawn mark (same pink as Ionicons). */
+  mark?: HubMark;
   href: string;
 };
 
@@ -163,15 +165,14 @@ export const HUBS: HubDef[] = [
         label: "Spark",
         detail: "200 slow burns. From afar, or in the same room.",
         icon: "flash",
-        emoji: "⚡",
         href: "/hub/spark",
       },
       {
         id: "up-for-it",
         label: "Dare Me",
         detail: "18 packs. 200 dares. Send one or take one.",
-        icon: "flash",
-        emoji: "🫦",
+        icon: "heart",
+        mark: "lips",
         href: "/hub/up-for-it",
       },
       {
@@ -199,8 +200,7 @@ export const HUBS: HubDef[] = [
         id: "intimacy-streak",
         label: "Intimacy Streak Tracker",
         detail: "Grows with dares, spicy nights, pings & Connect.",
-        icon: "flame",
-        emoji: "🔥",
+        icon: "bonfire",
         href: "/hub/intimacy-streak",
       },
       {

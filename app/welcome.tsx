@@ -1,24 +1,12 @@
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
+import { SERIF } from "@/lib/app-themes";
 import { HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { Text, View } from "react-native";
-
-const LANES = HUBS.map((hub) => ({
-  label: hub.label,
-  hint:
-    hub.id === "connect"
-      ? "Talks, dates, the jar"
-      : hub.id === "desire"
-        ? "Spice, dares, fantasies"
-        : hub.id === "play"
-          ? "Bets, photos, games"
-          : "Bills, birthdays, trips",
-  tile: hub.tile,
-  ink: hub.tileInk,
-}));
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -36,13 +24,6 @@ export default function WelcomeScreen() {
         <Text className="mt-3 max-w-[320px] text-[22px] font-bold leading-7 text-mist">
           Two phones. One home.
         </Text>
-        <Text className="mt-2 max-w-[340px] text-[16px] leading-6 text-mist/70">
-          Pair once. Then the calendar, the talks, the games, and the spice all
-          live in the same place.
-          {usingCloud
-            ? " Email is the account. The six-character code still links the two of you."
-            : ""}
-        </Text>
         {pairError ? (
           <Text className="mt-3 text-[14px] leading-5 text-crimson">{pairError}</Text>
         ) : null}
@@ -52,46 +33,65 @@ export default function WelcomeScreen() {
             marginTop: 22,
             flexDirection: "row",
             flexWrap: "wrap",
-            gap: 10,
+            justifyContent: "space-between",
           }}
         >
-          {LANES.map((lane) => (
+          {HUBS.map((hub) => (
             <View
-              key={lane.label}
+              key={hub.id}
               style={{
-                width: "47.5%",
-                flexGrow: 1,
-                backgroundColor: lane.tile,
-                paddingVertical: 14,
-                paddingHorizontal: 12,
+                width: "48%",
+                marginBottom: 8,
+                borderRadius: 18,
+                paddingVertical: 10,
+                paddingHorizontal: 10,
+                backgroundColor: hub.tile,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
               }}
             >
-              <Text
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: "800",
-                  color: lane.ink,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  backgroundColor: "rgba(255,255,255,0.22)",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                {lane.label}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 4,
-                  fontSize: 12,
-                  lineHeight: 16,
-                  color: lane.ink,
-                  opacity: 0.78,
-                }}
-              >
-                {lane.hint}
-              </Text>
+                <Ionicons name={hub.icon} size={28} color={hub.tileInk} />
+              </View>
+              <View style={{ width: "100%", alignItems: "center" }}>
+                <Text
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 18,
+                    lineHeight: 22,
+                    color: hub.tileInk,
+                    textAlign: "center",
+                  }}
+                >
+                  {hub.label}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 2,
+                    color: hub.tileInk,
+                    opacity: 0.72,
+                    fontSize: 11,
+                    lineHeight: 14,
+                    textAlign: "center",
+                  }}
+                  numberOfLines={1}
+                >
+                  {hub.tagline}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
-        <Text className="mt-3 text-[13px] leading-5 text-mist/50">
-          Plus a shared calendar and a daily check-in on the home screen.
-        </Text>
 
         <View className="mt-8 gap-3">
           {savedPair && !savedPair.user.bannedAt ? (
@@ -134,11 +134,6 @@ export default function WelcomeScreen() {
               onPress={() => router.push("/login")}
             />
           ) : null}
-          <PrimaryButton
-            label="How it works"
-            tone="ghost"
-            onPress={() => router.push("/how-to" as Href)}
-          />
           <PrimaryButton
             label="Terms and privacy"
             tone="ghost"

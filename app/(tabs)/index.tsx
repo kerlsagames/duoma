@@ -475,7 +475,7 @@ export default function HomeScreen() {
                       >
                         <HubGlyph
                           icon={app.icon}
-                          emoji={app.emoji}
+                          mark={app.mark}
                           size={22}
                           color={app.accent}
                         />
@@ -660,7 +660,7 @@ export default function HomeScreen() {
                           >
                             <HubGlyph
                               icon={app.icon}
-                              emoji={app.emoji}
+                              mark={app.mark}
                               size={20}
                               color={hub.accent}
                             />
