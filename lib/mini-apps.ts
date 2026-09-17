@@ -145,6 +145,19 @@ export async function wipeMiniApps(): Promise<MiniState> {
   return cache;
 }
 
+/** Drop one pair’s hub cache. Other pairs on this phone stay put. */
+export async function wipeMiniAppsForCouple(coupleId: string): Promise<MiniState | null> {
+  try {
+    await removeKey(storageKey(coupleId));
+  } catch {
+    // Keep going even if disk fails.
+  }
+  if (activeCoupleId !== coupleId) return cache;
+  cache = emptyMiniState();
+  emit(cache);
+  return cache;
+}
+
 export async function reloadMiniFromDisk(): Promise<MiniState> {
   cache = null;
   return loadMiniState();

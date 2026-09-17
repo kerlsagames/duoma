@@ -60,7 +60,18 @@ export default function DailyWordScreen() {
   const mine = playerFor(day, youId);
   const theirs = playerFor(day, themId);
   const baseTheme = themeFor(wordle.prefs);
-  const theme = themedTone("play", baseTheme, baseTheme.accent);
+  const painted = themedTone("play", baseTheme, baseTheme.accent);
+  const theme = {
+    ...painted,
+    correct: baseTheme.correct,
+    present: baseTheme.present,
+    absent: baseTheme.absent,
+    key: baseTheme.key,
+    keyText: baseTheme.keyText,
+    empty: baseTheme.empty,
+    border: baseTheme.border,
+    text: baseTheme.text,
+  };
   const keys = useMemo(() => keyMarks(mine.guesses, day.word), [mine.guesses, day.word]);
   const done = finished(mine);
   const winner = winnerOf(day);
@@ -430,6 +441,7 @@ function Keyboard({
             const wide = key === "ENTER" || key === "DEL";
             const mark = marks[key];
             const absent = mark === "absent";
+            const used = Boolean(mark);
             return (
               <Pressable
                 key={key}
@@ -444,7 +456,7 @@ function Keyboard({
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: absent
-                    ? "#6B6B70"
+                    ? theme.absent
                     : mark
                       ? theme[mark]
                       : theme.key,
@@ -453,7 +465,11 @@ function Keyboard({
               >
                 <Text
                   style={{
-                    color: mark ? "#FFFFFF" : theme.keyText,
+                    color: absent
+                      ? theme.muted
+                      : used
+                        ? "#FFFFFF"
+                        : theme.keyText,
                     fontSize: wide ? 11 : 13,
                     fontWeight: "800",
                   }}

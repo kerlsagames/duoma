@@ -64,7 +64,7 @@ import {
   type ContentReport,
   type ReportReasonId,
 } from "@/lib/reports";
-import { bindMiniAppsCouple, wipeMiniApps } from "@/lib/mini-apps";
+import { bindMiniAppsCouple, wipeMiniApps, wipeMiniAppsForCouple } from "@/lib/mini-apps";
 import {
   registerDuomaWorker,
   sendPushToSubscriptions,
@@ -427,7 +427,12 @@ function findDemoCouple(): Couple | null {
     db.couples.find((row) => {
       const a = profileById(row.partnerA);
       const b = profileById(row.partnerB);
-      return Boolean(a?.isDemo || b?.isDemo);
+      if (!a?.isDemo && !b?.isDemo) return false;
+      // Never treat the live pairing as the Riley sandbox.
+      if (liveUserId && (row.partnerA === liveUserId || row.partnerB === liveUserId)) {
+        return false;
+      }
+      return true;
     }) ?? null
   );
 }
@@ -993,8 +998,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       channel.onmessage = async (event) => {
         const data = event?.data as { type?: string; coupleId?: string } | undefined;
         if (data?.type === "unpair" || data?.type === "delete-account") {
-          await wipeLocalMediaCaches();
-          await wipeMiniApps();
+          if (data.type === "delete-account") {
+            await wipeLocalMediaCaches();
+            await wipeMiniApps();
+          } else if (data.coupleId) {
+            await wipeMiniAppsForCouple(data.coupleId);
+          } else {
+            await wipeLocalMediaCaches();
+            await wipeMiniApps();
+          }
         }
         db = await readDb();
         bump();
@@ -2207,11 +2219,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    if (sessionUserId && !sessionIsDemo()) {
+      liveUserId = sessionUserId;
+      lastUserId = sessionUserId;
+      await writeLiveUserId(sessionUserId);
+      await writeLastUserId(sessionUserId);
+    }
     if (supabase) {
       try {
         await supabase.auth.signOut();
       } catch {
-        // Local session still clears.
+        // Local session still clears. Hub data stays on this phone.
       }
     }
     sessionUserId = null;
@@ -2234,8 +2252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error(error.message || "Could not unpair on the server.");
       }
     }
-    await wipeLocalMediaCaches();
-    await wipeMiniApps();
+    await wipeMiniAppsForCouple(couple.id);
     const stripped = stripCoupleFromDb(db, couple.id);
     const freshId = createId();
     const freshCode = uniqueInviteCode();
