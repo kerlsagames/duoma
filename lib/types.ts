@@ -53,6 +53,8 @@ export type Profile = {
   moderationConsentAt?: string | null;
   timezone?: string | null;
   activeSeconds?: number;
+  /** Seconds spent in each mini-app, keyed by hub feature id. */
+  appSeconds?: Record<string, number>;
   isDemo?: boolean;
   createdAt: string;
 };

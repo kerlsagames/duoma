@@ -7,6 +7,7 @@ import { CalendarReminderWatch } from "@/components/hub/CalendarReminderWatch";
 import { CatalogProvider } from "@/lib/catalog-overlay";
 import { SafetyWatch } from "@/components/SafetyWatch";
 import { isCreatorEmail } from "@/lib/creator";
+import { setDwellPath } from "@/lib/app-dwell";
 import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
@@ -102,6 +103,10 @@ function RootChrome() {
   const { user, ready } = useApp();
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
   const banned = Boolean(user?.bannedAt) && !isCreatorEmail(user?.email);
+
+  useEffect(() => {
+    setDwellPath(pathname);
+  }, [pathname]);
 
   const authGate =
     pathname === "/login" ||

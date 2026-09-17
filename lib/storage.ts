@@ -158,6 +158,14 @@ function hydrateProfile(row: AppDB["profiles"][number]): AppDB["profiles"][numbe
     moderationConsentAt: row.moderationConsentAt ?? null,
     timezone: row.timezone ?? null,
     activeSeconds: typeof row.activeSeconds === "number" ? row.activeSeconds : 0,
+    appSeconds:
+      row.appSeconds && typeof row.appSeconds === "object" && !Array.isArray(row.appSeconds)
+        ? Object.fromEntries(
+            Object.entries(row.appSeconds).filter(
+              (entry): entry is [string, number] => typeof entry[1] === "number"
+            )
+          )
+        : {},
   };
 }
 

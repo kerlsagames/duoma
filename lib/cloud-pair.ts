@@ -161,8 +161,17 @@ function asProfile(row: {
   moderation_consent_at?: string | null;
   timezone?: string | null;
   active_seconds?: number | null;
+  app_seconds?: Record<string, number> | null;
   created_at: string;
 }): Profile {
+  const appSeconds =
+    row.app_seconds && typeof row.app_seconds === "object" && !Array.isArray(row.app_seconds)
+      ? Object.fromEntries(
+          Object.entries(row.app_seconds).filter(
+            (entry): entry is [string, number] => typeof entry[1] === "number"
+          )
+        )
+      : {};
   return {
     id: row.id,
     displayName: row.display_name,
@@ -176,6 +185,7 @@ function asProfile(row: {
     moderationConsentAt: row.moderation_consent_at ?? null,
     timezone: row.timezone ?? null,
     activeSeconds: typeof row.active_seconds === "number" ? row.active_seconds : 0,
+    appSeconds,
     createdAt: row.created_at,
   };
 }

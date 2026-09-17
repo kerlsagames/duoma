@@ -1,9 +1,8 @@
 import { MediaShield } from "@/components/MediaShield";
-import { groupUsageItems, usageForProfile, type UsageGroup } from "@/lib/account-usage";
+import { CoupleDossier } from "@/components/admin/CoupleDossier";
 import {
   EXAMPLE_COUPLE,
   EXAMPLE_PROFILES,
-  exampleUsage,
   isDemoPair,
   isExampleAccount,
 } from "@/lib/admin-example";
@@ -191,8 +190,9 @@ export function UsersSpreadsheet() {
           Users · {rows.length} pairs
         </Text>
         <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 13, lineHeight: 18 }}>
-          Spreadsheet of couples. Craig × Riley is the demo pair at the top — play in demo
-          and the record fills in. Click a row for activity. Location is timezone, not GPS.
+          Spreadsheet of couples. Click a row, pick partner A or B, then a hub,
+          then an app. Last login and time in app sit on the partner. Location is
+          timezone, not GPS.
         </Text>
         <TextInput
           value={query}
@@ -287,15 +287,16 @@ export function UsersSpreadsheet() {
         </View>
       </ScrollView>
       {open ? (
-        <CoupleRecord
-          row={open}
+        <CoupleDossier
+          couple={open.couple}
+          a={open.a}
+          b={open.b}
+          example={open.example}
           db={adminDb}
+          mini={mini}
           stacked={stacked}
           reason={reason}
           onReason={setReason}
-          mini={mini}
-          sessionUser={user}
-          sessionPartner={partner}
           onClose={() => setOpenId(null)}
           onBan={(id) =>
             open.example
@@ -306,6 +307,16 @@ export function UsersSpreadsheet() {
             open.example
               ? setExampleBanned((row) => ({ ...row, [id]: null }))
               : void unbanAccount(id)
+          }
+          pairFooter={
+            <>
+              <UploadBlock name={open.a?.displayName ?? "User A"} items={uploadsForPerson(open.a, "a", open, mini, user, partner)} />
+              <UploadBlock
+                name={open.b?.displayName ?? "User B"}
+                items={uploadsForPerson(open.b, "b", open, mini, user, partner)}
+                hidden={!open.b}
+              />
+            </>
           }
         />
       ) : null}
@@ -382,89 +393,6 @@ function uploadsForPerson(
   return [...photos, ...vault];
 }
 
-function CoupleRecord({
-  row,
-  db,
-  stacked,
-  reason,
-  onReason,
-  mini,
-  sessionUser,
-  sessionPartner,
-  onClose,
-  onBan,
-  onUnban,
-}: {
-  row: SheetRow;
-  db: ReturnType<typeof useApp>["adminDb"];
-  stacked: boolean;
-  reason: string;
-  onReason: (value: string) => void;
-  mini: MiniState;
-  sessionUser: Profile | null;
-  sessionPartner: Profile | null;
-  onClose: () => void;
-  onBan: (id: string) => void;
-  onUnban: (id: string) => void;
-}) {
-  const usageA = row.example && row.a ? exampleUsage(row.a.id) : row.a ? usageForProfile(db, row.a) : null;
-  const usageB = row.example && row.b ? exampleUsage(row.b.id) : row.b ? usageForProfile(db, row.b) : null;
-  const uploadsA = uploadsForPerson(row.a, "a", row, mini, sessionUser, sessionPartner);
-  const uploadsB = uploadsForPerson(row.b, "b", row, mini, sessionUser, sessionPartner);
-
-  return (
-    <View
-      style={{
-        position: stacked ? "relative" : "absolute",
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: stacked ? "100%" : 420,
-        backgroundColor: "#0F0F14",
-        borderLeftWidth: stacked ? 0 : 1,
-        borderLeftColor: "rgba(255,255,255,0.1)",
-        borderTopWidth: stacked ? 1 : 0,
-        borderTopColor: "rgba(255,255,255,0.1)",
-      }}
-    >
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
-        <Pressable onPress={onClose}>
-          <Text style={{ color: "#FF007F", fontWeight: "700", fontSize: 12 }}>Close record</Text>
-        </Pressable>
-        <Text style={{ color: "#F4F4F6", fontSize: 22, fontWeight: "800", marginTop: 8 }}>
-          {row.couple.inviteCode}
-          {row.example || isDemoPair(row.a, row.b) ? " · demo" : ""}
-        </Text>
-        <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 4, fontSize: 12 }}>
-          {row.a?.displayName ?? "—"} × {row.b?.displayName ?? "waiting"} · paired{" "}
-          {formatWhen(row.couple.pairedAt)}
-        </Text>
-        <PersonBlock
-          label="User A"
-          profile={row.a}
-          usage={usageA}
-          reason={reason}
-          onReason={onReason}
-          onBan={onBan}
-          onUnban={onUnban}
-          locked={row.example || isDemoPair(row.a, row.b)}
-        />
-        <PersonBlock
-          label="User B"
-          profile={row.b}
-          usage={usageB}
-          reason={reason}
-          onReason={onReason}
-          onBan={onBan}
-          onUnban={onUnban}
-          locked={row.example || isDemoPair(row.a, row.b)}
-        />
-        <UploadBlock name={row.a?.displayName ?? "User A"} items={uploadsA} />
-        <UploadBlock name={row.b?.displayName ?? "User B"} items={uploadsB} hidden={!row.b} />
-      </ScrollView>
-    </View>
-  );
-}
 
 function UploadBlock({
   name,
@@ -593,179 +521,6 @@ function UploadThumb({ item, size }: { item: AdminUpload; size: number }) {
               {item.kind === "video" ? "Clip" : "Photo"}
             </Text>
           )}
-    </View>
-  );
-}
-
-function ActivityFold({ usage }: { usage: ReturnType<typeof usageForProfile> | null }) {
-  const groups = groupUsageItems(usage);
-  const [openId, setOpenId] = useState<string | null>(null);
-  if (!groups.length) {
-    return (
-      <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8, fontSize: 12 }}>
-        No app use yet
-      </Text>
-    );
-  }
-  return (
-    <View style={{ marginTop: 10 }}>
-      <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11, letterSpacing: 1.2 }}>
-        ACTIVITY · tap a row
-      </Text>
-      {groups.map((group) => (
-        <ActivityGroupRow
-          key={group.id}
-          group={group}
-          open={openId === group.id}
-          onToggle={() => setOpenId(openId === group.id ? null : group.id)}
-        />
-      ))}
-    </View>
-  );
-}
-
-function ActivityGroupRow({
-  group,
-  open,
-  onToggle,
-}: {
-  group: UsageGroup;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <View
-      style={{
-        marginTop: 6,
-        borderWidth: 1,
-        borderColor: open ? "rgba(255,0,127,0.35)" : "rgba(255,255,255,0.08)",
-        borderRadius: 8,
-        overflow: "hidden",
-      }}
-    >
-      <Pressable
-        onPress={onToggle}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 10,
-          paddingVertical: 8,
-          backgroundColor: open ? "rgba(255,0,127,0.08)" : "rgba(255,255,255,0.03)",
-        }}
-      >
-        <Text style={{ flex: 1, color: "#F4F4F6", fontSize: 13, fontWeight: "700" }}>
-          {group.label}
-        </Text>
-        <Text style={{ color: "rgba(244,244,246,0.45)", fontSize: 12, fontFamily: "SpaceMono" }}>
-          {group.count}
-        </Text>
-      </Pressable>
-      {open ? (
-        <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
-          {group.items.length === 0 ? (
-            <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 12, marginTop: 6 }}>
-              Count only — no titles stored for this app yet.
-            </Text>
-          ) : (
-            group.items.map((item, index) => (
-              <Text
-                key={`${item.label}-${index}`}
-                style={{ color: "rgba(244,244,246,0.7)", fontSize: 12, marginTop: 6, lineHeight: 16 }}
-              >
-                {item.label}
-                <Text style={{ color: "rgba(244,244,246,0.38)" }}>{`  ·  ${item.detail}`}</Text>
-              </Text>
-            ))
-          )}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-function PersonBlock({
-  label,
-  profile,
-  usage,
-  reason,
-  onReason,
-  onBan,
-  onUnban,
-  locked = false,
-}: {
-  label: string;
-  profile: Profile | null;
-  usage: ReturnType<typeof usageForProfile> | null;
-  reason: string;
-  onReason: (value: string) => void;
-  onBan: (id: string) => void;
-  onUnban: (id: string) => void;
-  locked?: boolean;
-}) {
-  if (!profile) {
-    return (
-      <Text style={{ color: "rgba(244,244,246,0.4)", marginTop: 16, fontSize: 13 }}>
-        {label} · waiting to join
-      </Text>
-    );
-  }
-  const banned = Boolean(profile.bannedAt);
-  return (
-    <View
-      style={{
-        marginTop: 16,
-        padding: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: banned ? "rgba(255,138,138,0.45)" : "rgba(255,255,255,0.1)",
-      }}
-    >
-      <Text style={{ color: "#F4F4F6", fontWeight: "800", fontSize: 16 }}>
-        {label} · {profile.displayName}
-        {banned ? " · BANNED" : ""}
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 6, fontSize: 12 }}>
-        {profile.email || "no email"} · {profile.gender ?? "unset"}
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.55)", marginTop: 2, fontSize: 12 }}>
-        last login {formatWhen(profile.lastSeenAt)} · {profile.timezone || "no region"} ·{" "}
-        {formatActiveTime(profile.activeSeconds)} in app
-      </Text>
-      <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 2, fontSize: 11 }}>
-        18+ {profile.over18At ? formatWhen(profile.over18At) : "no"} · privacy{" "}
-        {profile.privacyConsentAt ? "yes" : "no"} · image review{" "}
-        {profile.moderationConsentAt ? "yes" : "no"}
-      </Text>
-      <ActivityFold usage={usage} />
-      {locked ? (
-        <Text style={{ color: "rgba(244,244,246,0.4)", marginTop: 10, fontSize: 12 }}>
-          Demo pair — cannot be banned.
-        </Text>
-      ) : banned ? (
-        <Pressable onPress={() => onUnban(profile.id)} style={{ marginTop: 10 }}>
-          <Text style={{ color: "#3ECFBF", fontWeight: "700", fontSize: 12 }}>Unban</Text>
-        </Pressable>
-      ) : (
-        <View style={{ marginTop: 10 }}>
-          <TextInput
-            value={reason}
-            onChangeText={onReason}
-            placeholder="Ban reason"
-            placeholderTextColor="rgba(244,244,246,0.35)"
-            style={{
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.12)",
-              borderRadius: 8,
-              padding: 8,
-              color: "#F4F4F6",
-              fontSize: 12,
-            }}
-          />
-          <Pressable onPress={() => onBan(profile.id)} style={{ marginTop: 8 }}>
-            <Text style={{ color: "#FF8A8A", fontWeight: "700", fontSize: 12 }}>Ban</Text>
-          </Pressable>
-        </View>
-      )}
     </View>
   );
 }

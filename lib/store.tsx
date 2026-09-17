@@ -28,6 +28,7 @@ import {
   type HubKind,
 } from "@/lib/hub-sync";
 import { absorbCoupleState, scheduleCoupleBackup } from "@/lib/couple-backup";
+import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
@@ -1190,13 +1191,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const current = db.profiles.find((row) => row.id === user.id);
       if (!current) return;
       const nextSeconds = (current.activeSeconds ?? 0) + 30;
+      const appSeconds = bumpAppSeconds(current.appSeconds, currentDwellApp(), 30);
       const seen = nowIso();
       const zone = deviceTimezone();
       db = {
         ...db,
         profiles: db.profiles.map((row) =>
           row.id === user.id
-            ? { ...row, activeSeconds: nextSeconds, lastSeenAt: seen, timezone: zone ?? row.timezone }
+            ? {
+                ...row,
+                activeSeconds: nextSeconds,
+                appSeconds,
+                lastSeenAt: seen,
+                timezone: zone ?? row.timezone,
+              }
             : row
         ),
       };
@@ -1209,6 +1217,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             last_seen_at: seen,
             timezone: zone,
           })
+          .eq("id", user.id);
+        void supabase
+          .from("profiles")
+          .update({ app_seconds: appSeconds })
           .eq("id", user.id);
       }
     };
