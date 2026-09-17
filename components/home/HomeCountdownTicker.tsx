@@ -2,7 +2,7 @@ import { useAppLook } from "@/lib/app-prefs";
 import { tickerLine } from "@/lib/countdown-ticker";
 import { useApp } from "@/lib/store";
 import { useRouter, type Href } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -13,9 +13,10 @@ import {
 } from "react-native";
 
 const GAP = "   ·   ";
+const PINK = "#FF8AB8";
 
 function ensureTickerKeyframes() {
-  if (Platform.OS !== "web" || typeof document === "undefined") return;
+  if (typeof document === "undefined") return;
   if (document.getElementById("duoma-ticker-kf")) return;
   const style = document.createElement("style");
   style.id = "duoma-ticker-kf";
@@ -24,26 +25,94 @@ function ensureTickerKeyframes() {
       from { transform: translate3d(0,0,0); }
       to { transform: translate3d(-50%,0,0); }
     }
-    .duoma-ticker-clip {
-      overflow: hidden !important;
-      width: 100%;
-    }
-    .duoma-ticker-track {
-      display: flex !important;
-      flex-direction: row !important;
-      flex-wrap: nowrap !important;
-      width: max-content !important;
-      will-change: transform;
-      animation-name: duomaTicker;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-    .duoma-ticker-copy {
-      flex: 0 0 auto !important;
-      white-space: nowrap !important;
-    }
   `;
   document.head.appendChild(style);
+}
+
+function WebMarquee({
+  piece,
+  label,
+  onPress,
+}: {
+  piece: string;
+  label: string;
+  onPress: () => void;
+}) {
+  const copyRef = useRef<HTMLSpanElement | null>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    ensureTickerKeyframes();
+  }, []);
+
+  useEffect(() => {
+    const node = copyRef.current;
+    if (!node) return;
+    const measure = () => setWidth(node.offsetWidth);
+    measure();
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measure)
+        : null;
+    ro?.observe(node);
+    return () => ro?.disconnect();
+  }, [piece]);
+
+  const duration = Math.max(8, width > 0 ? width / 55 : 12);
+  const copyStyle = {
+    color: PINK,
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: 0.3,
+    whiteSpace: "nowrap" as const,
+    flexShrink: 0,
+    fontFamily: "system-ui, sans-serif",
+  };
+
+  return createElement(
+    "div",
+    {
+      role: "button",
+      tabIndex: 0,
+      "aria-label": `Countdown ticker. ${label}`,
+      onClick: onPress,
+      onKeyDown: (event: { key: string }) => {
+        if (event.key === "Enter" || event.key === " ") onPress();
+      },
+      style: {
+        height: 28,
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 6,
+        overflow: "hidden",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+      },
+    },
+    createElement(
+      "div",
+      {
+        style: {
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "nowrap",
+          width: "max-content",
+          animation: `duomaTicker ${duration}s linear infinite`,
+          willChange: "transform",
+        },
+      },
+      createElement(
+        "span",
+        {
+          ref: copyRef,
+          style: copyStyle,
+        },
+        piece
+      ),
+      createElement("span", { style: copyStyle }, piece)
+    )
+  );
 }
 
 export function HomeCountdownTicker() {
@@ -66,10 +135,6 @@ export function HomeCountdownTicker() {
   const [copyWidth, setCopyWidth] = useState(0);
   const translate = useRef(new Animated.Value(0)).current;
   const running = useRef(false);
-
-  useEffect(() => {
-    ensureTickerKeyframes();
-  }, []);
 
   useEffect(() => {
     setCopyWidth(0);
@@ -108,20 +173,15 @@ export function HomeCountdownTicker() {
 
   if (!couple || !line) return null;
 
-  const durationSec = Math.max(8, copyWidth > 0 ? copyWidth / 62 : Math.max(10, piece.length * 0.28));
+  const open = () => router.push("/hub/milestones" as Href);
 
-  const copyStyle = {
-    color: "#FF8AB8",
-    fontSize: 12,
-    fontWeight: "700" as const,
-    letterSpacing: 0.3,
-    flexShrink: 0,
-  };
+  if (Platform.OS === "web") {
+    return <WebMarquee piece={piece} label={line} onPress={open} />;
+  }
 
   const copies = [0, 1].map((copy) => (
     <View
       key={copy}
-      className="duoma-ticker-copy"
       onLayout={
         copy === 0
           ? (event) => {
@@ -134,31 +194,23 @@ export function HomeCountdownTicker() {
       }
       style={{ flexDirection: "row", flexShrink: 0, alignItems: "center" }}
     >
-      <Text style={copyStyle}>
+      <Text
+        style={{
+          color: PINK,
+          fontSize: 12,
+          fontWeight: "700",
+          letterSpacing: 0.3,
+          flexShrink: 0,
+        }}
+      >
         {piece}
       </Text>
     </View>
   ));
 
-  const trackStyle =
-    Platform.OS === "web"
-      ? ({
-          flexDirection: "row",
-          alignItems: "center",
-          flexWrap: "nowrap",
-          width: "max-content",
-          animationDuration: `${durationSec}s`,
-        } as object)
-      : {
-          flexDirection: "row" as const,
-          alignItems: "center" as const,
-          flexWrap: "nowrap" as const,
-          transform: [{ translateX: translate }],
-        };
-
   return (
     <Pressable
-      onPress={() => router.push("/hub/milestones" as Href)}
+      onPress={open}
       accessibilityRole="button"
       accessibilityLabel={`Countdown ticker. ${line}`}
       style={{
@@ -169,11 +221,16 @@ export function HomeCountdownTicker() {
         justifyContent: "center",
       }}
     >
-      <View className="duoma-ticker-clip" style={{ overflow: "hidden", width: "100%" }}>
-        <Animated.View className="duoma-ticker-track" style={trackStyle}>
-          {copies}
-        </Animated.View>
-      </View>
+      <Animated.View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          transform: [{ translateX: translate }],
+        }}
+      >
+        {copies}
+      </Animated.View>
     </Pressable>
   );
 }
