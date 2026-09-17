@@ -11,7 +11,7 @@ import {
   type ViewStyle,
 } from "react-native";
 
-const SPEED = 72;
+const SPEED = 36;
 
 type Props = {
   text: string;
