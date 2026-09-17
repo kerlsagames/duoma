@@ -38,6 +38,8 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   const hubs = useThemedHubs();
   const [tab, setTab] = useState<Tab>("stats");
   const [lane, setLane] = useState<StatSectionId>("general");
+  const [areaH, setAreaH] = useState(0);
+  const sheetH = areaH > 0 ? Math.max(280, areaH - 20) : undefined;
   const input: CoupleStatInput = useMemo(
     () => ({
       user: app.user,
@@ -102,6 +104,10 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   return (
     <View
       pointerEvents="box-none"
+      onLayout={(event) => {
+        const next = Math.round(event.nativeEvent.layout.height);
+        if (next !== areaH) setAreaH(next);
+      }}
       style={{
         position: "absolute",
         top: 0,
@@ -110,7 +116,6 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
         left: 0,
         zIndex: 40,
         justifyContent: "flex-end",
-        paddingBottom: 70,
       }}
     >
       <Pressable
@@ -128,10 +133,12 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
       <View
         style={{
           width: "100%",
-          maxHeight: "88%",
+          height: sheetH,
+          maxHeight: sheetH ?? "92%",
+          overflow: "hidden",
           backgroundColor: PAPER.sheet,
           paddingHorizontal: 16,
-          paddingTop: 16,
+          paddingTop: 12,
           paddingBottom: 18,
           borderTopLeftRadius: 26,
           borderTopRightRadius: 26,
@@ -139,7 +146,14 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
           borderColor: "rgba(196,92,106,0.35)",
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 12,
+            flexShrink: 0,
+          }}
+        >
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text
               style={{
@@ -156,7 +170,21 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
               {app.partner ? `${app.user?.displayName ?? "You"} × ${app.partner.displayName}` : "Stats"}
             </Text>
           </View>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Close">
+          <Pressable
+            onPress={onClose}
+            hitSlop={8}
+            accessibilityLabel="Close"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 16,
+              backgroundColor: PAPER.card,
+              borderWidth: 1,
+              borderColor: PAPER.line,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Ionicons name="close" size={22} color={PAPER.ink} />
           </Pressable>
         </View>
@@ -239,6 +267,7 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
         </View>
 
         <ScrollView
+          style={{ flex: 1, minHeight: 0 }}
           nestedScrollEnabled
           showsVerticalScrollIndicator
           contentContainerStyle={{ paddingBottom: 28 }}

@@ -62,7 +62,6 @@ import {
   ScrollView,
   Text,
   View,
-  useWindowDimensions,
 } from "react-native";
 
 export default function HomeScreen() {
@@ -758,13 +757,17 @@ function HomeSettingsSheet({
   } = useApp();
   const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
   const [safetyError, setSafetyError] = useState<string | null>(null);
-  const { height: winH } = useWindowDimensions();
-  const sheetH = Math.round(Math.min(winH * 0.88, winH - 78));
+  const [areaH, setAreaH] = useState(0);
+  const sheetH = areaH > 0 ? Math.max(280, areaH - 20) : undefined;
   const hubThemes = useHubThemes();
   const hubs = useThemedHubs();
   return (
     <View
       pointerEvents="box-none"
+      onLayout={(event) => {
+        const next = Math.round(event.nativeEvent.layout.height);
+        if (next !== areaH) setAreaH(next);
+      }}
       style={{
         position: "absolute",
         top: 0,
@@ -773,7 +776,6 @@ function HomeSettingsSheet({
         left: 0,
         zIndex: 40,
         justifyContent: "flex-end",
-        paddingBottom: 70,
       }}
     >
       <Pressable
@@ -793,11 +795,11 @@ function HomeSettingsSheet({
         style={{
           width: "100%",
           height: sheetH,
-          maxHeight: sheetH,
+          maxHeight: sheetH ?? "92%",
           overflow: "hidden",
           backgroundColor: "#14141A",
           paddingHorizontal: 16,
-          paddingTop: 16,
+          paddingTop: 12,
           paddingBottom: 18,
           borderTopLeftRadius: 22,
           borderTopRightRadius: 22,
@@ -805,7 +807,14 @@ function HomeSettingsSheet({
           borderColor: "rgba(255,255,255,0.1)",
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 12,
+            flexShrink: 0,
+          }}
+        >
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text
               style={{
@@ -822,7 +831,21 @@ function HomeSettingsSheet({
               Settings
             </Text>
           </View>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Close settings">
+          <Pressable
+            onPress={onClose}
+            hitSlop={8}
+            accessibilityLabel="Close settings"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 16,
+              backgroundColor: "#1A1A22",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.16)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Ionicons name="close" size={22} color="#F4F4F6" />
           </Pressable>
         </View>
