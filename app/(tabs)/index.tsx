@@ -1190,7 +1190,7 @@ function HomeSettingsSheet({
           />
           <LinkRow
             label="Terms and privacy"
-            hint="The contract you ticked when you created the pair."
+            hint="Terms of Use and Privacy Policy."
             onPress={() => {
               onClose();
               router.push("/legal" as Href);
