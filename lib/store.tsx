@@ -159,6 +159,7 @@ import {
   dareById,
   dueAtForTimeframe,
   isSpicyDareDeck,
+  personalizeDareText,
 } from "@/lib/spicy-dares";
 import {
   demoLikedFantasyIds,
@@ -4208,7 +4209,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!toUserId) {
         throw new Error("Pair up before sending a dare.");
       }
-      const text = input.text.trim();
+      const text = personalizeDareText(input.text.trim(), {
+        youName: user.displayName,
+        themName: partner?.displayName,
+        youGender: user.gender,
+        themGender: partner?.gender,
+      });
       if (!text) throw new Error("Write the dare, or tweak the one you picked.");
       if (input.timeframe === "custom" && !input.customWhen?.trim()) {
         throw new Error("Pick a date and time on the calendar.");
@@ -4237,7 +4243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dareId: catalog?.id ?? input.dareId,
         text,
         categories,
-        direction: input.direction,
+        direction: null,
         timeframe: input.timeframe,
         customWhen: input.timeframe === "custom" ? input.customWhen!.trim() : null,
         dueAt,
@@ -4271,12 +4277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         talkDecks,
       };
       await persist();
-      const body =
-        input.direction === "i-do-you"
-          ? `${user.displayName} wants to do this to you.`
-          : input.direction === "you-do-me"
-            ? `${user.displayName} dared you — if you're up for it.`
-            : `${user.displayName} sent you a dare.`;
+      const body = `${user.displayName} sent you a dare.`;
       pingPartner(couple, user, partner, {
         title: "Up for it",
         body,

@@ -5,8 +5,8 @@ import {
   SPICY_DARE_CATEGORIES,
   SPICY_DARE_CATEGORY_META,
   defaultDareDateTime,
-  directionLabel,
   formatDareDueAt,
+  personalizeDareText,
   isSpicyDareDeck,
   parseLocalDateTime,
   spicyCategoryMeta,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/spicy-dares";
 import { USE_TIMING_OPTIONS, expiresAtForTiming, type UseTimingId } from "@/lib/useTiming";
 import { useApp } from "@/lib/store";
-import type { DareDirection, DareTimeframe, SpicyDarePlay } from "@/lib/types";
+import type { DareTimeframe, SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -96,7 +96,6 @@ export function SpicyDarePanel({
   const [flashText, setFlashText] = useState<string | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [compose, setCompose] = useState<Compose | null>(null);
-  const [direction, setDirection] = useState<DareDirection | null>(null);
   const [timeframe, setTimeframe] = useState<UseTimingId>("tonight");
   const [customWhen, setCustomWhen] = useState(defaultDareDateTime);
   const [error, setError] = useState<string | null>(null);
@@ -139,6 +138,14 @@ export function SpicyDarePanel({
   ).length;
   const receivedWaitingCount = received.filter((row) => row.status === "offered").length;
 
+  const names = {
+    youName: user?.displayName,
+    themName: partner?.displayName,
+    youGender: user?.gender,
+    themGender: partner?.gender,
+  };
+  const showDare = (text: string) => personalizeDareText(text, names);
+
   useEffect(() => {
     return () => {
       spinTimers.current.forEach(clearTimeout);
@@ -171,12 +178,15 @@ export function SpicyDarePanel({
     setSpinning(false);
     setFlashText(null);
     setError(null);
-    setDirection(null);
     setTimeframe("tonight");
     setCustomWhen(defaultDareDateTime());
     setCompose(
       dare
-        ? { dareId: dare.id, text: dare.text, categories: [...dare.categories] }
+        ? {
+            dareId: dare.id,
+            text: personalizeDareText(dare.text, names),
+            categories: [...dare.categories],
+          }
         : {
             dareId: null,
             text: "",
@@ -233,12 +243,11 @@ export function SpicyDarePanel({
         dareId: compose.dareId,
         text: compose.text,
         categories: compose.categories,
-        direction,
+        direction: null,
         timeframe: timeframe as DareTimeframe,
         customWhen: timeframe === "custom" ? customWhen : null,
       });
       setCompose(null);
-      setDirection(null);
       setPicked(null);
       setCategory(null);
       setView("sent");
@@ -307,7 +316,11 @@ export function SpicyDarePanel({
   }, [onBindBack, view, category]);
 
   const catMeta = category ? spicyCategoryMeta(category) : null;
-  const heroText = flashText ?? picked?.text ?? null;
+  const heroText = flashText
+    ? showDare(flashText)
+    : picked
+      ? showDare(picked.text)
+      : null;
 
   if (view === "compose" && compose) {
     return (
@@ -423,45 +436,6 @@ export function SpicyDarePanel({
         <Text
           style={{
             marginTop: compose.dareId ? 18 : 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            color: T.accent,
-          }}
-        >
-          Who · optional
-        </Text>
-        <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 18, color: T.muted }}>
-          Skip if it doesn’t apply — not every dare is you-to-me or me-to-you.
-        </Text>
-        <View className="mt-3" style={{ gap: 8 }}>
-          {(["i-do-you", "you-do-me"] as DareDirection[]).map((id) => {
-            const active = direction === id;
-            return (
-              <Pressable
-                key={id}
-                onPress={() => setDirection((prev) => (prev === id ? null : id))}
-                style={{
-                  borderRadius: 18,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  borderWidth: 1,
-                  borderColor: active ? T.accent : "rgba(232,244,241,0.12)",
-                  backgroundColor: active ? T.accentSoft : T.surface,
-                }}
-              >
-                <Text style={{ fontFamily: SERIF, fontSize: 17, color: T.ink }}>
-                  {directionLabel(id)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text
-          style={{
-            marginTop: 20,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 1.4,
@@ -722,7 +696,7 @@ export function SpicyDarePanel({
                     color: T.ink,
                   }}
                 >
-                  {dare.text}
+                  {showDare(dare.text)}
                 </Text>
                 {played ? (
                   <Text
@@ -1097,12 +1071,6 @@ function LiveDareCard({
   const accepted = play.status === "accepted";
   const declined = play.status === "declined";
   const done = play.status === "done";
-  const heading =
-    play.direction === "i-do-you"
-      ? "I'll do this to you"
-      : play.direction === "you-do-me"
-        ? "You do this to me"
-        : null;
   const live = play.status === "offered" || play.status === "accepted";
 
   return (
@@ -1125,7 +1093,7 @@ function LiveDareCard({
           color: live ? T.hot : T.muted,
         }}
       >
-        {heading ? `${heading} · ${dareWhen(play)}` : dareWhen(play)}
+        {dareWhen(play)}
       </Text>
       <Text
         style={{

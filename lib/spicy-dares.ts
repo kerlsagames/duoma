@@ -1,4 +1,5 @@
 import { applyOverlay } from "@/lib/catalog-overlay";
+import type { Gender } from "@/lib/types";
 import {
   expiresAtForTiming,
   formatExactWhen,
@@ -207,22 +208,22 @@ export function isSpicyDareDeck(id: string | null | undefined): boolean {
 export const SPICY_DARES: SpicyDare[] = [
   {
     id: "sd-1",
-    text: "Take one photo of them they are not allowed to see until later tonight. Lighting has to be flattering on purpose.",
+    text: "{m} takes one photo of {f} she is not allowed to see until later tonight. Lighting has to be flattering on purpose.",
     categories: ["Film & Photo", "Quick & Playful"],
   },
   {
     id: "sd-2",
-    text: "Record a 15-second voice note of what you want to do to them — send it while they are in another room.",
+    text: "{m} records a 15-second voice note of what he wants to do to {f} — send it while she is in another room.",
     categories: ["Film & Photo", "Roleplay & Teasing"],
   },
   {
     id: "sd-3",
-    text: "Film a slow undress from the neck down. No faces. Watch it together before anything else happens.",
+    text: "{f} films a slow undress from the neck down. No faces. Watch it together before anything else happens.",
     categories: ["Film & Photo"],
   },
   {
     id: "sd-4",
-    text: "Set a lamp, a candle, or phone torch and shoot three stills of their body you actually like. Show them one.",
+    text: "{m} sets a lamp, a candle, or phone torch and shoots three stills of {f}'s body he actually likes. Shows her one.",
     categories: ["Film & Photo", "Sensory & Touch"],
   },
   {
@@ -232,12 +233,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-6",
-    text: "Send a photo mid-day with one piece of clothing already gone, no caption except a time.",
+    text: "{f} sends {m} a photo mid-day with one piece of clothing already gone, no caption except a time.",
     categories: ["Film & Photo", "Roleplay & Teasing", "Quick & Playful"],
   },
   {
     id: "sd-7",
-    text: "Blindfold them. Use three different textures on their skin. They guess. Wrong guess means you linger.",
+    text: "{m} blindfolds {f} and uses three different textures on her skin. She guesses. Wrong guess means he lingers.",
     categories: ["Toys & Accessories", "Sensory & Touch"],
   },
   {
@@ -247,12 +248,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-9",
-    text: "Ice cube or warm mug — pick one. Trace it until they say stay or stop.",
+    text: "{m} picks ice cube or warm mug and traces it on {f} until she says stay or stop.",
     categories: ["Toys & Accessories", "Sensory & Touch"],
   },
   {
     id: "sd-10",
-    text: "Tie or hold their wrists with something soft. You decide the pace. They decide the word that ends it.",
+    text: "{m} ties or holds {f}'s wrists with something soft. {m} decides the pace. {f} decides the word that ends it.",
     categories: ["Toys & Accessories", "Roleplay & Teasing"],
   },
   {
@@ -267,27 +268,27 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-13",
-    text: "Text them one explicit instruction they have to follow in public without anyone noticing.",
+    text: "{m} texts {f} one explicit instruction she has to follow in public without anyone noticing.",
     categories: ["Roleplay & Teasing", "Location & Adventure"],
   },
   {
     id: "sd-14",
-    text: "For the next hour they call you a name you choose. Stay in it even when you laugh.",
+    text: "For the next hour {f} calls {m} a name he chooses. Stay in it even when you laugh.",
     categories: ["Roleplay & Teasing"],
   },
   {
     id: "sd-15",
-    text: "Send three daytime texts that get filthier. The last one names a time you will make it real.",
+    text: "{m} sends {f} three daytime texts that get filthier. The last one names a time they will make it real.",
     categories: ["Roleplay & Teasing", "Quick & Playful"],
   },
   {
     id: "sd-16",
-    text: "You are in charge from the first kiss until they ask to switch. No asking 'is this okay' unless they use the stop word.",
+    text: "{m} is in charge from the first kiss until {f} asks to switch. No asking 'is this okay' unless she uses the stop word.",
     categories: ["Roleplay & Teasing", "Sensory & Touch"],
   },
   {
     id: "sd-17",
-    text: "Whisper what you are about to do before you do it. Do not skip the sentence.",
+    text: "{m} whispers what he is about to do to {f} before he does it. Do not skip the sentence.",
     categories: ["Roleplay & Teasing", "Quick & Playful"],
   },
   {
@@ -297,17 +298,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-19",
-    text: "A full slow massage with a rule: no sex until they ask twice.",
+    text: "{m} gives {f} a full slow massage with a rule: no sex until she asks twice.",
     categories: ["Sensory & Touch"],
   },
   {
     id: "sd-20",
-    text: "Mouth only, ten minutes, no hands. Timer on the nightstand.",
+    text: "{m} uses only his mouth on {f} for ten minutes, no hands. Timer on the nightstand.",
     categories: ["Sensory & Touch", "Quick & Playful"],
   },
   {
     id: "sd-21",
-    text: "Kiss every place you usually skip. Name them as you go.",
+    text: "{m} kisses every place on {f} he usually skips. Names them as he goes.",
     categories: ["Sensory & Touch"],
   },
   {
@@ -317,12 +318,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-23",
-    text: "Hold eye contact for one whole song while you touch them. If you look away, start the song over.",
+    text: "{m} holds eye contact with {f} for one whole song while he touches her. If he looks away, start the song over.",
     categories: ["Sensory & Touch", "Roleplay & Teasing"],
   },
   {
     id: "sd-24",
-    text: "Use only your mouth and breath on their neck and chest until they pull you in.",
+    text: "{m} uses only his mouth and breath on {f}'s neck and chest until she pulls him in.",
     categories: ["Sensory & Touch", "Quick & Playful"],
   },
   {
@@ -342,7 +343,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-28",
-    text: "Shower together with a rule: one of you does not get to touch themselves. The other one does the work.",
+    text: "{m} does all the work in the shower. {f} does not get to touch herself.",
     categories: ["Location & Adventure", "Sensory & Touch"],
   },
   {
@@ -352,12 +353,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-30",
-    text: "Go for a walk. At some point pull them somewhere slightly too public and kiss like you mean it.",
+    text: "{m} takes {f} for a walk. At some point he pulls her somewhere slightly too public and kisses her like he means it.",
     categories: ["Location & Adventure", "Roleplay & Teasing"],
   },
   {
     id: "sd-31",
-    text: "Five-minute timer. Get them as close as you can. Stop on zero. Decide together whether to start it again.",
+    text: "{m} gets {f} as close as he can in five minutes. Stop on zero. Decide together whether to start it again.",
     categories: ["Quick & Playful", "Sensory & Touch"],
   },
   {
@@ -367,7 +368,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-33",
-    text: "They pick a number 1 to 10. That many slow strokes or kisses. Then you ask if they want the next ten.",
+    text: "{f} picks a number 1 to 10. {m} gives that many slow strokes or kisses. Then he asks if she wants the next ten.",
     categories: ["Quick & Playful", "Sensory & Touch"],
   },
   {
@@ -377,17 +378,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-35",
-    text: "Dare them to keep a straight face while you touch them under a blanket during a show.",
+    text: "{m} dares {f} to keep a straight face while he touches her under a blanket during a show.",
     categories: ["Quick & Playful", "Roleplay & Teasing"],
   },
   {
     id: "sd-36",
-    text: "Write a one-line dare on a note. Put it in their pocket. They have to do it before bed.",
+    text: "{m} writes a one-line dare on a note and puts it in {f}'s pocket. She has to do it before bed.",
     categories: ["Quick & Playful", "Roleplay & Teasing"],
   },
   {
     id: "sd-37",
-    text: "Take a photo of your hand on them that only they would recognize. Send it with no context.",
+    text: "{m} takes a photo of his hand on {f} that only she would recognize. Sends it with no context.",
     categories: ["Film & Photo", "Quick & Playful"],
   },
   {
@@ -397,22 +398,22 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-39",
-    text: "Wear or hold one accessory they chose. You do not take it off until they say so.",
+    text: "{f} wears or holds one accessory {m} chose. She does not take it off until he says so.",
     categories: ["Toys & Accessories", "Roleplay & Teasing"],
   },
   {
     id: "sd-40",
-    text: "Feather, nail, or ice. Two minutes each. They rank them. Winner gets used again.",
+    text: "{m} uses feather, nail, or ice on {f}. Two minutes each. She ranks them. Winner gets used again.",
     categories: ["Toys & Accessories", "Sensory & Touch", "Quick & Playful"],
   },
   {
     id: "sd-41",
-    text: "Give them a job for the evening: they ask, you do. They only get three asks.",
+    text: "{f} gets three asks for the evening. {m} does them.",
     categories: ["Roleplay & Teasing"],
   },
   {
     id: "sd-42",
-    text: "Tease them in a doorway every time they walk through it tonight. No follow-through until the last one.",
+    text: "{m} teases {f} in a doorway every time she walks through it tonight. No follow-through until the last one.",
     categories: ["Roleplay & Teasing", "Location & Adventure"],
   },
   {
@@ -422,7 +423,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-44",
-    text: "Bite, then soothe, on a place they name. Twice.",
+    text: "{m} bites, then soothes, a place {f} names. Twice.",
     categories: ["Sensory & Touch", "Quick & Playful"],
   },
   {
@@ -452,47 +453,47 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-50",
-    text: "Put the toy on a timer they cannot see. They find out when it starts.",
+    text: "{m} puts a toy on {f} on a timer she cannot see. She finds out when it starts.",
     categories: ["Toys & Accessories", "Quick & Playful"],
   },
   {
     id: "sd-51",
-    text: "Text them a role they have to stay in until they get home — even in the grocery line.",
+    text: "{m} texts {f} a role she has to stay in until she gets home — even in the grocery line.",
     categories: ["Roleplay & Teasing"],
   },
   {
     id: "sd-52",
-    text: "Trace their outline with one finger, never lifting, until they ask you to stop or keep going.",
+    text: "{m} traces {f}'s outline with one finger, never lifting, until she asks him to stop or keep going.",
     categories: ["Sensory & Touch"],
   },
   {
     id: "sd-53",
-    text: "Take them somewhere you have never been intimate and kiss them like you might get caught.",
+    text: "{m} takes {f} somewhere they have never been intimate and kisses her like they might get caught.",
     categories: ["Location & Adventure"],
   },
   {
     id: "sd-54",
-    text: "Ninety-second dare: they pick a body part. You have that long to make it their favorite.",
+    text: "{f} picks a body part. {m} has ninety seconds to make it her favorite.",
     categories: ["Quick & Playful", "Sensory & Touch"],
   },
   {
     id: "sd-55",
-    text: "Send a photo of the outfit you will take off later. Nothing else — let them wait.",
+    text: "{f} sends {m} a photo of the outfit she will take off later. Nothing else — let him wait.",
     categories: ["Film & Photo", "Roleplay & Teasing"],
   },
   {
     id: "sd-56",
-    text: "Lay out three toys. They pick one without looking. You commit to using it.",
+    text: "{m} lays out three toys. {f} picks one without looking. He commits to using it.",
     categories: ["Toys & Accessories", "Quick & Playful"],
   },
   {
     id: "sd-57",
-    text: "Write a scene on a note they find later. Play it out as written, no improvising the first round.",
+    text: "{m} writes a scene on a note {f} finds later. Play it out as written, no improvising the first round.",
     categories: ["Roleplay & Teasing"],
   },
   {
     id: "sd-58",
-    text: "Warm oil, slow hands, no talking. If they speak, start the massage over.",
+    text: "{m} gives {f} a warm-oil slow massage, no talking. If she speaks, he starts over.",
     categories: ["Sensory & Touch"],
   },
   {
@@ -507,47 +508,47 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-61",
-    text: "Total Command (30 mins): the holder issues any non-dangerous commands and the other partner obeys without question.",
+    text: "{f} has total command for 30 minutes. {m} obeys any non-dangerous command without question.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-62",
-    text: "The Kneeling Serve: pass your partner a drink, snack, or item of their choice while kneeling before them.",
+    text: "{f} kneels and passes {m} a drink, snack, or item of his choice.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-63",
-    text: "Hands Tied: loosely bind your partner's wrists with a scarf or belt for the duration of a foreplay session.",
+    text: "{m} loosely binds {f}'s wrists with a scarf or belt for the duration of a foreplay session.",
     categories: ["Submission & Control", "Toys & Accessories"],
   },
   {
     id: "sd-64",
-    text: "Eyes Covered: blindfold your partner and leave them completely at the mercy of your touch and pace.",
+    text: "{m} blindfolds {f} and leaves her at the mercy of his touch and pace.",
     categories: ["Submission & Control", "Sensory & Touch"],
   },
   {
     id: "sd-65",
-    text: "Permission Required: they must ask out loud \"May I touch you?\" before every single physical contact for the next 20 minutes.",
+    text: "{m} must ask out loud \"May I touch you?\" before every physical contact with {f} for the next 20 minutes.",
     categories: ["Submission & Control", "Roleplay & Teasing"],
   },
   {
     id: "sd-66",
-    text: "Posture Control: put your partner on their hands and knees or flat on their stomach and make them hold that exact position until told otherwise.",
+    text: "{m} puts {f} on her hands and knees or flat on her stomach and makes her hold that position until he says otherwise.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-67",
-    text: "Silent Obedience: they may not speak a single word — only nod or shake their head — while following every physical direction you give.",
+    text: "{f} may not speak — only nod or shake her head — while following every physical direction {m} gives.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-68",
-    text: "Stripping Command: sit back on the bed and point to each piece of clothing your partner takes off next.",
+    text: "{m} sits back on the bed and points to each piece of clothing {f} takes off next.",
     categories: ["Submission & Control", "Roleplay & Teasing"],
   },
   {
     id: "sd-69",
-    text: "Public Whisper: walk up to your partner in public or around company and whisper an explicit sexual secret in their ear.",
+    text: "{m} walks up to {f} in public and whispers an explicit sexual secret in her ear.",
     categories: ["Exhibition & Risk", "Location & Adventure"],
   },
   {
@@ -557,7 +558,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-71",
-    text: "No-Underwear Night: demand that your partner goes out to dinner or an event wearing no underwear.",
+    text: "{m} gets {f} to go out to dinner or an event wearing no underwear.",
     categories: ["Exhibition & Risk"],
   },
   {
@@ -572,12 +573,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-74",
-    text: "Doorway Flash: briefly expose a private body part to your partner while standing just inside an open doorway before closing it.",
+    text: "{f} briefly flashes {m} a private body part while standing just inside an open doorway before closing it.",
     categories: ["Exhibition & Risk", "Quick & Playful"],
   },
   {
     id: "sd-75",
-    text: "Public Hand Drag: slip your hand inside your partner's back pocket or under their jacket to touch skin while walking in public.",
+    text: "{m} slips his hand inside {f}'s back pocket or under her jacket to touch skin while walking in public.",
     categories: ["Exhibition & Risk"],
   },
   {
@@ -587,17 +588,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-77",
-    text: "Porn Director: choose the exact adult video or audio clip for both of you to watch or listen to during foreplay.",
+    text: "{m} chooses the exact adult video or audio clip you both watch or listen to during foreplay.",
     categories: ["Digital & Media", "Film & Photo"],
   },
   {
     id: "sd-78",
-    text: "Private Gallery: direct a 3-photo private photoshoot of your partner to keep on a locked phone.",
+    text: "{m} directs a 3-photo private photoshoot of {f} to keep on a locked phone.",
     categories: ["Digital & Media", "Film & Photo"],
   },
   {
     id: "sd-79",
-    text: "Voice Note Tease: send an explicit 15-second audio description of what you want to do to them later while one of you is away.",
+    text: "{m} sends {f} an explicit 15-second audio of what he wants to do later while one of you is away.",
     categories: ["Digital & Media", "Roleplay & Teasing"],
   },
   {
@@ -622,22 +623,22 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-84",
-    text: "Text Dictation: text your partner three explicit instruction steps from the other room that they must follow in order.",
+    text: "{m} texts {f} three explicit instruction steps from the other room that she must follow in order.",
     categories: ["Digital & Media", "Roleplay & Teasing"],
   },
   {
     id: "sd-85",
-    text: "Vibrator Hijack: take remote or direct control of a vibrator or massager during penetration.",
+    text: "{m} takes remote or direct control of a vibrator or massager on {f} during penetration.",
     categories: ["Tech & Toys", "Toys & Accessories"],
   },
   {
     id: "sd-86",
-    text: "Blind Toy Surprise: while the holder is blindfolded, choose which toy to use on them.",
+    text: "{m} blindfolds {f}, then chooses which toy to use on her.",
     categories: ["Tech & Toys", "Toys & Accessories"],
   },
   {
     id: "sd-87",
-    text: "Lube & Slide: a dedicated 15-minute high-slickness massage using warming or sensory lube before sex.",
+    text: "{m} gives {f} a 15-minute high-slickness massage using warming or sensory lube before sex.",
     categories: ["Tech & Toys", "Sensory & Touch"],
   },
   {
@@ -647,12 +648,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-89",
-    text: "Temperature Wand: warm or chill a glass or silicone toy, then trace it over your partner's sensitive zones.",
+    text: "{m} warms or chills a glass or silicone toy, then traces it over {f}'s sensitive zones.",
     categories: ["Tech & Toys", "Sensory & Touch"],
   },
   {
     id: "sd-90",
-    text: "Massager Warmup: spend 5 full minutes with a deep-tissue massager on shoulders and thighs before bringing it to sensitive areas.",
+    text: "{m} spends 5 full minutes with a deep-tissue massager on {f}'s shoulders and thighs before bringing it to sensitive areas.",
     categories: ["Tech & Toys", "Sensory & Touch"],
   },
   {
@@ -667,22 +668,22 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-93",
-    text: "Denial Pass: bring your partner to the brink of climax three times, forcing a full stop each time before allowing release.",
+    text: "{m} brings {f} to the brink three times, full stop each time, before allowing release.",
     categories: ["Edging & Teasing"],
   },
   {
     id: "sd-94",
-    text: "Orgasm Order: they are not allowed to finish until you explicitly give the verbal green light.",
+    text: "{f} is not allowed to finish until {m} explicitly gives the verbal green light.",
     categories: ["Edging & Teasing", "Submission & Control"],
   },
   {
     id: "sd-95",
-    text: "Slow-Motion Touch: a 10-minute session where all manual or oral touch must stay at an agonizingly slow tempo.",
+    text: "{m} keeps all manual or oral touch on {f} at an agonizingly slow tempo for 10 minutes.",
     categories: ["Edging & Teasing", "Sensory & Touch"],
   },
   {
     id: "sd-96",
-    text: "Hands-Off Rule: the holder gets touched and teased for 15 minutes, but is forbidden from touching their partner back.",
+    text: "{f} gets touched and teased for 15 minutes, but is forbidden from touching {m} back.",
     categories: ["Edging & Teasing"],
   },
   {
@@ -697,12 +698,12 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-99",
-    text: "Hovering Lip Tease: keep your lips less than a millimeter from theirs (or their nipples/thighs) for 2 minutes without making contact.",
+    text: "{m} keeps his lips less than a millimeter from {f}'s mouth, nipples, or thighs for 2 minutes without making contact.",
     categories: ["Edging & Teasing", "Roleplay & Teasing"],
   },
   {
     id: "sd-100",
-    text: "Counted Edges: they must count out loud every time they get close to the edge before being forced to stop and rest.",
+    text: "{f} must count out loud every time she gets close to the edge before {m} forces a full stop and rest.",
     categories: ["Edging & Teasing"],
   },
   {
@@ -712,17 +713,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-102",
-    text: "Shower Hijack: join your partner in the shower mid-wash for a fast, standing-up encounter.",
+    text: "{m} joins {f} in the shower mid-wash for a fast, standing-up encounter.",
     categories: ["Quickies & Impulse", "Location & Adventure"],
   },
   {
     id: "sd-103",
-    text: "Morning Surprise: wake your partner with immediate oral attention or deep touch before they get out of bed.",
+    text: "{f} wakes {m} with immediate oral attention or deep touch before he gets out of bed.",
     categories: ["Quickies & Impulse"],
   },
   {
     id: "sd-104",
-    text: "Kitchen Counter Quickie: lift your partner onto the kitchen counter for a fast 5-minute session before resuming your day.",
+    text: "{m} lifts {f} onto the kitchen counter for a fast 5-minute session before resuming the day.",
     categories: ["Quickies & Impulse", "Location & Adventure"],
   },
   {
@@ -732,7 +733,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-106",
-    text: "Hallway Interruption: catch your partner walking between rooms, pin them against the wall, and have a fast standing session.",
+    text: "{m} catches {f} walking between rooms, pins her against the wall, and has a fast standing session.",
     categories: ["Quickies & Impulse", "Location & Adventure"],
   },
   {
@@ -747,42 +748,42 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-109",
-    text: "Take a photo of their mouth after you have been kissing. Send it to them with one word: later.",
+    text: "{m} takes a photo of {f}'s mouth after they have been kissing. Sends it to her with one word: later.",
     categories: ["Film & Photo", "Dirty Talk & Words"],
   },
   {
     id: "sd-110",
-    text: "Film ten seconds of your hands on them, no faces. Watch it once, then delete or lock it together.",
+    text: "{m} films ten seconds of his hands on {f}, no faces. Watch it once, then delete or lock it together.",
     categories: ["Film & Photo"],
   },
   {
     id: "sd-111",
-    text: "Light them the way you actually like. Three stills. They pick the one that stays.",
+    text: "{m} lights {f} the way he actually likes. Three stills. She picks the one that stays.",
     categories: ["Film & Photo"],
   },
   {
     id: "sd-112",
-    text: "Record them saying what they want tonight. Play it back when you start.",
+    text: "{m} records {f} saying what she wants tonight. Plays it back when you start.",
     categories: ["Film & Photo", "Dirty Talk & Words"],
   },
   {
     id: "sd-113",
-    text: "Put a toy in their hand and leave the room for two minutes. Come back and use whatever they chose.",
+    text: "{m} puts a toy in {f}'s hand and leaves the room for two minutes. Comes back and uses whatever she chose.",
     categories: ["Toys & Accessories"],
   },
   {
     id: "sd-114",
-    text: "Ice in one hand, warm toy in the other. Alternate every thirty seconds until they pick a favorite.",
+    text: "{m} uses ice in one hand and a warm toy in the other on {f}. Alternate every thirty seconds until she picks a favorite.",
     categories: ["Toys & Accessories", "Sensory & Touch"],
   },
   {
     id: "sd-115",
-    text: "They wear one accessory you pick from the moment they get home. It stays on until they ask to take it off out loud.",
+    text: "{f} wears one accessory {m} picks from the moment she gets home. It stays on until she asks to take it off out loud.",
     categories: ["Toys & Accessories", "Dress Up & Lingerie"],
   },
   {
     id: "sd-116",
-    text: "Lay out a toy they have never used on you. They get five minutes with it. You do not help.",
+    text: "{m} lays out a toy {f} has never used on him. She gets five minutes with it. He does not help.",
     categories: ["Toys & Accessories"],
   },
   {
@@ -792,7 +793,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-118",
-    text: "Give them a job title for the next twenty minutes. Every request has to sound like that job.",
+    text: "{m} gives {f} a job title for the next twenty minutes. Every request has to sound like that job.",
     categories: ["Roleplay & Teasing", "Dirty Talk & Words"],
   },
   {
@@ -802,27 +803,27 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-120",
-    text: "They are not allowed to start anything. They can only answer. One hour.",
+    text: "{m} starts everything. {f} can only answer. One hour.",
     categories: ["Roleplay & Teasing", "Submission & Control"],
   },
   {
     id: "sd-121",
-    text: "Trace their spine with one fingernail, neck to tailbone, three times. Do not speed up.",
+    text: "{m} traces {f}'s spine with one fingernail, neck to tailbone, three times. Do not speed up.",
     categories: ["Sensory & Touch"],
   },
   {
     id: "sd-122",
-    text: "Mouth on their neck, hands still, until they pull you in or say stay.",
+    text: "{m} puts his mouth on {f}'s neck, hands still, until she pulls him in or says stay.",
     categories: ["Sensory & Touch", "Oral & Hands"],
   },
   {
     id: "sd-123",
-    text: "Warm lotion, lights low. Ten minutes. If they rush you, start the ten over.",
+    text: "{m} gives {f} ten minutes of warm lotion, lights low. If she rushes him, start the ten over.",
     categories: ["Sensory & Touch", "Aftercare & Soft"],
   },
   {
     id: "sd-124",
-    text: "Hold eye contact and breathe on their skin without kissing until the song ends.",
+    text: "{m} holds eye contact and breathes on {f}'s skin without kissing until the song ends.",
     categories: ["Sensory & Touch"],
   },
   {
@@ -842,7 +843,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-128",
-    text: "Shower first. One of you does not get to use their hands. The other does all the work.",
+    text: "{m} does all the work in the shower. {f} does not get to use her hands.",
     categories: ["Location & Adventure", "Sensory & Touch"],
   },
   {
@@ -862,42 +863,42 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-132",
-    text: "They pick a number 1 to 20. That many slow kisses. Then ask if they want twenty more.",
+    text: "{f} picks a number 1 to 20. {m} gives that many slow kisses. Then asks if she wants twenty more.",
     categories: ["Quick & Playful", "Sensory & Touch"],
   },
   {
     id: "sd-133",
-    text: "They ask before every touch for fifteen minutes. If they forget, you stop for a count of ten.",
+    text: "{f} asks before every touch for fifteen minutes. If she forgets, {m} stops for a count of ten.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-134",
-    text: "Kneel, pass them a drink, stay there until they tap your shoulder.",
+    text: "{f} kneels, passes {m} a drink, and stays there until he taps her shoulder.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-135",
-    text: "You point. They take off that piece. No arguing the order.",
+    text: "{m} points. {f} takes off that piece. No arguing the order.",
     categories: ["Submission & Control", "Dress Up & Lingerie"],
   },
   {
     id: "sd-136",
-    text: "Hands behind their back. You set the pace for one song. They do not get to help.",
+    text: "{m} sets the pace for one song. {f}'s hands stay behind her back. She does not get to help.",
     categories: ["Submission & Control"],
   },
   {
     id: "sd-137",
-    text: "Walk them to the door in something they would not wear to the shops. Coat on. Coat off once, then go.",
+    text: "{m} walks {f} to the door in something she would not wear to the shops. Coat on. Coat off once, then go.",
     categories: ["Exhibition & Risk", "Dress Up & Lingerie"],
   },
   {
     id: "sd-138",
-    text: "Whisper one explicit thing in their ear in public. Then act like you said nothing.",
+    text: "{m} whispers one explicit thing in {f}'s ear in public. Then acts like he said nothing.",
     categories: ["Exhibition & Risk", "Dirty Talk & Words"],
   },
   {
     id: "sd-139",
-    text: "Hand on their lower back, under the jacket, while you walk. Do not take it out until you get home.",
+    text: "{m} keeps a hand on {f}'s lower back, under the jacket, while you walk. Do not take it out until you get home.",
     categories: ["Exhibition & Risk"],
   },
   {
@@ -907,7 +908,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-141",
-    text: "Send three voice notes that get filthier. The last one names a time.",
+    text: "{m} sends {f} three voice notes that get filthier. The last one names a time.",
     categories: ["Digital & Media", "Dirty Talk & Words"],
   },
   {
@@ -927,17 +928,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-145",
-    text: "Remote or app-controlled toy. You hold it through dinner at home. They do not get the remote.",
+    text: "{m} holds the remote of an app-controlled toy on {f} through dinner at home. She does not get the remote.",
     categories: ["Tech & Toys"],
   },
   {
     id: "sd-146",
-    text: "Warm the toy. They guess hot or cold with their eyes shut. Wrong guess means you linger.",
+    text: "{m} warms the toy. {f} guesses hot or cold with her eyes shut. Wrong guess means he lingers.",
     categories: ["Tech & Toys", "Sensory & Touch"],
   },
   {
     id: "sd-147",
-    text: "Two toys at once for three minutes. Then they pick which one stays.",
+    text: "{m} uses two toys on {f} at once for three minutes. Then she picks which one stays.",
     categories: ["Tech & Toys", "Toys & Accessories"],
   },
   {
@@ -947,17 +948,17 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-149",
-    text: "Bring them close twice. Full stop each time. Third time they have to ask.",
+    text: "{m} brings {f} close twice. Full stop each time. Third time she has to ask.",
     categories: ["Edging & Teasing"],
   },
   {
     id: "sd-150",
-    text: "They count out loud every time they get close. Miss a number and you start that count over.",
+    text: "{f} counts out loud every time she gets close. Miss a number and {m} starts that count over.",
     categories: ["Edging & Teasing", "Games & Rules"],
   },
   {
     id: "sd-151",
-    text: "Agonizingly slow for eight minutes. If they speed you up, the eight restarts.",
+    text: "{m} stays agonizingly slow with {f} for eight minutes. If she speeds him up, the eight restarts.",
     categories: ["Edging & Teasing", "Sensory & Touch"],
   },
   {
@@ -967,7 +968,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-153",
-    text: "Catch them between rooms. Wall. Two minutes. Then let them finish what they were doing.",
+    text: "{m} catches {f} between rooms. Wall. Two minutes. Then lets her finish what she was doing.",
     categories: ["Quickies & Impulse"],
   },
   {
@@ -977,87 +978,87 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-155",
-    text: "Wake them with your mouth. No talking until they say good morning.",
+    text: "{f} wakes {m} with her mouth. No talking until he says good morning.",
     categories: ["Quickies & Impulse", "Oral & Hands"],
   },
   {
     id: "sd-156",
-    text: "Join the shower mid-wash. Standing only. Out before the water runs cold.",
+    text: "{m} joins {f} in the shower mid-wash. Standing only. Out before the water runs cold.",
     categories: ["Quickies & Impulse", "Location & Adventure"],
   },
   {
     id: "sd-157",
-    text: "Whisper the filthiest thing you thought about them this week, in detail, then do the first sentence.",
+    text: "{m} whispers the filthiest thing he thought about {f} this week, in detail, then does the first sentence.",
     categories: ["Dirty Talk & Words"],
   },
   {
     id: "sd-158",
-    text: "They have to keep talking. If they go quiet, you stop until they start again.",
+    text: "{f} has to keep talking. If she goes quiet, {m} stops until she starts again.",
     categories: ["Dirty Talk & Words"],
   },
   {
     id: "sd-159",
-    text: "Narrate what you are about to do before every move. Do not skip the sentence.",
+    text: "{m} narrates what he is about to do to {f} before every move. Do not skip the sentence.",
     categories: ["Dirty Talk & Words", "Roleplay & Teasing"],
   },
   {
     id: "sd-160",
-    text: "Write three lines on a note they find in a pocket. The last line is tonight's rule.",
+    text: "{m} writes three lines on a note {f} finds in a pocket. The last line is tonight's rule.",
     categories: ["Dirty Talk & Words"],
   },
   {
     id: "sd-161",
-    text: "They pick your outfit, including what is missing. You wear it until they say change.",
+    text: "{m} gets to pick the lingerie {f} wears tonight. She wears it until he says change.",
     categories: ["Dress Up & Lingerie"],
   },
   {
     id: "sd-162",
-    text: "Put on something of theirs and nothing else. Let them look for one full minute.",
+    text: "{f} puts on something of {m}'s and nothing else. He looks for one full minute.",
     categories: ["Dress Up & Lingerie"],
   },
   {
     id: "sd-163",
-    text: "No underwear under whatever you already planned to wear out. They get to check before you leave.",
+    text: "{f} wears no underwear under whatever she already planned to wear out. {m} gets to check before you leave.",
     categories: ["Dress Up & Lingerie", "Exhibition & Risk"],
   },
   {
     id: "sd-164",
-    text: "You undress them with your mouth as far as you can. Hands only for buttons that will not give.",
+    text: "{m} undresses {f} with his mouth as far as he can. Hands only for buttons that will not give.",
     categories: ["Dress Up & Lingerie", "Oral & Hands"],
   },
   {
     id: "sd-165",
-    text: "One item comes off every time they blink first in a staring contest.",
+    text: "{f} loses a piece every time she blinks first in a staring contest with {m}.",
     categories: ["Dress Up & Lingerie", "Games & Rules"],
   },
   {
     id: "sd-166",
-    text: "They dress you. You do not get an opinion. Take it off only when they say.",
+    text: "{m} dresses {f}. She does not get an opinion. Take it off only when he says.",
     categories: ["Dress Up & Lingerie", "Submission & Control"],
   },
   {
     id: "sd-167",
-    text: "Wear the thing they like and do something ordinary in it first — dishes, email, a show.",
+    text: "{f} wears the thing {m} likes and does something ordinary in it first — dishes, email, a show.",
     categories: ["Dress Up & Lingerie"],
   },
   {
     id: "sd-168",
-    text: "Leave one piece on the whole time. They choose which piece before you start.",
+    text: "{m} chooses which piece {f} leaves on the whole time, before you start.",
     categories: ["Dress Up & Lingerie"],
   },
   {
     id: "sd-169",
-    text: "Mouth only, no hands, ten minutes. Timer where they can see it.",
+    text: "{m} uses only his mouth on {f}, no hands, ten minutes. Timer where she can see it.",
     categories: ["Oral & Hands"],
   },
   {
     id: "sd-170",
-    text: "Kiss from collarbone to navel, once, as slow as you can manage. Then ask if they want it again.",
+    text: "{m} kisses {f} from collarbone to navel, once, as slow as he can. Then asks if she wants it again.",
     categories: ["Oral & Hands", "Sensory & Touch"],
   },
   {
     id: "sd-171",
-    text: "They sit on the edge of the bed. You kneel. They keep one hand in your hair.",
+    text: "{f} sits on the edge of the bed. {m} kneels. She keeps one hand in his hair.",
     categories: ["Oral & Hands"],
   },
   {
@@ -1067,22 +1068,22 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-173",
-    text: "Alternate mouth and hand every thirty seconds. They say stop switching when they have had enough.",
+    text: "{m} alternates mouth and hand on {f} every thirty seconds. She says stop switching when she has had enough.",
     categories: ["Oral & Hands", "Edging & Teasing"],
   },
   {
     id: "sd-174",
-    text: "Lick a single stripe up their neck and blow on the wet path. Do the other side.",
+    text: "{m} licks a single stripe up {f}'s neck and blows on the wet path. Does the other side.",
     categories: ["Oral & Hands", "Quick & Playful"],
   },
   {
     id: "sd-175",
-    text: "Finish them with your hand while you keep kissing. No break in the kiss.",
+    text: "{m} finishes {f} with his hand while he keeps kissing. No break in the kiss.",
     categories: ["Oral & Hands"],
   },
   {
     id: "sd-176",
-    text: "They use your mouth for two minutes. Your hands stay on your thighs.",
+    text: "{f} uses {m}'s mouth for two minutes. His hands stay on his thighs.",
     categories: ["Oral & Hands", "Submission & Control"],
   },
   {
@@ -1102,42 +1103,42 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-180",
-    text: "Slow shower together. You wash them. They do not have to lift a hand.",
+    text: "{m} washes {f} in a slow shower. She does not have to lift a hand.",
     categories: ["Aftercare & Soft", "Location & Adventure"],
   },
   {
     id: "sd-181",
-    text: "Snack and water in bed. They pick. You fetch. Then you stay until they fall asleep or say go.",
+    text: "{f} picks the snack and water. {m} fetches. Then he stays until she falls asleep or says go.",
     categories: ["Aftercare & Soft"],
   },
   {
     id: "sd-182",
-    text: "Oil or lotion on the places you were rough. Two minutes each spot. No restarting anything else.",
+    text: "{m} puts oil or lotion on the places he was rough with {f}. Two minutes each spot. No restarting anything else.",
     categories: ["Aftercare & Soft", "Sensory & Touch"],
   },
   {
     id: "sd-183",
-    text: "Tell them two things they did that worked. Be specific. No jokes for the first one.",
+    text: "{m} tells {f} two things she did that worked. Be specific. No jokes for the first one.",
     categories: ["Aftercare & Soft", "Dirty Talk & Words"],
   },
   {
     id: "sd-184",
-    text: "Lights stay low. You bring a warm cloth and ask if they want quiet or talk.",
+    text: "{m} brings {f} a warm cloth and asks if she wants quiet or talk.",
     categories: ["Aftercare & Soft"],
   },
   {
     id: "sd-185",
-    text: "Honey, cream, or chocolate — one stripe you have to clean off with your mouth.",
+    text: "{m} puts honey, cream, or chocolate in one stripe on {f} that he has to clean off with his mouth.",
     categories: ["Food & Taste"],
   },
   {
     id: "sd-186",
-    text: "Ice cube from collarbone to navel, then follow the melt with your mouth.",
+    text: "{m} runs an ice cube from {f}'s collarbone to navel, then follows the melt with his mouth.",
     categories: ["Food & Taste", "Sensory & Touch"],
   },
   {
     id: "sd-187",
-    text: "Feed them something they like while they sit in your lap. No hands from them.",
+    text: "{m} feeds {f} something she likes while she sits in his lap. No hands from her.",
     categories: ["Food & Taste"],
   },
   {
@@ -1147,7 +1148,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-189",
-    text: "Whipped cream or honey on a place they name. You have two minutes. No rushing to the obvious spot first.",
+    text: "{f} names a place. {m} has two minutes with whipped cream or honey. No rushing to the obvious spot first.",
     categories: ["Food & Taste"],
   },
   {
@@ -1157,7 +1158,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-191",
-    text: "Blindfold. They taste two things and guess. Wrong guess means you choose the next dare.",
+    text: "{m} blindfolds {f}. She tastes two things and guesses. Wrong guess means he chooses the next dare.",
     categories: ["Food & Taste", "Games & Rules"],
   },
   {
@@ -1177,7 +1178,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-195",
-    text: "They set three house rules on a note. You follow them until midnight. One veto allowed.",
+    text: "{f} sets three house rules on a note. {m} follows them until midnight. One veto allowed.",
     categories: ["Games & Rules", "Submission & Control"],
   },
   {
@@ -1197,7 +1198,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-199",
-    text: "They write a rule on your skin where clothes will hide it. It stays until you shower.",
+    text: "{f} writes a rule on {m}'s skin where clothes will hide it. It stays until he showers.",
     categories: ["Games & Rules", "Dirty Talk & Words"],
   },
   {
@@ -1284,4 +1285,38 @@ export function directionLabel(direction: DareDirection | null | undefined): str
   if (direction === "i-do-you") return "I'll do this to you";
   if (direction === "you-do-me") return "You do this to me";
   return "No direction";
+}
+
+export function darePeople(input: {
+  youName?: string | null;
+  themName?: string | null;
+  youGender?: Gender | null;
+  themGender?: Gender | null;
+}): { m: string; f: string } {
+  const you = input.youName?.trim() || "You";
+  const them = input.themName?.trim() || "them";
+  if (input.youGender === "male" && input.themGender === "female") {
+    return { m: you, f: them };
+  }
+  if (input.youGender === "female" && input.themGender === "male") {
+    return { m: them, f: you };
+  }
+  if (input.youGender === "male") return { m: you, f: them };
+  if (input.themGender === "male") return { m: them, f: you };
+  if (input.youGender === "female") return { m: them, f: you };
+  if (input.themGender === "female") return { m: you, f: them };
+  return { m: you, f: them };
+}
+
+export function personalizeDareText(
+  text: string,
+  input: {
+    youName?: string | null;
+    themName?: string | null;
+    youGender?: Gender | null;
+    themGender?: Gender | null;
+  }
+): string {
+  const names = darePeople(input);
+  return text.replace(/\{m\}/gi, names.m).replace(/\{f\}/gi, names.f);
 }
