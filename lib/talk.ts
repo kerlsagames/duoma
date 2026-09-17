@@ -63,7 +63,7 @@ export function ensureDeck(
   };
 }
 
-/** Permanent "already told" mark for Talk — does not recycle. */
+/** Permanent "already told" mark for Talk, does not recycle. */
 export function markPlayed(
   deck: TalkDeckState,
   questionId: string

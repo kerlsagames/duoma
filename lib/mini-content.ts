@@ -781,7 +781,7 @@ export const DEFAULT_CHORES: Chore[] = [
   { id: "chore-cat", label: "Creature duties" },
 ];
 
-/** Retired defaults — stripped on hydrate so old saves lose the boring list. */
+/** Retired defaults, stripped on hydrate so old saves lose the boring list. */
 const RETIRED_FAIR_SHARE_IDS = new Set([
   "chore-dishes",
   "chore-trash",

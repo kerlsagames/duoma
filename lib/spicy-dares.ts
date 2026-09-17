@@ -213,7 +213,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-2",
-    text: "{m} records a 15-second voice note of what he wants to do to {f} — send it while she is in another room.",
+    text: "{m} records a 15-second voice note of what he wants to do to {f}, send it while she is in another room.",
     categories: ["Film & Photo", "Roleplay & Teasing"],
   },
   {
@@ -443,7 +443,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-48",
-    text: "Swap who usually starts. The usual starter is not allowed to initiate — only answer.",
+    text: "Swap who usually starts. The usual starter is not allowed to initiate, only answer.",
     categories: ["Roleplay & Teasing", "Quick & Playful"],
   },
   {
@@ -458,7 +458,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-51",
-    text: "{m} texts {f} a role she has to stay in until she gets home — even in the grocery line.",
+    text: "{m} texts {f} a role she has to stay in until she gets home, even in the grocery line.",
     categories: ["Roleplay & Teasing"],
   },
   {
@@ -478,7 +478,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-55",
-    text: "{f} sends {m} a photo of the outfit she will take off later. Nothing else — let him wait.",
+    text: "{f} sends {m} a photo of the outfit she will take off later. Nothing else, let him wait.",
     categories: ["Film & Photo", "Roleplay & Teasing"],
   },
   {
@@ -538,7 +538,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-67",
-    text: "{f} may not speak — only nod or shake her head — while following every physical direction {m} gives.",
+    text: "{f} may not speak, only nod or shake her head, while following every physical direction {m} gives.",
     categories: ["Submission & Control"],
   },
   {
@@ -643,7 +643,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-88",
-    text: "Double Toy Impact: use two toys at once — e.g. a wand on the clit while using an internal toy or cock ring.",
+    text: "Double Toy Impact: use two toys at once, e.g. a wand on the clit while using an internal toy or cock ring.",
     categories: ["Tech & Toys", "Toys & Accessories"],
   },
   {
@@ -663,7 +663,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-92",
-    text: "Toy-Only Foreplay: reach the first stage of play using zero hands — only toys allowed on both partners.",
+    text: "Toy-Only Foreplay: reach the first stage of play using zero hands, only toys allowed on both partners.",
     categories: ["Tech & Toys", "Toys & Accessories"],
   },
   {
@@ -708,7 +708,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-101",
-    text: "Drop Everything: redeemable immediately — stop whatever you are doing and head straight to the bedroom.",
+    text: "Drop Everything: redeemable immediately, stop whatever you are doing and head straight to the bedroom.",
     categories: ["Quickies & Impulse", "Quick & Playful"],
   },
   {
@@ -728,7 +728,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-105",
-    text: "Timer Challenge: set a timer for 7 minutes — start, finish, and clean up before the alarm goes off.",
+    text: "Timer Challenge: set a timer for 7 minutes, start, finish, and clean up before the alarm goes off.",
     categories: ["Quickies & Impulse", "Quick & Playful"],
   },
   {
@@ -833,7 +833,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-126",
-    text: "Balcony, yard, or parked car — coats on, five minutes, then walk back in like nothing.",
+    text: "Balcony, yard, or parked car, coats on, five minutes, then walk back in like nothing.",
     categories: ["Location & Adventure", "Exhibition & Risk"],
   },
   {
@@ -1038,7 +1038,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-167",
-    text: "{f} wears the thing {m} likes and does something ordinary in it first — dishes, email, a show.",
+    text: "{f} wears the thing {m} likes and does something ordinary in it first, dishes, email, a show.",
     categories: ["Dress Up & Lingerie"],
   },
   {
@@ -1168,7 +1168,7 @@ export const SPICY_DARES: SpicyDare[] = [
   },
   {
     id: "sd-193",
-    text: "Roll a die. 1–2 slow kiss, 3–4 mouth only, 5 hands, 6 they pick. Best of three.",
+    text: "Roll a die. 1 to 2 slow kiss, 3 to 4 mouth only, 5 hands, 6 they pick. Best of three.",
     categories: ["Games & Rules"],
   },
   {

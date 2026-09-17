@@ -1,4 +1,4 @@
-import { LookPanel, SettingsCog } from "@/components/hub/AppSettings";
+import { LookPanel, PrefSection, SettingsCog } from "@/components/hub/AppSettings";
 import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
@@ -16,8 +16,10 @@ import {
   summarizeFlavorSelection,
 } from "@/games/get-spicy/flavor-tags";
 import { useAppLook } from "@/lib/app-prefs";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage, SpicyPace, StageCounts } from "@/lib/types";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -29,11 +31,11 @@ const SETUP_RULES = [
   },
   {
     title: "Shuffle",
-    body: "Detailed only. Do not like the three you got? Shuffle redraws your hand. Setup sets how many shuffles each of you gets — or unlimited.",
+    body: "Detailed only. Do not like the three you got? Shuffle redraws your hand. Setup sets how many shuffles each of you gets, or unlimited.",
   },
   {
     title: "Pass",
-    body: "Detailed only. You cannot pass your own card. If your partner played something you do not want to do, Pass — I don’t participate. They deal again.",
+    body: "Detailed only. You cannot pass your own card. If your partner played something you do not want to do, Pass, I don’t participate. They deal again.",
   },
   {
     title: "Daytime pause",
@@ -41,7 +43,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then tap the big Go to Step it up. Same for Finish Off, then Afterglow. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
+    body: "One card in the middle for both of you. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -93,7 +95,7 @@ function Stepper({
 
 export default function SetupScreen() {
   const router = useRouter();
-  const { game, configureGame, endGame } = useApp();
+  const { game, configureGame, endGame, bestCards, user, partner } = useApp();
   const [passLimit, setPassLimit] = useState(1);
   const [shuffleLimit, setShuffleLimit] = useState(3);
   const [counts, setCounts] = useState<StageCounts>({ ...DEFAULT_STAGE_COUNTS });
@@ -222,7 +224,91 @@ export default function SetupScreen() {
                 hint: "You already know the deal-three dance.",
               },
             ]}
-          />
+          >
+            <PrefSection
+              label="Cards"
+              hint="The deck and the ones you both rated high."
+              ink="#F4F4F6"
+              muted="rgba(244,244,246,0.6)"
+            >
+              <Pressable
+                onPress={() => router.push("/(tabs)/cards" as Href)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  borderRadius: 14,
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                }}
+              >
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
+                    Card Bank
+                  </Text>
+                  <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
+                    Toggle rotation. Write custom cards with your names.
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="rgba(244,244,246,0.4)" />
+              </Pressable>
+              <View style={{ marginTop: 12 }}>
+                <Text
+                  style={{
+                    fontFamily: "SpaceMono",
+                    fontSize: 11,
+                    letterSpacing: 1.4,
+                    color: "rgba(244,244,246,0.45)",
+                  }}
+                >
+                  BEST CARDS
+                </Text>
+                {bestCards.length === 0 ? (
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      color: "rgba(244,244,246,0.5)",
+                      fontSize: 13,
+                      lineHeight: 18,
+                    }}
+                  >
+                    After a night, rate what you played. Keepers show up here.
+                  </Text>
+                ) : (
+                  bestCards.slice(0, 6).map((row) => {
+                    const copy = personalizeCard(
+                      row.card,
+                      resolveCardNames({
+                        userName: user?.displayName,
+                        partnerName: partner?.displayName,
+                      }),
+                      resolveCardGenders({
+                        userGender: user?.gender,
+                        partnerGender: partner?.gender,
+                      })
+                    );
+                    return (
+                      <View key={row.card.id} style={{ marginTop: 8 }}>
+                        <Text style={{ color: "#FF007F", fontSize: 12 }}>
+                          {row.average.toFixed(1)}/10
+                        </Text>
+                        <Text
+                          style={{
+                            marginTop: 2,
+                            color: "#F4F4F6",
+                            fontSize: 14,
+                            lineHeight: 20,
+                          }}
+                        >
+                          {copy.body}
+                        </Text>
+                      </View>
+                    );
+                  })
+                )}
+              </View>
+            </PrefSection>
+          </LookPanel>
         ) : null}
 
         <View className="mt-6 flex-row gap-2">
@@ -231,7 +317,7 @@ export default function SetupScreen() {
               {
                 id: "simple" as const,
                 label: "Keep it simple",
-                hint: "Foreplay, Step it up, Finish Off, Afterglow. Shared cards. Flip until you go on.",
+                hint: "One shared card. No turns, no passes.",
               },
               {
                 id: "detailed" as const,
@@ -331,12 +417,7 @@ export default function SetupScreen() {
           ))}
         </View>
           </>
-        ) : (
-          <Text className="mt-7 text-[14px] leading-5 text-mist/60">
-            Foreplay, then Step it up, then Finish Off, then Afterglow. Flip
-            cards in a stage until you tap Ready to move on.
-          </Text>
-        )}
+        ) : null}
 
         <View className="mt-8 flex-row items-center justify-between">
           <Text className="text-[12px] font-semibold uppercase tracking-widest text-mist/40">

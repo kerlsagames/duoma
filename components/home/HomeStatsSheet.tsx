@@ -1,11 +1,12 @@
 import { SERIF } from "@/lib/app-themes";
-import { evaluateBadges } from "@/lib/badges";
+import { BADGE_LEVEL_MARK, badgeFamilies, evaluateBadges } from "@/lib/badges";
 import {
   buildCoupleStats,
   type CoupleStatInput,
   type StatSectionId,
 } from "@/lib/couple-stats";
 import { useThemedHubs } from "@/lib/hub-theme";
+import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -74,6 +75,16 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   const unlocked = badges.filter((row) => row.unlocked).length;
   const section = sections.find((row) => row.id === lane) ?? sections[0]!;
   const laneBadges = badges.filter((row) => row.lane === lane);
+  const families = useMemo(() => badgeFamilies(laneBadges), [laneBadges]);
+  const bestCards = app.bestCards;
+  const names = resolveCardNames({
+    userName: app.user?.displayName,
+    partnerName: app.partner?.displayName,
+  });
+  const genders = resolveCardGenders({
+    userGender: app.user?.gender,
+    partnerGender: app.partner?.gender,
+  });
   const accentFor = (id: StatSectionId) => {
     if (id === "general") return PAPER.wine;
     if (id === "connect") return hubs.find((hub) => hub.id === "connect")?.tile ?? "#FF6B9A";
@@ -291,6 +302,82 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
                   </View>
                 ))}
               </View>
+              {lane === "desire" ? (
+                <View style={{ marginTop: 18 }}>
+                  <Text style={{ fontFamily: SERIF, fontSize: 20, color: PAPER.ink }}>
+                    Best cards
+                  </Text>
+                  <Text
+                    style={{
+                      color: PAPER.muted,
+                      fontSize: 13,
+                      lineHeight: 18,
+                      marginTop: 4,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Highest rated Get Spicy cards after a night.
+                  </Text>
+                  <View
+                    style={{
+                      borderRadius: 18,
+                      backgroundColor: PAPER.card,
+                      overflow: "hidden",
+                      borderWidth: 1,
+                      borderColor: PAPER.line,
+                    }}
+                  >
+                    {bestCards.length === 0 ? (
+                      <Text
+                        style={{
+                          padding: 14,
+                          color: PAPER.muted,
+                          fontSize: 14,
+                          lineHeight: 20,
+                        }}
+                      >
+                        After a night, rate what you played. Keepers show up here.
+                      </Text>
+                    ) : (
+                      bestCards.slice(0, 8).map((row, index) => {
+                        const copy = personalizeCard(row.card, names, genders);
+                        return (
+                          <View
+                            key={row.card.id}
+                            style={{
+                              paddingVertical: 12,
+                              paddingHorizontal: 14,
+                              borderTopWidth: index === 0 ? 0 : 1,
+                              borderTopColor: PAPER.line,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: accentFor("desire"),
+                                fontFamily: "SpaceMono",
+                                fontSize: 12,
+                                fontWeight: "700",
+                              }}
+                            >
+                              {row.average.toFixed(1)}/10
+                            </Text>
+                            <Text
+                              style={{
+                                marginTop: 4,
+                                color: PAPER.ink,
+                                fontSize: 14,
+                                lineHeight: 20,
+                              }}
+                            >
+                              {copy.body}
+                            </Text>
+                          </View>
+                        );
+                      })
+                    )}
+                  </View>
+                </View>
+              ) : null}
             </View>
           ) : (
             <View>
@@ -307,59 +394,90 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
               >
                 {laneBadges.filter((row) => row.unlocked).length} unlocked here
               </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
-                {laneBadges.map((badge) => (
-                  <View
-                    key={badge.id}
-                    style={{
-                      width: "48.5%",
-                      marginBottom: 10,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: badge.unlocked ? accentFor(lane) : PAPER.line,
-                      backgroundColor: badge.unlocked ? PAPER.card : "rgba(255,246,232,0.7)",
-                      padding: 12,
-                    }}
-                  >
-                    <Ionicons
-                      name={badge.icon}
-                      size={22}
-                      color={badge.unlocked ? accentFor(lane) : PAPER.fine}
-                    />
-                    <Text
+              <View style={{ gap: 12 }}>
+                {families.map((rows) => {
+                  const head = rows[0]!;
+                  return (
+                    <View
+                      key={head.family}
                       style={{
-                        marginTop: 8,
-                        color: PAPER.ink,
-                        fontSize: 14,
-                        fontWeight: "800",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: PAPER.line,
+                        backgroundColor: PAPER.card,
+                        padding: 12,
                       }}
                     >
-                      {badge.title}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 4,
-                        color: PAPER.muted,
-                        fontSize: 11,
-                        lineHeight: 15,
-                      }}
-                    >
-                      {badge.blurb}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontFamily: "SpaceMono",
-                        fontSize: 11,
-                        color: badge.unlocked ? PAPER.wine : PAPER.fine,
-                      }}
-                    >
-                      {badge.unlocked
-                        ? "Unlocked"
-                        : `${Math.min(badge.count, badge.target)} / ${badge.target}`}
-                    </Text>
-                  </View>
-                ))}
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <Ionicons name={head.icon} size={18} color={accentFor(lane)} />
+                        <Text style={{ color: PAPER.ink, fontSize: 15, fontWeight: "800" }}>
+                          {head.familyTitle}
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+                        {rows.map((badge) => (
+                          <View
+                            key={badge.id}
+                            style={{
+                              flex: 1,
+                              borderRadius: 12,
+                              borderWidth: 1,
+                              borderColor: badge.unlocked ? accentFor(lane) : PAPER.line,
+                              backgroundColor: badge.unlocked
+                                ? "rgba(196,92,106,0.08)"
+                                : "rgba(255,246,232,0.55)",
+                              paddingVertical: 10,
+                              paddingHorizontal: 8,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: "SpaceMono",
+                                fontSize: 13,
+                                fontWeight: "700",
+                                color: badge.unlocked ? accentFor(lane) : PAPER.fine,
+                              }}
+                            >
+                              {BADGE_LEVEL_MARK[badge.level]}
+                            </Text>
+                            <Text
+                              style={{
+                                marginTop: 4,
+                                color: PAPER.ink,
+                                fontSize: 12,
+                                fontWeight: "800",
+                              }}
+                            >
+                              {badge.title}
+                            </Text>
+                            <Text
+                              style={{
+                                marginTop: 4,
+                                color: PAPER.muted,
+                                fontSize: 10,
+                                lineHeight: 13,
+                              }}
+                            >
+                              {badge.blurb}
+                            </Text>
+                            <Text
+                              style={{
+                                marginTop: 6,
+                                fontFamily: "SpaceMono",
+                                fontSize: 10,
+                                color: badge.unlocked ? PAPER.wine : PAPER.fine,
+                              }}
+                            >
+                              {badge.unlocked
+                                ? "Unlocked"
+                                : `${Math.min(badge.count, badge.target)} / ${badge.target}`}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             </View>
           )}

@@ -54,7 +54,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
       "Constant full-body cuddling",
       "Holding hands / physical touch",
       "Sitting close with occasional touch",
-      "Space on the couch—touch afterwards"
+      "Space on the couch, touch afterwards"
     ],
     "category": "flirty"
   },
@@ -85,9 +85,9 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-7",
     "question": "What's your stance on romantic public displays of affection (PDA)?",
     "options": [
-      "Love it—hand-holding, kisses everywhere",
-      "Subtle only—holding hands or arm around shoulder",
-      "Private people—keep it minimal in public"
+      "Love it, hand-holding, kisses everywhere",
+      "Subtle only, holding hands or arm around shoulder",
+      "Private people, keep it minimal in public"
     ],
     "category": "flirty"
   },
@@ -194,7 +194,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-17",
     "question": "How do you rate morning affection?",
     "options": [
-      "Essential—best way to wake up",
+      "Essential, best way to wake up",
       "Nice, but give me 10 mins first",
       "Prefer evening affection instead"
     ],
@@ -215,7 +215,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-19",
     "question": "What is your reaction if your partner initiates affection out of nowhere?",
     "options": [
-      "Instant match—100% in",
+      "Instant match, 100% in",
       "Surprised but happy",
       "Need a minute to shift gears"
     ],
@@ -337,7 +337,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "options": [
       "Unbeatable classic",
       "Nice occasionally",
-      "Overrated—good lighting matters more"
+      "Overrated, good lighting matters more"
     ],
     "category": "flirty"
   },
@@ -422,7 +422,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "question": "What's your reaction to flirty banter during chores?",
     "options": [
       "Makes chores 100x better",
-      "Distracting—let me finish first",
+      "Distracting, let me finish first",
       "Depends on my stress level"
     ],
     "category": "flirty"
@@ -486,8 +486,8 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-44",
     "question": "What is your ideal level of surprise in a date?",
     "options": [
-      "100% total surprise—don't tell me anything",
-      "Tell me the plan—I like knowing",
+      "100% total surprise, don't tell me anything",
+      "Tell me the plan, I like knowing",
       "Tell me what to wear, keep rest secret"
     ],
     "category": "flirty"
@@ -693,9 +693,9 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-63",
     "question": "What is your ultimate theme park strategy?",
     "options": [
-      "Rides non-stop—fast passes required",
-      "Chill vibe—snacks, shows, and ambiance",
-      "Scare me—biggest rollercoasters only"
+      "Rides non-stop, fast passes required",
+      "Chill vibe, snacks, shows, and ambiance",
+      "Scare me, biggest rollercoasters only"
     ],
     "category": "fun"
   },
@@ -781,7 +781,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-71",
     "question": "How many snoozes do you hit on a typical morning?",
     "options": [
-      "Zero—up instantly",
+      "Zero, up instantly",
       "1 snooze",
       "2-3 snoozes",
       "4+ snoozes / lost cause"
@@ -814,7 +814,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-74",
     "question": "How do you feel about surprise dance parties in the kitchen?",
     "options": [
-      "100% in—turn up the volume",
+      "100% in, turn up the volume",
       "Will dance if dragged in",
       "Spectator only with a drink"
     ],
@@ -827,7 +827,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
       "'The dog/pets need us home'",
       "'Early morning tomorrow'",
       "'Just exhausted, night guys!'",
-      "Irish exit—ghost quietly"
+      "Irish exit, ghost quietly"
     ],
     "category": "fun"
   },
@@ -859,9 +859,9 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "question": "How do you pack for a 3-day trip?",
     "options": [
       "Packed 3 days in advance",
-      "Night before—exact outfits needed",
+      "Night before, exact outfits needed",
       "Packing 20 mins before leaving",
-      "Overpacker—6 outfits for 3 days"
+      "Overpacker, 6 outfits for 3 days"
     ],
     "category": "fun"
   },
@@ -869,7 +869,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-79",
     "question": "What's your stance on building IKEA furniture?",
     "options": [
-      "Love it—it's like adult LEGO",
+      "Love it, it's like adult LEGO",
       "Tolerate it with music",
       "Instant frustration & arguments"
     ],
@@ -990,7 +990,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "options": [
       "Count me in!",
       "Only if snacks and drinks are involved",
-      "Hard pass—keep it under an hour"
+      "Hard pass, keep it under an hour"
     ],
     "category": "fun"
   },
@@ -1065,7 +1065,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-97",
     "question": "What's your go-to strategy in a snowball fight?",
     "options": [
-      "Sniper—hide and precision throw",
+      "Sniper, hide and precision throw",
       "Frontline rusher",
       "Shield builder",
       "Peacekeeper / spectator"
@@ -1088,7 +1088,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-99",
     "question": "What is your stance on escape rooms?",
     "options": [
-      "Love them—master puzzle solver",
+      "Love them, master puzzle solver",
       "Fun, but stressful",
       "Not my thing"
     ],
@@ -1206,7 +1206,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-110",
     "question": "How do you feel about hosting social gatherings at home?",
     "options": [
-      "Love it—frequent host",
+      "Love it, frequent host",
       "Occasionally for small groups",
       "Prefer being the guest elsewhere"
     ],
@@ -1230,7 +1230,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
       "Big party with lots of friends",
       "Intimate dinner with close ones",
       "A solo or couple trip",
-      "Low key—treat it like any day"
+      "Low key, treat it like any day"
     ],
     "category": "life"
   },
@@ -1238,8 +1238,8 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-113",
     "question": "What is your approach to work-life balance?",
     "options": [
-      "Strict boundaries—work ends at 5",
-      "Integrated—happy to work whenever",
+      "Strict boundaries, work ends at 5",
+      "Integrated, happy to work whenever",
       "Constantly trying to improve balance"
     ],
     "category": "life"
@@ -1269,8 +1269,8 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-116",
     "question": "What is your stance on clutter?",
     "options": [
-      "Zero tolerance—everything has a place",
-      "Controlled chaos—I know where stuff is",
+      "Zero tolerance, everything has a place",
+      "Controlled chaos, I know where stuff is",
       "Clutter doesn't bother me"
     ],
     "category": "life"
@@ -1301,9 +1301,9 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-119",
     "question": "How do you react to sudden plan changes?",
     "options": [
-      "Adapt instantly—no problem",
+      "Adapt instantly, no problem",
       "Mild annoyance, but roll with it",
-      "Stressed—I like sticking to plans"
+      "Stressed, I like sticking to plans"
     ],
     "category": "life"
   },
@@ -1400,7 +1400,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "question": "What is your stance on decision making for meals?",
     "options": [
       "I always know what I want",
-      "I hate deciding—you pick!",
+      "I hate deciding, you pick!",
       "I give 3 options, you choose"
     ],
     "category": "life"
@@ -1453,7 +1453,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "options": [
       "Lots of photos & videos on phone",
       "Physical album / journaling",
-      "Living in the moment—few photos"
+      "Living in the moment, few photos"
     ],
     "category": "life"
   },
@@ -1557,7 +1557,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-143",
     "question": "How do you feel about cooking together?",
     "options": [
-      "Love it—great bonding time",
+      "Love it, great bonding time",
       "One person cooks, one does dishes",
       "Too many cooks in the kitchen!"
     ],
@@ -1567,7 +1567,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-144",
     "question": "What is your approach to keeping secrets/surprises?",
     "options": [
-      "Vault—will never break",
+      "Vault, will never break",
       "Hard to hide excitement",
       "Tell partner immediately, nobody else"
     ],
@@ -1794,7 +1794,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "question": "What is the greatest lesson a past hardship taught you?",
     "options": [
       "I am far stronger than I thought",
-      "Life is short—focus on what matters",
+      "Life is short, focus on what matters",
       "Asking for help is a strength",
       "Everything passes eventually"
     ],
@@ -1860,7 +1860,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "options": [
       "Everything happens for a reason",
       "We create our own timing through action",
-      "Life is unpredictable—adapt as we go"
+      "Life is unpredictable, adapt as we go"
     ],
     "category": "deep"
   },
@@ -1868,9 +1868,9 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-172",
     "question": "What role does intuition play in your decisions?",
     "options": [
-      "Huge—I trust my gut instinct first",
+      "Huge, I trust my gut instinct first",
       "50/50 balance of gut and logic",
-      "Low—I need data and facts to decide"
+      "Low, I need data and facts to decide"
     ],
     "category": "deep"
   },
@@ -1975,7 +1975,7 @@ export const CURIOSITY_QUESTIONS: CuriosityQuestion[] =
     "id": "cur-182",
     "question": "What is your relationship with solitude?",
     "options": [
-      "Essential—I need regular alone time",
+      "Essential, I need regular alone time",
       "Nice occasionally, but prefer company",
       "Rarely need alone time"
     ],

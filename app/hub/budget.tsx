@@ -405,10 +405,6 @@ export default function BudgetScreen() {
           >
             Shared budget
           </Text>
-          <Text style={{ marginTop: 8, fontSize: 15, lineHeight: 22, color: T.muted }}>
-            Put pay in. Add the bills. Log what you actually spent. What’s left is the truth for
-            this week or fortnight.
-          </Text>
           <Pressable
             onPress={() => router.push("/hub/goals" as Href)}
             style={{ marginTop: 10, alignSelf: "flex-start" }}

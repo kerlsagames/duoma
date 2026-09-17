@@ -265,7 +265,7 @@ export default function PositionsScreen() {
             color: T.muted,
           }}
         >
-          Save poses to To-do. Tick them off when you try them. Tap one to ask{" "}
+          Save positions to To-do. Tick them off when you try them. Tap one to ask{" "}
           {partnerName} tonight.
         </Text>
 

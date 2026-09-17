@@ -290,8 +290,8 @@ export function buildBetStatement(input: {
   const marked = /\?$/.test(q) ? q : `${q}?`;
   if (input.mode === "yesno") {
     return input.side === "yes"
-      ? `${input.me} bets YES — ${marked}`
-      : `${input.me} bets NO — ${marked}`;
+      ? `${input.me} bets YES, ${marked}`
+      : `${input.me} bets NO, ${marked}`;
   }
   const clause = whoClause(marked);
   if (input.mode === "name") {

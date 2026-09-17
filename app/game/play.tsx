@@ -650,7 +650,7 @@ export default function PlayScreen() {
           ) : null}
           {simplePace ? null : (
             <PrimaryButton
-              label="Pass — I do not participate"
+              label="Pass, I do not participate"
               tone="danger"
               disabled={!canPass}
               onPress={() => void onPass()}

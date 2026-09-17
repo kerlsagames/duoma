@@ -145,18 +145,6 @@ export default function MilestonesScreen() {
           >
             Countdowns
           </Text>
-          <Text
-            style={{
-              marginTop: 6,
-              fontFamily: SERIF,
-              fontSize: 15,
-              lineHeight: 22,
-              color: T.muted,
-              textAlign: "center",
-            }}
-          >
-            Save the dates that matter. Star one for the Home ticker. Gold hands, midnight face.
-          </Text>
         </View>
 
         <View style={{ gap: 10 }}>

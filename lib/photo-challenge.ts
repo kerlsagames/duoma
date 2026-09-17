@@ -94,7 +94,7 @@ const PHOTO_PROMPT_ARCHIVE: { id: string; label: string }[] = [
   { id: "their-pov", label: "You, from their point of view" },
   { id: "foreheads", label: "Foreheads together" },
   { id: "photo-of-photo", label: "A photo of them taking a photo of you" },
-  { id: "match-or-not", label: "Matching — or aggressively not" },
+  { id: "match-or-not", label: "Matching, or aggressively not" },
   { id: "leaving-house", label: "The two of you leaving the house" },
   { id: "two-shadows", label: "Both of our shadows" },
   { id: "half-asleep", label: "One face, half-asleep" },

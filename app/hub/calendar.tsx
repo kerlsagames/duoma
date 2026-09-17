@@ -205,11 +205,6 @@ export default function CalendarScreen() {
             setExpanded(false);
           }}
         />
-        <ViewModeBar
-          layout={layout}
-          compact
-          onChange={(next) => savePrefs({ ...prefs, layout: next })}
-        />
 
         {layout === "agenda" ? (
           <View style={{ flex: 1, minHeight: 0 }}>
@@ -989,62 +984,6 @@ function SectionLabel({ children }: { children: string }) {
     >
       {children}
     </Text>
-  );
-}
-
-function ViewModeBar({
-  layout,
-  onChange,
-  compact = false,
-}: {
-  layout: CalendarLayout;
-  onChange: (layout: CalendarLayout) => void;
-  compact?: boolean;
-}) {
-  const chips: { id: CalendarLayout; label: string }[] = [
-    { id: "stack", label: "Month" },
-    { id: "week", label: "Week" },
-    { id: "agenda", label: "Agenda" },
-  ];
-  return (
-    <View
-      style={{
-        marginBottom: compact ? 8 : 14,
-        flexDirection: "row",
-        gap: 6,
-      }}
-    >
-      {chips.map((chip) => {
-        const on =
-          chip.id === "stack"
-            ? layout === "stack" || layout === "split"
-            : layout === chip.id;
-        return (
-          <Pressable
-            key={chip.id}
-            onPress={() => onChange(chip.id)}
-            style={{
-              flex: 1,
-              alignItems: "center",
-              paddingVertical: compact ? 5 : 8,
-              borderWidth: 1,
-              borderColor: on ? "#C23B55" : "rgba(22,24,29,0.12)",
-              backgroundColor: on ? "rgba(194,59,85,0.12)" : "#FFFFFF",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: compact ? 12 : 13,
-                fontWeight: "700",
-                color: on ? "#C23B55" : "#16181D",
-              }}
-            >
-              {chip.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 

@@ -136,7 +136,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "anvil",
     "The Anvil",
     "face-to-face",
-    "Her ankles by his head, hips lifted. Deep and visual — go slow and keep checking in."
+    "Her ankles by his head, hips lifted. Deep and visual, go slow and keep checking in."
   ),
   pose(
     "amazon",
@@ -172,7 +172,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "waterfall",
     "Waterfall",
     "face-to-face",
-    "Her head and shoulders off the edge of the bed; he kneels between her legs. Blood-to-the-head intensity — keep it short."
+    "Her head and shoulders off the edge of the bed; he kneels between her legs. Blood-to-the-head intensity, keep it short."
   ),
   pose(
     "laid-back-cowgirl",
@@ -220,7 +220,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "slow-grind",
     "Slow Grind",
     "face-to-face",
-    "Missionary or cowgirl with almost no thrust — just a circular grind. Built for clit contact and a long kiss."
+    "Missionary or cowgirl with almost no thrust, just a circular grind. Built for clit contact and a long kiss."
   ),
 
   // From Behind
@@ -306,7 +306,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "closed-doggy",
     "Closed Doggy",
     "from-behind",
-    "Knees together, chest down. Tighter than classic doggy — a different kind of deep."
+    "Knees together, chest down. Tighter than classic doggy, a different kind of deep."
   ),
   pose(
     "pillow-hug",
@@ -348,7 +348,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "lazy-rear",
     "Lazy Rear",
     "from-behind",
-    "Both more reclined than doggy — her on forearms, him sitting back on his heels. Unhurried."
+    "Both more reclined than doggy, her on forearms, him sitting back on his heels. Unhurried."
   ),
   pose(
     "kitchen-rear",
@@ -360,7 +360,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "wheelbarrow-lite",
     "Wheelbarrow Lite",
     "from-behind",
-    "Her chest on the bed, he standing and lifting her thighs a little. Not a full lift — just enough tilt."
+    "Her chest on the bed, he standing and lifting her thighs a little. Not a full lift, just enough tilt."
   ),
   pose(
     "side-rear-kneel",
@@ -464,7 +464,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "dining-chair",
     "Dining Chair",
     "sitting",
-    "Straight-backed chair, no arms. She faces him or away — the back is something to hold."
+    "Straight-backed chair, no arms. She faces him or away, the back is something to hold."
   ),
   pose(
     "stool",
@@ -526,7 +526,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "lifted-hold",
     "Lifted Hold",
     "standing",
-    "He lifts her; legs wrapped around his waist. Strength move — use a wall for support."
+    "He lifts her; legs wrapped around his waist. Strength move, use a wall for support."
   ),
   pose(
     "bent-over-stand",
@@ -628,7 +628,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "balcony-rail",
     "Balcony Rail",
     "standing",
-    "Hands on the rail, him behind — or face to face if the rail is low. Privacy first."
+    "Hands on the rail, him behind, or face to face if the rail is low. Privacy first."
   ),
   pose(
     "table-press-stand",
@@ -649,12 +649,12 @@ export const SEX_POSITIONS: SexPosition[] = [
     "Both standing, no wall, her on tiptoe to match height. Hands on each other, slow so you do not topple."
   ),
 
-  // Oral — 24 poses
+  // Oral, 24 poses
   pose(
     "kneeling-oral",
     "Kneeling Oral",
     "oral",
-    "One partner kneels while the other stands. Classic worship pose — hands on thighs or in hair."
+    "One partner kneels while the other stands. Classic worship pose, hands on thighs or in hair."
   ),
   pose(
     "face-sitting",
@@ -672,7 +672,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "sixty-nine",
     "Sixty-Nine",
     "oral",
-    "Head-to-toe mutual oral, her on top. Simultaneous give and take — pause when one of you gets close."
+    "Head-to-toe mutual oral, her on top. Simultaneous give and take, pause when one of you gets close."
   ),
   pose(
     "sixty-nine-him-top",
@@ -708,7 +708,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "head-off-bed",
     "Head Off the Bed",
     "oral",
-    "She lies with her head hanging off the edge; he stands. A steeper blowjob angle — keep a hand under her neck and check in."
+    "She lies with her head hanging off the edge; he stands. A steeper blowjob angle, keep a hand under her neck and check in."
   ),
   pose(
     "standing-one-leg",
@@ -780,7 +780,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "under-the-desk",
     "Under the Desk",
     "oral",
-    "He sits; she under the desk between his knees. The fantasy of being interrupted — lock the door anyway."
+    "He sits; she under the desk between his knees. The fantasy of being interrupted, lock the door anyway."
   ),
   pose(
     "seated-sixty-nine",
@@ -804,7 +804,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "hands-free-oral",
     "Hands-Free Oral",
     "oral",
-    "Mouth only — giver’s hands on the mattress, thighs, or behind their back. Slower, wetter, more deliberate."
+    "Mouth only, giver’s hands on the mattress, thighs, or behind their back. Slower, wetter, more deliberate."
   ),
 
   // Side & Creative
@@ -818,7 +818,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "sideways-spoon",
     "Sideways Cross",
     "side-creative",
-    "She on her back, he on his side perpendicular — her legs over him. Unusual angle, deep reach."
+    "She on her back, he on his side perpendicular, her legs over him. Unusual angle, deep reach."
   ),
   pose(
     "bridge",
@@ -842,7 +842,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "pile-driver-lite",
     "Folded Press",
     "side-creative",
-    "Her hips elevated, knees toward shoulders, he kneeling over. Advanced angle — go slow and check in."
+    "Her hips elevated, knees toward shoulders, he kneeling over. Advanced angle, go slow and check in."
   ),
   pose(
     "corkscrew",
@@ -860,7 +860,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "pretzel-dip",
     "Pretzel Dip",
     "side-creative",
-    "She on her side; he kneeling, one of her legs between his. A milder pretzel — less fold, still a new line."
+    "She on her side; he kneeling, one of her legs between his. A milder pretzel, less fold, still a new line."
   ),
   pose(
     "crossed-ankles",
@@ -872,7 +872,7 @@ export const SEX_POSITIONS: SexPosition[] = [
     "t-bone",
     "T-Bone",
     "side-creative",
-    "She on her back; he on his side at a right angle, her legs over him. A hard T — deep and a bit odd until it clicks."
+    "She on her back; he on his side at a right angle, her legs over him. A hard T, deep and a bit odd until it clicks."
   ),
   pose(
     "figure-four",
@@ -896,13 +896,13 @@ export const SEX_POSITIONS: SexPosition[] = [
     "chair-side",
     "Chair, Sideways",
     "side-creative",
-    "He sits; she sits across him sideways and leans back on one hand. Not a full straddle — a lounge pose that turns."
+    "He sits; she sits across him sideways and leans back on one hand. Not a full straddle, a lounge pose that turns."
   ),
   pose(
     "hammock",
     "Hammock",
     "side-creative",
-    "Her legs over his shoulders, him kneeling, her back on the bed. Like a sling — go easy on her neck."
+    "Her legs over his shoulders, him kneeling, her back on the bed. Like a sling, go easy on her neck."
   ),
   pose(
     "tangle",

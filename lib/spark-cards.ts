@@ -126,7 +126,7 @@ export const SPARK_CARDS_SEED: SparkCard[] = [
   { id: "spark-123", location: "at_home", category: "sensory", intensity: 2, title: "Knuckles down the jaw", prompt: "Run your knuckles down the side of their face and jawline without smiling." },
   { id: "spark-124", location: "at_home", category: "sensory", intensity: 1, title: "Sixty-second scalp", prompt: "Give them a 60-second scalp massage while they close their eyes." },
   { id: "spark-125", location: "at_home", category: "sensory", intensity: 1, title: "Hand on the neck", prompt: "Rest your hand on the back of their neck, lightly playing with their hairline while talking." },
-  { id: "spark-126", location: "at_home", category: "teasing", intensity: 2, title: "No kissing on the lips", prompt: "Institute the \"No Kissing on the Lips\" rule for the next hour—kisses everywhere else are allowed." },
+  { id: "spark-126", location: "at_home", category: "teasing", intensity: 2, title: "No kissing on the lips", prompt: "Institute the \"No Kissing on the Lips\" rule for the next hour, kisses everywhere else are allowed." },
   { id: "spark-127", location: "at_home", category: "teasing", intensity: 3, title: "Only their shirt", prompt: "Wear only their oversized button-up shirt or hoodie around the house with nothing underneath." },
   { id: "spark-128", location: "at_home", category: "teasing", intensity: 3, title: "Filthy, then keep walking", prompt: "Whisper an unprompted filthy compliment into their ear while passing them in the kitchen, then keep walking." },
   { id: "spark-129", location: "at_home", category: "teasing", intensity: 3, title: "Staring contest, loser strips", prompt: "Challenge them to a staring contest where the loser must remove one article of clothing." },

@@ -109,7 +109,7 @@ export const COUPON_IDEAS: CouponIdea[] = [
   ...pack("food", [
     "Breakfast in bed with your choice of drinks & menu",
     "I cook your favorite home meal from scratch tonight",
-    "Late-night fast-food run—my treat",
+    "Late-night fast-food run, my treat",
     "You get the last bite/slice of whatever we are sharing",
     "Coffee in bed brought to you every morning this weekend",
     "Master of the TV snacks: I make a deluxe snack platter for our movie",
@@ -300,7 +300,7 @@ export const COUPON_IDEAS: CouponIdea[] = [
     "Priority Comfort Item: Your partner fetches a warm blanket, heat pack, or fresh socks without you asking twice",
     "Problem-Solving Brainstorm: Sit down for 20 minutes while your partner helps you map out a solution to something stressing you out",
     "Peace & Quiet Guarantee: Immediate noise reduction in the house for 1 hour when you're overwhelmed",
-    "No-Questions Answered: Get out of explaining why you're in a mood—your partner simply offers a hug or space",
+    "No-Questions Answered: Get out of explaining why you're in a mood, your partner simply offers a hug or space",
     "Heavy Lifting Pass: Your partner handles moving, carrying, or lifting heavy items for the day",
     "Tea / Cocoa Remedy: A fresh hot drink delivered whenever you express that you've had a tough moment",
   ]),

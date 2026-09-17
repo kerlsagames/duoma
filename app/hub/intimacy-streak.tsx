@@ -9,12 +9,10 @@ import { createId, nowIso } from "@/lib/ids";
 import {
   GRAPH_HISTORY_DAYS,
   GRAPH_WINDOW_DAYS,
-  MISS_DAYS_TO_OUT,
   buildDayBars,
   collectIntimacyLogs,
   computeFireState,
   dayConnectionScore,
-  fireCaption,
   fireLabel,
   fireScale,
   type DayBar,
@@ -791,20 +789,6 @@ export default function IntimacyStreakScreen() {
             >
               Keep it simple
             </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                textAlign: "center",
-                color: "rgba(255,210,180,0.7)",
-                fontFamily: SERIF,
-                fontSize: 16,
-                lineHeight: 22,
-                paddingHorizontal: 8,
-              }}
-            >
-              Tap what happened. Same day can take more than one — they stack
-              on the bar. Nothing from the other apps lands here.
-            </Text>
           </>
         ) : (
           <>
@@ -836,32 +820,6 @@ export default function IntimacyStreakScreen() {
             >
               {headline}
             </Text>
-            <Text
-              style={{
-                textAlign: "center",
-                color: "rgba(255,210,180,0.7)",
-                fontFamily: SERIF,
-                fontSize: 16,
-                lineHeight: 22,
-                paddingHorizontal: 8,
-              }}
-            >
-              {ready ? fireCaption(fire) : "Lighting the grate…"}
-            </Text>
-            {ready && fire.lit ? (
-              <Text
-                style={{
-                  marginTop: 8,
-                  textAlign: "center",
-                  color: "rgba(255,210,180,0.45)",
-                  fontFamily: "SpaceMono",
-                  fontSize: 11,
-                  letterSpacing: 0.6,
-                }}
-              >
-                Tiny on day one · grows over months · {MISS_DAYS_TO_OUT} quiet nights puts it out
-              </Text>
-            ) : null}
           </>
         )}
         {ready && todayLogs.length > 0 ? (

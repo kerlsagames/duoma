@@ -424,6 +424,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                     void save((current) => ({
                       ...current,
                       showDetails: !current.showDetails,
+                      detailsUserSet: true,
                     }))
                   }
                   style={{

@@ -531,19 +531,6 @@ export default function CouponsScreen() {
                 >
                   Tear one off. Gift it.
                 </Text>
-                <Text
-                  style={{
-                    marginTop: 10,
-                    fontFamily: SERIF,
-                    fontSize: 15,
-                    lineHeight: 22,
-                    color: T.onCoverMuted,
-                  }}
-                >
-                  Pick a favor, write your own, scribble why if you want, set
-                  when it expires. Their booklet keeps the live ones — stubs
-                  hold the used.
-                </Text>
               </View>
             </View>
           </View>

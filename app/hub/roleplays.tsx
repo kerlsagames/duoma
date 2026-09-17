@@ -239,8 +239,7 @@ export default function RoleplaysScreen() {
             color: T.muted,
           }}
         >
-          Save scenes to To-do. Tick them off when you play them. Ask{" "}
-          {partnerName} tonight from the list.
+          Try a roleplay scene by spinning the random button or searching through
         </Text>
 
         <View style={{ marginTop: 20 }}>

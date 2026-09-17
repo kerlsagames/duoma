@@ -13,8 +13,6 @@ import { GenderPicker } from "@/components/ui/GenderPicker";
 import { ReportSheet } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
-import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
-import { isSupabaseConfigured } from "@/lib/supabase";
 import { gameResumeHref } from "@/lib/home-status";
 import {
   allHubApps,
@@ -756,8 +754,6 @@ function HomeSettingsSheet({
     unpairAndWipe,
     deleteOwnAccount,
     submitContentReport,
-    nights,
-    bestCards,
     setProfileGender,
   } = useApp();
   const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
@@ -766,14 +762,6 @@ function HomeSettingsSheet({
   const sheetH = Math.round(Math.min(winH * 0.88, winH - 78));
   const hubThemes = useHubThemes();
   const hubs = useThemedHubs();
-  const names = resolveCardNames({
-    userName: user?.displayName,
-    partnerName: partner?.displayName,
-  });
-  const genders = resolveCardGenders({
-    userGender: user?.gender,
-    partnerGender: partner?.gender,
-  });
   return (
     <View
       pointerEvents="box-none"
@@ -1171,14 +1159,6 @@ function HomeSettingsSheet({
             }}
           />
           <LinkRow
-            label="Card Bank"
-            hint="Toggle rotation. Write custom cards with your names."
-            onPress={() => {
-              onClose();
-              router.push("/(tabs)/cards" as Href);
-            }}
-          />
-          <LinkRow
             label="How it works"
             hint="Pairing, the four hubs, calendar, and Get Spicy."
             onPress={() => {
@@ -1296,143 +1276,6 @@ function HomeSettingsSheet({
               {partner
                 ? `You stay paired with ${partner.displayName}${partner.isDemo ? " in the Riley sandbox" : ""}. Sign out does not unpair you.`
                 : "Share this code so your partner can join."}
-            </Text>
-          </View>
-          <View
-            style={{
-              marginBottom: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              backgroundColor: "#1A1A22",
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.4,
-                color: "rgba(244,244,246,0.45)",
-              }}
-            >
-              NIGHTS TOGETHER
-            </Text>
-            {nights.length === 0 ? (
-              <Text
-                style={{
-                  marginTop: 6,
-                  color: "rgba(244,244,246,0.5)",
-                  fontSize: 13,
-                  lineHeight: 18,
-                }}
-              >
-                No closed nights yet. Play Get Spicy and they land here.
-              </Text>
-            ) : (
-              nights.slice(0, 6).map((night) => (
-                <Text
-                  key={night.id}
-                  style={{ marginTop: 6, color: "#F4F4F6", fontSize: 14 }}
-                >
-                  {new Date(night.updatedAt).toLocaleDateString()} ·{" "}
-                  {night.status === "rating" ? "rating cards" : "closed"}
-                </Text>
-              ))
-            )}
-          </View>
-          <View
-            style={{
-              marginBottom: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              backgroundColor: "#1A1A22",
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.4,
-                color: "rgba(244,244,246,0.45)",
-              }}
-            >
-              BEST CARDS
-            </Text>
-            {bestCards.length === 0 ? (
-              <Text
-                style={{
-                  marginTop: 6,
-                  color: "rgba(244,244,246,0.5)",
-                  fontSize: 13,
-                  lineHeight: 18,
-                }}
-              >
-                After a night, rate what you played. Keepers show up here.
-              </Text>
-            ) : (
-              bestCards.slice(0, 4).map((row) => {
-                const copy = personalizeCard(row.card, names, genders);
-                return (
-                  <View key={row.card.id} style={{ marginTop: 8 }}>
-                    <Text style={{ color: "#FF007F", fontSize: 12 }}>
-                      {row.average.toFixed(1)}/10
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 2,
-                        color: "#F4F4F6",
-                        fontSize: 14,
-                        lineHeight: 20,
-                      }}
-                    >
-                      {copy.body}
-                    </Text>
-                  </View>
-                );
-              })
-            )}
-          </View>
-          <View
-            style={{
-              marginBottom: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              backgroundColor: "#1A1A22",
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "SpaceMono",
-                fontSize: 11,
-                letterSpacing: 1.4,
-                color: "rgba(244,244,246,0.45)",
-              }}
-            >
-              BACKEND
-            </Text>
-            <Text
-              style={{
-                marginTop: 6,
-                color: "#F4F4F6",
-                fontSize: 15,
-                fontWeight: "700",
-              }}
-            >
-              {isSupabaseConfigured ? "Supabase connected" : "Local realtime mode"}
-            </Text>
-            <Text
-              style={{
-                marginTop: 4,
-                color: "rgba(244,244,246,0.5)",
-                fontSize: 12,
-                lineHeight: 18,
-              }}
-            >
-              {isSupabaseConfigured
-                ? "Invites, cards, and game state sync through Supabase."
-                : "Pairing works across tabs on this device. Add project keys to go cloud."}
             </Text>
           </View>
           <Pressable

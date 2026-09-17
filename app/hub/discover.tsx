@@ -326,7 +326,7 @@ export default function DiscoverScreen() {
               color: T.muted,
             }}
           >
-            Right = talked about it. No typing. Left = skip.
+            Right = talked about it. Left = skip.
           </Text>
         ) : onDeck ? null : (
           <Text

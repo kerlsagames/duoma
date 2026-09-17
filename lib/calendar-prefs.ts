@@ -56,13 +56,13 @@ export const CALENDAR_LAYOUT_OPTIONS: {
 }[] = [
   {
     id: "stack",
-    label: "Stacked",
-    hint: "Month on top, that day's notes underneath. The default.",
+    label: "Month",
+    hint: "The full month, that day's notes underneath. The default.",
   },
   {
-    id: "split",
-    label: "Split",
-    hint: "Month on the left half, notes and notifications on the right.",
+    id: "week",
+    label: "Week",
+    hint: "Seven days across, then that day's notes underneath.",
   },
   {
     id: "agenda",
@@ -70,9 +70,9 @@ export const CALENDAR_LAYOUT_OPTIONS: {
     hint: "This month as a running list of notes, grouped by day.",
   },
   {
-    id: "week",
-    label: "Week",
-    hint: "Seven days across, then that day's notes underneath.",
+    id: "split",
+    label: "Split",
+    hint: "Month on the left half, notes and notifications on the right.",
   },
 ];
 

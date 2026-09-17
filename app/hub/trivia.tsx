@@ -412,18 +412,6 @@ function Shop({
       >
         How well do you know me
       </Text>
-      <Text
-        style={{
-          marginTop: 10,
-          fontFamily: SERIF,
-          fontSize: 16,
-          lineHeight: 24,
-          color: T.muted,
-        }}
-      >
-        Twenty sealed packs. Rip yours, then guess {them}’s. Pack 2 stays
-        wrapped until you both finish pack 1.
-      </Text>
 
       <View
         style={{

@@ -291,7 +291,7 @@ export default function PhotoChallengesScreen() {
             color: "rgba(246,214,214,0.65)",
           }}
         >
-          Shuffle until this week’s the one. The bank stays hidden.
+          find a photo pose challenge for you to complete in a week
         </Text>
 
         {settingsOpen ? (

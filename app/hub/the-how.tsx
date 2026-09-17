@@ -11,7 +11,6 @@ import {
   HOW_BODY_WORDS,
   HOW_CHAPTERS,
   HOW_WORDS,
-  howTechniques,
   howVoice,
   keptTechniques,
   noteFor,
@@ -131,9 +130,7 @@ export default function TheHowScreen() {
             color: T.muted,
           }}
         >
-          {howTechniques().length} techniques. Each card says who does what, on
-          which part of the body, then a timed try. Body words like hood and
-          mons are translated on the card.
+          research based guides to follow and learn about what works for you
         </Text>
 
         <>

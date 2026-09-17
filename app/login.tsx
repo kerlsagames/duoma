@@ -2,16 +2,25 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { looksLikeEmail } from "@/lib/account-usage";
 import { useApp } from "@/lib/store";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, View } from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { usingCloud, requestEmailCode } = useApp();
+  const { ready, user, usingCloud, requestEmailCode } = useApp();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (!ready) {
+    return (
+      <View className="flex-1 items-center justify-center bg-night">
+        <ActivityIndicator color="#FF007F" />
+      </View>
+    );
+  }
+  if (user) return <Redirect href="/" />;
 
   const send = async () => {
     const trimmed = email.trim();
@@ -44,7 +53,7 @@ export default function LoginScreen() {
         <Text className="mt-3 text-[34px] font-bold text-mist">Sign in</Text>
         <Text className="mt-3 text-[16px] leading-6 text-mist/65">
           There is no password. Enter the email on your pair. We send a 6-digit
-          code. Type it on the next screen — do not tap the email link.
+          code. Type it on the next screen, do not tap the email link.
         </Text>
 
         <TextInput

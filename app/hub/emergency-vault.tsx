@@ -234,18 +234,6 @@ export default function EmergencyVaultScreen() {
               <Text style={{ marginTop: 16, fontFamily: SERIF, fontSize: 32, color: steel() }}>
                 Emergency vault
               </Text>
-              <Text
-                style={{
-                  marginTop: 8,
-                  fontFamily: SERIF,
-                  fontSize: 15,
-                  lineHeight: 22,
-                  color: "rgba(197,208,218,0.62)",
-                  textAlign: "center",
-                }}
-              >
-                Lock it with a PIN, or skip the combination and swipe the wheel open.
-              </Text>
               <Pressable
                 onPress={() => {
                   setSettingPin(true);
@@ -259,7 +247,7 @@ export default function EmergencyVaultScreen() {
                 onPress={() => void useSwipeOnly()}
                 style={[btn(), { backgroundColor: "transparent", borderWidth: 1, borderColor: steel() }]}
               >
-                <Text style={{ color: steel(), fontWeight: "800" }}>Swipe open — no PIN</Text>
+                <Text style={{ color: steel(), fontWeight: "800" }}>Swipe open, no PIN</Text>
               </Pressable>
               {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
             </View>
@@ -525,7 +513,7 @@ export default function EmergencyVaultScreen() {
                     style={[btn(), { backgroundColor: "transparent", borderWidth: 1, borderColor: steel() }]}
                   >
                     <Text style={{ color: steel(), fontWeight: "800" }}>
-                      Swipe open — no PIN
+                      Swipe open, no PIN
                     </Text>
                   </Pressable>
                 ) : null}

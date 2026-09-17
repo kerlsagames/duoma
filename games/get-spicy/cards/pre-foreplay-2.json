@@ -26,7 +26,7 @@
   {
     "category": "pre_foreplay",
     "title": "Kiss Count",
-    "description": "{player}, text {partner} asking them to pick a random number between 1 and 10—that’s how many kisses they owe you the second you walk through the door.",
+    "description": "{player}, text {partner} asking them to pick a random number between 1 and 10, that’s how many kisses they owe you the second you walk through the door.",
     "order": 55
   },
   {
@@ -134,7 +134,7 @@
   {
     "category": "pre_foreplay",
     "title": "Silent Demand",
-    "description": "{player}, catch their eye, point to your lips, and point to them—demanding a kiss without speaking.",
+    "description": "{player}, catch their eye, point to your lips, and point to them, demanding a kiss without speaking.",
     "order": 73
   },
   {
@@ -176,7 +176,7 @@
   {
     "category": "pre_foreplay",
     "title": "Screen Blackout",
-    "description": "{player}, rule: Neither of you can use your phone for the next 30 minutes—only focus on each other.",
+    "description": "{player}, rule: Neither of you can use your phone for the next 30 minutes, only focus on each other.",
     "order": 80
   },
   {
@@ -248,7 +248,7 @@
   {
     "category": "pre_foreplay",
     "title": "Trio Kisses",
-    "description": "{player}, give {partner} three gentle kisses—one on the forehead, one on the tip of the nose, and one on the lips.",
+    "description": "{player}, give {partner} three gentle kisses, one on the forehead, one on the tip of the nose, and one on the lips.",
     "order": 92
   },
   {

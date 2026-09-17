@@ -320,7 +320,7 @@ export default function PlannerScreen() {
                 textAlign: "center",
               }}
             >
-              Spin a ticket. Schedule it. They say yes — it lands on the calendar.
+              Spin a ticket. Schedule it. They say yes, it lands on the calendar.
             </Text>
           </View>
         )}
@@ -459,16 +459,6 @@ function IdeasTab({
 }) {
   return (
     <>
-      <Text
-        style={{
-          marginBottom: 12,
-          fontSize: 13,
-          color: "rgba(244,244,246,0.5)",
-        }}
-      >
-        {poolCount} idea{poolCount === 1 ? "" : "s"} match these filters
-      </Text>
-
       <PrimaryButton
         label={picked ? "Spin again" : "Spin a date night"}
         onPress={onSpin}

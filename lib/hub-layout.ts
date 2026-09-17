@@ -13,6 +13,8 @@ export type HubLayout = {
   hidden: string[];
   view: HubView;
   showDetails: boolean;
+  /** True once they pick blurbs on or off. Old saves defaulted on. */
+  detailsUserSet?: boolean;
 };
 
 export type HubLayouts = Record<HubId, HubLayout>;
@@ -44,7 +46,7 @@ export function defaultHubLayout(): HubLayout {
     order: [],
     hidden: [],
     view: "grid",
-    showDetails: true,
+    showDetails: false,
   };
 }
 
@@ -74,7 +76,11 @@ export function hydrateHubLayout(raw: unknown): HubLayout {
       row.view === "grid" || row.view === "compact" || row.view === "list"
         ? row.view
         : base.view,
-    showDetails: typeof row.showDetails === "boolean" ? row.showDetails : true,
+    showDetails:
+      row.detailsUserSet === true && typeof row.showDetails === "boolean"
+        ? row.showDetails
+        : false,
+    detailsUserSet: row.detailsUserSet === true,
   };
 }
 

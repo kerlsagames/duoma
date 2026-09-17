@@ -160,17 +160,6 @@ export default function BirthdaysScreen() {
         >
           Who to remember
         </Text>
-        <Text
-          style={{
-            marginTop: 8,
-            fontFamily: SERIF,
-            fontSize: 15,
-            lineHeight: 22,
-            color: T.muted,
-          }}
-        >
-          Family or friends. Pick a date. Add a birth year if you want the age to fill in.
-        </Text>
 
         <View
           style={{

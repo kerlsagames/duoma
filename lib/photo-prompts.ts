@@ -29,7 +29,7 @@ function p(
   return { id, category, title, label };
 }
 
-/** 100 weekly photo ideas — four packs of 25. */
+/** 100 weekly photo ideas, four packs of 25. */
 export const PHOTO_PROMPTS: PhotoPrompt[] = [
   p("dramatic", "overly-happy-dishes", "The Overly Happy Dishes", "Take a photo doing the dishes together looking unnaturally, absurdly overjoyed."),
   p("dramatic", "movie-poster", "The Movie Poster", "Recreate a dramatic action movie poster using household items as props."),
@@ -109,7 +109,7 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   p("outdoor", "street-light-glow", "The Street Light Glow", "A nighttime shot standing directly under a single bright street lamp."),
   p("outdoor", "giant-item", "The Giant Item", "Holding a tiny object close to the camera lens so it looks giant next to your partner."),
 
-  p("wholesome", "face-swap-classic", "The Face Swap Classic", "A photo using a face-swap filter—or holding up drawn paper masks over your faces."),
+  p("wholesome", "face-swap-classic", "The Face Swap Classic", "A photo using a face-swap filter, or holding up drawn paper masks over your faces."),
   p("wholesome", "heart-hands", "The Heart Hands", "Framing a sunrise, sunset, or favorite spot inside a hand-heart shape."),
   p("wholesome", "hug-from-behind", "The Hug from Behind", "A candid, cozy shot caught in a surprise warm embrace while cooking or working."),
   p("wholesome", "matching-outfits", "The Matching Outfits", "Accidental (or intentional) twin dressing in the exact same colors on the same day."),

@@ -177,7 +177,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "Time, no phones",
     ]),
   ]),
-  pack(4, "comfort", "Comfort & stress", "What steadies me — and what doesn’t.", "#6B5CFF", "#A898F0", [
+  pack(4, "comfort", "Comfort & stress", "What steadies me, and what doesn’t.", "#6B5CFF", "#A898F0", [
     q("stress", "When I’m stressed you can see it in", [
       "My sleep",
       "My tone",
@@ -343,7 +343,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
     q("family", "Family dinners growing up were", [
       "Loud and long",
       "Quiet, TV on",
-      "Rare — everyone busy",
+      "Rare, everyone busy",
       "A production",
     ]),
     q("holiday", "The holiday I still care about", [
@@ -400,7 +400,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "I’m tired, honestly",
       "Almost never, I feel guilty",
       "The vibe feels off",
-      "You want to stay in — that’s enough",
+      "You want to stay in, that’s enough",
     ]),
     q("dance", "Dancing in public", [
       "Yes, immediately",
@@ -468,7 +468,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "That restaurant is overrated",
       "That movie isn’t good",
       "Mornings are a scam",
-      "Pineapple belongs / doesn’t — you know which",
+      "Pineapple belongs / doesn’t, you know which",
     ]),
     q("food-wrong", "A food I like “wrong”", [
       "Cold leftovers",
@@ -541,7 +541,7 @@ export const KNOW_ME_PACKS: KnowMePack[] = [
       "The “it’ll be fine” person",
     ]),
     q("splurge", "If I splurge, it’s on", [
-      "Us — a night out",
+      "Us, a night out",
       "Something for the house",
       "A little treat for me",
       "I don’t. I feel it later.",

@@ -272,18 +272,6 @@ export default function GiftsScreen() {
           >
             Wishlists
           </Text>
-          <Text
-            style={{
-              marginTop: 8,
-              fontFamily: SERIF,
-              fontSize: 15,
-              lineHeight: 22,
-              color: T.muted,
-            }}
-          >
-            A list for each of you, the kids, family, friends. One secret list
-            to get something — or hide it from your partner.
-          </Text>
 
           <GiftModeToggle
             classic={classic}

@@ -254,7 +254,7 @@
   {
     "category": "step_it_up",
     "title": "Silence Timer",
-    "description": "{player}, tell {partner} they aren't allowed to make a sound for 60 seconds while you tease them—if they do, reset the timer.",
+    "description": "{player}, tell {partner} they aren't allowed to make a sound for 60 seconds while you tease them, if they do, reset the timer.",
     "order": 93
   },
   {

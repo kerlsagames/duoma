@@ -157,7 +157,7 @@ export default function CheckInScreen() {
     .filter((row) => row.userId === partner?.id)
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0];
 
-  const [mode, setMode] = useState<"checkin" | "request">("checkin");
+  const [mode, setMode] = useState<"checkin" | "request" | "peek">("checkin");
   const [loveOn, setLoveOn] = useState(false);
   const [batteryOn, setBatteryOn] = useState(false);
   const [moodOn, setMoodOn] = useState(false);
@@ -176,7 +176,6 @@ export default function CheckInScreen() {
     showDesire: true,
     showTonight: true,
   });
-  const [peekPartner, setPeekPartner] = useState(false);
   const [loveTank, setLoveTank] = useState(0);
   const [energy, setEnergy] = useState(0);
   const [mood, setMood] = useState<MoodWeather | null>(null);
@@ -342,21 +341,15 @@ export default function CheckInScreen() {
         </AppSettingsPanel>
       }
     >
-      <View className="mb-2 flex-row rounded-2xl bg-white/5 p-1">
+      <View className="mb-3 flex-row rounded-2xl bg-white/5 p-1.5">
         <Pressable
           onPress={() => setMode("checkin")}
-          className={`flex-1 items-center rounded-xl py-1.5 ${
-            mode === "checkin" || look.prefs.hideNudge ? "bg-neon" : ""
-          }`}
-          style={
-            mode === "checkin" || look.prefs.hideNudge
-              ? { backgroundColor: look.accent }
-              : undefined
-          }
+          className="flex-1 items-center justify-center rounded-xl px-1 py-3"
+          style={mode === "checkin" ? { backgroundColor: look.accent } : undefined}
         >
           <Text
-            className={`text-[13px] font-semibold ${
-              mode === "checkin" ? "text-night" : "text-mist/55"
+            className={`text-center text-[15px] font-bold leading-5 ${
+              mode === "checkin" ? "text-night" : "text-mist/70"
             }`}
           >
             Check in
@@ -365,64 +358,59 @@ export default function CheckInScreen() {
         {look.prefs.hideNudge ? null : (
         <Pressable
           onPress={() => setMode("request")}
-          className={`flex-1 items-center rounded-xl py-1.5 ${
-            mode === "request" ? "bg-neon" : ""
-          }`}
+          className="flex-1 items-center justify-center rounded-xl px-1 py-3"
           style={mode === "request" ? { backgroundColor: look.accent } : undefined}
         >
           <Text
-            className={`text-[13px] font-semibold ${
-              mode === "request" ? "text-night" : "text-mist/55"
+            className={`text-center text-[15px] font-bold leading-5 ${
+              mode === "request" ? "text-night" : "text-mist/70"
             }`}
           >
             Request update
           </Text>
         </Pressable>
         )}
+        {partner ? (
+          <Pressable
+            onPress={() => setMode("peek")}
+            className="flex-1 items-center justify-center rounded-xl px-1 py-3"
+            style={mode === "peek" ? { backgroundColor: look.accent } : undefined}
+          >
+            <Text
+              className={`text-center text-[15px] font-bold leading-5 ${
+                mode === "peek" ? "text-night" : "text-mist/70"
+              }`}
+            >
+              {`${partner.displayName}'s mood`}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      {(mode === "checkin" || look.prefs.hideNudge) ? (
+      {mode === "peek" ? (
         <View>
-          {partner ? (
-            <Pressable
-              onPress={() => setPeekPartner((on) => !on)}
-              className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5"
-            >
-              <Text
-                className="text-center text-[13px] font-semibold"
-                style={{ color: look.accent }}
-              >
-                {peekPartner
-                  ? "Back to your check-in"
-                  : `${partner.displayName}'s mood`}
+          {partnerCheckIn ? (
+            <View className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-6">
+              <Text className="text-[13px] font-bold uppercase tracking-[2px] text-neon">
+                {partner?.displayName} · {partnerCheckIn.date}
               </Text>
-            </Pressable>
-          ) : null}
-
-          {peekPartner ? (
-            partnerCheckIn ? (
-              <View className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <Text className="text-[11px] font-bold uppercase tracking-[2px] text-neon">
-                  {partner?.displayName} · {partnerCheckIn.date}
+              {checkInLines(partnerCheckIn).map((line) => (
+                <Text key={line} className="mt-3 text-[18px] leading-7 text-mist">
+                  {line}
                 </Text>
-                {checkInLines(partnerCheckIn).map((line) => (
-                  <Text key={line} className="mt-1.5 text-[15px] text-mist">
-                    {line}
-                  </Text>
-                ))}
-                <Text className="mt-3 text-[13px] leading-5 text-mist/60">
-                  {partnerHint(partnerCheckIn)}
-                </Text>
-              </View>
-            ) : (
-              <Text className="mb-4 text-center text-[14px] leading-5 text-mist/60">
-                Nothing from them yet. Request an update if you need it.
+              ))}
+              <Text className="mt-5 text-[16px] leading-6 text-mist/70">
+                {partnerHint(partnerCheckIn)}
               </Text>
-            )
-          ) : null}
-
-          {peekPartner ? null : (
-          <>
+            </View>
+          ) : (
+            <Text className="mb-4 text-center text-[16px] leading-6 text-mist/70">
+              Nothing from them yet. Request an update if you need it.
+            </Text>
+          )}
+        </View>
+      ) : mode !== "request" || look.prefs.hideNudge ? (
+        <View>
           {incomingCheckInRequest && !myCheckIn ? (
             <View className="mb-4 rounded-2xl border border-crimson/40 bg-crimson/10 px-4 py-3">
               <Text className="text-[12px] font-bold uppercase tracking-[2px] text-crimson">
@@ -586,8 +574,6 @@ export default function CheckInScreen() {
             onPress={() => void save()}
             size="compact"
           />
-          </>
-          )}
         </View>
       ) : (
         <View>

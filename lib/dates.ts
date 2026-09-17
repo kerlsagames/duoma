@@ -168,9 +168,9 @@ export function formatWeekRange(startKey: string): string {
   const endMonth = end.toLocaleDateString(undefined, { month: "short" });
   if (start.getFullYear() === end.getFullYear()) {
     if (start.getMonth() === end.getMonth()) {
-      return `${startMonth} ${start.getDate()}–${end.getDate()}, ${end.getFullYear()}`;
+      return `${startMonth} ${start.getDate()} to ${end.getDate()}, ${end.getFullYear()}`;
     }
-    return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
+    return `${startMonth} ${start.getDate()} to ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
   }
-  return `${startMonth} ${start.getDate()}, ${start.getFullYear()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
+  return `${startMonth} ${start.getDate()}, ${start.getFullYear()} to ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
 }

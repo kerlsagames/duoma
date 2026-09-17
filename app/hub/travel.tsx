@@ -122,16 +122,6 @@ export default function TravelScreen() {
         >
           Trips
         </Text>
-        <Text
-          style={{
-            marginTop: 6,
-            fontFamily: HANDWRITING,
-            fontSize: 20,
-            color: MUTED,
-          }}
-        >
-          Stamps, boarding passes, the days you picked. Costs hide if you want.
-        </Text>
 
         <Pressable
           onPress={() => {

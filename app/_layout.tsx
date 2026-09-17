@@ -81,6 +81,11 @@ function RootChrome() {
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
   const banned = Boolean(user?.bannedAt) && !isCreatorEmail(user?.email);
 
+  const authGate =
+    pathname === "/login" ||
+    pathname === "/create" ||
+    pathname === "/join";
+
   useEffect(() => {
     if (!ready || admin) return;
     if (banned && pathname !== "/banned") {
@@ -89,8 +94,12 @@ function RootChrome() {
     }
     if (!banned && pathname === "/banned") {
       router.replace("/");
+      return;
     }
-  }, [ready, banned, admin, pathname, router]);
+    if (user && authGate) {
+      router.replace("/");
+    }
+  }, [ready, banned, admin, pathname, router, user, authGate]);
 
   return (
     <PhoneShell>

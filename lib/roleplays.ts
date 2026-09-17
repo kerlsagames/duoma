@@ -94,7 +94,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-late-night-electrician",
     name: "The Late-Night Electrician",
     category: "professional",
-    blurb: "The power dies. M works the dark hallway by flashlight. F leans in the bedroom doorway in an open robe and tells him the fuse box can wait — her mouth can't.",
+    blurb: "The power dies. M works the dark hallway by flashlight. F leans in the bedroom doorway in an open robe and tells him the fuse box can wait, her mouth can't.",
   },
   {
     id: "the-maid-s-inspection",
@@ -240,7 +240,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-hotel-room-miscount",
     name: "The Hotel Room Miscount",
     category: "strangers",
-    blurb: "Wrong door. F is on the bed in a low dress, champagne open. She looks at the stranger and says if he is already in, he should finish pouring — and then her.",
+    blurb: "Wrong door. F is on the bed in a low dress, champagne open. She looks at the stranger and says if he is already in, he should finish pouring, and then her.",
   },
   {
     id: "the-vip-backstage-pass",
@@ -428,7 +428,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-french-maid-the-count",
     name: "The French Maid & The Count",
     category: "fantasy",
-    blurb: "F is caught in the uniform at the foot of his bed. M, robe open, tells her to finish the silver later — he needs her mouth now.",
+    blurb: "F is caught in the uniform at the foot of his bed. M, robe open, tells her to finish the silver later, he needs her mouth now.",
   },
   {
     id: "the-mermaid-s-grotto",
@@ -452,7 +452,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-bandit-the-carriage",
     name: "The Bandit & The Carriage",
     category: "fantasy",
-    blurb: "He stops the coach and climbs in. M tells F the jewels can stay — he is taking his tribute between her legs on the velvet seat.",
+    blurb: "He stops the coach and climbs in. M tells F the jewels can stay, he is taking his tribute between her legs on the velvet seat.",
   },
   {
     id: "the-princess-the-assassin",
@@ -531,7 +531,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-royal-bodyguard-s-protocol",
     name: "The Royal Bodyguard's Protocol",
     category: "authority",
-    blurb: "He kneels because that is the job. Then M stands, pins F to the throne wall, and shows her who actually keeps her safe — and used.",
+    blurb: "He kneels because that is the job. Then M stands, pins F to the throne wall, and shows her who actually keeps her safe, and used.",
   },
   {
     id: "the-bouncer-s-back-alley-choice",
@@ -629,7 +629,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-android-calibration",
     name: "The Android Calibration",
     category: "scifi",
-    blurb: "M runs F's sensors on the table — pressure, heat, how many times she can come before the software begs.",
+    blurb: "M runs F's sensors on the table, pressure, heat, how many times she can come before the software begs.",
   },
   {
     id: "the-werewolf-s-full-moon",
@@ -774,7 +774,7 @@ export const ROLEPLAYS: Roleplay[] = [
     id: "the-dominant-female-male-slave",
     name: "The Dominant Female & Male Slave",
     category: "bdsm",
-    blurb: "She is standing. He is on the sofa. F tells M the collar is for him tonight — mouth on her, no hands, until she is finished.",
+    blurb: "She is standing. He is on the sofa. F tells M the collar is for him tonight, mouth on her, no hands, until she is finished.",
   },
   {
     id: "the-public-leash-walk",

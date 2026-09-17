@@ -339,9 +339,7 @@ export default function FantasyMatcherScreen() {
             color: T.muted,
           }}
         >
-          Short fantasies, not whole scenes. Right = yes. Left = pass.
-          Mutual yeses land on To-do. Passed shows yours and {partnerLabel}'s
-          nos.
+          Swipe right to what you’d do, swipe left if you wanna pass on that idea. See what desires you have in common
         </Text>
 
         <View

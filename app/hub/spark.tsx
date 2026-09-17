@@ -183,8 +183,7 @@ export default function SparkScreen() {
             lineHeight: 22,
           }}
         >
-          Two hundred slow burns. From across town, or in the same room — hours
-          before anyone undresses. Little things for you to do.
+          Some inspiration for you to start setting the mood
         </Text>
 
         <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>

@@ -168,9 +168,6 @@ export default function GoalsScreen() {
           >
             Shared goals
           </Text>
-          <Text style={{ marginTop: 8, fontSize: 15, lineHeight: 22, color: T.muted }}>
-            Long-term sits on top. Short-term is the list underneath. Add money when you have it.
-          </Text>
           <Pressable
             onPress={() => router.push("/hub/budget" as Href)}
             style={{ marginTop: 10, alignSelf: "flex-start" }}
