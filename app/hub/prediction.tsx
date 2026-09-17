@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
+import { FlowingTape } from "@/components/ui/FlowingTape";
 import {
   LOVEBETZ_DISPLAY as DISPLAY,
   LOVEBETZ_SANS as SANS,
@@ -33,8 +34,8 @@ import type { Prediction } from "@/lib/mini-content";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Animated, Easing, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 type HubTab = "make" | "live" | "finalised";
 
@@ -74,22 +75,6 @@ export default function PredictionScreen() {
   const [flash, setFlash] = useState<string | null>(null);
   const them = partner?.displayName || "them";
   const me = user?.displayName || "You";
-  const tape = useRef(new Animated.Value(0)).current;
-  const [tapeWidth, setTapeWidth] = useState(0);
-
-  useEffect(() => {
-    tape.setValue(0);
-    const loop = Animated.loop(
-      Animated.timing(tape, {
-        toValue: 1,
-        duration: Math.max(14000, tapeWidth * 18),
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [tape, tapeWidth]);
 
   const incoming = data.predictions.filter(
     (row) => row.status === "offered" && user && row.toUserId === user.id
@@ -347,62 +332,19 @@ export default function PredictionScreen() {
         }
       >
         {look.prefs.hideTape ? null : (
-        <View
-          style={{
-            marginHorizontal: -20,
-            height: TAPE_HEIGHT,
-            backgroundColor: look.accent,
-            overflow: "hidden",
-            justifyContent: "center",
-          }}
-        >
-          <Animated.View
-            style={{
-              flexDirection: "row",
-              flexWrap: "nowrap",
-              height: TAPE_HEIGHT,
-              alignItems: "center",
-              transform: [
-                {
-                  translateX: tape.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, tapeWidth ? -tapeWidth : -280],
-                  }),
-                },
-              ],
-            }}
-          >
-            {[0, 1].map((copy) => (
-              <Text
-                key={copy}
-                numberOfLines={1}
-                onLayout={
-                  copy === 0
-                    ? (event) => {
-                        const next = event.nativeEvent.layout.width;
-                        if (next > 0 && Math.abs(next - tapeWidth) > 2) {
-                          setTapeWidth(next);
-                        }
-                      }
-                    : undefined
-                }
-                style={{
-                  color: T.onPink,
-                  fontFamily: SANS,
-                  fontSize: 12,
-                  lineHeight: TAPE_HEIGHT,
-                  fontWeight: "700",
-                  letterSpacing: 0.4,
-                  paddingRight: 8,
-                  flexShrink: 0,
-                  ...(Platform.OS === "web" ? { whiteSpace: "nowrap" as const } : null),
-                }}
-              >
-                {TAPE_COPY}
-              </Text>
-            ))}
-          </Animated.View>
-        </View>
+          <View style={{ marginHorizontal: -20, minWidth: 0 }}>
+            <FlowingTape
+              text={TAPE_COPY}
+              color={T.onPink}
+              height={TAPE_HEIGHT}
+              fontSize={12}
+              fontFamily={SANS}
+              fontWeight="700"
+              letterSpacing={0.4}
+              backgroundColor={look.accent}
+              accessibilityLabel="LoveBetz ticker. Place a slip. Winner takes the prize."
+            />
+          </View>
         )}
 
         <View

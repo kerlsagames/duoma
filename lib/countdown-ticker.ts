@@ -58,5 +58,5 @@ export function tickerLine(
 ): string {
   return tickerMilestones(milestones, prefs)
     .map((item) => formatCountdownPhrase(item, Boolean(prefs.asWeeks)))
-    .join(" · ");
+    .join("   ·   ");
 }
