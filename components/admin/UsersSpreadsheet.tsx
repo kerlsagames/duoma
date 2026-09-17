@@ -1,7 +1,5 @@
 import { CoupleDossier } from "@/components/admin/CoupleDossier";
-import { looksLikeEmail } from "@/lib/account-usage";
 import { isDemoPair, isExampleAccount } from "@/lib/admin-example";
-import { creatorEmails } from "@/lib/creator";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -94,22 +92,14 @@ export function UsersSpreadsheet() {
     canUseDemo,
     ensureDemoPair,
     ready,
-    user,
     usingCloud,
     refreshCloudAccounts,
-    requestEmailCode,
-    verifyEmailCode,
   } = useApp();
   const { data: mini } = useMiniApps();
   const { width } = useWindowDimensions();
   const [openId, setOpenId] = useState<string | null>(null);
   const [reason, setReason] = useState("Used inappropriately");
   const [query, setQuery] = useState("");
-  const [email, setEmail] = useState(creatorEmails()[0] ?? "");
-  const [code, setCode] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [codeSent, setCodeSent] = useState(false);
 
   useEffect(() => {
     if (!canUseDemo) return;
@@ -119,7 +109,7 @@ export function UsersSpreadsheet() {
   useEffect(() => {
     if (!ready || !usingCloud) return;
     void refreshCloudAccounts();
-  }, [ready, usingCloud, user?.id, refreshCloudAccounts]);
+  }, [ready, usingCloud, refreshCloudAccounts]);
 
   const profiles = useMemo(
     () => allProfiles.filter((profile) => !isExampleAccount(profile.id)),
@@ -181,98 +171,6 @@ export function UsersSpreadsheet() {
         <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 13, lineHeight: 18 }}>
           Pair → partner → hub → app. Location is timezone, not GPS. Vault stays off this screen.
         </Text>
-        {!user && usingCloud ? (
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ color: "rgba(244,244,246,0.55)", fontSize: 12, lineHeight: 17 }}>
-              Sign in with your creator email to load live pairs. The passphrase only opens
-              Backstage — accounts live in Supabase.
-            </Text>
-            <TextInput
-              value={email}
-              onChangeText={(value) => {
-                setEmail(value);
-                setAuthError(null);
-              }}
-              placeholder="Creator email"
-              placeholderTextColor="rgba(244,244,246,0.35)"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              style={{
-                marginTop: 8,
-                borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.12)",
-                borderRadius: 8,
-                paddingHorizontal: 10,
-                paddingVertical: 8,
-                color: "#F4F4F6",
-                fontSize: 13,
-              }}
-            />
-            {codeSent ? (
-              <TextInput
-                value={code}
-                onChangeText={(value) => {
-                  setCode(value);
-                  setAuthError(null);
-                }}
-                placeholder="6-digit code"
-                placeholderTextColor="rgba(244,244,246,0.35)"
-                autoCapitalize="none"
-                keyboardType="number-pad"
-                style={{
-                  marginTop: 8,
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.12)",
-                  borderRadius: 8,
-                  paddingHorizontal: 10,
-                  paddingVertical: 8,
-                  color: "#F4F4F6",
-                  fontSize: 13,
-                }}
-              />
-            ) : null}
-            {authError ? (
-              <Text style={{ color: "#FF8A8A", marginTop: 6, fontSize: 12 }}>{authError}</Text>
-            ) : null}
-            <Pressable
-              disabled={authBusy}
-              onPress={() =>
-                void (async () => {
-                  const trimmed = email.trim();
-                  if (!looksLikeEmail(trimmed)) {
-                    setAuthError("That email does not look right.");
-                    return;
-                  }
-                  setAuthBusy(true);
-                  setAuthError(null);
-                  try {
-                    if (!codeSent) {
-                      await requestEmailCode(trimmed);
-                      setCodeSent(true);
-                    } else {
-                      await verifyEmailCode(code.trim());
-                      await refreshCloudAccounts();
-                    }
-                  } catch (err) {
-                    setAuthError(err instanceof Error ? err.message : "Could not sign in.");
-                  } finally {
-                    setAuthBusy(false);
-                  }
-                })()
-              }
-              style={{ marginTop: 8 }}
-            >
-              <Text style={{ color: "#FF007F", fontSize: 12, fontWeight: "700" }}>
-                {authBusy
-                  ? "Working…"
-                  : codeSent
-                    ? "Load users"
-                    : "Email me the code"}
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -321,11 +219,9 @@ export function UsersSpreadsheet() {
               >
                 {!ready
                   ? "Loading…"
-                  : user
-                    ? "No pairs in the directory yet."
-                    : usingCloud
-                      ? "No pairs on this browser yet."
-                      : "No pairs stored in this browser."}
+                  : usingCloud
+                    ? "No pairs yet. If this is live, run SQL 015 in Supabase so the passphrase can list every account."
+                    : "No pairs stored in this browser."}
               </Text>
             ) : null}
             {rows.map((row) => {

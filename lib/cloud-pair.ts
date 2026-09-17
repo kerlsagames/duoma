@@ -1,3 +1,4 @@
+import { expectedAdminKey, isAdminUnlocked } from "@/lib/admin-gate";
 import { isCreatorEmail } from "@/lib/creator";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Couple, Gender, Profile } from "@/lib/types";
@@ -150,7 +151,7 @@ function asCouple(row: {
 
 function asProfile(row: {
   id: string;
-  display_name: string;
+  display_name?: string | null;
   gender?: string | null;
   email?: string | null;
   banned_at?: string | null;
@@ -162,7 +163,7 @@ function asProfile(row: {
   timezone?: string | null;
   active_seconds?: number | null;
   app_seconds?: Record<string, number> | null;
-  created_at: string;
+  created_at?: string | null;
 }): Profile {
   const appSeconds =
     row.app_seconds && typeof row.app_seconds === "object" && !Array.isArray(row.app_seconds)
@@ -174,7 +175,7 @@ function asProfile(row: {
       : {};
   return {
     id: row.id,
-    displayName: row.display_name,
+    displayName: row.display_name?.trim() || "Player",
     gender: row.gender === "male" || row.gender === "female" ? row.gender : null,
     email: row.email ?? null,
     bannedAt: row.banned_at ?? null,
@@ -186,7 +187,7 @@ function asProfile(row: {
     timezone: row.timezone ?? null,
     activeSeconds: typeof row.active_seconds === "number" ? row.active_seconds : 0,
     appSeconds,
-    createdAt: row.created_at,
+    createdAt: row.created_at || new Date().toISOString(),
   };
 }
 
@@ -278,6 +279,73 @@ export async function absorbCloudSession(): Promise<{
 }
 
 export async function loadCloudDirectory(): Promise<{
+  profiles: Profile[];
+  couples: Couple[];
+} | null> {
+  if (!supabase) return null;
+  if (isAdminUnlocked()) {
+    const fromPass = await loadDirectoryWithPassphrase();
+    if (fromPass) return fromPass;
+  }
+  return loadDirectoryAsSignedIn();
+}
+
+async function loadDirectoryWithPassphrase(): Promise<{
+  profiles: Profile[];
+  couples: Couple[];
+} | null> {
+  const key = expectedAdminKey();
+  try {
+    const origin =
+      typeof window !== "undefined" && window.location?.origin
+        ? window.location.origin
+        : "";
+    if (origin) {
+      const res = await fetch(`${origin}/api/admin/directory`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key }),
+      });
+      if (res.ok) {
+        const parsed = parseDirectory(await res.json());
+        if (parsed) return parsed;
+      }
+    }
+  } catch {
+    // Local Expo has no Vercel /api. Fall through to the SQL function.
+  }
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc("admin_directory", { p_key: key });
+  if (error || !data) return null;
+  return parseDirectory(data);
+}
+
+function parseDirectory(raw: unknown): { profiles: Profile[]; couples: Couple[] } | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as { profiles?: unknown; couples?: unknown };
+  if (!Array.isArray(row.profiles) || !Array.isArray(row.couples)) return null;
+  return {
+    profiles: row.profiles
+      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+      .filter((item) => typeof item.id === "string")
+      .map((item) => asProfile(item as Parameters<typeof asProfile>[0])),
+    couples: row.couples
+      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+      .filter((item) => typeof item.id === "string")
+      .map((item) =>
+        asCouple({
+          id: String(item.id),
+          invite_code: String(item.invite_code ?? item.inviteCode ?? "—"),
+          partner_a: String(item.partner_a ?? item.partnerA ?? ""),
+          partner_b: (item.partner_b ?? item.partnerB ?? null) as string | null,
+          created_at: String(item.created_at ?? item.createdAt ?? new Date().toISOString()),
+          paired_at: (item.paired_at ?? item.pairedAt ?? null) as string | null,
+        })
+      ),
+  };
+}
+
+async function loadDirectoryAsSignedIn(): Promise<{
   profiles: Profile[];
   couples: Couple[];
 } | null> {

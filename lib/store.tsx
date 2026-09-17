@@ -222,6 +222,8 @@ let sessionUserId: string | null = null;
 let lastUserId: string | null = null;
 let liveUserId: string | null = null;
 let demoUserId: string | null = null;
+let directoryProfiles: Profile[] = [];
+let directoryCouples: Couple[] = [];
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -273,20 +275,13 @@ async function absorbHubForCouple(coupleId: string | null | undefined) {
   db = await absorbCoupleState(coupleId, db);
 }
 
-function mergeCloudDirectory(profiles: Profile[], couples: Couple[]) {
-  const nextProfiles = [...db.profiles];
-  for (const profile of profiles) {
-    const index = nextProfiles.findIndex((row) => row.id === profile.id);
-    if (index >= 0) nextProfiles[index] = { ...nextProfiles[index], ...profile };
-    else nextProfiles.push(profile);
+function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
+  const map = new Map<string, T>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    map.set(row.id, { ...(map.get(row.id) as T | undefined), ...row });
   }
-  const nextCouples = [...db.couples];
-  for (const couple of couples) {
-    const index = nextCouples.findIndex((row) => row.id === couple.id);
-    if (index >= 0) nextCouples[index] = { ...nextCouples[index], ...couple };
-    else nextCouples.push(couple);
-  }
-  db = { ...db, profiles: nextProfiles, couples: nextCouples };
+  return [...map.values()];
 }
 
 function subscribe(listener: () => void) {
@@ -1229,12 +1224,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [ready, user?.id]);
 
   const allProfiles = useMemo(
-    () => db.profiles,
+    () => mergeById(db.profiles, directoryProfiles),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
   const allCouples = useMemo(
-    () => db.couples,
+    () => mergeById(db.couples, directoryCouples),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1796,8 +1791,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshCloudAccounts = useCallback(async () => {
     const directory = await loadCloudDirectory();
     if (directory) {
-      mergeCloudDirectory(directory.profiles, directory.couples);
+      directoryProfiles = directory.profiles;
+      directoryCouples = directory.couples;
     }
+    let touchedDb = false;
     if (cloudAccountsOn() && supabase) {
       const { data } = await supabase
         .from("content_reports")
@@ -1824,6 +1821,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const seen = new Set(remote.map((row) => row.id));
         const extra = (db.contentReports ?? []).filter((row) => !seen.has(row.id));
         db = { ...db, contentReports: [...remote, ...extra] };
+        touchedDb = true;
       }
       try {
         const { data: feedbackRows } = await supabase
@@ -1848,13 +1846,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const seen = new Set(remote.map((row) => row.id));
           const extra = (db.feedbackNotes ?? []).filter((row) => !seen.has(row.id));
           db = { ...db, feedbackNotes: [...remote, ...extra] };
+          touchedDb = true;
         }
       } catch {
         // Table may not exist yet.
       }
     }
-    if (!directory && !(cloudAccountsOn() && supabase)) return;
-    await persist();
+    if (touchedDb) await persist();
+    else emit();
   }, []);
 
   const requestEmailCode = useCallback(async (email: string) => {
@@ -6816,7 +6815,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     allProfiles,
     allCouples,
     allCards,
-    adminDb: db,
+    adminDb: {
+      ...db,
+      profiles: allProfiles,
+      couples: allCouples,
+    },
     calendarEvents,
     errandItems,
     mealRounds,
