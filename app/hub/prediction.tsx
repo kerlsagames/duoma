@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { FlowingTape } from "@/components/ui/FlowingTape";
 import {
   LOVEBETZ_DISPLAY as DISPLAY,
@@ -1007,6 +1008,7 @@ function PendingCard({
       <Text style={{ marginTop: 8, ...detail }}>
         Waiting for {them} to disagree and accept.
       </Text>
+      {mine ? <PokeThem appId="prediction" targetId={row.id} color={T.pink} /> : null}
       {mine && onVoid ? (
         <Pressable onPress={onVoid} style={{ marginTop: 10 }}>
           <Text style={{ fontFamily: SANS, fontSize: 13, color: T.pink }}>

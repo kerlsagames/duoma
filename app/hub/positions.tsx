@@ -4,6 +4,7 @@ import { ScoreSlider } from "@/components/ScoreSlider";
 import { BackButton } from "@/components/ui/BackButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
@@ -829,6 +830,9 @@ function InviteSection({
                     onPress={() => onRespond(row.id, "declined")}
                   />
                 </View>
+              ) : null}
+              {outgoing && row.status === "offered" ? (
+                <PokeThem appId="positions" targetId={row.id} color={T.accent} />
               ) : null}
               {row.status === "accepted" ? (
                 <View style={{ marginTop: 12 }}>

@@ -289,6 +289,10 @@ export function hubAppsOnCount(prefs: NotificationPrefs, hubId: HubId) {
 
 /** Map a home-feed row id to a hub app or home widget. */
 export function featureFromStatusId(id: string): string | null {
+  if (id.startsWith("nudge/")) {
+    const app = id.slice("nudge/".length).split("/")[0];
+    return app || null;
+  }
   if (id === "game" || id.startsWith("game")) return "spicy";
   if (id.startsWith("dare")) return "up-for-it";
   if (id.startsWith("chicken")) return "chicken";

@@ -27,6 +27,8 @@ import type {
 } from "@/lib/types";
 import type { CalendarReminder } from "@/lib/calendar-reminders";
 import { dueCalendarReminders } from "@/lib/calendar-reminders";
+import { pokeAppMeta, pokeNoticeId } from "@/lib/partner-poke";
+import type { PartnerPoke } from "@/lib/types";
 import type { Href } from "expo-router";
 
 export type StatusItem = {
@@ -142,6 +144,7 @@ export function buildHomeNotifications(input: {
   scratches?: ScratchReveal[];
   listEntries?: ListEntry[];
   spicyDares?: SpicyDarePlay[];
+  partnerPokes?: PartnerPoke[];
   chickenPlays?: ChickenPlay[];
   fantasyTonightAsks?: FantasyTonightAsk[];
   dateNightAsks?: DateNightAsk[];
@@ -156,6 +159,19 @@ export function buildHomeNotifications(input: {
 
   const spicy = gameAlert(input);
   if (spicy) items.push({ ...spicy, sortAt: now });
+
+  (input.partnerPokes ?? [])
+    .filter((row) => row.toUserId === myId)
+    .forEach((poke) => {
+      const meta = pokeAppMeta(poke.appId);
+      items.push({
+        id: pokeNoticeId(poke),
+        line: `${meta.label} · they poked you`,
+        when: recentWhen(poke.createdAt),
+        href: meta.href,
+        sortAt: Date.parse(poke.createdAt) || now,
+      });
+    });
 
   if (input.incomingCheckInRequest && myId) {
     items.push({
@@ -307,23 +323,18 @@ export function buildHomeNotifications(input: {
       const outgoing = play.fromUserId === myId;
       if (!incoming && !outgoing) return;
       const when = timeframeLabel(play.timeframe, play.customWhen);
-      const poked = Boolean(play.pokedAt) && play.status === "offered" && incoming;
       const line =
-        poked
-          ? "Dare Me · they poked you"
-          : play.status === "offered" && incoming
-            ? "Dare Me · a dare for you"
-            : play.status === "offered"
-              ? `Dare Me sent · ${when}`
-              : `Dare Me on · ${when}`;
+        play.status === "offered" && incoming
+          ? "Dare Me · a dare for you"
+          : play.status === "offered"
+            ? `Dare Me sent · ${when}`
+            : `Dare Me on · ${when}`;
       items.push({
-        id: poked
-          ? `dare-poke-${play.id}-${play.pokedAt}`
-          : `dare-${play.id}`,
+        id: `dare-${play.id}`,
         line,
-        when: recentWhen(play.pokedAt ?? play.answeredAt ?? play.createdAt),
+        when: recentWhen(play.answeredAt ?? play.createdAt),
         href: "/hub/up-for-it",
-        sortAt: Date.parse(play.pokedAt ?? play.answeredAt ?? play.createdAt) || now,
+        sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
       });
     });
 

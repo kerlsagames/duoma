@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { KNOW_ME_DISPLAY, KNOW_ME_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { createId, nowIso } from "@/lib/ids";
@@ -504,8 +505,8 @@ function Shop({
           const lane = packLane({ ...gate, pack: item });
           const face = packFaceOff(gate.guesses, item.id, gate.userId, gate.partnerId);
           return (
+            <View key={item.id}>
             <PackSleeve
-              key={item.id}
               pack={item}
               lane={lane}
               them={them}
@@ -520,6 +521,10 @@ function Shop({
                 onOpen(item.id, lane === "guess" ? "guess" : "fill");
               }}
             />
+            {lane === "wait" || lane === "waitGuess" ? (
+              <PokeThem appId="trivia" targetId={item.id} color={T.foil} />
+            ) : null}
+            </View>
           );
         })}
       </View>

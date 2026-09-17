@@ -19,6 +19,7 @@ import {
 import { cardAllowedByFlavorTags, defaultEnabledFlavorTags, normalizeFlavorTags } from "@/games/get-spicy/flavor-tags";
 import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-climax";
 import { resolveCardGenders } from "@/lib/personalize";
+import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
@@ -120,6 +121,7 @@ import type {
   DareDirection,
   DareTimeframe,
   SpicyDarePlay,
+  PartnerPoke,
   PositionInvite,
   RoleplayInvite,
   RoleplaySave,
@@ -564,6 +566,7 @@ type AppContextValue = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  partnerPokes: PartnerPoke[];
   chickenPlays: ChickenPlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
@@ -677,6 +680,7 @@ type AppContextValue = {
   completeSpicyDare: (id: string) => Promise<void>;
   markSpicyDareRead: (id: string) => Promise<void>;
   pokeSpicyDare: (id: string) => Promise<void>;
+  pokePartner: (appId: string, targetId?: string) => Promise<void>;
   sendChickenDare: (input: {
     dareId: string | null;
     text: string;
@@ -1346,6 +1350,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const spicyDares = useMemo(
     () => db.spicyDares.filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const partnerPokes = useMemo(
+    () => (db.partnerPokes ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -4392,40 +4401,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [user]
   );
 
-  const pokeSpicyDare = useCallback(
-    async (id: string) => {
+  const pokePartner = useCallback(
+    async (appId: string, targetId = "open") => {
       if (!user || !couple) {
         throw new Error("Pair first, then poke.");
       }
-      const existing = db.spicyDares.find((row) => row.id === id);
-      if (!existing || existing.fromUserId !== user.id) {
-        throw new Error("You can only poke a dare you sent.");
+      const toUserId = otherUserId(couple, user.id);
+      if (!toUserId) {
+        throw new Error("They need to be paired for a poke.");
       }
-      if (existing.status !== "offered") {
-        throw new Error("They already answered this one.");
-      }
-      if (!existing.readAt) {
-        throw new Error("Wait until they've opened it.");
-      }
-      const last = existing.pokedAt ? Date.parse(existing.pokedAt) : 0;
-      if (last && Date.now() - last < 15 * 60 * 1000) {
+      const lastAt = latestPokeAt(db.partnerPokes ?? [], {
+        fromUserId: user.id,
+        appId,
+        targetId,
+      });
+      const last = lastAt ? Date.parse(lastAt) : 0;
+      if (last && Date.now() - last < POKE_COOLDOWN_MS) {
         throw new Error("Give them a little longer before poking again.");
       }
       const stamp = nowIso();
+      const row: PartnerPoke = {
+        id: createId(),
+        coupleId: couple.id,
+        fromUserId: user.id,
+        toUserId,
+        appId,
+        targetId,
+        createdAt: stamp,
+      };
       db = {
         ...db,
-        spicyDares: db.spicyDares.map((row) =>
-          row.id === id ? { ...row, pokedAt: stamp } : row
-        ),
+        partnerPokes: [row, ...(db.partnerPokes ?? [])].slice(0, 80),
+        spicyDares:
+          appId === "up-for-it"
+            ? db.spicyDares.map((item) =>
+                item.id === targetId && item.fromUserId === user.id
+                  ? { ...item, pokedAt: stamp }
+                  : item
+              )
+            : db.spicyDares,
       };
       await persist();
+      const meta = pokeAppMeta(appId);
       pingPartner(couple, user, partner, {
-        title: "Dare Me",
-        body: `${user.displayName} poked you about a dare.`,
-        url: "/hub/up-for-it",
+        title: meta.label,
+        body: `${user.displayName} poked you about ${meta.label}.`,
+        url: String(meta.href),
       });
     },
     [couple, partner, user]
+  );
+
+  const pokeSpicyDare = useCallback(
+    async (id: string) => {
+      await pokePartner("up-for-it", id);
+    },
+    [pokePartner]
   );
 
   const sendChickenDare = useCallback(
@@ -6327,6 +6358,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     talkDraws,
     talkVault,
     spicyDares,
+    partnerPokes,
     chickenPlays,
     positionInvites,
     positionSaves,
@@ -6408,6 +6440,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     completeSpicyDare,
     markSpicyDareRead,
     pokeSpicyDare,
+    pokePartner,
     sendChickenDare,
     respondChickenDare,
     completeChickenDare,

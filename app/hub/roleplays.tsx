@@ -2,6 +2,7 @@ import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { RoleplayArt } from "@/components/hub/RoleplayArt";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
@@ -672,6 +673,9 @@ function InviteSection({
                     onPress={() => onRespond(row.id, "declined")}
                   />
                 </View>
+              ) : null}
+              {outgoing && row.status === "offered" ? (
+                <PokeThem appId="roleplays" targetId={row.id} color={T.accent} />
               ) : null}
               {row.status === "accepted" ? (
                 <View style={{ marginTop: 12 }}>

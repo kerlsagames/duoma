@@ -531,6 +531,16 @@ export type SpicyDarePlay = {
   pokedAt: string | null;
 };
 
+export type PartnerPoke = {
+  id: string;
+  coupleId: string;
+  fromUserId: string;
+  toUserId: string;
+  appId: string;
+  targetId: string;
+  createdAt: string;
+};
+
 export type PositionInviteStatus =
   | "offered"
   | "accepted"
@@ -704,6 +714,7 @@ export type AppDB = {
   talkDraws: TalkDraw[];
   talkVault: TalkVaultEntry[];
   spicyDares: SpicyDarePlay[];
+  partnerPokes: PartnerPoke[];
   chickenPlays: ChickenPlay[];
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];

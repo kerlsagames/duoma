@@ -38,6 +38,7 @@ const hubEmpty = () => ({
   talkDraws: [],
   talkVault: [],
   spicyDares: [],
+  partnerPokes: [],
   chickenPlays: [],
   positionInvites: [],
   roleplayInvites: [],
@@ -204,6 +205,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     })),
     talkVault: raw.talkVault ?? [],
     spicyDares: (raw.spicyDares ?? []).map(hydrateSpicyDare),
+    partnerPokes: (raw.partnerPokes ?? []).map(hydratePartnerPoke),
     chickenPlays: (raw.chickenPlays ?? [])
       .map(hydrateChickenPlay)
       .filter((row): row is NonNullable<typeof row> => Boolean(row)),
@@ -343,6 +345,16 @@ function hydrateMilestone(
   return {
     ...row,
     featured: Boolean(row.featured),
+  };
+}
+
+function hydratePartnerPoke(
+  row: AppDB["partnerPokes"][number]
+): AppDB["partnerPokes"][number] {
+  return {
+    ...row,
+    appId: typeof row.appId === "string" ? row.appId : "duoma",
+    targetId: typeof row.targetId === "string" ? row.targetId : "open",
   };
 }
 

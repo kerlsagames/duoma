@@ -20,6 +20,7 @@ import {
   type DoodleRound,
   type DoodleStroke,
 } from "@/lib/doodle-game";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -414,9 +415,14 @@ export default function DoodleScreen() {
         ) : null}
 
         {round?.status === "draw" && seat !== "drawer" ? (
-          <Note>
-            {nameFor(round.drawerId)} is still drawing. No peeking at the prompt.
-          </Note>
+          <View>
+            <Note>
+              {nameFor(round.drawerId)} is still drawing. No peeking at the prompt.
+            </Note>
+            <View style={{ alignItems: "center" }}>
+              <PokeThem appId="doodle" targetId={round.id} color={PAPER} />
+            </View>
+          </View>
         ) : null}
 
         {round && (round.status === "draw" || round.status === "wait" || round.status === "revealed") ? (
@@ -482,6 +488,7 @@ export default function DoodleScreen() {
             guess={guess}
             guesserName={nameFor(round.guesserId)}
             forPartner={seat === "drawer"}
+            roundId={round.id}
             error={error}
             onChange={(value) => {
               setGuess(value);
@@ -799,6 +806,7 @@ function GuessBox({
   guess,
   guesserName,
   forPartner,
+  roundId,
   error,
   onChange,
   onSubmit,
@@ -806,6 +814,7 @@ function GuessBox({
   guess: string;
   guesserName: string;
   forPartner: boolean;
+  roundId: string;
   error: string | null;
   onChange: (value: string) => void;
   onSubmit: () => void;
@@ -835,6 +844,11 @@ function GuessBox({
           ? `This box is for ${guesserName}. Don't type the answer.`
           : "Type your guess. One shot."}
       </Text>
+      {forPartner ? (
+        <View style={{ alignItems: "center" }}>
+          <PokeThem appId="doodle" targetId={roundId} color={PAPER} />
+        </View>
+      ) : null}
       <TextInput
         value={guess}
         onChangeText={onChange}

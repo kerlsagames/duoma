@@ -1,4 +1,5 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { SERIF, UP_FOR_IT_TONE } from "@/lib/app-themes";
 import { formatLongDate, localDateKey } from "@/lib/dates";
@@ -10,7 +11,6 @@ import {
   spicyCategoryMeta,
   timeframeLabel,
   withPlayStatus,
-  darePokeReady,
   type SpicyDare,
   type SpicyDareCategory,
 } from "@/lib/spicy-dares";
@@ -94,7 +94,6 @@ export function SpicyDarePanel({
     respondSpicyDare,
     completeSpicyDare,
     markSpicyDareRead,
-    pokeSpicyDare,
   } = useApp();
 
   const [view, setView] = useState<ViewMode>("hub");
@@ -106,7 +105,6 @@ export function SpicyDarePanel({
   const [askOn, setAskOn] = useState(localDateKey);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [pokeBusy, setPokeBusy] = useState<string | null>(null);
   const spinTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const today = localDateKey();
 
@@ -704,21 +702,9 @@ export function SpicyDarePanel({
                 play={play}
                 userId={user?.id}
                 partnerName={partner?.displayName ?? "them"}
-                pokeBusy={pokeBusy === play.id}
                 onRespond={(status) => void respondSpicyDare(play.id, status)}
                 onDone={() => void completeSpicyDare(play.id)}
                 markRead={markSpicyDareRead}
-                onPoke={async () => {
-                  setError(null);
-                  setPokeBusy(play.id);
-                  try {
-                    await pokeSpicyDare(play.id);
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : "Could not poke.");
-                  } finally {
-                    setPokeBusy(null);
-                  }
-                }}
               />
             ))}
           </View>
@@ -1025,20 +1011,16 @@ function LiveDareCard({
   play,
   userId,
   partnerName,
-  pokeBusy,
   onRespond,
   onDone,
   markRead,
-  onPoke,
 }: {
   play: SpicyDarePlay;
   userId?: string;
   partnerName: string;
-  pokeBusy?: boolean;
   onRespond: (status: "accepted" | "declined") => void;
   onDone: () => void;
   markRead: (id: string) => Promise<void>;
-  onPoke: () => void;
 }) {
   const mineIncoming = play.toUserId === userId && play.status === "offered";
   const waitingOnThem = play.fromUserId === userId && play.status === "offered";
@@ -1046,7 +1028,6 @@ function LiveDareCard({
   const declined = play.status === "declined";
   const done = play.status === "done";
   const live = play.status === "offered" || play.status === "accepted";
-  const poke = darePokeReady(play);
 
   useEffect(() => {
     if (mineIncoming && !play.readAt) void markRead(play.id);
@@ -1120,16 +1101,7 @@ function LiveDareCard({
               ? `They've seen it. Waiting on ${partnerName}.`
               : `Sent · ${partnerName} hasn't opened it yet.`}
           </Text>
-          {play.readAt ? (
-            <View className="mt-3">
-              <PrimaryButton
-                label={pokeBusy ? "Poking…" : poke.label}
-                tone="ghost"
-                onPress={onPoke}
-                disabled={!poke.ready || pokeBusy}
-              />
-            </View>
-          ) : null}
+          <PokeThem appId="up-for-it" targetId={play.id} color={T.accent} />
         </View>
       ) : null}
       {accepted ? (

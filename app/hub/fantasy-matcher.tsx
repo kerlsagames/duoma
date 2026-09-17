@@ -1,6 +1,7 @@
 import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
@@ -1157,6 +1158,14 @@ export default function FantasyMatcherScreen() {
             >
               {tonightAskCopy(pickedAsk, user?.id ?? "", partnerLabel)}
             </Text>
+            {pickedAsk?.status === "offered" &&
+            pickedAsk.fromUserId === user?.id ? (
+              <PokeThem
+                appId="fantasy-matcher"
+                targetId={pickedAsk.id}
+                color={T.accent}
+              />
+            ) : null}
             {pickedAsk?.status === "offered" &&
             pickedAsk.toUserId === user?.id ? (
               <View style={{ marginTop: 18, gap: 8 }}>

@@ -2,6 +2,7 @@ import { LookPanel } from "@/components/hub/AppSettings";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
+import { PokeThem } from "@/components/ui/PokeThem";
 import {
   CHICKEN_DISPLAY as DISPLAY,
   CHICKEN_TONE as T,
@@ -840,6 +841,9 @@ function CoopSection({
                   >
                     Waiting on {partnerName} to tap I’m in or Chicken.
                   </Text>
+                ) : null}
+                {waitingOnThem ? (
+                  <PokeThem appId="chicken" targetId={row.id} color={T.yolk} />
                 ) : null}
                 {row.status === "accepted" && recipient ? (
                   <Pressable
