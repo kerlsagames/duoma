@@ -26,8 +26,8 @@ const STEPS = [
   },
   {
     kicker: "Shared world",
-    title: "Optional. Off until you add it",
-    body: "Home settings has a Shared world toggle. Leave it off if you just want Check-In, Calendar, and Notepad. Turn it on to pick Sanctuary, Pocket Ecosystem, Town, Odyssey, or Constellation. Activity you already do feeds whichever one you lock in.",
+    title: "Coming later",
+    body: "Home settings still lists Shared world, but you cannot turn it on yet. Check-in, Calendar, and Notepad stay on Daily rhythm without it.",
   },
   {
     kicker: "Connect",

@@ -50,7 +50,6 @@ import { useMiniApps } from "@/lib/mini-apps";
 import { subscribeHomeSettings, subscribeHomeStats } from "@/lib/home-chrome";
 import { useApp } from "@/lib/store";
 import { votePinReset } from "@/lib/vault-pin";
-import { homeWorldWidget } from "@/lib/worlds";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
@@ -69,7 +68,6 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { game, partner, sendSpicyInvite } = useApp();
-  const { data: mini } = useMiniApps();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
@@ -85,23 +83,10 @@ export default function HomeScreen() {
     () => hubs.filter((hub) => hub.id !== layout.hiddenHubId),
     [hubs, layout.hiddenHubId]
   );
-  const dailyWidgets = useMemo(() => {
-    const world = homeWorldWidget(mini.worldChoice);
-    return HOME_HEADER_WIDGETS.filter(
-      (widget) => widget.id !== "world" || layout.showWorld
-    ).map((widget) =>
-      widget.id === "world"
-        ? {
-            ...widget,
-            label: world.label,
-            detail: world.detail,
-            href: world.href,
-            icon: world.icon,
-            accent: world.accent,
-          }
-        : widget
-    );
-  }, [mini.worldChoice, layout.showWorld]);
+  const dailyWidgets = useMemo(
+    () => HOME_HEADER_WIDGETS.filter((widget) => widget.id !== "world"),
+    []
+  );
   const favoriteGap = 8;
   const favoriteBox = 72;
   const favoriteSlots = layout.favoriteSlots;
@@ -718,8 +703,6 @@ export default function HomeScreen() {
       <HomeSettingsSheet
         layout={layout}
         wallpaperId={wallpaperId}
-        worldLabel={homeWorldWidget(mini.worldChoice).label}
-        hasWorld={Boolean(mini.worldChoice.worldId)}
         onClose={() => setSettingsOpen(false)}
         onLayout={(next) => void persistLayout(next)}
         onWallpaper={(id) => void persistWallpaper(id)}
@@ -738,16 +721,12 @@ export default function HomeScreen() {
 function HomeSettingsSheet({
   layout,
   wallpaperId,
-  worldLabel,
-  hasWorld,
   onClose,
   onLayout,
   onWallpaper,
   onReset,
 }: {
   layout: HomeLayout;
-  worldLabel: string;
-  hasWorld: boolean;
   wallpaperId: HomeWallpaperId;
   onClose: () => void;
   onLayout: (next: HomeLayout) => void;
@@ -925,40 +904,11 @@ function HomeSettingsSheet({
           />
           <ToggleRow
             label="Shared world"
-            on={layout.showWorld}
-            onPress={() => {
-              const next = !layout.showWorld;
-              onLayout({ ...layout, showWorld: next });
-              if (next && !hasWorld) {
-                onClose();
-                router.push("/hub/worlds" as Href);
-              }
-            }}
+            hint="Not ready yet."
+            on={false}
+            disabled
+            onPress={() => undefined}
           />
-          {layout.showWorld ? (
-            <Pressable
-              onPress={() => {
-                onClose();
-                router.push("/hub/worlds" as Href);
-              }}
-              style={{
-                marginBottom: 8,
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: "rgba(124,255,178,0.28)",
-                backgroundColor: "#1A1A22",
-              }}
-            >
-              <Text style={{ color: "#F4F4F6", fontSize: 16, fontWeight: "700" }}>
-                {hasWorld ? "Change world" : "Choose a world"}
-              </Text>
-              <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.5)", fontSize: 12 }}>
-                {hasWorld ? worldLabel : "Five styles. Lock one in together."}
-              </Text>
-            </Pressable>
-          ) : null}
           <ToggleRow
             label="Favourites"
             on={layout.showFavorites}
@@ -1711,11 +1661,13 @@ function LinkRow({
 
 function ToggleRow({
   label,
+  hint,
   on,
   onPress,
   disabled,
 }: {
   label: string;
+  hint?: string;
   on: boolean;
   onPress: () => void;
   disabled?: boolean;
@@ -1735,7 +1687,21 @@ function ToggleRow({
         opacity: disabled ? 0.45 : 1,
       }}
     >
-      <Text style={{ color: "#F4F4F6", fontSize: 15 }}>{label}</Text>
+      <View style={{ flex: 1, paddingRight: 12 }}>
+        <Text style={{ color: "#F4F4F6", fontSize: 15 }}>{label}</Text>
+        {hint ? (
+          <Text
+            style={{
+              marginTop: 2,
+              color: "rgba(244,244,246,0.5)",
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {hint}
+          </Text>
+        ) : null}
+      </View>
       <Ionicons
         name={on ? "checkbox" : "square-outline"}
         size={22}

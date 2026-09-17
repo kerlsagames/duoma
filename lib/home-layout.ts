@@ -10,7 +10,7 @@ export type HomeLayout = {
   showHubTaglines: boolean;
   showDaily: boolean;
   showFavorites: boolean;
-  /** Shared world tile on Daily rhythm. Off until they add it in Home settings. */
+  /** Shared world tile on Daily rhythm. Listed in Home settings, not ready yet. */
   showWorld: boolean;
   /** Hide at most one of the four hubs. */
   hiddenHubId: HubId | null;
@@ -92,7 +92,7 @@ export function hydrateHomeLayout(raw: unknown): HomeLayout {
     showDaily: typeof row.showDaily === "boolean" ? row.showDaily : base.showDaily,
     showFavorites:
       typeof row.showFavorites === "boolean" ? row.showFavorites : base.showFavorites,
-    showWorld: typeof row.showWorld === "boolean" ? row.showWorld : base.showWorld,
+    showWorld: false,
     hiddenHubId: asHubId(row.hiddenHubId),
     favoriteSlots: clampFavoriteSlotCount(row.favoriteSlots),
   };

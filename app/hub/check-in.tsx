@@ -16,7 +16,6 @@ import {
   socialBatteryMeta,
   TODAY_NEEDS,
   todayNeedMeta,
-  TONIGHT_SEX,
 } from "@/lib/hub";
 import { useApp } from "@/lib/store";
 import type {
@@ -25,7 +24,6 @@ import type {
   MoodWeather,
   SocialBattery,
   TodayNeed,
-  TonightSex,
 } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -205,7 +203,6 @@ export default function CheckInScreen() {
   const [socialOn, setSocialOn] = useState(false);
   const [needOn, setNeedOn] = useState(false);
   const [spicyOn, setSpicyOn] = useState(false);
-  const [simpleOn, setSimpleOn] = useState(false);
   const look = useAppLook("check-in", "#3ECFBF", {
     hideHeat: false,
     hideNudge: false,
@@ -215,7 +212,6 @@ export default function CheckInScreen() {
     showSocial: true,
     showNeed: true,
     showDesire: true,
-    showTonight: true,
   });
   const [loveTank, setLoveTank] = useState(0);
   const [energy, setEnergy] = useState(0);
@@ -223,7 +219,6 @@ export default function CheckInScreen() {
   const [socialBattery, setSocialBattery] = useState<SocialBattery | null>(null);
   const [todayNeed, setTodayNeed] = useState<TodayNeed | null>(null);
   const [desireGauge, setDesireGauge] = useState<DesireGauge | null>(null);
-  const [tonight, setTonight] = useState<TonightSex | null>(null);
   const [requested, setRequested] = useState<CheckInMetricKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -238,7 +233,6 @@ export default function CheckInScreen() {
     setSocialOn(myCheckIn.socialBattery != null);
     setNeedOn(myCheckIn.todayNeed != null);
     setSpicyOn(myCheckIn.desireGauge != null);
-    setSimpleOn(myCheckIn.tonight != null);
     if (myCheckIn.loveTank != null) setLoveTank(myCheckIn.loveTank);
     if (myCheckIn.energy != null) setEnergy(myCheckIn.energy);
     if (myCheckIn.mood) {
@@ -247,7 +241,6 @@ export default function CheckInScreen() {
     if (myCheckIn.socialBattery) setSocialBattery(myCheckIn.socialBattery);
     if (myCheckIn.todayNeed) setTodayNeed(myCheckIn.todayNeed);
     if (myCheckIn.desireGauge) setDesireGauge(myCheckIn.desireGauge);
-    if (myCheckIn.tonight) setTonight(myCheckIn.tonight);
   }, [myCheckIn]);
 
   useEffect(() => {
@@ -259,15 +252,16 @@ export default function CheckInScreen() {
     if (keys.has("socialBattery")) setSocialOn(true);
     if (keys.has("todayNeed")) setNeedOn(true);
     if (keys.has("desireGauge")) setSpicyOn(true);
-    if (keys.has("tonight")) setSimpleOn(true);
   }, [incomingCheckInRequest, myCheckIn]);
 
   const requestedLabels = useMemo(() => {
     if (!incomingCheckInRequest) return [];
-    return incomingCheckInRequest.metrics.map(
-      (key) =>
-        CHECK_IN_METRIC_META.find((item) => item.key === key)?.label ?? key
-    );
+    return incomingCheckInRequest.metrics
+      .filter((key) => key !== "tonight")
+      .map(
+        (key) =>
+          CHECK_IN_METRIC_META.find((item) => item.key === key)?.label ?? key
+      );
   }, [incomingCheckInRequest]);
 
   const canSave =
@@ -276,8 +270,7 @@ export default function CheckInScreen() {
     (moodOn && mood != null) ||
     (socialOn && socialBattery != null) ||
     (needOn && todayNeed != null) ||
-    (spicyOn && desireGauge != null) ||
-    (simpleOn && tonight != null);
+    (spicyOn && desireGauge != null);
 
   const save = async () => {
     setError(null);
@@ -294,7 +287,7 @@ export default function CheckInScreen() {
         socialBattery: socialOn ? socialBattery : null,
         todayNeed: needOn ? todayNeed : null,
         desireGauge: spicyOn ? desireGauge : null,
-        tonight: simpleOn ? tonight : null,
+        tonight: null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not share");
@@ -341,7 +334,7 @@ export default function CheckInScreen() {
               <PrefToggle
                 on={look.prefs.hideHeat}
                 label="Keep heat off this page"
-                hint="Hides intimacy temperature and bedtime wind-down."
+                hint="Hides intimacy temperature."
                 accent={look.accent}
                 ink="#F4F4F6"
                 muted="rgba(244,244,246,0.6)"
@@ -364,7 +357,6 @@ export default function CheckInScreen() {
                   ["showSocial", "Stress / social meter"],
                   ["showNeed", "Need from you today"],
                   ["showDesire", "Intimacy temperature"],
-                  ["showTonight", "Bedtime wind-down"],
                 ] as const
               ).map(([key, label]) => (
                 <PrefToggle
@@ -486,14 +478,6 @@ export default function CheckInScreen() {
                   <PeekChip
                     title={desireGaugeMeta(partnerCheckIn.desireGauge)!.title}
                     detail={desireGaugeMeta(partnerCheckIn.desireGauge)!.detail}
-                  />
-                </PeekBlock>
-              ) : null}
-              {TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight) ? (
-                <PeekBlock icon="sparkles-outline" title="Bedtime wind-down">
-                  <PeekChip
-                    title={TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight)!.title}
-                    detail={TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight)!.detail}
                   />
                 </PeekBlock>
               ) : null}
@@ -633,26 +617,6 @@ export default function CheckInScreen() {
               }))}
               value={desireGauge}
               onChange={setDesireGauge}
-            />
-          </MetricCard>
-          ) : null}
-
-          {look.prefs.showTonight ? (
-          <MetricCard
-            icon="sparkles-outline"
-            title="Bedtime wind-down"
-            enabled={simpleOn}
-            onToggle={() => setSimpleOn((v) => !v)}
-          >
-            <Choice
-              options={TONIGHT_SEX.map((item) => ({
-                id: item.id,
-                title: item.title,
-                detail: item.detail,
-              }))}
-              value={tonight}
-              onChange={setTonight}
-              columns={1}
             />
           </MetricCard>
           ) : null}

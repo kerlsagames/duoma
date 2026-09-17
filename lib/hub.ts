@@ -116,7 +116,6 @@ export const CHECK_IN_METRIC_META: {
   { key: "socialBattery", label: "Stress / social meter", icon: "people-outline" },
   { key: "todayNeed", label: "Need from you today", icon: "compass-outline" },
   { key: "desireGauge", label: "Intimacy temperature", icon: "flame-outline" },
-  { key: "tonight", label: "Bedtime wind-down", icon: "moon-outline" },
 ];
 
 export function socialBatteryMeta(id: SocialBattery | null | undefined) {
@@ -132,15 +131,6 @@ export function desireGaugeMeta(id: DesireGauge | null | undefined) {
 }
 
 export function partnerHint(checkIn: CheckIn): string {
-  if (checkIn.tonight === "yes") {
-    return "Hell yeah. Make the night easy to say yes to — lock the door, skip the extra plans.";
-  }
-  if (checkIn.tonight === "maybe") {
-    return "They're on if the night goes there. Keep the door open without pressure.";
-  }
-  if (checkIn.tonight === "no") {
-    return "Nah not today. Keep it close without making it a thing.";
-  }
   if (checkIn.energy != null && checkIn.energy <= 3) {
     return "Low battery today — consider taking dinner off their plate.";
   }
@@ -186,8 +176,6 @@ export function checkInLines(checkIn: CheckIn): string[] {
   if (need) lines.push(`Need · ${need.title}`);
   const spicy = desireGaugeMeta(checkIn.desireGauge);
   if (spicy) lines.push(`Spicy · ${spicy.title}`);
-  const tonight = tonightLabel(checkIn.tonight);
-  if (tonight) lines.push(`Keep it simple · ${tonight}`);
   return lines;
 }
 
