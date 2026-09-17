@@ -4224,7 +4224,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!dueAt) {
           throw new Error("Pick a valid expiry time.");
         }
-        if (Date.parse(dueAt) <= Date.now()) {
+        const dueMs = Date.parse(dueAt);
+        const nightKey = input.customWhen?.slice(0, 10) ?? "";
+        const todayKey = localDateKey();
+        const sameDayAsk =
+          input.timeframe === "custom" && /^\d{4}-\d{2}-\d{2}$/.test(nightKey) && nightKey >= todayKey;
+        if (!sameDayAsk && dueMs <= Date.now()) {
           throw new Error("Pick a time in the future.");
         }
       }
@@ -4277,10 +4282,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         talkDecks,
       };
       await persist();
-      const body = `${user.displayName} sent you a dare.`;
+      const night = input.customWhen?.slice(0, 10);
+      const when =
+        night && /^\d{4}-\d{2}-\d{2}$/.test(night)
+          ? ` · ${formatLongDate(night)}`
+          : "";
       pingPartner(couple, user, partner, {
         title: "Up for it",
-        body,
+        body: `${user.displayName} sent you a dare${when}.`,
         url: "/hub/up-for-it",
       });
     },
@@ -4294,22 +4303,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!existing || existing.status !== "offered") return;
       // Only the recipient can accept or pass — never act for a demo partner.
       if (existing.toUserId !== user.id) return;
+      const stamp = nowIso();
+      const nightKey = existing.customWhen?.slice(0, 10) ?? "";
+      const dated = /^\d{4}-\d{2}-\d{2}$/.test(nightKey);
+      let calendarEvents = db.calendarEvents;
+      if (status === "accepted" && couple && dated) {
+        calendarEvents = [
+          ...db.calendarEvents,
+          {
+            id: createId(),
+            coupleId: couple.id,
+            title:
+              existing.text.length > 72
+                ? `${existing.text.slice(0, 69)}…`
+                : existing.text,
+            notes: "Desire dare",
+            date: nightKey,
+            happenedAt: stamp,
+            allDay: true,
+            createdBy: user.id,
+            createdAt: stamp,
+            updatedAt: stamp,
+          },
+        ];
+      }
       db = {
         ...db,
         spicyDares: db.spicyDares.map((row) =>
           row.id === id
-            ? { ...row, status, answeredAt: nowIso() }
+            ? { ...row, status, answeredAt: stamp }
             : row
         ),
+        calendarEvents,
       };
       await persist();
       pingPartner(couple, user, partner, {
-        title: "Up for it",
+        title: status === "accepted" ? "Dare's on" : "Up for it",
         body:
           status === "accepted"
-            ? `${user.displayName} is up for the dare.`
+            ? `${user.displayName} is up for the dare${dated ? ` · ${formatLongDate(nightKey)}` : ""}.`
             : `${user.displayName} passed on this one.`,
-        url: "/hub/up-for-it",
+        url: status === "accepted" && dated ? "/hub/calendar" : "/hub/up-for-it",
       });
     },
     [couple, partner, user]

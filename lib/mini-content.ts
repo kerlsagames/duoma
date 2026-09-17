@@ -480,6 +480,7 @@ export type MiniState = {
   maintenance: MaintTask[];
   vault: VaultEntry[];
   vaultPin: string;
+  vaultSkipPin: boolean;
   vaultPinResetVotes: string[];
   sexyVault: SexyVaultItem[];
   sexyVaultPin: string;
@@ -877,6 +878,7 @@ export function emptyMiniState(): MiniState {
     })),
     vault: DEFAULT_VAULT.map((row) => ({ ...row })),
     vaultPin: "",
+    vaultSkipPin: false,
     vaultPinResetVotes: [],
     sexyVault: emptySexyVault(),
     sexyVaultPin: "",
@@ -995,6 +997,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     maintenance: asArray(row.maintenance, base.maintenance),
     vault: asArray(row.vault, base.vault),
     vaultPin: typeof row.vaultPin === "string" ? row.vaultPin : "",
+    vaultSkipPin: row.vaultSkipPin === true,
     vaultPinResetVotes: hydrateVoteIds(row.vaultPinResetVotes),
     sexyVault: hydrateSexyVault(row.sexyVault),
     sexyVaultPin: typeof row.sexyVaultPin === "string" ? row.sexyVaultPin : "",

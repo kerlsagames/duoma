@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
+import { ComboPad } from "@/components/ui/ComboPad";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
@@ -9,11 +10,11 @@ import { sectionAccent } from "@/lib/hub-theme";
 import { createId } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { VaultEntry } from "@/lib/mini-content";
-import { digitsOnly, isVaultPin, vaultPinFieldProps, vaultPinHint } from "@/lib/vault-pin";
+import { isVaultPin, vaultPinHint } from "@/lib/vault-pin";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
+import { Animated, Easing, PanResponder, Pressable, Text, TextInput, View } from "react-native";
 
 const BG = "#0C1014";
 const CARD = "#151C22";
@@ -38,6 +39,7 @@ export default function EmergencyVaultScreen() {
   const [pinDraft, setPinDraft] = useState("");
   const [gate, setGate] = useState("");
   const [open, setOpen] = useState(false);
+  const [settingPin, setSettingPin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
@@ -52,8 +54,8 @@ export default function EmergencyVaultScreen() {
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (ready) setOpen(!data.vaultPin);
-  }, [data.vaultPin, ready]);
+    if (ready) setOpen(false);
+  }, [ready]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -75,25 +77,42 @@ export default function EmergencyVaultScreen() {
 
   const pending = data.vault.find((row) => row.id === removeId) ?? null;
 
-  const setPin = async () => {
-    if (!isVaultPin(pinDraft)) {
+  const setPin = async (next = pinDraft) => {
+    if (!isVaultPin(next)) {
       setError(vaultPinHint());
       return;
     }
     setError(null);
-    await patch((state) => ({ ...state, vaultPin: pinDraft }));
+    await patch((state) => ({ ...state, vaultPin: next, vaultSkipPin: false }));
     setPinDraft("");
+    setPinChange("");
+    setSettingPin(false);
     setOpen(true);
   };
 
-  const unlock = () => {
-    if (gate === data.vaultPin) {
+  const useSwipeOnly = async () => {
+    setError(null);
+    await patch((state) => ({ ...state, vaultPin: "", vaultSkipPin: true }));
+    setPinDraft("");
+    setPinChange("");
+    setGate("");
+    setSettingPin(false);
+    setOpen(true);
+  };
+
+  const unlock = (next = gate) => {
+    if (next === data.vaultPin) {
       setOpen(true);
       setError(null);
       setGate("");
       return;
     }
-    setError("The tumblers didn’t like that.");
+    if (data.vaultPin && next.length >= data.vaultPin.length) {
+      setError("The tumblers didn’t like that.");
+      setGate("");
+      return;
+    }
+    setGate(next);
   };
 
   const startEdit = (row: VaultEntry) => {
@@ -162,7 +181,7 @@ export default function EmergencyVaultScreen() {
       return;
     }
     setError(null);
-    await patch((state) => ({ ...state, vaultPin: pinChange }));
+    await patch((state) => ({ ...state, vaultPin: pinChange, vaultSkipPin: false }));
     setPinChange("");
   };
 
@@ -176,55 +195,78 @@ export default function EmergencyVaultScreen() {
       wash={look.wash}
     >
       <Stage background={BG} fallback={"/hub/home-base" as Href} accent={steel()}>
-        {!data.vaultPin ? (
-          <View style={{ alignItems: "center" }}>
-            <Text style={{ fontFamily: SERIF, fontSize: 32, color: steel() }}>Cut a key</Text>
-            <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(197,208,218,0.6)" }}>
-              four or six digits, shared
-            </Text>
-            <TextInput
-              value={pinDraft}
-              onChangeText={(value) => setPinDraft(digitsOnly(value))}
-              {...vaultPinFieldProps()}
-              placeholder="••••"
-              placeholderTextColor="rgba(197,208,218,0.3)"
-              style={pinStyle()}
-            />
-            <Pressable onPress={() => void setPin()} style={btn()}>
-              <Text style={{ color: "#0C1014", fontWeight: "800" }}>Set combination</Text>
-            </Pressable>
-            {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
-          </View>
-        ) : !open ? (
-          <View style={{ alignItems: "center", marginTop: 12 }}>
-            <View
-              style={{
-                width: 220,
-                height: 220,
-                borderRadius: 110,
-                backgroundColor: "#1A222A",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 10,
-                borderColor: "#3A4650",
-              }}
-            >
-              <Animated.View
+        {!data.vaultPin && !data.vaultSkipPin ? (
+          settingPin ? (
+            <View style={{ alignItems: "center" }}>
+              <SteelWheel rotate={rotate} />
+              <Text style={{ marginTop: 16, fontFamily: SERIF, fontSize: 32, color: steel() }}>
+                Set a PIN
+              </Text>
+              <Text style={{ fontFamily: HANDWRITING, fontSize: 18, color: "rgba(197,208,218,0.6)" }}>
+                four or six digits, shared
+              </Text>
+              <ComboPad
+                value={pinDraft}
+                onChange={setPinDraft}
+                accent={steel()}
+                ink={steel()}
+              />
+              <Pressable onPress={() => void setPin()} style={btn()}>
+                <Text style={{ color: "#0C1014", fontWeight: "800" }}>Set combination</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setSettingPin(false);
+                  setPinDraft("");
+                  setError(null);
+                }}
+                style={{ marginTop: 12, padding: 8 }}
+              >
+                <Text style={{ color: "rgba(197,208,218,0.7)", fontWeight: "700" }}>
+                  Back
+                </Text>
+              </Pressable>
+              {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
+            </View>
+          ) : (
+            <View style={{ alignItems: "center" }}>
+              <SteelWheel rotate={rotate} />
+              <Text style={{ marginTop: 16, fontFamily: SERIF, fontSize: 32, color: steel() }}>
+                Emergency vault
+              </Text>
+              <Text
                 style={{
-                  width: 170,
-                  height: 170,
-                  borderRadius: 85,
-                  borderWidth: 8,
-                  borderColor: steel(),
-                  borderStyle: "dashed",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transform: [{ rotate }],
+                  marginTop: 8,
+                  fontFamily: SERIF,
+                  fontSize: 15,
+                  lineHeight: 22,
+                  color: "rgba(197,208,218,0.62)",
+                  textAlign: "center",
                 }}
               >
-                <Ionicons name="lock-closed" size={42} color={steel()} />
-              </Animated.View>
+                Lock it with a PIN, or skip the combination and swipe the wheel open.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setSettingPin(true);
+                  setError(null);
+                }}
+                style={btn()}
+              >
+                <Text style={{ color: "#0C1014", fontWeight: "800" }}>Set a PIN</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void useSwipeOnly()}
+                style={[btn(), { backgroundColor: "transparent", borderWidth: 1, borderColor: steel() }]}
+              >
+                <Text style={{ color: steel(), fontWeight: "800" }}>Swipe open — no PIN</Text>
+              </Pressable>
+              {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
             </View>
+          )
+        ) : !open ? (
+          <View style={{ alignItems: "center", marginTop: 12 }}>
+            <SteelWheel rotate={rotate} />
             <Text
               style={{
                 marginTop: 16,
@@ -235,17 +277,44 @@ export default function EmergencyVaultScreen() {
             >
               Vault
             </Text>
-            <TextInput
-              value={gate}
-              onChangeText={(value) => setGate(digitsOnly(value))}
-              {...vaultPinFieldProps()}
-              placeholder="combination"
-              placeholderTextColor="rgba(197,208,218,0.3)"
-              style={pinStyle()}
-            />
-            <Pressable onPress={unlock} style={btn()}>
-              <Text style={{ color: "#0C1014", fontWeight: "800" }}>Turn the wheel</Text>
-            </Pressable>
+            {data.vaultPin ? (
+              <>
+                <Text
+                  style={{
+                    marginTop: 6,
+                    fontFamily: HANDWRITING,
+                    fontSize: 18,
+                    color: "rgba(197,208,218,0.62)",
+                  }}
+                >
+                  enter the combination
+                </Text>
+                <ComboPad
+                  value={gate}
+                  onChange={(value) => unlock(value)}
+                  maxLength={data.vaultPin.length === 4 ? 4 : 6}
+                  accent={steel()}
+                  ink={steel()}
+                />
+                <Pressable onPress={() => unlock()} style={btn()}>
+                  <Text style={{ color: "#0C1014", fontWeight: "800" }}>Turn the wheel</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={{
+                    marginTop: 6,
+                    fontFamily: HANDWRITING,
+                    fontSize: 18,
+                    color: "rgba(197,208,218,0.62)",
+                  }}
+                >
+                  swipe to open
+                </Text>
+                <SwipeOpen onOpen={() => setOpen(true)} accent={steel()} />
+              </>
+            )}
             {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
           </View>
         ) : (
@@ -294,7 +363,7 @@ export default function EmergencyVaultScreen() {
                   }}
                 >
                   {settingsOpen
-                    ? "Pull folders you don’t use. Change the combination if you need to."
+                    ? "Pull folders you don’t use. Switch between a PIN and swipe-open."
                     : "Codes, contacts, where the papers live. The cog manages folders."}
                 </Text>
               </View>
@@ -424,21 +493,42 @@ export default function EmergencyVaultScreen() {
                     color: steel(),
                   }}
                 >
-                  COMBINATION
+                  LOCK
                 </Text>
-                <TextInput
+                <Text
+                  style={{
+                    marginTop: 6,
+                    fontFamily: SERIF,
+                    fontSize: 14,
+                    lineHeight: 20,
+                    color: "rgba(197,208,218,0.55)",
+                  }}
+                >
+                  {data.vaultPin
+                    ? "PIN is on. Change it here, or drop it and swipe the wheel open."
+                    : "No PIN. Swipe opens the vault. Add a combination if you want one."}
+                </Text>
+                <ComboPad
                   value={pinChange}
-                  onChangeText={(value) => setPinChange(digitsOnly(value))}
-                  {...vaultPinFieldProps()}
-                  placeholder="New 4 or 6 digits"
-                  placeholderTextColor="rgba(197,208,218,0.3)"
-                  style={pinStyle()}
+                  onChange={setPinChange}
+                  accent={steel()}
+                  ink={steel()}
                 />
                 <Pressable onPress={() => void changePin()} style={btn()}>
                   <Text style={{ color: "#0C1014", fontWeight: "800" }}>
-                    Change combination
+                    {data.vaultPin ? "Change combination" : "Set a PIN"}
                   </Text>
                 </Pressable>
+                {data.vaultPin ? (
+                  <Pressable
+                    onPress={() => void useSwipeOnly()}
+                    style={[btn(), { backgroundColor: "transparent", borderWidth: 1, borderColor: steel() }]}
+                  >
+                    <Text style={{ color: steel(), fontWeight: "800" }}>
+                      Swipe open — no PIN
+                    </Text>
+                  </Pressable>
+                ) : null}
                 {error ? <Text style={{ marginTop: 8, color: "#FF8A8A" }}>{error}</Text> : null}
                 </LookPanel>
               </View>
@@ -767,15 +857,115 @@ function Field({
   );
 }
 
-const pinStyle = () => ({
-  marginTop: 16,
-  width: "100%" as const,
-  textAlign: "center" as const,
-  letterSpacing: 14,
-  fontSize: 32,
-  color: steel(),
-  padding: 10,
-});
+function SteelWheel({ rotate }: { rotate: Animated.Value | Animated.AnimatedInterpolation<string> }) {
+  return (
+    <View
+      style={{
+        width: 220,
+        height: 220,
+        borderRadius: 110,
+        backgroundColor: "#1A222A",
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 10,
+        borderColor: "#3A4650",
+      }}
+    >
+      <Animated.View
+        style={{
+          width: 170,
+          height: 170,
+          borderRadius: 85,
+          borderWidth: 8,
+          borderColor: steel(),
+          borderStyle: "dashed",
+          alignItems: "center",
+          justifyContent: "center",
+          transform: [{ rotate }],
+        }}
+      >
+        <Ionicons name="lock-closed" size={42} color={steel()} />
+      </Animated.View>
+    </View>
+  );
+}
+
+function SwipeOpen({
+  onOpen,
+  accent,
+}: {
+  onOpen: () => void;
+  accent: string;
+}) {
+  const track = 280;
+  const knob = 52;
+  const max = track - knob - 8;
+  const x = useRef(new Animated.Value(0)).current;
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gesture) => {
+        x.setValue(Math.max(0, Math.min(max, gesture.dx)));
+      },
+      onPanResponderRelease: (_, gesture) => {
+        if (gesture.dx > max * 0.7) {
+          Animated.timing(x, {
+            toValue: max,
+            duration: 120,
+            useNativeDriver: false,
+          }).start(() => onOpen());
+        } else {
+          Animated.spring(x, { toValue: 0, useNativeDriver: false }).start();
+        }
+      },
+    })
+  ).current;
+
+  return (
+    <View
+      style={{
+        marginTop: 22,
+        width: track,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "#151C22",
+        borderWidth: 1,
+        borderColor: "rgba(197,208,218,0.28)",
+        justifyContent: "center",
+        paddingHorizontal: 4,
+      }}
+    >
+      <Text
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          alignSelf: "center",
+          color: "rgba(197,208,218,0.55)",
+          fontWeight: "700",
+          fontSize: 13,
+          letterSpacing: 0.4,
+        }}
+      >
+        Slide to open
+      </Text>
+      <Animated.View
+        {...pan.panHandlers}
+        style={{
+          width: knob,
+          height: knob,
+          borderRadius: knob / 2,
+          backgroundColor: accent,
+          alignItems: "center",
+          justifyContent: "center",
+          transform: [{ translateX: x }],
+        }}
+      >
+        <Ionicons name="chevron-forward" size={22} color="#0C1014" />
+      </Animated.View>
+    </View>
+  );
+}
 
 const btn = () => ({
   marginTop: 14,

@@ -21,7 +21,8 @@ import {
   type SexyVaultKind,
 } from "@/lib/sexy-vault";
 import { useApp } from "@/lib/store";
-import { digitsOnly, isVaultPin, vaultPinFieldProps, vaultPinHint } from "@/lib/vault-pin";
+import { ComboPad } from "@/components/ui/ComboPad";
+import { isVaultPin, vaultPinHint } from "@/lib/vault-pin";
 import {
   defaultCustomDateTime,
   formatExactWhen,
@@ -117,14 +118,19 @@ export default function SexyVaultScreen() {
     return true;
   };
 
-  const unlock = () => {
-    if (gate === data.sexyVaultPin) {
+  const unlock = (next = gate) => {
+    if (next === data.sexyVaultPin) {
       setOpen(true);
       setError(null);
       setGate("");
       return;
     }
-    setError("The tumblers didn’t like that.");
+    if (data.sexyVaultPin && next.length >= data.sexyVaultPin.length) {
+      setError("The tumblers didn’t like that.");
+      setGate("");
+      return;
+    }
+    setGate(next);
   };
 
   const pickFile = async () => {
@@ -293,8 +299,9 @@ export default function SexyVaultScreen() {
           <PinGate
             gate={gate}
             error={error}
-            onGate={setGate}
-            onUnlock={unlock}
+            onGate={(value) => unlock(value)}
+            expectedLength={data.sexyVaultPin.length}
+            onUnlock={() => unlock()}
           />
         ) : mode === "compose" ? (
           <Compose
@@ -524,24 +531,35 @@ function PinSetup({
         }}
       >
         A grey safe for the two of you. Photos and clips live behind this
-        wheel. You can hide one until a time you pick — they still get told
-        something is waiting.
+        wheel. Use the 0–9 pad — the phone will not offer to save a
+        passcode. You can hide one until a time you pick — they still get
+        told something is waiting.
       </Text>
-      <TextInput
+      <ComboPad
         value={pinDraft}
-        onChangeText={(value) => onDraft(digitsOnly(value))}
-        {...vaultPinFieldProps()}
-        placeholder="combination"
-        placeholderTextColor="rgba(197,208,218,0.28)"
-        style={steelPinStyle()}
+        onChange={onDraft}
+        accent={STEEL}
+        ink={STEEL}
+        keyBg="#151C22"
+        keyBorder="rgba(197,208,218,0.28)"
       />
-      <TextInput
+      <Text
+        style={{
+          marginTop: 18,
+          fontFamily: HANDWRITING,
+          fontSize: 18,
+          color: "rgba(197,208,218,0.62)",
+        }}
+      >
+        again
+      </Text>
+      <ComboPad
         value={pinConfirm}
-        onChangeText={(value) => onConfirm(digitsOnly(value))}
-        {...vaultPinFieldProps()}
-        placeholder="again"
-        placeholderTextColor="rgba(197,208,218,0.28)"
-        style={steelPinStyle()}
+        onChange={onConfirm}
+        accent={STEEL}
+        ink={STEEL}
+        keyBg="#151C22"
+        keyBorder="rgba(197,208,218,0.28)"
       />
       <Pressable onPress={onSave} style={steelBtn()}>
         <Text style={{ color: SAFE, fontWeight: "800", fontSize: 15 }}>
@@ -558,11 +576,13 @@ function PinGate({
   error,
   onGate,
   onUnlock,
+  expectedLength,
 }: {
   gate: string;
   error: string | null;
   onGate: (value: string) => void;
   onUnlock: () => void;
+  expectedLength?: number;
 }) {
   return (
     <View style={{ alignItems: "center", paddingTop: 12 }}>
@@ -580,14 +600,14 @@ function PinGate({
       >
         enter the combination
       </Text>
-      <TextInput
+      <ComboPad
         value={gate}
-        onChangeText={(value) => onGate(digitsOnly(value))}
-        {...vaultPinFieldProps()}
-        placeholder="combination"
-        placeholderTextColor="rgba(197,208,218,0.28)"
-        style={steelPinStyle()}
-        onSubmitEditing={onUnlock}
+        onChange={onGate}
+        maxLength={expectedLength === 4 ? 4 : 6}
+        accent={STEEL}
+        ink={STEEL}
+        keyBg="#151C22"
+        keyBorder="rgba(197,208,218,0.28)"
       />
       <Pressable onPress={onUnlock} style={steelBtn()}>
         <Text style={{ color: SAFE, fontWeight: "800", fontSize: 15 }}>
@@ -659,29 +679,40 @@ function VaultHome({
           <Text style={ghostBtnText}>Lock</Text>
         </Pressable>
         <Pressable onPress={onTogglePin} style={ghostBtn}>
-          <Text style={ghostBtnText}>{changingPin ? "Cancel" : "Change pin"}</Text>
+          <Text style={ghostBtnText}>{changingPin ? "Cancel" : "Change combination"}</Text>
         </Pressable>
       </View>
       {changingPin ? (
         <View style={{ marginTop: 12 }}>
-          <TextInput
+          <ComboPad
             value={pinDraft}
-            onChangeText={(value) => onDraft(digitsOnly(value))}
-            {...vaultPinFieldProps()}
-            placeholder="new pin"
-            placeholderTextColor="rgba(228,181,106,0.28)"
-            style={pinStyle()}
+            onChange={onDraft}
+            accent={gold()}
+            ink={gold()}
+            keyBg="#1A0C12"
+            keyBorder="rgba(228,181,106,0.35)"
           />
-          <TextInput
+          <Text
+            style={{
+              marginTop: 12,
+              textAlign: "center",
+              fontFamily: HANDWRITING,
+              fontSize: 18,
+              color: ROSE,
+            }}
+          >
+            again
+          </Text>
+          <ComboPad
             value={pinConfirm}
-            onChangeText={(value) => onConfirm(digitsOnly(value))}
-            {...vaultPinFieldProps()}
-            placeholder="again"
-            placeholderTextColor="rgba(228,181,106,0.28)"
-            style={pinStyle()}
+            onChange={onConfirm}
+            accent={gold()}
+            ink={gold()}
+            keyBg="#1A0C12"
+            keyBorder="rgba(228,181,106,0.35)"
           />
           <Pressable onPress={onSavePin} style={goldBtn()}>
-            <Text style={goldBtnText}>Save new pin</Text>
+            <Text style={goldBtnText}>Save new combination</Text>
           </Pressable>
         </View>
       ) : null}
@@ -1411,34 +1442,6 @@ const lede = {
   color: "rgba(246,231,220,0.62)",
   textAlign: "center" as const,
 };
-
-const pinStyle = () => ({
-  marginTop: 12,
-  width: "100%" as const,
-  height: 56,
-  borderRadius: 16,
-  borderWidth: 1,
-  borderColor: "rgba(228,181,106,0.35)",
-  backgroundColor: "#1A0C12",
-  color: gold(),
-  textAlign: "center" as const,
-  fontSize: 28,
-  letterSpacing: 10,
-});
-
-const steelPinStyle = () => ({
-  marginTop: 14,
-  width: "100%" as const,
-  height: 56,
-  borderRadius: 16,
-  borderWidth: 1,
-  borderColor: "rgba(197,208,218,0.28)",
-  backgroundColor: "#151C22",
-  color: STEEL,
-  textAlign: "center" as const,
-  fontSize: 28,
-  letterSpacing: 12,
-});
 
 const steelBtn = () => ({
   marginTop: 16,

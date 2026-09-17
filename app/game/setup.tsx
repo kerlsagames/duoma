@@ -98,6 +98,7 @@ export default function SetupScreen() {
   const [shuffleLimit, setShuffleLimit] = useState(3);
   const [counts, setCounts] = useState<StageCounts>({ ...DEFAULT_STAGE_COUNTS });
   const [flavorTags, setFlavorTags] = useState<string[]>(defaultEnabledFlavorTags());
+  const [openFlavorStage, setOpenFlavorStage] = useState<CardStage | null>(null);
   const [loading, setLoading] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -362,45 +363,73 @@ export default function SetupScreen() {
           </Pressable>
         </View>
 
-        <View className="mt-4 gap-4">
+        <View className="mt-4 gap-2">
           {flavorStages.map((stage) => {
             const tags = flavorTagsForStage(stage);
             const stageIds = tags.map((row) => row.id);
-            const stageOn = stageIds.every((id) => enabledSet.has(id));
+            const onCount = stageIds.filter((id) => enabledSet.has(id)).length;
+            const stageOn = onCount === stageIds.length && stageIds.length > 0;
+            const expanded = openFlavorStage === stage;
             return (
-              <View key={stage}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <Text className="text-[14px] font-semibold text-mist">
-                    {STAGE_META[stage].label}
-                  </Text>
-                  <Pressable onPress={() => setStageTags(stage, !stageOn)} hitSlop={8}>
-                    <Text className="text-[12px] font-semibold text-neon">
-                      {stageOn ? "None" : "All"}
+              <View
+                key={stage}
+                className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+              >
+                <Pressable
+                  onPress={() =>
+                    setOpenFlavorStage((current) => (current === stage ? null : stage))
+                  }
+                  className="flex-row items-center justify-between px-4 py-3.5"
+                  accessibilityRole="button"
+                  accessibilityLabel={`${STAGE_META[stage].label}. ${onCount} of ${stageIds.length} on.`}
+                >
+                  <View className="flex-1 pr-3">
+                    <Text className="text-[15px] font-semibold text-mist">
+                      {STAGE_META[stage].label}
                     </Text>
-                  </Pressable>
-                </View>
-                <View className="flex-row flex-wrap gap-2">
-                  {tags.map((tag) => {
-                    const on = enabledSet.has(tag.id);
-                    return (
-                      <Pressable
-                        key={tag.id}
-                        onPress={() => toggleTag(tag.id)}
-                        className={`rounded-full border px-3 py-1.5 ${
-                          on
-                            ? "border-neon bg-neon/15"
-                            : "border-white/12 bg-white/5"
-                        }`}
-                      >
-                        <Text
-                          className={`text-[13px] ${on ? "text-mist" : "text-mist/55"}`}
-                        >
-                          {tag.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                    <Text className="mt-0.5 text-[12px] text-mist/45">
+                      {onCount}/{stageIds.length} on
+                    </Text>
+                  </View>
+                  <Text className="text-[13px] font-semibold text-neon">
+                    {expanded ? "Hide" : "Show"}
+                  </Text>
+                </Pressable>
+                {expanded ? (
+                  <View className="border-t border-white/10 px-4 pb-4 pt-3">
+                    <Pressable
+                      onPress={() => setStageTags(stage, !stageOn)}
+                      hitSlop={8}
+                      className="mb-2 self-end"
+                    >
+                      <Text className="text-[12px] font-semibold text-neon">
+                        {stageOn ? "None" : "All"}
+                      </Text>
+                    </Pressable>
+                    <View className="flex-row flex-wrap gap-2">
+                      {tags.map((tag) => {
+                        const on = enabledSet.has(tag.id);
+                        return (
+                          <Pressable
+                            key={tag.id}
+                            onPress={() => toggleTag(tag.id)}
+                            className={`rounded-full border px-3 py-1.5 ${
+                              on
+                                ? "border-neon bg-neon/15"
+                                : "border-white/12 bg-white/5"
+                            }`}
+                          >
+                            <Text
+                              className={`text-[13px] ${on ? "text-mist" : "text-mist/55"}`}
+                            >
+                              {tag.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : null}
               </View>
             );
           })}

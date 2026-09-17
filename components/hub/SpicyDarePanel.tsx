@@ -1,24 +1,20 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { DateTimeField } from "@/components/ui/DateTimeField";
+import { CalendarDateField } from "@/components/ui/CalendarDateField";
 import { SERIF, UP_FOR_IT_TONE } from "@/lib/app-themes";
+import { formatLongDate, localDateKey } from "@/lib/dates";
 import {
   SPICY_DARE_CATEGORIES,
   SPICY_DARE_CATEGORY_META,
-  defaultDareDateTime,
-  formatDareDueAt,
   personalizeDareText,
   isSpicyDareDeck,
-  parseLocalDateTime,
   spicyCategoryMeta,
   timeframeLabel,
-  toLocalDateTimeValue,
   withPlayStatus,
   type SpicyDare,
   type SpicyDareCategory,
 } from "@/lib/spicy-dares";
-import { USE_TIMING_OPTIONS, expiresAtForTiming, type UseTimingId } from "@/lib/useTiming";
 import { useApp } from "@/lib/store";
-import type { DareTimeframe, SpicyDarePlay } from "@/lib/types";
+import type { SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -48,7 +44,15 @@ type Compose = {
   categories: string[];
 };
 
+function dareNightKey(play: SpicyDarePlay): string | null {
+  const fromCustom = play.customWhen?.slice(0, 10) ?? "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fromCustom)) return fromCustom;
+  return null;
+}
+
 function dareWhen(play: SpicyDarePlay): string {
+  const night = dareNightKey(play);
+  if (night) return formatLongDate(night);
   return timeframeLabel(play.timeframe, play.customWhen, play.dueAt);
 }
 
@@ -96,12 +100,11 @@ export function SpicyDarePanel({
   const [flashText, setFlashText] = useState<string | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [compose, setCompose] = useState<Compose | null>(null);
-  const [timeframe, setTimeframe] = useState<UseTimingId>("tonight");
-  const [customWhen, setCustomWhen] = useState(defaultDareDateTime);
+  const [askOn, setAskOn] = useState(localDateKey);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const spinTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const minDateTime = useMemo(() => toLocalDateTimeValue(new Date()), []);
+  const today = localDateKey();
 
   const playedIds = useMemo(() => {
     const deck = talkDecks.find(
@@ -178,8 +181,7 @@ export function SpicyDarePanel({
     setSpinning(false);
     setFlashText(null);
     setError(null);
-    setTimeframe("tonight");
-    setCustomWhen(defaultDareDateTime());
+    setAskOn(localDateKey());
     setCompose(
       dare
         ? {
@@ -225,16 +227,14 @@ export function SpicyDarePanel({
 
   const send = async () => {
     if (!compose) return;
-    if (timeframe === "custom") {
-      const picked = parseLocalDateTime(customWhen);
-      if (!picked) {
-        setError("Pick a date and time on the calendar.");
-        return;
-      }
-      if (picked.getTime() <= Date.now()) {
-        setError("Pick a time in the future.");
-        return;
-      }
+    const night = askOn || today;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(night)) {
+      setError("Pick a day on the calendar.");
+      return;
+    }
+    if (night < today) {
+      setError("Pick today or a day still ahead.");
+      return;
     }
     setError(null);
     setLoading(true);
@@ -244,8 +244,8 @@ export function SpicyDarePanel({
         text: compose.text,
         categories: compose.categories,
         direction: null,
-        timeframe: timeframe as DareTimeframe,
-        customWhen: timeframe === "custom" ? customWhen : null,
+        timeframe: "custom",
+        customWhen: `${night}T20:00`,
       });
       setCompose(null);
       setPicked(null);
@@ -433,79 +433,27 @@ export function SpicyDarePanel({
           </View>
         ) : null}
 
-        <Text
-          style={{
-            marginTop: compose.dareId ? 18 : 22,
-            fontFamily: "SpaceMono",
-            fontSize: 11,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            color: T.accent,
-          }}
-        >
-          Time to use
+        <CalendarDateField
+          label="Day to try this"
+          value={askOn}
+          onChange={setAskOn}
+          accent={T.accent}
+          ink={T.ink}
+          muted={T.muted}
+          background={T.surface}
+          allowClear={false}
+        />
+        <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
+          They get a request to try this on {formatLongDate(askOn || today)}. A yes
+          drops it on the calendar.
         </Text>
-        <View className="mt-3 flex-row flex-wrap" style={{ gap: 8 }}>
-          {USE_TIMING_OPTIONS.map((opt) => {
-            const active = timeframe === opt.id;
-            return (
-              <Pressable
-                key={opt.id}
-                onPress={() => setTimeframe(opt.id)}
-                style={{
-                  width: "48%",
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: active ? T.accent : "rgba(232,244,241,0.12)",
-                  backgroundColor: active ? T.accentSoft : T.surface,
-                  paddingHorizontal: 12,
-                  paddingVertical: 12,
-                }}
-              >
-                <Text style={{ fontFamily: SERIF, fontSize: 16, color: T.ink }}>
-                  {opt.label}
-                </Text>
-                <Text style={{ marginTop: 3, fontSize: 12, color: T.muted }}>
-                  {opt.hint}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        {timeframe === "custom" ? (
-          <View className="mt-1">
-            <DateTimeField
-              value={customWhen}
-              min={minDateTime}
-              onChange={setCustomWhen}
-              accent={T.accent}
-              background={T.surface}
-              ink={T.ink}
-              border={T.border}
-            />
-            <Text style={{ marginTop: 8, fontSize: 13, color: T.muted }}>
-              Expires exactly{" "}
-              {formatDareDueAt(parseLocalDateTime(customWhen)?.toISOString() ?? null) ??
-                "—"}
-            </Text>
-          </View>
-        ) : timeframe === "none" ? (
-          <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
-            No expiry — stays open until you mark it done.
-          </Text>
-        ) : (
-          <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
-            Expires{" "}
-            {formatDareDueAt(expiresAtForTiming(timeframe, customWhen)) ?? "—"}
-          </Text>
-        )}
 
         {error ? (
           <Text style={{ marginTop: 14, color: T.hot, fontFamily: SERIF }}>{error}</Text>
         ) : null}
         <View className="mt-5">
           <PrimaryButton
-            label="Send this dare"
+            label={`Ask them for ${formatLongDate(askOn || today)}`}
             tone="teal"
             loading={loading}
             onPress={() => void send()}
@@ -1110,7 +1058,11 @@ function LiveDareCard({
         <View className="mt-3 flex-row" style={{ gap: 8 }}>
           <View className="flex-1">
             <PrimaryButton
-              label="I'm up for it"
+              label={
+                dareNightKey(play)
+                  ? `Yes — ${formatLongDate(dareNightKey(play)!)}`
+                  : "I'm up for it"
+              }
               tone="teal"
               onPress={() => onRespond("accepted")}
             />

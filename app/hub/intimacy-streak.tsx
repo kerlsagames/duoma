@@ -242,10 +242,12 @@ function ActivityChart({
   bars,
   selected,
   onSelect,
+  hideScore = false,
 }: {
   bars: DayBar[];
   selected: string | null;
   onSelect: (date: string) => void;
+  hideScore?: boolean;
 }) {
   const chartHeight = 128;
   const maxEnd = Math.max(GRAPH_WINDOW_DAYS, bars.length);
@@ -334,10 +336,15 @@ function ActivityChart({
               }}
             >
               {prettyDate(tipBar.date)}
-              {` · score ${dayConnectionScore(tipBar)}/100`}
-              {tipBar.total
-                ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
-                : " · quiet"}
+              {hideScore
+                ? tipBar.total
+                  ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
+                  : " · quiet"
+                : ` · score ${dayConnectionScore(tipBar)}/100${
+                    tipBar.total
+                      ? ` · ${tipBar.total} log${tipBar.total === 1 ? "" : "s"}`
+                      : " · quiet"
+                  }`}
             </Text>
             {tipBar.total === 0 ? (
               <Text style={{ color: "rgba(255,210,180,0.55)", fontSize: 13 }}>
@@ -419,6 +426,7 @@ function ActivityChart({
                 paddingHorizontal: 3,
               }}
             >
+              {hideScore ? null : (
               <Text
                 style={{
                   marginBottom: 4,
@@ -430,6 +438,7 @@ function ActivityChart({
               >
                 {score}
               </Text>
+              )}
               <View
                 style={{
                   width: "70%",
@@ -499,13 +508,25 @@ export default function IntimacyStreakScreen() {
     hideGraph: false,
     calmFire: false,
     simpleMode: false,
+    extraSimple: "",
   });
   const simple = Boolean(look.prefs.simpleMode);
+  const extraButtons = useMemo(
+    () =>
+      String(look.prefs.extraSimple ?? "")
+        .split(",")
+        .map((row) => row.trim())
+        .filter(Boolean)
+        .slice(0, 8),
+    [look.prefs.extraSimple]
+  );
   const [note, setNote] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addDraft, setAddDraft] = useState("");
   const today = localDateKey();
   const [selectedDay, setSelectedDay] = useState(today);
 
-  const logs = useMemo(
+  const fireLogs = useMemo(
     () =>
       collectIntimacyLogs({
         stored: data.intimacy,
@@ -528,6 +549,17 @@ export default function IntimacyStreakScreen() {
       talkDraws,
     ]
   );
+  const simpleLogs = useMemo(
+    () =>
+      data.intimacy.filter(
+        (row) =>
+          !row.sourceId &&
+          (SIMPLE_INTIMACY_KINDS.some((item) => item.id === row.kind) ||
+            (row.kind === "adventure" && Boolean(row.note)))
+      ),
+    [data.intimacy]
+  );
+  const logs = simple ? simpleLogs : fireLogs;
 
   const bars = useMemo(
     () => buildDayBars(logs, GRAPH_HISTORY_DAYS, today),
@@ -572,8 +604,29 @@ export default function IntimacyStreakScreen() {
     setNote("");
   };
 
-  const todayCount = (id: ManualIntimacyKind) =>
-    todayLogs.filter((row) => row.kind === id).length;
+  const todayCount = (id: ManualIntimacyKind, extraNote?: string) =>
+    extraNote
+      ? todayLogs.filter((row) => row.kind === "adventure" && row.note === extraNote)
+          .length
+      : todayLogs.filter((row) => row.kind === id && !row.note).length;
+
+  const addExtraButton = () => {
+    const label = addDraft.trim();
+    if (!label) return;
+    if (extraButtons.some((row) => row.toLowerCase() === label.toLowerCase())) {
+      setAddDraft("");
+      setAdding(false);
+      return;
+    }
+    if (SIMPLE_INTIMACY_KINDS.some((row) => row.label.toLowerCase() === label.toLowerCase())) {
+      setAddDraft("");
+      setAdding(false);
+      return;
+    }
+    look.patch({ extraSimple: [...extraButtons, label].join(",") });
+    setAddDraft("");
+    setAdding(false);
+  };
 
   const headline = !ready
     ? "—"
@@ -690,7 +743,7 @@ export default function IntimacyStreakScreen() {
               }}
             >
               Tap what happened. Same day can take more than one — they stack
-              on the bar.
+              on the bar. Nothing from the other apps lands here.
             </Text>
           </>
         ) : (
@@ -763,7 +816,7 @@ export default function IntimacyStreakScreen() {
             }}
           >
             {todayLogs.length} log{todayLogs.length === 1 ? "" : "s"} today
-            {autoToday && !simple ? ` · ${autoToday} from play` : ""}
+            {!simple && autoToday ? ` · ${autoToday} from play` : ""}
           </Text>
         ) : null}
 
@@ -782,6 +835,7 @@ export default function IntimacyStreakScreen() {
             bars={bars}
             selected={selectedDay}
             onSelect={setSelectedDay}
+            hideScore={simple}
           />
         </View>
         )}
@@ -797,7 +851,13 @@ export default function IntimacyStreakScreen() {
                 color: "rgba(255,210,180,0.45)",
               }}
             >
-              {selectedDay === today ? "TODAY’S FUEL" : `${selectedDay} · FUEL`}
+              {simple
+                ? selectedDay === today
+                  ? "TODAY"
+                  : selectedDay
+                : selectedDay === today
+                  ? "TODAY’S FUEL"
+                  : `${selectedDay} · FUEL`}
             </Text>
             {selectedLogs.slice(0, 10).map((row) => {
               const meta = INTIMACY_KINDS.find((item) => item.id === row.kind);
@@ -839,7 +899,8 @@ export default function IntimacyStreakScreen() {
               fontSize: 13,
             }}
           >
-            No fuel logged on {selectedDay === today ? "today" : selectedDay}.
+            {simple ? "Nothing logged" : "No fuel logged"} on{" "}
+            {selectedDay === today ? "today" : selectedDay}.
           </Text>
         )}
 
@@ -893,6 +954,125 @@ export default function IntimacyStreakScreen() {
                 </Pressable>
               );
             })}
+            {extraButtons.map((label) => {
+              const count = todayCount("adventure", label);
+              return (
+                <Pressable
+                  key={`extra-${label}`}
+                  onPress={() => void logKind("adventure", label)}
+                  onLongPress={() =>
+                    look.patch({
+                      extraSimple: extraButtons
+                        .filter((row) => row !== label)
+                        .join(","),
+                    })
+                  }
+                  style={{
+                    width: "48%",
+                    flexGrow: 1,
+                    minWidth: 140,
+                    paddingVertical: 16,
+                    paddingHorizontal: 12,
+                    backgroundColor: "#3ECFBF",
+                    borderRadius: 16,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#1A0806",
+                      fontWeight: "800",
+                      fontSize: 16,
+                    }}
+                  >
+                    {label}
+                  </Text>
+                  {count > 0 ? (
+                    <Text
+                      style={{
+                        marginTop: 4,
+                        color: "rgba(26,8,6,0.65)",
+                        fontFamily: "SpaceMono",
+                        fontSize: 11,
+                      }}
+                    >
+                      today ×{count}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+            {adding ? (
+              <View
+                style={{
+                  width: "48%",
+                  flexGrow: 1,
+                  minWidth: 140,
+                  padding: 10,
+                  borderRadius: 16,
+                  backgroundColor: "#2A1410",
+                  borderWidth: 1,
+                  borderColor: "rgba(255,106,61,0.35)",
+                }}
+              >
+                <TextInput
+                  value={addDraft}
+                  onChangeText={setAddDraft}
+                  placeholder="Name it"
+                  placeholderTextColor="rgba(255,210,180,0.35)"
+                  autoFocus
+                  onSubmitEditing={addExtraButton}
+                  style={{
+                    color: "#FFE8D6",
+                    fontWeight: "700",
+                    fontSize: 15,
+                    textAlign: "center",
+                  }}
+                />
+                <Pressable
+                  onPress={addExtraButton}
+                  style={{
+                    marginTop: 8,
+                    height: 34,
+                    borderRadius: 12,
+                    backgroundColor: hot(),
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ color: "#1A0806", fontWeight: "800", fontSize: 13 }}>
+                    Add
+                  </Text>
+                </Pressable>
+              </View>
+            ) : extraButtons.length < 8 ? (
+              <Pressable
+                onPress={() => setAdding(true)}
+                style={{
+                  width: "48%",
+                  flexGrow: 1,
+                  minWidth: 140,
+                  paddingVertical: 16,
+                  paddingHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderStyle: "dashed",
+                  borderColor: "rgba(255,179,71,0.55)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#FFB347",
+                    fontWeight: "800",
+                    fontSize: 16,
+                  }}
+                >
+                  + Add a button
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : (
           <>

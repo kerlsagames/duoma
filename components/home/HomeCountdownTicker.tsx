@@ -45,12 +45,12 @@ export function HomeCountdownTicker() {
       return;
     }
 
-    // Start fully off the right edge, then loop by one padded copy so the
-    // next pass also enters from the right instead of sitting mid-strip.
-    const from = boxWidth;
-    const to = boxWidth - copyWidth;
+    // Two copies sit back-to-back. Loop one copy width so the first line
+    // leaves fully left and the next is already following — no empty strip.
+    const from = 0;
+    const to = -copyWidth;
     translate.setValue(from);
-    const duration = Math.max(10000, Math.round(copyWidth * 18));
+    const duration = Math.max(7000, Math.round(copyWidth * 16));
     const tick = () => {
       if (!running.current) return;
       translate.setValue(from);
@@ -91,7 +91,6 @@ export function HomeCountdownTicker() {
             flexDirection: "row",
             alignItems: "center",
             flexShrink: 0,
-            minWidth: boxWidth || undefined,
           }}
         >
           <Text
@@ -101,7 +100,7 @@ export function HomeCountdownTicker() {
               fontSize: 12,
               fontWeight: "700",
               letterSpacing: 0.3,
-              paddingRight: 20,
+              paddingRight: 48,
             }}
           >
             {line}
