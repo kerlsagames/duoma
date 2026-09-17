@@ -20,6 +20,12 @@ import {
   type SexyVaultItem,
   type SexyVaultKind,
 } from "@/lib/sexy-vault";
+import {
+  downloadVaultBackup,
+  parseVaultBackup,
+  pickVaultBackupFile,
+  restoreVaultBackup,
+} from "@/lib/vault-backup";
 import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { ComboPad } from "@/components/ui/ComboPad";
@@ -83,6 +89,8 @@ export default function SexyVaultScreen() {
   const [attested, setAttested] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [copyBusy, setCopyBusy] = useState(false);
+  const [copyNote, setCopyNote] = useState<string | null>(null);
   const them = themLabel(partner);
 
   useEffect(() => {
@@ -252,6 +260,44 @@ export default function SexyVaultScreen() {
     }
   };
 
+  const saveVaultCopy = async () => {
+    setCopyBusy(true);
+    setError(null);
+    setCopyNote(null);
+    try {
+      const count = await downloadVaultBackup(data.sexyVault);
+      setCopyNote(
+        `${count} ${count === 1 ? "file" : "files"} saved on this phone. AirDrop it or copy it with a cable onto the new one. Duoma never uploaded it.`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save a copy.");
+    } finally {
+      setCopyBusy(false);
+    }
+  };
+
+  const restoreVaultCopy = async () => {
+    setCopyBusy(true);
+    setError(null);
+    setCopyNote(null);
+    try {
+      const raw = await pickVaultBackupFile();
+      if (!raw) return;
+      const backup = parseVaultBackup(raw);
+      const next = await restoreVaultBackup(backup, data.sexyVault);
+      await patch((state) => ({ ...state, sexyVault: next }));
+      setCopyNote(
+        `${backup.items.length} ${
+          backup.items.length === 1 ? "clip is" : "clips are"
+        } back in the vault. Still only on this phone.`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not restore that file.");
+    } finally {
+      setCopyBusy(false);
+    }
+  };
+
   return (
     <MediaShield>
     <Screen scroll={mode !== "view"} background={BG} density={look.prefs.density} typeface={look.prefs.typeface} wash={look.wash}>
@@ -278,7 +324,15 @@ export default function SexyVaultScreen() {
                 hint: "Thumbnails in a tile grid.",
               },
             ]}
-          />
+          >
+            <VaultCopyPanel
+              busy={copyBusy}
+              note={copyNote}
+              error={error}
+              onSave={() => void saveVaultCopy()}
+              onRestore={() => void restoreVaultCopy()}
+            />
+          </LookPanel>
         }
       >
         {!data.sexyVaultPin ? (
@@ -382,6 +436,10 @@ export default function SexyVaultScreen() {
               }
               void setPin(pinDraft);
             }}
+            copyBusy={copyBusy}
+            copyNote={copyNote}
+            onSaveCopy={() => void saveVaultCopy()}
+            onRestoreCopy={() => void restoreVaultCopy()}
           />
         )}
       </Stage>
@@ -486,6 +544,51 @@ function SafeDial({ spinning = true }: { spinning?: boolean }) {
           <Ionicons name="lock-closed" size={36} color={STEEL} />
         </View>
       </Animated.View>
+    </View>
+  );
+}
+
+function VaultCopyPanel({
+  busy,
+  note,
+  error,
+  onSave,
+  onRestore,
+}: {
+  busy: boolean;
+  note: string | null;
+  error: string | null;
+  onSave: () => void;
+  onRestore: () => void;
+}) {
+  return (
+    <View style={{ marginTop: 18, gap: 10 }}>
+      <Text style={{ fontSize: 12, fontWeight: "800", letterSpacing: 1.2, color: INK }}>
+        KEEP IT ON THIS PHONE
+      </Text>
+      <Text style={{ fontSize: 13, lineHeight: 19, color: "rgba(246,231,220,0.62)" }}>
+        There is no cloud backup for the vault. Save a .duoma file, then AirDrop
+        it or copy it with a cable onto the new phone. Open the vault there and
+        tap Restore from a file. Duoma never uploads that file.
+      </Text>
+      <Pressable
+        onPress={onSave}
+        disabled={busy}
+        style={[goldBtn(), { marginTop: 4, opacity: busy ? 0.55 : 1 }]}
+      >
+        <Text style={goldBtnText}>{busy ? "Working…" : "Save a copy on this phone"}</Text>
+      </Pressable>
+      <Pressable
+        onPress={onRestore}
+        disabled={busy}
+        style={[ghostBtn, { flex: undefined, marginTop: 0, opacity: busy ? 0.55 : 1 }]}
+      >
+        <Text style={ghostBtnText}>Restore from a file</Text>
+      </Pressable>
+      {note ? (
+        <Text style={{ fontSize: 13, lineHeight: 19, color: gold() }}>{note}</Text>
+      ) : null}
+      {error ? <Text style={errText}>{error}</Text> : null}
     </View>
   );
 }
@@ -639,6 +742,10 @@ function VaultHome({
   onDraft,
   onConfirm,
   onSavePin,
+  copyBusy,
+  copyNote,
+  onSaveCopy,
+  onRestoreCopy,
 }: {
   items: SexyVaultItem[];
   userId?: string;
@@ -658,6 +765,10 @@ function VaultHome({
   onDraft: (value: string) => void;
   onConfirm: (value: string) => void;
   onSavePin: () => void;
+  copyBusy: boolean;
+  copyNote: string | null;
+  onSaveCopy: () => void;
+  onRestoreCopy: () => void;
 }) {
   return (
     <View>
@@ -683,6 +794,38 @@ function VaultHome({
           <Text style={ghostBtnText}>{changingPin ? "Cancel" : "Change combination"}</Text>
         </Pressable>
       </View>
+      <View style={{ marginTop: 8, flexDirection: "row", gap: 8 }}>
+        <Pressable
+          onPress={onSaveCopy}
+          disabled={copyBusy}
+          style={[ghostBtn, { opacity: copyBusy ? 0.55 : 1 }]}
+        >
+          <Text style={ghostBtnText}>{copyBusy ? "Working…" : "Save a copy"}</Text>
+        </Pressable>
+        <Pressable
+          onPress={onRestoreCopy}
+          disabled={copyBusy}
+          style={[ghostBtn, { opacity: copyBusy ? 0.55 : 1 }]}
+        >
+          <Text style={ghostBtnText}>Restore from a file</Text>
+        </Pressable>
+      </View>
+      <Text
+        style={{
+          marginTop: 8,
+          color: "rgba(246,231,220,0.5)",
+          fontSize: 13,
+          lineHeight: 18,
+        }}
+      >
+        Stays on this phone. Never uploaded. AirDrop the file or copy it with a
+        cable when you change phones.
+      </Text>
+      {copyNote ? (
+        <Text style={{ marginTop: 8, color: gold(), fontSize: 13, lineHeight: 18 }}>
+          {copyNote}
+        </Text>
+      ) : null}
       {changingPin ? (
         <View style={{ marginTop: 12 }}>
           <ComboPad

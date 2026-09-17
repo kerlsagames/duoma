@@ -1,11 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { hydrateMiniState, type MiniState } from "@/lib/mini-content";
-import { getSexyVaultBlob, putSexyVaultBlob } from "@/lib/sexy-vault";
-import { getVoiceClip, putVoiceClip } from "@/lib/voice-notes";
 import { hydrateDb } from "@/lib/storage";
 import type { AppDB } from "@/lib/types";
-
-const MEDIA_BUDGET = 3_500_000;
 
 type CoupleSlice = Omit<AppDB, "profiles" | "couples" | "pushSubscriptions">;
 
@@ -214,84 +210,23 @@ export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>
   return next;
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error("read-failed"));
-    reader.readAsDataURL(blob);
+/** Lists and games may go to the couple backup. Pics, clips, and voice stay on the phone. */
+function sanitizeMiniForCloud(mini: MiniState): MiniState {
+  return hydrateMiniState({
+    ...mini,
+    sexyVault: [],
+    sexyVaultPin: "",
+    audioNotes: [],
+    photos: [],
   });
-}
-
-async function packMedia(mini: MiniState): Promise<CloudState["media"]> {
-  const vault: Record<string, string> = {};
-  const voice: Record<string, string> = {};
-  let used = 0;
-  for (const item of mini.sexyVault) {
-    if (used >= MEDIA_BUDGET) break;
-    if (item.uri?.startsWith("data:")) {
-      vault[item.id] = item.uri;
-      used += item.uri.length;
-      continue;
-    }
-    const blob = await getSexyVaultBlob(item.id);
-    if (!blob || blob.size > 900_000) continue;
-    try {
-      const url = await blobToDataUrl(blob);
-      if (used + url.length > MEDIA_BUDGET) break;
-      vault[item.id] = url;
-      used += url.length;
-    } catch {
-      // Skip a clip that will not encode.
-    }
-  }
-  for (const item of mini.audioNotes) {
-    if (used >= MEDIA_BUDGET) break;
-    if (item.uri?.startsWith("data:")) {
-      voice[item.id] = item.uri;
-      used += item.uri.length;
-      continue;
-    }
-    const blob = await getVoiceClip(item.id);
-    if (!blob || blob.size > 400_000) continue;
-    try {
-      const url = await blobToDataUrl(blob);
-      if (used + url.length > MEDIA_BUDGET) break;
-      voice[item.id] = url;
-      used += url.length;
-    } catch {
-      // Skip a clip that will not encode.
-    }
-  }
-  return { vault, voice };
-}
-
-async function unpackMedia(media: CloudState["media"] | undefined) {
-  if (!media) return;
-  for (const [id, url] of Object.entries(media.vault ?? {})) {
-    if (!url.startsWith("data:")) continue;
-    try {
-      const blob = await (await fetch(url)).blob();
-      await putSexyVaultBlob(id, blob);
-    } catch {
-      // Local play still works without that file.
-    }
-  }
-  for (const [id, url] of Object.entries(media.voice ?? {})) {
-    if (!url.startsWith("data:")) continue;
-    try {
-      const blob = await (await fetch(url)).blob();
-      await putVoiceClip(id, blob);
-    } catch {
-      // Same.
-    }
-  }
 }
 
 function mergeMini(local: MiniState, remote: MiniState): MiniState {
   const next = hydrateMiniState({ ...local, ...remote });
   const arrayKeys = Object.keys(local).filter((key) => Array.isArray((local as unknown as Record<string, unknown>)[key]));
+  const keepOnPhone = new Set(["sexyVault", "audioNotes", "photos"]);
   for (const key of arrayKeys) {
+    if (keepOnPhone.has(key)) continue;
     const localRows = (local as unknown as Record<string, unknown[]>)[key] ?? [];
     const remoteRows = (remote as unknown as Record<string, unknown[]>)[key] ?? [];
     if (localRows.every((row) => typeof row === "string")) {
@@ -307,7 +242,12 @@ function mergeMini(local: MiniState, remote: MiniState): MiniState {
       (row) => stampOf(row as Record<string, unknown>)
     );
   }
-  return hydrateMiniState(next);
+  const kept = hydrateMiniState(next);
+  kept.sexyVault = local.sexyVault;
+  kept.sexyVaultPin = local.sexyVaultPin;
+  kept.audioNotes = local.audioNotes;
+  kept.photos = local.photos;
+  return kept;
 }
 
 let restoring = false;
@@ -331,11 +271,11 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
   if (!supabase || !coupleId || restoring) return;
   try {
     const { loadMiniState } = await import("@/lib/mini-apps");
-    const mini = await loadMiniState();
+    const mini = sanitizeMiniForCloud(await loadMiniState());
     const payload: CloudState = {
       db: sliceCoupleDb(db, coupleId),
       mini,
-      media: await packMedia(mini),
+      media: { vault: {}, voice: {} },
       savedAt: new Date().toISOString(),
     };
     lastPushedAt = payload.savedAt;
@@ -379,9 +319,8 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
     const merged = mergeCoupleDb(db, coupleId, remote.db);
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
     const localMini = await loadMiniState();
-    const nextMini = mergeMini(localMini, remote.mini);
+    const nextMini = mergeMini(localMini, sanitizeMiniForCloud(remote.mini));
     await patchMini(() => nextMini);
-    await unpackMedia(remote.media);
     return merged;
   } catch {
     return mergeCoupleDb(db, coupleId, remote.db);

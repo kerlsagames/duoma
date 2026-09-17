@@ -247,7 +247,8 @@ function SetupPane() {
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
         50,000 monthly active users. 500 MB database. 1 GB file storage. 5 GB bandwidth.
         Project pauses after a week of no traffic. For Duoma text (accounts, cards, play)
-        that is thousands of couples. Photos and vault video eat the 1 GB first.
+        that is thousands of couples. Vault video and private photos stay on the
+        phone, so they do not eat the 1 GB.
       </Text>
       <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Supabase Pro · $25 / month</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
@@ -278,7 +279,7 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 013. 011 is Help → Feedback. 012 is two-phone check-ins and pose asks. 013 is the full backup for a new phone. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'craigmkerlin@gmail.com';"
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 013. 011 is Help → Feedback. 012 is two-phone check-ins and pose asks. 013 is lists and games for a new phone — not vault clips. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'craigmkerlin@gmail.com';"
           : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 013_couple_state.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
       </Text>
     </ScrollView>

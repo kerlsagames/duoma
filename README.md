@@ -27,7 +27,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 
-When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing and the shared slice (check-ins, position/roleplay asks, those calendar nights) live in Supabase so the other phone is not empty. Sign in with the same email on a new phone to bring those back. Photos, vaults, lists, Daily Word, and Get Spicy hands still live on the device that made them. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
+When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing and the shared slice (check-ins, position/roleplay asks, those calendar nights) live in Supabase so the other phone is not empty. Sign in with the same email on a new phone to bring lists, games, check-ins, and Daily Word back. Sexy Vault clips, voice notes, and Photo Memory shots stay on the phone that made them — they are never uploaded. Save a `.duoma` file from the vault, then AirDrop it or copy it with a cable. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
 
 ## Run it
 
@@ -53,7 +53,9 @@ Email is the account (new phone, bans). The pair code is still how two people be
 
 ### Two phones, and a new phone
 
-Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins, pose/roleplay asks, lists, calendar, games, Daily Word, photos, and vaults now copy up so a new phone can restore them after you sign in with the same email.
+Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins, pose/roleplay asks, lists, calendar, games, and Daily Word copy up so a new phone can restore them after you sign in with the same email.
+
+Sexy Vault photos and videos do **not** go to the cloud. There is no Backup vault button that uploads them. On the vault, **Save a copy** downloads a `.duoma` file onto this phone. AirDrop it or copy it with a USB cable. On the new phone, open the vault and tap **Restore from a file**. Duoma never sees that file. Voice notes and Photo Memory shots stay on-device the same way.
 
 You still have to run two SQL files once in the Supabase SQL editor: `012_hub_sync.sql` and `013_couple_state.sql`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste those files, a second phone can pair but will not see the asks or the backup.
 

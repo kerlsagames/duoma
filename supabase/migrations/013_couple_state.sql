@@ -1,4 +1,5 @@
--- Full couple backup so a new phone can restore lists, games, photos, vaults.
+-- Couple backup so a new phone can restore lists, games, and check-ins.
+-- Sexy Vault clips, voice notes, and Photo Memory stay on the phone.
 -- Run after 012_hub_sync.sql.
 
 create table if not exists public.couple_state (
