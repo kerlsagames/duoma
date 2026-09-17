@@ -62,6 +62,59 @@ export function isSimpleOpenStage(
   );
 }
 
+export function coupleMateId(
+  couple: { partnerA: string; partnerB: string | null },
+  userId: string
+): string | null {
+  if (!couple.partnerB) return null;
+  if (userId === couple.partnerA) return couple.partnerB;
+  if (userId === couple.partnerB) return couple.partnerA;
+  return couple.partnerB;
+}
+
+/**
+ * One-phone Keep it simple: whose body the card is written from.
+ * Foreplay / Step it up alternate. Finish Off is M→F first, then F→M.
+ */
+export function pickSimpleActor(input: {
+  couple: { partnerA: string; partnerB: string | null };
+  maleId?: string | null;
+  femaleId?: string | null;
+  stage: CardStage | null | undefined;
+  finishAwaitingMale: boolean;
+  currentActorId: string | null | undefined;
+  initiatorId: string;
+  flip: boolean;
+}): string {
+  const a = input.couple.partnerA;
+  const b = input.couple.partnerB ?? a;
+  const inPair = (id: string | null | undefined) =>
+    Boolean(id && (id === a || id === b));
+  const male = inPair(input.maleId) ? (input.maleId as string) : null;
+  const female = inPair(input.femaleId) ? (input.femaleId as string) : null;
+
+  if (input.stage === "finish_off") {
+    if (input.finishAwaitingMale) {
+      return female ?? (male ? coupleMateId(input.couple, male) ?? b : b);
+    }
+    return male ?? a;
+  }
+
+  const current =
+    (inPair(input.currentActorId) ? (input.currentActorId as string) : null) ??
+    (inPair(input.initiatorId) ? input.initiatorId : a);
+  if (!input.flip) return current;
+  return coupleMateId(input.couple, current) ?? b;
+}
+
+/** Afterglow only after an M or FM finish — not right after F cums. */
+export function simpleCanLeaveFinish(input: {
+  finishAwaitingMale: boolean;
+  finishUnitsDone: number;
+}): boolean {
+  return !input.finishAwaitingMale && input.finishUnitsDone > 0;
+}
+
 export function stagesForPace(pace: string | null | undefined): CardStage[] {
   return pace === "simple" ? SIMPLE_STAGE_ORDER : STAGE_ORDER;
 }

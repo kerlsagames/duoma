@@ -5,7 +5,10 @@ import { RealtimeCardStage } from "@/components/RealtimeCardStage";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
-import { isSimpleOpenStage, stagesForPace } from "@/games/get-spicy/engine";
+import {
+  cardFinishClimax,
+} from "@/games/get-spicy/finish-climax";
+import { isSimpleOpenStage, simpleCanLeaveFinish, stagesForPace } from "@/games/get-spicy/engine";
 import {
   personalizeCard,
   resolveCardGenders,
@@ -102,31 +105,54 @@ export default function PlayScreen() {
     Boolean(active) &&
     game?.activePlayedBy !== user?.id;
 
+  const actorId =
+    active?.playedBy ?? game?.activePlayedBy ?? game?.turnUserId ?? user?.id;
   const names = resolveCardNames({
     userName: user?.displayName,
     partnerName: partner?.displayName,
     userId: user?.id,
     partnerId: partner?.id,
-    playedById: simplePace
-      ? user?.id
-      : active?.playedBy ?? game?.activePlayedBy ?? user?.id,
+    playedById: actorId,
   });
   const genders = resolveCardGenders({
     userGender: user?.gender,
     partnerGender: partner?.gender,
     userId: user?.id,
     partnerId: partner?.id,
-    playedById: simplePace
-      ? user?.id
-      : active?.playedBy ?? game?.activePlayedBy ?? user?.id,
+    playedById: actorId,
   });
 
-  const actor =
-    simplePace
-      ? null
-      : (active?.playedBy ?? game?.activePlayedBy) === partner?.id
-        ? partner?.displayName
-        : user?.displayName;
+  const actorName =
+    actorId && actorId === partner?.id
+      ? partner?.displayName
+      : actorId && actorId === user?.id
+        ? user?.displayName
+        : actorId === partner?.id
+          ? partner?.displayName
+          : user?.displayName;
+
+  const finishClimax =
+    card && (active?.stage === "finish_off" || game?.currentStage === "finish_off")
+      ? cardFinishClimax(card, genders)
+      : null;
+  const nextCardLabel =
+    simplePace && finishClimax === "F" && !game?.finishAwaitingMale
+      ? "Next Card, F has cum"
+      : simplePace &&
+          (finishClimax === "M" || Boolean(game?.finishAwaitingMale)) &&
+          game?.currentStage === "finish_off"
+        ? "Next Card, M has cum"
+        : simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
+          ? "Next card"
+          : "Complete";
+  const canLeaveFinish = simpleCanLeaveFinish({
+    finishAwaitingMale: Boolean(game?.finishAwaitingMale),
+    finishUnitsDone: game?.finishUnitsDone ?? 0,
+  });
+  const showStageJump =
+    simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
+      ? game?.currentStage !== "finish_off" || canLeaveFinish
+      : false;
 
   const stageNeed = game?.currentStage
     ? game.stageCounts[game.currentStage]
@@ -137,7 +163,11 @@ export default function PlayScreen() {
       : played.filter((item) => item.stage === game?.currentStage).length;
   const progressLabel =
     isSimpleOpenStage(game?.pace, game?.currentStage)
-      ? `${stagePlayed} so far`
+      ? `${stagePlayed} so far${
+          game?.currentStage === "finish_off" && game.finishAwaitingMale
+            ? " · M cums next"
+            : ""
+        }`
       : game?.currentStage === "finish_off" && game.finishAwaitingMale
       ? `${stagePlayed} / ${stageNeed} · he finishes next`
       : `${stagePlayed} / ${stageNeed} this stage`;
@@ -525,7 +555,15 @@ export default function PlayScreen() {
             card={card}
             names={names}
             genders={genders}
-            actorLabel={simplePace ? undefined : actor ? `${actor} played` : "Live card"}
+            actorLabel={
+              simplePace
+                ? actorName
+                  ? `${actorName}'s move`
+                  : "Both of you"
+                : actorName
+                  ? `${actorName} played`
+                  : "Live card"
+            }
             progressLabel={progressLabel}
             shared={simplePace}
             emptyTitle={
@@ -561,8 +599,10 @@ export default function PlayScreen() {
           <Text className="text-[13px] text-mist/50">
             {simplePace
               ? active
-                ? "Playing together"
-                : "One shared card"
+                ? actorName
+                  ? `${actorName}'s card`
+                  : "Playing together"
+                : "One shared phone"
               : active
                 ? "Live card"
                 : myTurn
@@ -588,7 +628,7 @@ export default function PlayScreen() {
         {error ? <Text className="mt-2 text-[13px] text-crimson">{error}</Text> : null}
 
         <View className="mt-4 gap-3 pb-3">
-          {simplePace && isSimpleOpenStage(game?.pace, game?.currentStage) ? (
+          {showStageJump ? (
             <View>
               <PrimaryButton
                 label={
@@ -616,7 +656,7 @@ export default function PlayScreen() {
                   : game?.currentStage === "step_it_up"
                     ? "Stay in Step it up as long as you want. This is the jump to Finish off."
                     : game?.currentStage === "finish_off"
-                      ? "Stay in Finish Off as long as you want. This is the jump to Afterglow."
+                      ? "Stay in Finish Off until M has also come. Then this jumps to Afterglow."
                       : "Stay in Afterglow as long as you want. This closes the night."}
               </Text>
             </View>
@@ -625,7 +665,7 @@ export default function PlayScreen() {
             <PrimaryButton
               label={
                 simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
-                  ? "Next card"
+                  ? nextCardLabel
                   : "Complete"
               }
               tone={

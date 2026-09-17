@@ -10,6 +10,11 @@ const STEPS = [
     body: "Email yourself a 6-digit code to open the app. On Home, Connect sends them the six-character pair code, that button leaves when they join. Sign in / Forgot password is on the login screen, not Home. Sign out does not unpair you, and it does not delete your photos or lists. Do not make a new pair just to come back. Terms and privacy say you are responsible if someone else opens your email or codes.",
   },
   {
+    kicker: "Two phones",
+    title: "Check-ins and pose asks land on both",
+    body: "When they send you a pose or a roleplay, it shows in your notifications and in that app on your phone — not an empty screen. Same for a check-in they fill in, or a check-in they asked you for. New phone: sign in with the same email and those come back. Photos, vaults, lists, Daily Word, and Get Spicy hands still live on the phone that made them until we sync those too.",
+  },
+  {
     kicker: "Names",
     title: "Male or Female, set at the start",
     body: "Pick Male or Female so spicy cards, positions, and roleplays use the right wording. Fix a mistake anytime in Home settings.",
@@ -57,7 +62,7 @@ const STEPS = [
   {
     kicker: "Get Spicy",
     title: "If you open that game",
-    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card, your partner can pass if they do not want to do it. Setup has Detailed (all five stages, set the counts) or Keep it simple (one shared card, no turns). Daytime cards in Detailed stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand of M-cums cards only.",
+    body: "Detailed deals three cards on a turn; pick one, then it is your partner’s turn. Keep it simple is one phone: cards alternate between you so both sides get a go, not only things one of you would do to F. After an F-cums card, tap Next Card, F has cum — that deals the M cums card. Afterglow does not start until he has finished too. Daytime cards in Detailed stay private until you both tap that you are ready to move on.",
   },
   {
     kicker: "Safety",

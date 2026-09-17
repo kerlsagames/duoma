@@ -47,7 +47,7 @@ export function RealtimeCardStage({
   shared = false,
 }: Props) {
   const meta = stage ? STAGE_META[stage] : null;
-  const copy = card ? personalizeCard(card, names, genders, shared) : null;
+  const copy = card ? personalizeCard(card, names, genders, false) : null;
   const showLive = Boolean(active && copy) && !conceal;
   const stageLine = meta
     ? shared
@@ -73,13 +73,19 @@ export function RealtimeCardStage({
         >
           {showLive ? (
             <>
-              {shared ? null : (
+              {actorLabel ? (
                 <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
-                  {actorLabel ?? "Live card"}
+                  {actorLabel}
+                </Text>
+              ) : shared ? null : (
+                <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-crimson">
+                  Live card
                 </Text>
               )}
               <Text
-                className={`text-[15px] font-semibold text-mist/55 ${shared ? "" : "mt-4"}`}
+                className={`text-[15px] font-semibold text-mist/55 ${
+                  shared && !actorLabel ? "" : "mt-4"
+                }`}
               >
                 {copy!.title}
               </Text>

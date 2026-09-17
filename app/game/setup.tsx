@@ -43,7 +43,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One card in the middle for both of you. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
+    body: "One phone in the middle. Cards alternate — one of you does a card, then the other — so you get both sides, not only things one of you would do to F. Skip swaps a card you don’t want. No passes or shuffles. Finish Off still tags F, M, or both. After an F-cums card, tap Next Card, F has cum — that deals the M cums card. Afterglow waits until he has finished too.",
   },
   {
     title: "Finish Off",
@@ -317,7 +317,7 @@ export default function SetupScreen() {
               {
                 id: "simple" as const,
                 label: "Keep it simple",
-                hint: "One shared card. No turns, no passes.",
+                hint: "One phone. Cards swap sides. F then M.",
               },
               {
                 id: "detailed" as const,

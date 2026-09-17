@@ -12,12 +12,21 @@ import {
   normalizePassLimit,
   normalizeShuffleLimit,
   normalizeStageCounts,
+  pickSimpleActor,
   playedCountForStage,
   replacementCard,
+  simpleCanLeaveFinish,
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
 import { cardAllowedByFlavorTags, defaultEnabledFlavorTags, normalizeFlavorTags } from "@/games/get-spicy/flavor-tags";
 import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-climax";
+import {
+  mergeHubBundle,
+  pullCoupleHub,
+  pushHubItems,
+  subscribeCoupleHub,
+  type HubKind,
+} from "@/lib/hub-sync";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
@@ -246,6 +255,12 @@ function mergeCloudPair(input: {
     cards = [...cards, ...cloneDefaultDeck(input.couple.id, input.profile.id)];
   }
   db = { ...db, profiles, couples, cards };
+}
+
+async function absorbHubForCouple(coupleId: string | null | undefined) {
+  if (!coupleId || sessionIsDemo()) return;
+  const bundle = await pullCoupleHub(coupleId);
+  if (bundle) db = mergeHubBundle(db, coupleId, bundle);
 }
 
 function mergeCloudDirectory(profiles: Profile[], couples: Couple[]) {
@@ -523,6 +538,56 @@ function pingPartner(
       .map((row) => row.endpoint)
   );
   void notifyUser(target, db.pushSubscriptions, payload, senderEndpoints);
+}
+
+function pairGenders(couple: Couple | null | undefined) {
+  const a = couple ? profileById(couple.partnerA) : null;
+  const b = couple?.partnerB ? profileById(couple.partnerB) : null;
+  return {
+    maleId:
+      a?.gender === "male" ? a.id : b?.gender === "male" ? b.id : null,
+    femaleId:
+      a?.gender === "female" ? a.id : b?.gender === "female" ? b.id : null,
+  };
+}
+
+function simpleActorFor(
+  couple: Couple,
+  game: GameSession,
+  extra: {
+    stage?: GameSession["currentStage"];
+    finishAwaitingMale?: boolean;
+    currentActorId?: string | null;
+    flip?: boolean;
+  } = {}
+) {
+  const genders = pairGenders(couple);
+  return pickSimpleActor({
+    couple,
+    maleId: genders.maleId,
+    femaleId: genders.femaleId,
+    stage: extra.stage ?? game.currentStage,
+    finishAwaitingMale: extra.finishAwaitingMale ?? game.finishAwaitingMale,
+    currentActorId: extra.currentActorId ?? game.turnUserId ?? game.activePlayedBy,
+    initiatorId: game.initiatorId,
+    flip: extra.flip ?? false,
+  });
+}
+
+function shareHub(
+  couple: Couple | null | undefined,
+  items: {
+    kind: HubKind;
+    payload:
+      | CheckIn
+      | CheckInRequest
+      | PositionInvite
+      | RoleplayInvite
+      | CalendarCustomEvent;
+  }[]
+) {
+  if (!couple || sessionIsDemo() || items.length === 0) return;
+  void pushHubItems(couple.id, items);
 }
 
 type CreateAccountInput = { displayName: string; gender: Gender; email?: string };
@@ -911,6 +976,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!sessionIsDemo()) {
           sessionUserId = profile.id;
           await writeSessionUserId(profile.id);
+          await absorbHubForCouple(absorbed.couple.id);
         }
         setPairError(null);
         return true;
@@ -1073,6 +1139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           lastUserId = profile.id;
           await writeSessionUserId(profile.id);
           await writeLastUserId(profile.id);
+          await absorbHubForCouple(absorbed.couple.id);
         }
         await persist();
       } catch {
@@ -1089,10 +1156,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       )
       .subscribe();
+    const stopHub = sessionIsDemo()
+      ? () => undefined
+      : subscribeCoupleHub(couple.id, (bundle) => {
+          db = mergeHubBundle(db, couple.id, bundle);
+          void persist();
+        });
+    if (!sessionIsDemo()) {
+      void absorbHubForCouple(couple.id).then(() => persist());
+    }
     const timer = couple.partnerB ? null : setInterval(() => void pull(), 4000);
     return () => {
       cancelled = true;
       void client.removeChannel(channel);
+      stopHub();
       if (timer) clearInterval(timer);
     };
   }, [ready, couple?.id, couple?.partnerB]);
@@ -1650,6 +1727,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           liveUserId = profile.id;
           await writeLiveUserId(profile.id);
           await rememberUser(profile.id);
+          await absorbHubForCouple(absorbed.couple.id);
           await persist();
           setPairError(null);
           return;
@@ -1780,6 +1858,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     liveUserId = profile.id;
     await writeLiveUserId(profile.id);
     await rememberUser(profile.id);
+    await absorbHubForCouple(absorbed.couple.id);
     await persist();
   }, []);
 
@@ -2587,7 +2666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           currentStage: "finish_off",
           turnUserId:
             row.pace === "simple"
-              ? null
+              ? passToUserId
               : exclusiveTurnForStage(row, "finish_off", currentUserId),
           handCardIds: [],
           awaitingFinishReveal: false,
@@ -2601,7 +2680,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           currentStage: "finish_off",
           turnUserId:
             row.pace === "simple"
-              ? null
+              ? passToUserId
               : exclusiveTurnForStage(row, "finish_off", passToUserId),
           handCardIds: [],
           awaitingFinishReveal: false,
@@ -2640,7 +2719,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return {
         currentStage: justPlayedStage,
         turnUserId: openEnded
-          ? null
+          ? passToUserId
           : exclusiveTurnForStage(row, justPlayedStage, passToUserId),
         handCardIds: [],
         awaitingFinishReveal: false,
@@ -2775,7 +2854,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 finishAwaitingMale: false,
                 finishUnitsDone: 0,
                 ...(pace === "simple"
-                  ? { turnUserId: null, awaitingFinishReveal: false }
+                  ? {
+                      turnUserId: pickSimpleActor({
+                        couple,
+                        ...pairGenders(couple),
+                        stage: firstActiveStage(stageCounts),
+                        finishAwaitingMale: false,
+                        currentActorId: null,
+                        initiatorId: game.initiatorId,
+                        flip: false,
+                      }),
+                      awaitingFinishReveal: false,
+                    }
                   : {}),
               })
             : row
@@ -2943,12 +3033,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const used = new Set(deckRows.map((item) => item.cardId));
+    const actorId =
+      game.pace === "simple" && couple
+        ? simpleActorFor(couple, game, {
+            currentActorId: game.turnUserId ?? game.activePlayedBy,
+          })
+        : user.id;
+    const actorProfile = profileById(actorId);
+    const actorPartnerId = partnerIdOf(actorId);
     const finishGenders = resolveCardGenders({
-      userGender: user.gender,
-      partnerGender: partner?.gender ?? profileById(partnerIdOf(user.id))?.gender,
-      userId: user.id,
-      partnerId: partnerIdOf(user.id),
-      playedById: user.id,
+      userGender: actorProfile?.gender ?? user.gender,
+      partnerGender:
+        profileById(actorPartnerId)?.gender ??
+        partner?.gender ??
+        profileById(partnerIdOf(user.id))?.gender,
+      userId: actorId,
+      partnerId: actorPartnerId ?? partnerIdOf(user.id),
+      playedById: actorId,
     });
     const size = handSizeForPace(game.pace);
     const dealt =
@@ -2979,7 +3080,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         stage: pick.stage,
         sortOrder: maxOrder + 1,
         status: "active",
-        playedBy: null,
+        playedBy: actorId,
       };
       db = {
         ...db,
@@ -2993,8 +3094,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? sessionFields(row, {
                 handCardIds: [],
                 activeCardId: activeRow.id,
-                activePlayedBy: null,
-                turnUserId: null,
+                activePlayedBy: actorId,
+                turnUserId: actorId,
               })
             : row
         ),
@@ -3155,16 +3256,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const simple = game.pace === "simple";
     const playedBy = simple
-      ? user.id
+      ? active.playedBy ?? game.turnUserId ?? game.activePlayedBy ?? user.id
       : active.playedBy ?? game.activePlayedBy ?? user.id;
-    const partnerId = partnerIdOf(user.id);
+    const partnerId = partnerIdOf(playedBy) ?? partnerIdOf(user.id);
     const otherId =
       playedBy === user.id ? partnerId ?? user.id : user.id;
-    const passTo = simple
-      ? user.id
-      : exclusiveTurnForStage(game, active.stage, otherId);
-
-    const playedCard = cards.find((item) => item.id === active.cardId);
     const finishGenders = resolveCardGenders({
       userGender: profileById(playedBy)?.gender,
       partnerGender: profileById(partnerIdOf(playedBy))?.gender,
@@ -3172,10 +3268,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       partnerId: partnerIdOf(playedBy),
       playedById: playedBy,
     });
+    const playedCard = cards.find((item) => item.id === active.cardId);
     const finishResolved =
       active.stage === "finish_off" && playedCard
         ? cardFinishClimax(playedCard, finishGenders)
         : null;
+    const passTo = simple && couple
+      ? simpleActorFor(couple, game, {
+          stage: active.stage,
+          finishAwaitingMale: finishResolved === "F",
+          currentActorId: playedBy,
+          flip: active.stage !== "finish_off",
+        })
+      : exclusiveTurnForStage(game, active.stage, otherId);
 
     const nextDeck = deckRows.map((item) =>
       item.id === active.id
@@ -3517,16 +3622,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const from = game.currentStage;
     if (!from) return;
+    if (
+      from === "finish_off" &&
+      !simpleCanLeaveFinish({
+        finishAwaitingMale: game.finishAwaitingMale,
+        finishUnitsDone: game.finishUnitsDone ?? 0,
+      })
+    ) {
+      throw new Error(
+        "Play the M cums card first. Afterglow waits until he finishes too."
+      );
+    }
     const stageCounts = normalizeStageCounts(game.stageCounts);
     const next = nextActiveStage(stageCounts, from);
     const deckRows = db.deck.filter((item) => item.gameId === game.id);
     const nextDeck = deckRows.map((item) =>
       item.status === "active" ? { ...item, status: "played" as const } : item
     );
+    const nextActor =
+      couple && next
+        ? simpleActorFor(couple, game, {
+            stage: next,
+            finishAwaitingMale: false,
+            currentActorId: game.turnUserId ?? game.activePlayedBy,
+            flip: false,
+          })
+        : null;
     const extra: Partial<GameSession> = next
       ? {
           currentStage: next,
-          turnUserId: null,
+          turnUserId: nextActor,
           handCardIds: [],
           activeCardId: null,
           activePlayedBy: null,
@@ -3562,7 +3687,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
     };
     await persist();
-  }, [game]);
+  }, [couple, game]);
 
   const skipSimpleCard = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
@@ -3585,6 +3710,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               activeCardId: null,
               activePlayedBy: null,
               handCardIds: [],
+              turnUserId: active.playedBy ?? row.turnUserId,
             })
           : row
       ),
@@ -3828,6 +3954,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ritualChecks: upsertRitual(couple.id, user.id, "check-in", today),
       };
       await persist();
+      shareHub(couple, [{ kind: "check_in", payload: row }]);
+      const answeredRequests = db.checkInRequests.filter(
+        (item) =>
+          item.coupleId === couple.id &&
+          item.toUserId === user.id &&
+          item.date === today &&
+          item.answeredAt
+      );
+      if (answeredRequests.length) {
+        shareHub(
+          couple,
+          answeredRequests.map((item) => ({
+            kind: "check_in_request" as const,
+            payload: item,
+          }))
+        );
+      }
       pingPartner(couple, user, partner, {
         title: "Check-in landed",
         body: "They shared how they are. Open Check-in.",
@@ -3869,6 +4012,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ],
       };
       await persist();
+      shareHub(couple, [{ kind: "check_in_request", payload: row }]);
       pingPartner(couple, user, partner, {
         title: "Check-in request",
         body: "They want a few updates from you.",
@@ -4739,6 +4883,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         positionInvites: [...db.positionInvites, row],
       };
       await persist();
+      shareHub(couple, [{ kind: "position_invite", payload: row }]);
       const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
         title: `Try this ${whenBit}?`,
@@ -4785,6 +4930,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : db.calendarEvents,
       };
       await persist();
+      shareHub(couple, [
+        {
+          kind: "position_invite",
+          payload: { ...existing, status, answeredAt: stamp },
+        },
+        ...(calendarRow
+          ? [{ kind: "calendar_event" as const, payload: calendarRow }]
+          : []),
+      ]);
       const whenBit = existing.whenLabel ?? "tonight";
       pingPartner(couple, user, partner, {
         title: status === "accepted" ? `${whenBit} is on` : "Not this time",
@@ -4829,11 +4983,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 ? { ...row, doneAt: stamp }
                 : row
             )
-          : (db.positionSaves ?? []),
+            : (db.positionSaves ?? []),
       };
       await persist();
+      if (existing) {
+        shareHub(couple, [
+          {
+            kind: "position_invite",
+            payload: { ...existing, status: "done", completedAt: stamp },
+          },
+        ]);
+      }
     },
-    [partner, user]
+    [couple, partner, user]
   );
 
   const savePosition = useCallback(
@@ -5100,6 +5262,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         roleplayInvites: [...db.roleplayInvites, row],
       };
       await persist();
+      shareHub(couple, [{ kind: "roleplay_invite", payload: row }]);
       const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
         title: `Try this ${whenBit}?`,
@@ -5146,6 +5309,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : db.calendarEvents,
       };
       await persist();
+      shareHub(couple, [
+        {
+          kind: "roleplay_invite",
+          payload: { ...existing, status, answeredAt: stamp },
+        },
+        ...(calendarRow
+          ? [{ kind: "calendar_event" as const, payload: calendarRow }]
+          : []),
+      ]);
       const whenBit = existing.whenLabel ?? "tonight";
       pingPartner(couple, user, partner, {
         title: status === "accepted" ? `${whenBit} is on` : "Not this time",
@@ -5193,8 +5365,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : (db.roleplaySaves ?? []),
       };
       await persist();
+      if (existing) {
+        shareHub(couple, [
+          {
+            kind: "roleplay_invite",
+            payload: { ...existing, status: "done", completedAt: stamp },
+          },
+        ]);
+      }
     },
-    [partner, user]
+    [couple, partner, user]
   );
 
   const saveRoleplay = useCallback(

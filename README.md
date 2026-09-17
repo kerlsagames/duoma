@@ -23,11 +23,11 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Coupons** — 250 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles, Pick me a Position, search the whole list (actions open on the pose you tap), heart to Favourites, tick off. Sending to your partner opens a calendar: pick the night, they accept, it lands on Desire. If the night is two or more days away they have that long, but either of you can tap Complete sooner. Rating sliders stay off until you turn them on in the cog.
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture. Sending a scene uses the same calendar → accept → Complete flow as Positions.
-- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Setup is Detailed (five stages, you set the counts, passes, and shuffles) or Keep it simple (Foreplay → Step it up → Finish Off → Afterglow, flip until Ready to move on — no passes or shuffles). Finish Off cards are tagged F, M, or both; she generally cums first, and an F-only card deals a second hand of M-cums cards only.
+- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Setup is Detailed (five stages, you set the counts, passes, and shuffles) or Keep it simple (one phone, Foreplay → Step it up → Finish Off → Afterglow). Simple cards alternate between you so both sides get a go. After an F-cums card, **Next Card, F has cum** deals the M cums card; Afterglow waits until he has finished too.
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 
-When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing (email magic link + 6-character code) and creator catalog edits live in Supabase. Hub play still caches on the device until that sync lands. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
+When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing and the shared slice (check-ins, position/roleplay asks, those calendar nights) live in Supabase so the other phone is not empty. Sign in with the same email on a new phone to bring those back. Photos, vaults, lists, Daily Word, and Get Spicy hands still live on the device that made them. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
 
 ## Run it
 
@@ -51,7 +51,26 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 
 Email is the account (new phone, bans). The pair code is still how two people become a pair.
 
+### Two phones, and a new phone
+
+Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins and a pose/roleplay you send now follow that pair: they show on the other phone’s Home notifications **and** in Check-in / Positions / Roleplays. Sign in on a new phone with the same email and those come back.
+
+Photos, Sexy Vault, lists, Daily Word, Get Spicy hands, and most other hubs still live on the phone that made them. If you change phones, copy is not enough — those stay on the old device until we sync them too. Sign out does not wipe. **Unpair** is the only burn-it-down button.
+
+Home notifications are incoming only. If you send a pose to them, you will not get their “try this?” card on your Home. They will.
+
 Creator inbox `craigmkerlin@gmail.com` cannot be closed by a ban. That account also gets a Home flip into a Riley sandbox (a separate local pair). Nobody else sees demo mode.
+
+## Before you send a public URL
+
+Plain English for the launch checklist:
+
+1. **HTTPS + Home Screen** — Put the site on Vercel or Netlify (https). Generate new VAPID keys for that live site. Leave `EXPO_PUBLIC_PUSH_API` blank there. iPhone will not ping a normal Safari tab. Both of you: Share → Add to Home Screen, open that icon, then Enable notifications.
+2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `012`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database.
+3. **Admin passphrase** — Set `EXPO_PUBLIC_DUOMA_ADMIN_KEY` to a secret you choose. `/admin` is only hidden, not locked down. Do not ship the default.
+4. **Mark yourselves admin** — After you sign in once, in SQL: `update public.profiles set is_admin = true where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
+5. **Walk it on two real phones** — Create → type the 6-digit email code (do not tap the inbox link) → they join with the 6-character pair code → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.
+6. **Who you invite, and reports** — You said reports get a look within 24 hours at `kerlsagameshq@gmail.com`. There is no automatic illegal-image scanner unless you add `EXPO_PUBLIC_MEDIA_SCAN_URL`. For friends, working Report + Unpair + Delete is the floor. Keep the invite list small.
 
 ## iPhone (iOS 16.4+)
 
@@ -78,7 +97,7 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
    - `EXPO_PUBLIC_DUOMA_ADMIN_KEY` — passphrase for the hidden creator tools. Set this before a public deploy.
 3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
-4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `007_grants.sql`, then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `012_hub_sync.sql` (do not stop at 007 — Help → admin Feedback needs `011_feedback.sql`, two-phone check-ins and pose asks need `012_hub_sync.sql`), then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 
 ## Accounts & scale
 

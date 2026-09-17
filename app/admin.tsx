@@ -278,8 +278,8 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 007, 008, 009, and 010 if columns or grants are missing. 009 unbans craigmkerlin@gmail.com and blocks future bans on creator inboxes. 010 adds content reports, unpair_couple(), and delete_own_account(). After you sign in once: update public.profiles set is_admin = true where lower(email) = 'craigmkerlin@gmail.com';"
-          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 010_safety.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 012. 011 is Help → Feedback. 012 is two-phone check-ins and pose/roleplay asks. After you sign in once: update public.profiles set is_admin = true where lower(email) = 'craigmkerlin@gmail.com';"
+          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 012_hub_sync.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel. Then mark your profile is_admin."}
       </Text>
     </ScrollView>
   );

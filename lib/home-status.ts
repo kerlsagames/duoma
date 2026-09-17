@@ -4,7 +4,6 @@ import { fantasyById } from "@/lib/fantasy-matcher";
 import { isSexyVaultLocked, sexyVaultUnlockLabel, type SexyVaultItem } from "@/lib/sexy-vault";
 import { STAGE_META } from "@/games/get-spicy/engine";
 import { daysUntil, formatLongDate, isSunday, localDateKey, parseDateKey } from "@/lib/dates";
-import { themLabel } from "@/lib/names";
 import { nightAskLabel } from "@/lib/play-items";
 import { roleplayById } from "@/lib/roleplays";
 import { positionById } from "@/lib/sex-positions";
@@ -160,7 +159,6 @@ export function buildHomeNotifications(input: {
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
-  const partnerName = themLabel(input.partner);
   const items: StatusItem[] = [];
   const now = Date.now();
 
@@ -318,15 +316,12 @@ export function buildHomeNotifications(input: {
     .filter((row) => row.status === "offered" || row.status === "accepted")
     .forEach((play) => {
       const incoming = play.toUserId === myId;
-      const outgoing = play.fromUserId === myId;
-      if (!incoming && !outgoing) return;
+      if (!incoming) return;
       const when = timeframeLabel(play.timeframe, play.customWhen);
       const line =
-        play.status === "offered" && incoming
+        play.status === "offered"
           ? "Dare Me · a dare for you"
-          : play.status === "offered"
-            ? `Dare Me sent · ${when}`
-            : `Dare Me on · ${when}`;
+          : `Dare Me on · ${when}`;
       items.push({
         id: `dare-${play.id}`,
         line,
@@ -340,16 +335,11 @@ export function buildHomeNotifications(input: {
     .filter((row) => row.status === "offered" || row.status === "accepted")
     .forEach((play) => {
       const incoming = play.toUserId === myId;
-      const outgoing = play.fromUserId === myId;
-      if (!incoming && !outgoing) return;
+      if (!incoming) return;
       const line =
-        play.status === "offered" && incoming
+        play.status === "offered"
           ? "Chicken · a dare for you"
-          : play.status === "offered"
-            ? "Chicken · waiting on them"
-            : incoming
-              ? "Chicken · you’re in. Do it."
-              : "Chicken · they’re in";
+          : "Chicken · you’re in. Do it.";
       items.push({
         id: `chicken-${play.id}`,
         line,
@@ -402,10 +392,9 @@ export function buildHomeNotifications(input: {
   (input.fantasyTonightAsks ?? []).forEach((ask) => {
     if (ask.nightKey !== today) return;
     const incoming = ask.toUserId === myId;
-    const outgoing = ask.fromUserId === myId;
-    if (!incoming && !outgoing) return;
+    if (!incoming) return;
     const title = fantasyById(ask.fantasyId)?.title ?? "a match";
-    if (ask.status === "offered" && incoming) {
+    if (ask.status === "offered") {
       items.push({
         id: `fantasy-ask-${ask.id}`,
         line: `Try this tonight? · ${title}`,
@@ -415,29 +404,10 @@ export function buildHomeNotifications(input: {
       });
       return;
     }
-    if (ask.status === "offered" && outgoing) {
-      items.push({
-        id: `fantasy-wait-${ask.id}`,
-        line: `Waiting on ${partnerName} · ${title}`,
-        when: recentWhen(ask.createdAt),
-        href: "/hub/fantasy-matcher",
-        sortAt: Date.parse(ask.createdAt) || now,
-      });
-      return;
-    }
-    if (ask.status === "accepted" && (incoming || outgoing)) {
+    if (ask.status === "accepted") {
       items.push({
         id: `fantasy-yes-${ask.id}`,
         line: `Tonight's on · ${title}`,
-        when: recentWhen(ask.answeredAt ?? ask.createdAt),
-        href: "/hub/fantasy-matcher",
-        sortAt: Date.parse(ask.answeredAt ?? ask.createdAt) || now,
-      });
-    }
-    if (ask.status === "declined" && outgoing) {
-      items.push({
-        id: `fantasy-no-${ask.id}`,
-        line: `Not tonight · ${title}`,
         when: recentWhen(ask.answeredAt ?? ask.createdAt),
         href: "/hub/fantasy-matcher",
         sortAt: Date.parse(ask.answeredAt ?? ask.createdAt) || now,
@@ -448,12 +418,11 @@ export function buildHomeNotifications(input: {
   (input.dateNightAsks ?? []).forEach((ask) => {
     if (ask.nightKey !== today) return;
     const incoming = ask.toUserId === myId;
-    const outgoing = ask.fromUserId === myId;
-    if (!incoming && !outgoing) return;
+    if (!incoming) return;
     const title =
       input.bucketItems?.find((item) => item.id === ask.bucketId)?.title ??
       "a date";
-    if (ask.status === "offered" && incoming) {
+    if (ask.status === "offered") {
       items.push({
         id: `date-ask-${ask.id}`,
         line: `Try this tonight? · ${title}`,
@@ -463,17 +432,7 @@ export function buildHomeNotifications(input: {
       });
       return;
     }
-    if (ask.status === "offered" && outgoing) {
-      items.push({
-        id: `date-wait-${ask.id}`,
-        line: `Waiting on ${partnerName} · ${title}`,
-        when: recentWhen(ask.createdAt),
-        href: "/hub/planner",
-        sortAt: Date.parse(ask.createdAt) || now,
-      });
-      return;
-    }
-    if (ask.status === "accepted" && (incoming || outgoing)) {
+    if (ask.status === "accepted") {
       items.push({
         id: `date-yes-${ask.id}`,
         line: `Tonight's on · ${title}`,
