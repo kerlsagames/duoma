@@ -282,14 +282,25 @@ export async function loadCloudDirectory(): Promise<{
   couples: Couple[];
 } | null> {
   if (!supabase) return null;
-  const { data: profileRows, error: profileError } = await supabase
-    .from("profiles")
-    .select("*");
-  if (profileError) return null;
+  const columns =
+    "id, display_name, gender, email, banned_at, banned_reason, last_seen_at, over18_at, privacy_consent_at, moderation_consent_at, timezone, active_seconds, app_seconds, created_at";
+  let profileRows: Record<string, unknown>[] | null = null;
+  const full = await supabase.from("profiles").select(columns);
+  if (full.error) {
+    const fallback = await supabase
+      .from("profiles")
+      .select(
+        "id, display_name, gender, email, banned_at, banned_reason, last_seen_at, over18_at, privacy_consent_at, moderation_consent_at, timezone, active_seconds, created_at"
+      );
+    if (fallback.error) return null;
+    profileRows = (fallback.data ?? []) as Record<string, unknown>[];
+  } else {
+    profileRows = (full.data ?? []) as Record<string, unknown>[];
+  }
   const { data: coupleRows, error: coupleError } = await supabase.from("couples").select("*");
   if (coupleError) return null;
   return {
-    profiles: (profileRows ?? []).map(asProfile),
+    profiles: (profileRows ?? []).map((row) => asProfile(row as Parameters<typeof asProfile>[0])),
     couples: (coupleRows ?? []).map(asCouple),
   };
 }

@@ -207,7 +207,10 @@ function PersonLink({
         {profile.bannedAt ? " banned" : ""}
       </Text>
       <Text style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>
-        {formatWhen(profile.lastSeenAt)} · {formatActiveTime(profile.activeSeconds)}
+        Signed up {formatWhen(profile.createdAt)}
+      </Text>
+      <Text style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>
+        Last login {formatWhen(profile.lastSeenAt)}
       </Text>
     </Pressable>
   );

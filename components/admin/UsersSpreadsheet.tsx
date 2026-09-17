@@ -1,5 +1,7 @@
 import { CoupleDossier } from "@/components/admin/CoupleDossier";
+import { looksLikeEmail } from "@/lib/account-usage";
 import { isDemoPair, isExampleAccount } from "@/lib/admin-example";
+import { creatorEmails } from "@/lib/creator";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -18,11 +20,11 @@ const COL = {
   code: 88,
   a: 130,
   b: 130,
+  signed: 120,
   last: 120,
   loc: 140,
   time: 80,
   status: 88,
-  age: 48,
 } as const;
 
 type SheetRow = {
@@ -43,6 +45,14 @@ function latestSeen(row: SheetRow): string | null {
   const stamps = [row.a?.lastSeenAt, row.b?.lastSeenAt].filter(Boolean) as string[];
   if (!stamps.length) return null;
   return stamps.sort((left, right) => Date.parse(right) - Date.parse(left))[0] ?? null;
+}
+
+function signedUp(row: SheetRow): string | null {
+  const stamps = [row.a?.createdAt, row.b?.createdAt, row.couple.createdAt].filter(
+    Boolean
+  ) as string[];
+  if (!stamps.length) return null;
+  return stamps.sort((left, right) => Date.parse(left) - Date.parse(right))[0] ?? null;
 }
 
 function Cell({
@@ -83,17 +93,33 @@ export function UsersSpreadsheet() {
     unbanAccount,
     canUseDemo,
     ensureDemoPair,
+    ready,
+    user,
+    usingCloud,
+    refreshCloudAccounts,
+    requestEmailCode,
+    verifyEmailCode,
   } = useApp();
   const { data: mini } = useMiniApps();
   const { width } = useWindowDimensions();
   const [openId, setOpenId] = useState<string | null>(null);
   const [reason, setReason] = useState("Used inappropriately");
   const [query, setQuery] = useState("");
+  const [email, setEmail] = useState(creatorEmails()[0] ?? "");
+  const [code, setCode] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
 
   useEffect(() => {
     if (!canUseDemo) return;
     void ensureDemoPair();
   }, [canUseDemo, ensureDemoPair]);
+
+  useEffect(() => {
+    if (!ready || !usingCloud) return;
+    void refreshCloudAccounts();
+  }, [ready, usingCloud, user?.id, refreshCloudAccounts]);
 
   const profiles = useMemo(
     () => allProfiles.filter((profile) => !isExampleAccount(profile.id)),
@@ -155,6 +181,98 @@ export function UsersSpreadsheet() {
         <Text style={{ color: "rgba(244,244,246,0.5)", marginTop: 4, fontSize: 13, lineHeight: 18 }}>
           Pair → partner → hub → app. Location is timezone, not GPS. Vault stays off this screen.
         </Text>
+        {!user && usingCloud ? (
+          <View style={{ marginTop: 10 }}>
+            <Text style={{ color: "rgba(244,244,246,0.55)", fontSize: 12, lineHeight: 17 }}>
+              Sign in with your creator email to load live pairs. The passphrase only opens
+              Backstage — accounts live in Supabase.
+            </Text>
+            <TextInput
+              value={email}
+              onChangeText={(value) => {
+                setEmail(value);
+                setAuthError(null);
+              }}
+              placeholder="Creator email"
+              placeholderTextColor="rgba(244,244,246,0.35)"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              style={{
+                marginTop: 8,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.12)",
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 8,
+                color: "#F4F4F6",
+                fontSize: 13,
+              }}
+            />
+            {codeSent ? (
+              <TextInput
+                value={code}
+                onChangeText={(value) => {
+                  setCode(value);
+                  setAuthError(null);
+                }}
+                placeholder="6-digit code"
+                placeholderTextColor="rgba(244,244,246,0.35)"
+                autoCapitalize="none"
+                keyboardType="number-pad"
+                style={{
+                  marginTop: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.12)",
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 8,
+                  color: "#F4F4F6",
+                  fontSize: 13,
+                }}
+              />
+            ) : null}
+            {authError ? (
+              <Text style={{ color: "#FF8A8A", marginTop: 6, fontSize: 12 }}>{authError}</Text>
+            ) : null}
+            <Pressable
+              disabled={authBusy}
+              onPress={() =>
+                void (async () => {
+                  const trimmed = email.trim();
+                  if (!looksLikeEmail(trimmed)) {
+                    setAuthError("That email does not look right.");
+                    return;
+                  }
+                  setAuthBusy(true);
+                  setAuthError(null);
+                  try {
+                    if (!codeSent) {
+                      await requestEmailCode(trimmed);
+                      setCodeSent(true);
+                    } else {
+                      await verifyEmailCode(code.trim());
+                      await refreshCloudAccounts();
+                    }
+                  } catch (err) {
+                    setAuthError(err instanceof Error ? err.message : "Could not sign in.");
+                  } finally {
+                    setAuthBusy(false);
+                  }
+                })()
+              }
+              style={{ marginTop: 8 }}
+            >
+              <Text style={{ color: "#FF007F", fontSize: 12, fontWeight: "700" }}>
+                {authBusy
+                  ? "Working…"
+                  : codeSent
+                    ? "Load users"
+                    : "Email me the code"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -185,13 +303,31 @@ export function UsersSpreadsheet() {
             <Cell width={COL.code} children="CODE" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.a} children="USER A" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.b} children="USER B" bold color="rgba(244,244,246,0.45)" />
+            <Cell width={COL.signed} children="SIGNED UP" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.last} children="LAST LOGIN" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.loc} children="LOCATION" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.time} children="IN APP" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.status} children="STATUS" bold color="rgba(244,244,246,0.45)" />
-            <Cell width={COL.age} children="18+" bold color="rgba(244,244,246,0.45)" />
           </View>
           <ScrollView>
+            {rows.length === 0 ? (
+              <Text
+                style={{
+                  color: "rgba(244,244,246,0.4)",
+                  fontSize: 12,
+                  paddingHorizontal: 8,
+                  paddingVertical: 14,
+                }}
+              >
+                {!ready
+                  ? "Loading…"
+                  : user
+                    ? "No pairs in the directory yet."
+                    : usingCloud
+                      ? "No pairs on this browser yet."
+                      : "No pairs stored in this browser."}
+              </Text>
+            ) : null}
             {rows.map((row) => {
               const selected = openId === row.couple.id;
               const banned = statusOf(row) === "Banned";
@@ -213,6 +349,7 @@ export function UsersSpreadsheet() {
                   <Cell width={COL.code} children={row.couple.inviteCode} color="#FF007F" />
                   <Cell width={COL.a} children={row.a?.displayName ?? "—"} />
                   <Cell width={COL.b} children={row.b?.displayName ?? "waiting"} />
+                  <Cell width={COL.signed} children={formatWhen(signedUp(row))} />
                   <Cell width={COL.last} children={formatWhen(latestSeen(row))} />
                   <Cell
                     width={COL.loc}
@@ -236,10 +373,6 @@ export function UsersSpreadsheet() {
                             ? "#FF007F"
                             : "#3ECFBF"
                     }
-                  />
-                  <Cell
-                    width={COL.age}
-                    children={row.a?.over18At || row.b?.over18At ? "yes" : "—"}
                   />
                 </Pressable>
               );

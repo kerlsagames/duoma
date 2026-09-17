@@ -1190,14 +1190,13 @@ export function buildPartnerDossier(input: {
   return {
     profileId: input.profile.id,
     facts: [
+      fact("joined", "Date signed up", formatWhen(input.profile.createdAt)),
       fact("login", "Last login", formatWhen(input.profile.lastSeenAt)),
       fact("time", "Time in the app", formatActiveTime(input.profile.activeSeconds)),
       fact("zone", "Timezone", input.profile.timezone || "—"),
-      fact("joined", "Account created", formatWhen(input.profile.createdAt)),
       fact("pair", "Days as a pair", pairAgeDays(input.couple)),
       fact("gender", "Gender", input.profile.gender ?? "unset"),
       fact("mail", "Email", input.profile.email || "none"),
-      fact("age", "18+", input.profile.over18At ? formatWhen(input.profile.over18At) : "no"),
       fact("privacy", "Privacy consent", input.profile.privacyConsentAt ? "yes" : "no"),
       fact("last", "Last activity", formatWhen(lastEvent)),
       fact("apps", "Apps with any use", `${usedApps} / ${totalApps}`),

@@ -78,9 +78,9 @@ export default function AdminScreen() {
   const stacked = width < 720;
 
   useEffect(() => {
-    if (!unlocked || !usingCloud) return;
+    if (!unlocked || !usingCloud || !ready) return;
     void refreshCloudAccounts();
-  }, [unlocked, usingCloud, refreshCloudAccounts]);
+  }, [unlocked, usingCloud, ready, refreshCloudAccounts]);
 
   if (!unlocked) {
     return (
