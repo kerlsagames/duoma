@@ -38,7 +38,7 @@ export async function buildVaultBackup(
     packed.push({ ...item, uri: undefined, dataUrl });
   }
   if (!packed.length) {
-    throw new Error("Nothing to save. Add a photo or clip first.");
+    throw new Error("Nothing to download.");
   }
   return {
     kind: VAULT_BACKUP_KIND,

@@ -1,6 +1,6 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
-import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
+import { MediaShield, useScanUpload } from "@/components/MediaShield";
 import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DateTimeField } from "@/components/ui/DateTimeField";
@@ -86,7 +86,6 @@ export default function SexyVaultScreen() {
     preview: string;
   } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [attested, setAttested] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [copyBusy, setCopyBusy] = useState(false);
@@ -152,7 +151,6 @@ export default function SexyVaultScreen() {
         ...picked,
         preview: URL.createObjectURL(picked.blob),
       });
-      setAttested(false);
       setMode("compose");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read that file.");
@@ -184,7 +182,7 @@ export default function SexyVaultScreen() {
       const scan = await scanUpload({
         mimeType: pending.mimeType || pending.blob.type || "application/octet-stream",
         byteSize: pending.blob.size,
-        attestedAdults: attested,
+        attestedAdults: true,
       });
       if (!scan.ok) {
         setError(scan.reason);
@@ -217,7 +215,6 @@ export default function SexyVaultScreen() {
       setPending(null);
       setNote("");
       setHideUntil(false);
-      setAttested(false);
       setRevealLocal(defaultCustomDateTime());
       setMode("list");
     } catch (err) {
@@ -266,9 +263,7 @@ export default function SexyVaultScreen() {
     setCopyNote(null);
     try {
       const count = await downloadVaultBackup(data.sexyVault);
-      setCopyNote(
-        `${count} ${count === 1 ? "file" : "files"} saved on this phone. AirDrop it or copy it with a cable onto the new one. Duoma never uploaded it.`
-      );
+      setCopyNote(count === 1 ? "Downloaded." : `${count} files downloaded.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save a copy.");
     } finally {
@@ -287,9 +282,7 @@ export default function SexyVaultScreen() {
       const next = await restoreVaultBackup(backup, data.sexyVault);
       await patch((state) => ({ ...state, sexyVault: next }));
       setCopyNote(
-        `${backup.items.length} ${
-          backup.items.length === 1 ? "clip is" : "clips are"
-        } back in the vault. Still only on this phone.`
+        backup.items.length === 1 ? "Restored." : `${backup.items.length} files restored.`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not restore that file.");
@@ -324,15 +317,7 @@ export default function SexyVaultScreen() {
                 hint: "Thumbnails in a tile grid.",
               },
             ]}
-          >
-            <VaultCopyPanel
-              busy={copyBusy}
-              note={copyNote}
-              error={error}
-              onSave={() => void saveVaultCopy()}
-              onRestore={() => void restoreVaultCopy()}
-            />
-          </LookPanel>
+          />
         }
       >
         {!data.sexyVaultPin ? (
@@ -366,19 +351,16 @@ export default function SexyVaultScreen() {
             hideUntil={hideUntil}
             revealLocal={revealLocal}
             busy={busy}
-            attested={attested}
             error={error}
             onNote={setNote}
             onHide={setHideUntil}
             onReveal={setRevealLocal}
-            onAttest={setAttested}
             onPick={() => void pickFile()}
             onCancel={() => {
               if (pending?.preview.startsWith("blob:")) {
                 URL.revokeObjectURL(pending.preview);
               }
               setPending(null);
-              setAttested(false);
               setError(null);
               setMode("list");
             }}
@@ -548,51 +530,6 @@ function SafeDial({ spinning = true }: { spinning?: boolean }) {
   );
 }
 
-function VaultCopyPanel({
-  busy,
-  note,
-  error,
-  onSave,
-  onRestore,
-}: {
-  busy: boolean;
-  note: string | null;
-  error: string | null;
-  onSave: () => void;
-  onRestore: () => void;
-}) {
-  return (
-    <View style={{ marginTop: 18, gap: 10 }}>
-      <Text style={{ fontSize: 12, fontWeight: "800", letterSpacing: 1.2, color: INK }}>
-        KEEP IT ON THIS PHONE
-      </Text>
-      <Text style={{ fontSize: 13, lineHeight: 19, color: "rgba(246,231,220,0.62)" }}>
-        There is no cloud backup for the vault. Save a .duoma file, then AirDrop
-        it or copy it with a cable onto the new phone. Open the vault there and
-        tap Restore from a file. Duoma never uploads that file.
-      </Text>
-      <Pressable
-        onPress={onSave}
-        disabled={busy}
-        style={[goldBtn(), { marginTop: 4, opacity: busy ? 0.55 : 1 }]}
-      >
-        <Text style={goldBtnText}>{busy ? "Working…" : "Save a copy on this phone"}</Text>
-      </Pressable>
-      <Pressable
-        onPress={onRestore}
-        disabled={busy}
-        style={[ghostBtn, { flex: undefined, marginTop: 0, opacity: busy ? 0.55 : 1 }]}
-      >
-        <Text style={ghostBtnText}>Restore from a file</Text>
-      </Pressable>
-      {note ? (
-        <Text style={{ fontSize: 13, lineHeight: 19, color: gold() }}>{note}</Text>
-      ) : null}
-      {error ? <Text style={errText}>{error}</Text> : null}
-    </View>
-  );
-}
-
 function PinSetup({
   pinDraft,
   pinConfirm,
@@ -624,20 +561,6 @@ function PinSetup({
         }}
       >
         four or six digits, shared
-      </Text>
-      <Text
-        style={{
-          marginTop: 12,
-          fontSize: 15,
-          lineHeight: 22,
-          color: "rgba(197,208,218,0.58)",
-          textAlign: "center",
-        }}
-      >
-        A grey safe for the two of you. Photos and clips live behind this
-        wheel. Use the 0–9 pad — the phone will not offer to save a
-        passcode. You can hide one until a time you pick — they still get
-        told something is waiting.
       </Text>
       <ComboPad
         value={pinDraft}
@@ -800,27 +723,16 @@ function VaultHome({
           disabled={copyBusy}
           style={[ghostBtn, { opacity: copyBusy ? 0.55 : 1 }]}
         >
-          <Text style={ghostBtnText}>{copyBusy ? "Working…" : "Save a copy"}</Text>
+          <Text style={ghostBtnText}>{copyBusy ? "Working…" : "Download to phone"}</Text>
         </Pressable>
         <Pressable
           onPress={onRestoreCopy}
           disabled={copyBusy}
           style={[ghostBtn, { opacity: copyBusy ? 0.55 : 1 }]}
         >
-          <Text style={ghostBtnText}>Restore from a file</Text>
+          <Text style={ghostBtnText}>Restore</Text>
         </Pressable>
       </View>
-      <Text
-        style={{
-          marginTop: 8,
-          color: "rgba(246,231,220,0.5)",
-          fontSize: 13,
-          lineHeight: 18,
-        }}
-      >
-        Stays on this phone. Never uploaded. AirDrop the file or copy it with a
-        cable when you change phones.
-      </Text>
       {copyNote ? (
         <Text style={{ marginTop: 8, color: gold(), fontSize: 13, lineHeight: 18 }}>
           {copyNote}
@@ -1002,12 +914,10 @@ function Compose({
   hideUntil,
   revealLocal,
   busy,
-  attested,
   error,
   onNote,
   onHide,
   onReveal,
-  onAttest,
   onPick,
   onCancel,
   onLeave,
@@ -1018,12 +928,10 @@ function Compose({
   hideUntil: boolean;
   revealLocal: string;
   busy: boolean;
-  attested: boolean;
   error: string | null;
   onNote: (value: string) => void;
   onHide: (value: boolean) => void;
   onReveal: (value: string) => void;
-  onAttest: (value: boolean) => void;
   onPick: () => void;
   onCancel: () => void;
   onLeave: () => void;
@@ -1036,15 +944,12 @@ function Compose({
       </Text>
       <Pressable onPress={onPick} style={[goldBtn(), { marginTop: 18, height: 64 }]}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Ionicons name="cloud-upload-outline" size={22} color="#1A1008" />
+          <Ionicons name="image-outline" size={22} color="#1A1008" />
           <Text style={[goldBtnText, { fontSize: 16 }]}>
             {pending ? "Swap the file" : "Choose a photo or video"}
           </Text>
         </View>
       </Pressable>
-      <Text style={{ marginTop: 8, color: "rgba(246,231,220,0.5)", fontSize: 13 }}>
-        Stays in Duoma’s sandbox. Never auto-saved to the Camera Roll.
-      </Text>
       {pending ? <MediaPreview kind={pending.kind} src={pending.preview} /> : null}
       <TextInput
         value={note}
@@ -1102,11 +1007,10 @@ function Compose({
           border="rgba(228,181,106,0.32)"
         />
       ) : null}
-      {pending ? <AdultAttest checked={attested} onChange={onAttest} /> : null}
       <Pressable
         onPress={onLeave}
-        disabled={busy || !pending || !attested}
-        style={[goldBtn(), { opacity: busy || !pending || !attested ? 0.6 : 1 }]}
+        disabled={busy || !pending}
+        style={[goldBtn(), { opacity: busy || !pending ? 0.6 : 1 }]}
       >
         <Text style={goldBtnText}>{busy ? "Locking it away…" : "Lock it in the vault"}</Text>
       </Pressable>

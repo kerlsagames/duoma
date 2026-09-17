@@ -1,6 +1,6 @@
 import { scanUpload } from "@/lib/media-scan";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { AppState, Platform, Pressable, Text, View } from "react-native";
+import { AppState, Platform, Text, View } from "react-native";
 
 type Props = {
   children: ReactNode;
@@ -95,36 +95,6 @@ export function MediaShield({ children, lock = true }: Props) {
         </View>
       ) : null}
     </View>
-  );
-}
-
-export function AdultAttest({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <Pressable
-      onPress={() => onChange(!checked)}
-      style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 12 }}
-    >
-      <View
-        style={{
-          width: 20,
-          height: 20,
-          borderRadius: 5,
-          borderWidth: 1.5,
-          borderColor: checked ? "#E4B56A" : "rgba(246,231,220,0.35)",
-          backgroundColor: checked ? "#E4B56A" : "transparent",
-          marginTop: 1,
-        }}
-      />
-      <Text style={{ flex: 1, color: "rgba(246,231,220,0.78)", fontSize: 13, lineHeight: 18 }}>
-        Everyone in this photo or clip is 18 or older. It stays in Duoma — not the Camera Roll.
-      </Text>
-    </Pressable>
   );
 }
 

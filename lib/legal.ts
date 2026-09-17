@@ -4,101 +4,144 @@ export const PRIVACY_CONSENT_LABEL =
   "I agree to the Terms of Use and Privacy Policy.";
 
 export const AGE_PRIVACY_CONSENT_LABEL =
-  "I am 18 or older and agree to the Terms of Service and Privacy Policy.";
+  "I am 18 or older and I agree to the Terms of Use and Privacy Policy.";
 
-export const LEGAL_EFFECTIVE = "16 September 2026";
-export const LEGAL_OPERATOR = "Kerlsagames / Duoma";
+export const LEGAL_EFFECTIVE = "17 September 2026";
+export const LEGAL_OPERATOR = "Kerlsagames";
 export const LEGAL_CONTACT = "kerlsagameshq@gmail.com";
 
 export const TERMS_OF_USE = `Duoma Terms of Use
 Effective ${LEGAL_EFFECTIVE}
 
-These Terms are a contract between you and ${LEGAL_OPERATOR} (“we”, “us”). They apply when you create a pair, sign in, or use Duoma. If you do not agree, do not use the app.
+These Terms of Use (“Terms”) govern access to and use of the Duoma application and related services (together, “Duoma”) operated by ${LEGAL_OPERATOR} (“we”, “us”, “our”). By creating an account, joining a pair, or using Duoma, you agree to these Terms and to the Privacy Policy.
 
-This is a standard consumer-app contract. It is not personal legal advice. Australian Consumer Law still applies and cannot be signed away.
+1. Eligibility
+Duoma is for adults only. You must be 18 years of age or older. You must not allow a person under 18 to use your account. Intimate or sexual content stored in Duoma must depict only consenting adults aged 18 or over.
 
-1. Adults only
-You must be 18 or over. You must not let a child use your account. Intimate content in Duoma is for consenting adults only.
+2. The service
+Duoma is a private couples application. Two people form a pair with a code. Features include games, lists, check-ins, calendar items, and optional media you keep on your own device (including Sexy Vault and Photo Memory).
 
-2. The account is your email
-Duoma does not use a password you invent. Sign-in is a link or a 6-digit code sent to your email. That email inbox is the key to the pair. Anyone who can open that inbox can open Duoma as you.
+3. Account and sign-in
+Your account is tied to the email address you provide. Duoma does not use a password you create. Sign-in is completed with a link or a six-digit code sent to that email. Anyone who can open that inbox, or a device on which you are already signed in, can use Duoma as you.
 
-3. You are responsible for your sign-in
-You must keep your email account, phone, and sign-in codes under your control. You must not share your pair code except with the partner you mean to link. If your email is hacked, your phone is stolen, a sign-in code is forwarded, or someone uses a device you left unlocked, that access is treated as you, until you tell us and we can close or pause the account.
+You are responsible for:
+• keeping your email account, phone, and sign-in codes under your control;
+• sharing a pair code only with the partner you intend to link; and
+• using Forgot password only from a device you trust.
 
-We are not liable for loss, embarrassment, leaked photos, messages, or anything else that happens because someone else used your email, codes, or a logged-in device. That includes a hacked password on your email provider, a shared inbox, or a stolen phone.
+If you believe someone else has access to your account, email ${LEGAL_CONTACT} immediately.
 
-If you think someone else is in your account, email ${LEGAL_CONTACT} at once and use Forgot password only from a device you trust.
+4. Photos, videos and other media
+Photographs, videos, and voice notes you add in Sexy Vault, Photo Memory, and similar features are stored on your device. They are not uploaded to our servers. We do not receive a copy, we cannot see them, and we cannot moderate, scan, or restore them. You are solely responsible for that media, including any copy you download onto your phone.
 
-4. What you must not do
-You must not: use Duoma if you are under 18; upload photos or video of anyone who did not agree, or of anyone under 18; harass, blackmail, or impersonate; try to break into other accounts; scrape or copy the catalog; or use the app to break the law.
+You must not store media of anyone under 18, or of any person who has not consented.
 
-Report abuse in the app (Home settings → Report, or Report on a photo). We review reports within 24 hours. You can Unpair / break up in settings. That wipes the shared pair on both sides and deletes couple media stored for that pairing. Delete account is also in settings.
+5. Acceptable use
+You must not:
+• use Duoma if you are under 18;
+• harass, threaten, blackmail, or impersonate another person;
+• attempt to access another account or interfere with the service;
+• scrape or copy the catalog except as the app itself allows; or
+• use Duoma to break the law.
 
-We may pause or close an account, without a refund (Duoma is free unless we later say otherwise), if we reasonably believe these rules were broken.
+You may report account or conduct issues in the app (Home settings → Report). Because we do not receive vault or Photo Memory files, a report does not send us those photos or videos.
 
-5. Content you add
-You keep whatever rights you already have in photos, notes, and other things you add. You give us a limited right to store them and — only as you already agreed — to review them to stop abuse or respond to a report. We do not sell your intimate images.
+We may suspend or close an account if we reasonably believe these Terms have been broken. Duoma is free unless we later state otherwise. Closing an account does not create a refund.
 
-6. The service is as-is
-Duoma is provided as-is. It can go down, lose a local cache, or change. We do not promise it will be error-free or always available. Email delivery (magic links and codes) depends on your inbox. Links expire. Type the 6-digit code if a link fails.
+6. Unpair and deletion
+Unpair / break up in Home settings ends the pair and wipes shared couple data on the devices in that pair. Delete account in settings (or an email to ${LEGAL_CONTACT}) asks us to close the account records we hold.
 
-7. Limitation of liability
-To the maximum extent the law allows, we are not liable for:
-• someone else using your account after they got into your email, codes, or device
-• intimate content being seen by a person you linked, or a person who used your sign-in
-• loss of data on a phone, a cleared browser, or a failed sync
-• indirect or consequential loss, including distress, reputation, or lost chance
+7. Your content
+You retain whatever rights you already have in content you add. For account data, lists, games, check-ins, and other information that is stored to operate Duoma, you grant us a limited licence to host and process that information solely to provide the service. That licence does not cover Sexy Vault, Photo Memory, or voice recordings, which we do not host.
 
-Where we cannot exclude liability (including under the Australian Consumer Law), our liability is limited, at our option, to supplying the service again or the cost of having it supplied again. For a free service that is often nothing you can claim in money.
+8. Availability
+Duoma is provided on an “as is” and “as available” basis. The service may be interrupted, changed, or discontinued. Local data on a phone can be lost if the app is cleared, the device is reset, or a file is not downloaded before you change phones. Email delivery of sign-in codes depends on your inbox. Codes and links expire.
 
-This does not limit liability for fraud, or for death or personal injury caused by negligence, where the law does not allow that limit.
+9. Liability
+To the maximum extent permitted by law, we are not liable for:
+• access to your account obtained through your email, codes, or an unlocked device;
+• photos, videos, or recordings stored on a device, downloaded by you, or seen by a person you paired with;
+• loss of data on a phone, a cleared browser, or a failed connection; or
+• indirect, incidental, or consequential loss, including distress or reputational harm.
 
-8. Indemnity
-You will cover us for claims that arise from your content, your breach of these Terms, or another person using your account because you did not protect your email or device.
+Nothing in these Terms excludes, restricts, or modifies any consumer guarantee, right, or remedy under the Australian Consumer Law that cannot be excluded. Where our liability cannot be excluded but can be limited, it is limited, at our option, to supplying the services again or paying the cost of having them supplied again.
 
-9. Privacy
-The Privacy Policy below is part of these Terms.
+These Terms do not limit liability for fraud, or for death or personal injury caused by negligence, where the law does not allow that limit.
 
-10. Changes and contact
-We may update these Terms. The date at the top will change. Continued use after a change means you accept the new Terms. Questions: ${LEGAL_CONTACT}.
+10. Indemnity
+You will indemnify us against claims, losses, and costs arising from your content, your breach of these Terms, or another person’s use of your account because you did not protect your email, codes, or device.
 
-11. Law
-These Terms are governed by the laws of New South Wales, Australia. Courts of NSW have jurisdiction, except where a mandatory consumer law says otherwise.`;
+11. Privacy
+Our Privacy Policy forms part of these Terms.
+
+12. Changes
+We may update these Terms. The effective date at the top will change. Continued use of Duoma after a change constitutes acceptance of the updated Terms.
+
+13. Contact and governing law
+Questions: ${LEGAL_CONTACT}.
+These Terms are governed by the laws of New South Wales, Australia. The courts of New South Wales have jurisdiction, except where a mandatory consumer law provides otherwise.`;
 
 export const PRIVACY_NOTICE = `Duoma Privacy Policy
 Effective ${LEGAL_EFFECTIVE}
 
-Who we are
-${LEGAL_OPERATOR} runs Duoma. Contact: ${LEGAL_CONTACT}.
+This Privacy Policy describes how ${LEGAL_OPERATOR} (“we”, “us”, “our”) handles personal information in connection with the Duoma application (“Duoma”).
 
-What we collect
-• Account: name, email, Male/Female, pair code, 18+ and policy ticks, last sign-in, timezone from the device (not GPS), time spent in the app
-• Play: cards, lists, check-ins, and other things you do in the hubs
-• Images and clips you upload (Photo Memory, Sexy Vault, and similar). These stay in Duoma’s sandboxed storage on the phones, not the Camera Roll, unless you export them yourselves. If they sync, we may store them to run the feature and — if you agreed — to review reports of abuse
-• Device basics needed to send a sign-in email or a lock-screen ping (if you turn notifications on)
+1. Who we are
+${LEGAL_OPERATOR} operates Duoma.
+Contact: ${LEGAL_CONTACT}
 
-We do not sell your personal information. We do not buy advertising profiles of you.
+2. Photos and videos are not uploaded
+Duoma does not upload, receive, store, or host photographs, videos, or voice recordings from Sexy Vault, Photo Memory, Audio Voice Notes, or similar in-app media features.
 
-Why we collect it
-To run the pair, sign you in, show the app, keep people safe, investigate abuse, and close accounts that break the Terms.
+That media remains on the device that created or received it. If you use Download to phone in Sexy Vault, the file is saved on that device. We never receive it.
 
-Account security
-Sign-in codes and links go to your email. We cannot see your email password. If that inbox is hacked, the attacker can open Duoma. Protect your email. We are not responsible for access we did not grant.
+Because we do not receive those files:
+• we cannot view them;
+• we cannot moderate, scan, or review them;
+• we cannot restore them if the phone is lost, reset, or replaced; and
+• a report in the app does not send us the photo or video.
 
-Who can see what
-Your partner sees what you share in the pair. The people who run Duoma may see account fields and, where you agreed, images and activity, only to operate the service or investigate a problem. We may share information if the law requires it, or with a host (for example Vercel or Supabase) that stores the app under a contract.
+You are responsible for what you store on your device and for any file you download.
 
-How long
-We keep account records while the pair exists and a short time after you unpair or delete the account, unless we must keep a record of a ban or a legal request. Unpair wipes shared couple data. Delete account in settings (or email ${LEGAL_CONTACT}) is how you ask us to close the rest.
+3. Personal information we collect
+We collect the information needed to run your account and the pair:
+• Account: display name, email address, Male/Female, pair code, the time you confirmed you are 18 or older and accepted these policies, last sign-in, device timezone (not GPS), and time spent in the app
+• Pair activity stored to operate the service: lists, games, check-ins, calendar items, pose and roleplay asks, and similar hub data
+• Device details required to send a sign-in email, and, if you enable notifications, to deliver a lock-screen ping
 
-Your rights
-You can ask for a copy of the account we hold, ask us to correct it, or ask us to delete it, subject to what we must keep. If you are in Australia this sits with the Australian Privacy Principles as they apply to a small app. If you are in the UK/EU, extra rights may apply; email us.
+We do not sell personal information. We do not build advertising profiles.
 
-Safety review of images
-We only review intimate images to stop abuse, under-18 use, or a report, and only after you ticked that you agree. That is not a public feed. Screens of the vault and Photo Memory try to hide the picture if you leave the app or a screen recording starts. We cannot stop every screenshot on the web.
+4. How we use it
+We use this information to:
+• create and maintain your account and pair;
+• sign you in;
+• sync pair activity (not photos or videos) so both phones and a new phone can see lists, games, and check-ins;
+• send sign-in codes and optional notifications;
+• investigate reports of account or conduct issues; and
+• enforce the Terms of Use, including bans.
 
-This policy can change. The date at the top will change.`;
+5. Who can see it
+Your partner sees what you share in the pair. People who operate Duoma may see account fields and pair activity (not Sexy Vault, Photo Memory, or voice files) in order to run the service or look into a report. We may disclose information if required by law.
+
+Hosting providers (for example the companies that host the website and the account database) process account and pair data under contract. They do not receive your vault photos or videos.
+
+6. Storage and security
+Account and pair data are stored with our hosting providers. Sign-in codes are sent to your email; we cannot see your email password. Protect that inbox. Media in Sexy Vault and Photo Memory is stored on the device, not in our cloud.
+
+7. How long we keep it
+We keep account records while the pair exists and for a short period after you unpair or delete the account, unless we must retain a record of a ban or a legal request. Unpair wipes shared couple data on the devices in that pair. Delete account in settings, or email ${LEGAL_CONTACT}, to ask us to close the account records we hold. Deleting the app or changing phones does not, by itself, delete records we hold in the account database.
+
+8. Your rights
+You may ask us for a copy of the account information we hold, ask us to correct it, or ask us to delete it, subject to records we are required to keep. Email ${LEGAL_CONTACT}. We cannot provide or delete photos and videos we never received.
+
+9. Children
+Duoma is not directed at children. We do not knowingly collect personal information from anyone under 18.
+
+10. Changes
+We may update this Privacy Policy. The effective date at the top will change. The current version is always available in the app.
+
+11. Contact
+${LEGAL_CONTACT}`;
 
 export function deviceTimezone(): string | null {
   try {

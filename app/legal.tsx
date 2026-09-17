@@ -15,8 +15,8 @@ export default function LegalScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Terms and privacy</Text>
         <Text className="mt-2 text-[15px] leading-6 text-mist/65">
-          Effective {LEGAL_EFFECTIVE}. You tick these when you create or join a pair.
-          This is the contract for Duoma, not a lawyer writing just for you.
+          Effective {LEGAL_EFFECTIVE}. You agree to these when you create or join a
+          pair.
         </Text>
         <Text className="mt-8 text-[22px] font-bold text-mist">Terms of Use</Text>
         <Text className="mt-3 text-[14px] leading-[21px] text-mist/70">{TERMS_OF_USE}</Text>

@@ -9,7 +9,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 ## What works in this slice
 
 - **Couple account** — One 6-character invite code. Sign out does not unpair you, and it does not wipe photos, vaults, or lists. Continue as [name] on welcome. Opening the Riley demo is a separate pair on this phone — it does not reset your live account. Two browser tabs are two partners (`sessionStorage`).
-- **Safety** — Adults-only tick at sign-up. Home settings: Report (24h review), Unpair / break up (wipes shared vaults on both devices), Delete account. Sexy Vault and Photo Memory stay in the app sandbox (not Camera Roll), with a screenshot cover when the app backgrounds. Optional `EXPO_PUBLIC_MEDIA_SCAN_URL` can block a file before it is saved.
+- **Safety** — Adults-only tick at sign-up covers the Terms and Privacy Policy. Photos and videos stay on the device and are not uploaded, so Duoma cannot moderate them. Home settings: Report (account and conduct), Unpair / break up, Delete account.
 - **PWA + web push** — Home Screen install, service worker, VAPID send API. Invites, coupons, Discover answers, and a ready jar hit the other lock screen.
 - **Home** — Daily rhythm is three circles (Check-in, Calendar, Notepad) that grow when you keep the default four favorite pins and shrink if you add more, four hubs (you can hide one in settings), and a dotted favorites strip whose spot count you pick. Shared world sits in Home settings but cannot be turned on yet. Home settings, under Favourites, has **Help, feedback or suggestions** — write a note, hit Send, and it lands on the admin Feedback tab with your name. When they send a Thought of You ping, a little Click me sits top-left of Home — tap it to read what they sent. Countdowns in Home Base can star one date — that countdown runs as a ticker just above Settings / Home / Stats. Stats and badges sit on the bar-chart button to the right of Home. Forgot a vault pin? Both of you tap Reset there.
 - **Connect** — Lists, Date Night Generator (500+ ideas — spin or search, save to To-do, tick off, ask them tonight), Thought-of-You Pings, Talk (10 decks, two topics each per day), Audio Voice Notes (real microphone record & play), Gratitude Jar, Apology & Reset, Flirtatious findings (cheeky and taboo questions with your partner).
@@ -27,7 +27,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 
-When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing and the shared slice (check-ins, position/roleplay asks, those calendar nights) live in Supabase so the other phone is not empty. Sign in with the same email on a new phone to bring lists, games, check-ins, and Daily Word back. Sexy Vault clips, voice notes, and Photo Memory shots stay on the phone that made them — they are never uploaded. Save a `.duoma` file from the vault, then AirDrop it or copy it with a cable. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
+When `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are set, pairing and the shared slice (check-ins, position/roleplay asks, those calendar nights) live in Supabase so the other phone is not empty. Sign in with the same email on a new phone to bring lists, games, check-ins, and Daily Word back. Sexy Vault clips, voice notes, and Photo Memory shots stay on the phone — they are never uploaded. Download to phone before you switch. Without those keys, the app stays on `localStorage` + `BroadcastChannel`.
 
 ## Run it
 
@@ -55,7 +55,7 @@ Email is the account (new phone, bans). The pair code is still how two people be
 
 Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins, pose/roleplay asks, lists, calendar, games, and Daily Word copy up so a new phone can restore them after you sign in with the same email.
 
-Sexy Vault photos and videos do **not** go to the cloud. There is no Backup vault button that uploads them. On the vault, **Save a copy** downloads a `.duoma` file onto this phone. AirDrop it or copy it with a USB cable. On the new phone, open the vault and tap **Restore from a file**. Duoma never sees that file. Voice notes and Photo Memory shots stay on-device the same way.
+Sexy Vault photos and videos do **not** go to the cloud. On the vault, **Download to phone** saves a copy on that device. Restore puts it back. Voice notes and Photo Memory shots stay on-device the same way.
 
 You still have to run two SQL files once in the Supabase SQL editor: `012_hub_sync.sql` and `013_couple_state.sql`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste those files, a second phone can pair but will not see the asks or the backup.
 
@@ -74,7 +74,7 @@ Plain English for the launch checklist:
 3. **Admin passphrase** — Set `EXPO_PUBLIC_DUOMA_ADMIN_KEY` to a secret you choose. `/admin` is only hidden, not locked down. Do not ship the default.
 4. **Mark yourselves admin** — After you sign in once, in SQL: `update public.profiles set is_admin = true where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
 5. **Walk it on two real phones** — Create → type the 6-digit email code (do not tap the inbox link) → they join with the 6-character pair code → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.
-6. **Who you invite, and reports** — You said reports get a look within 24 hours at `kerlsagameshq@gmail.com`. There is no automatic illegal-image scanner unless you add `EXPO_PUBLIC_MEDIA_SCAN_URL`. For friends, working Report + Unpair + Delete is the floor. Keep the invite list small.
+6. **Who you invite, and reports** — Photos and videos stay on the phone, so there is nothing for you to scan or moderate in the vault. Report in the app is for account and conduct. Keep the invite list small.
 
 ## iPhone (iOS 16.4+)
 

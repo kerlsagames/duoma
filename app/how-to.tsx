@@ -12,7 +12,7 @@ const STEPS = [
   {
     kicker: "Two phones",
     title: "Check-ins and pose asks land on both",
-    body: "When they send you a pose or a roleplay, it shows in your notifications and in that app on your phone — not an empty screen. Same for a check-in they fill in, or a check-in they asked you for. New phone: sign in with the same email. Lists, calendar, games, check-ins, and Daily Word come back. Sexy Vault clips stay on the old phone until you Save a copy and AirDrop or cable that file over — they are never uploaded. In Supabase, run SQL 012 and 013 once so the lists/games backup table exists.",
+    body: "When they send you a pose or a roleplay, it shows in your notifications and in that app on your phone — not an empty screen. Same for a check-in they fill in, or a check-in they asked you for. New phone: sign in with the same email. Lists, calendar, games, check-ins, and Daily Word come back. Sexy Vault stays on the phone — tap Download to phone before you switch. In Supabase, run SQL 012 and 013 once so the lists/games backup table exists.",
   },
   {
     kicker: "Names",
@@ -42,7 +42,7 @@ const STEPS = [
   {
     kicker: "Desire",
     title: "Spice when you both want it",
-    body: "Get Spicy, Spark (200 slow burns for you to do, from afar or in the same room; favourite and mark completed), Dare Me, roleplays, positions, The How (named techniques, try one this week, keep the words that work), Fantasy Matcher, and The Sexy Vault. The vault uses a shared pin. You can hide a photo or clip until a time you set, they still get told something is waiting. Save a copy downloads a file onto this phone; restore it on a new phone. It never goes to the cloud.",
+    body: "Get Spicy, Spark (200 slow burns for you to do, from afar or in the same room; favourite and mark completed), Dare Me, roleplays, positions, The How (named techniques, try one this week, keep the words that work), Fantasy Matcher, and The Sexy Vault. The vault uses a shared pin. Download to phone keeps a copy on the device. Photos and clips are never uploaded.",
   },
   {
     kicker: "Fun",
@@ -67,7 +67,7 @@ const STEPS = [
   {
     kicker: "Safety",
     title: "Unpair, report, adults only",
-    body: "Create and Join stay locked until you tick that you are 18+ and agree to the Terms. Home settings has Report content / abuse (reviewed within 24 hours), Unpair / break up (wipes the shared vault, photos, and lists on both phones), and Delete account. Photos live in Duoma’s sandbox, not the Camera Roll. Open a vault clip or a Photo Memory to report that file.",
+    body: "Create and Join stay locked until you tick that you are 18+ and agree to the Terms. Home settings has Report content / abuse, Unpair / break up, and Delete account. Photos and videos stay on the phone and are not uploaded, so Duoma cannot review those files.",
   },
   {
     kicker: "iPhone",

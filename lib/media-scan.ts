@@ -3,7 +3,7 @@
  *
  * Duoma is an adults-only couples app — consensual intimate photos are allowed.
  * CSAM / anyone under 18 is never allowed. Without a scan service URL we cannot
- * hash against PhotoDNA; we still block bad types/sizes and require an 18+ attest.
+ * hash against PhotoDNA; we still block bad types and sizes. 18+ is agreed at sign-up.
  *
  * Set EXPO_PUBLIC_MEDIA_SCAN_URL to a backend that accepts { mimeType } and
  * returns { blocked: boolean, reason?: string } (Rekognition, PhotoDNA, etc.).
@@ -50,12 +50,6 @@ export function scanUploadLocally(input: ScanInput): ScanResult {
   }
   if (isVideo && input.byteSize > MAX_VIDEO_BYTES) {
     return { ok: false, reason: "Keep clips under 20 MB." };
-  }
-  if (!input.attestedAdults) {
-    return {
-      ok: false,
-      reason: "Confirm everyone in this photo or clip is 18 or older.",
-    };
   }
   return { ok: true, via: "local" };
 }

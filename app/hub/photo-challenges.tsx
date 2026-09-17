@@ -1,6 +1,6 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
-import { AdultAttest, MediaShield, useScanUpload } from "@/components/MediaShield";
+import { MediaShield, useScanUpload } from "@/components/MediaShield";
 import { ReportSheet, ReportTextButton } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
@@ -56,7 +56,6 @@ export default function PhotoChallengesScreen() {
   const [draftImage, setDraftImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [attested, setAttested] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [looking, setLooking] = useState<PhotoMemory | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -165,7 +164,6 @@ export default function PhotoChallengesScreen() {
       const dataUrl = await pickImageFromDevice();
       if (dataUrl) {
         setDraftImage(dataUrl);
-        setAttested(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read that photo.");
@@ -183,7 +181,7 @@ export default function PhotoChallengesScreen() {
     setError(null);
     setBusy(true);
     try {
-      const scan = await scanUpload(scanInputFromDataUrl(draftImage, attested));
+      const scan = await scanUpload(scanInputFromDataUrl(draftImage, true));
       if (!scan.ok) {
         setError(scan.reason);
         return;
@@ -208,7 +206,6 @@ export default function PhotoChallengesScreen() {
       });
       setCaption("");
       setDraftImage(null);
-      setAttested(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save that photo.");
     } finally {
@@ -684,13 +681,12 @@ export default function PhotoChallengesScreen() {
                     paddingVertical: 8,
                   }}
                 />
-                {draftImage ? <AdultAttest checked={attested} onChange={setAttested} /> : null}
                 <Pressable
                   onPress={() => void complete()}
-                  disabled={busy || !draftImage || !attested}
+                  disabled={busy || !draftImage}
                   style={{
                     height: 48,
-                    backgroundColor: draftImage && attested ? red() : "rgba(194,59,59,0.35)",
+                    backgroundColor: draftImage ? red() : "rgba(194,59,59,0.35)",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
