@@ -5,6 +5,10 @@ import {
   type CatalogKey,
   type CatalogRow,
 } from "@/lib/catalog-overlay";
+import {
+  BET_PROMPT_CATEGORIES,
+  betPrompts,
+} from "@/lib/bets";
 import { chickenDares } from "@/lib/chicken";
 import { couponIdeas } from "@/lib/couponIdeas";
 import { curiosityQuestions } from "@/lib/curiosityQuestions";
@@ -119,6 +123,13 @@ export function catalogRows(key: CatalogKey): CatalogRow[] {
         body: row.prompt,
         group: `${row.location}:${row.category}:${row.intensity}`,
       }));
+    case "bets":
+      return betPrompts(true).map((row) => ({
+        id: row.id,
+        title: row.text.slice(0, 72),
+        body: row.text,
+        group: row.category,
+      }));
   }
 }
 
@@ -150,6 +161,8 @@ export function catalogGroups(key: CatalogKey): string[] {
       return PHOTO_CATEGORIES.map((row) => row.id);
     case "spark":
       return SPARK_CATEGORIES.map((row) => row.id);
+    case "bets":
+      return BET_PROMPT_CATEGORIES.map((row) => row.id);
   }
 }
 
@@ -194,6 +207,8 @@ export function catalogGroupChips(key: CatalogKey): CatalogChip[] {
       return PHOTO_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
     case "spark":
       return SPARK_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "bets":
+      return BET_PROMPT_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
   }
 }
 

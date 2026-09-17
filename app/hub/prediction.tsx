@@ -12,10 +12,10 @@ import {
 import { useAppLook } from "@/lib/app-prefs";
 import {
   BET_PROMPT_CATEGORIES,
-  BET_PROMPTS,
   BET_STAKE_CATEGORIES,
   BET_STAKES,
   betLoserId,
+  betPrompts,
   betPromptsIn,
   betStakesIn,
   betWinnerId,
@@ -612,7 +612,7 @@ export default function PredictionScreen() {
         {hub === "make" && view === "prompts" ? (
           <Catalog
             heading="Markets"
-            sub={`${BET_PROMPTS.length} lines. Then you pick the stake the winner collects.`}
+            sub={`${betPrompts().length} lines. Then you pick the stake the winner collects.`}
             tiles={BET_PROMPT_CATEGORIES.map((cat) => ({
               id: cat.id,
               label: cat.label,

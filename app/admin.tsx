@@ -20,6 +20,7 @@ import { FeedbackPane } from "@/components/admin/FeedbackPane";
 import { DemoPane } from "@/components/admin/DemoPane";
 import { ReportsPane } from "@/components/admin/ReportsPane";
 import { UsersSpreadsheet } from "@/components/admin/UsersSpreadsheet";
+import { WrittenPane } from "@/components/admin/WrittenPane";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
 import { useCatalogRevision } from "@/lib/catalog-overlay";
@@ -33,7 +34,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type Tab = "setup" | "users" | "reports" | "feedback" | "demo" | CatalogKey | "spicyLive";
+type Tab = "setup" | "users" | "reports" | "feedback" | "written" | "demo" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
   { id: "setup", label: "Setup" },
@@ -41,10 +42,12 @@ const NAV: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "reports", label: "Reports" },
   { id: "feedback", label: "Feedback" },
+  { id: "written", label: "Written" },
   { id: "spicyLive", label: "Copies" },
   { id: "fantasy", label: "Fantasy" },
   { id: "spicyDares", label: "Dare Me" },
   { id: "chicken", label: "Chicken" },
+  { id: "bets", label: "Bets" },
   { id: "roleplays", label: "Roleplays" },
   { id: "positions", label: "Positions" },
   { id: "dates", label: "Dates" },
@@ -216,6 +219,8 @@ export default function AdminScreen() {
           <ReportsPane />
         ) : tab === "feedback" ? (
           <FeedbackPane />
+        ) : tab === "written" ? (
+          <WrittenPane />
         ) : tab === "demo" ? (
           <DemoPane />
         ) : tab === "spicyLive" ? (
@@ -280,8 +285,8 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 015. 015 lets the Backstage passphrase list every pair — you do not sign in a second time. 011 is Help → Feedback. 012 is two-phone check-ins and pose asks. 013 is lists and games for a new phone — not vault clips. 014 is couple backups and per-app time."
-          : "Create a project at supabase.com. In the SQL editor run supabase/migrations/001_init.sql through 015_admin_directory.sql. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel."}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 016. 015 lets the Backstage passphrase list every pair — you do not sign in a second time. 016 lets Written show homemade cards, dares, and bets from every pair’s backup. 011 is Help → Feedback. 012 is two-phone check-ins and pose asks. 013 is lists and games for a new phone — not vault clips. 014 is couple backups and per-app time."
+          : "Create a project at supabase.com. In the SQL editor run 001 through 016. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel."}
       </Text>
     </ScrollView>
   );

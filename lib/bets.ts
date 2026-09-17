@@ -1,3 +1,5 @@
+import { applyOverlay } from "@/lib/catalog-overlay";
+
 export type BetPromptCategory = "everyday" | "sports" | "screen" | "challenge";
 export type BetStakeCategory = "app" | "house" | "spicy" | "silly";
 export type BetKind = "who" | "will";
@@ -307,8 +309,40 @@ function s(category: BetStakeCategory, id: string, text: string): BetStake {
   return { id: `stake-${id}`, category, text };
 }
 
+function asBetCat(value: string | undefined): BetPromptCategory {
+  return BET_PROMPT_CATEGORIES.some((row) => row.id === value)
+    ? (value as BetPromptCategory)
+    : "everyday";
+}
+
+function kindFromText(text: string): BetKind {
+  return /^\s*who\b/i.test(text) ? "who" : "will";
+}
+
+export function betPrompts(includeHidden = false): BetPrompt[] {
+  return applyOverlay(
+    "bets",
+    BET_PROMPTS,
+    (row, edit) => ({
+      ...row,
+      text: edit.body?.trim() || edit.title?.trim() || row.text,
+      category: asBetCat(edit.group) || row.category,
+    }),
+    (row) => {
+      const text = row.body.trim() || row.title.trim() || "Untitled bet";
+      return {
+        id: row.id,
+        text,
+        category: asBetCat(row.group),
+        kind: kindFromText(text),
+      };
+    },
+    includeHidden
+  );
+}
+
 export function betPromptsIn(category: BetPromptCategory): BetPrompt[] {
-  return BET_PROMPTS.filter((row) => row.category === category);
+  return betPrompts().filter((row) => row.category === category);
 }
 
 export function betStakesIn(category: BetStakeCategory): BetStake[] {
@@ -316,8 +350,9 @@ export function betStakesIn(category: BetStakeCategory): BetStake[] {
 }
 
 export function pickRandomPrompt(avoidId?: string | null): BetPrompt {
-  const pool = BET_PROMPTS.filter((row) => row.id !== avoidId);
-  return pool[Math.floor(Math.random() * pool.length)] ?? BET_PROMPTS[0]!;
+  const all = betPrompts();
+  const pool = all.filter((row) => row.id !== avoidId);
+  return pool[Math.floor(Math.random() * pool.length)] ?? all[0] ?? BET_PROMPTS[0]!;
 }
 
 export function pickRandomStake(avoidId?: string | null): BetStake {
@@ -326,7 +361,7 @@ export function pickRandomStake(avoidId?: string | null): BetStake {
 }
 
 export function betPromptById(id: string): BetPrompt | null {
-  return BET_PROMPTS.find((row) => row.id === id) ?? null;
+  return betPrompts().find((row) => row.id === id) ?? null;
 }
 
 export function betWinnerId(row: {
