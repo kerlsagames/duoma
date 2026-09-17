@@ -193,6 +193,24 @@ const HOW_TONE_BASE = {
 
 export const HOW_TONE = liveTone("desire", HOW_TONE_BASE, HOW_TONE_BASE.rose);
 
+/** Velvet and gold for Spark — slow-burn dares before anyone undresses. */
+const SPARK_TONE_BASE = {
+  background: "#0D0D11",
+  velvet: "#141218",
+  gold: "#D4AF37",
+  goldSoft: "rgba(212,175,55,0.14)",
+  ember: "#E29578",
+  onGold: "#1A1408",
+  ink: "#F6EFE2",
+  muted: "rgba(246,239,226,0.68)",
+  dim: "rgba(246,239,226,0.42)",
+  surface: "#16141C",
+  surfaceRaised: "#1C1A24",
+  border: "rgba(212,175,55,0.28)",
+} as const;
+
+export const SPARK_TONE = liveTone("desire", SPARK_TONE_BASE, SPARK_TONE_BASE.gold);
+
 /** Warm glass mason jar for Appreciation notes. */
 const JAR_TONE_BASE = {
   background: "#100E0C",

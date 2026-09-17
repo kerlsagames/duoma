@@ -63,7 +63,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
 
   const showDetails = layout.view !== "compact" && layout.showDetails;
   const catalog = catalogOrder(hub);
-  const fillGrid = layout.view === "grid" && visible.length > 0 && visible.length <= 8;
+  const fillGrid = layout.view === "grid" && visible.length > 0 && visible.length <= 10;
 
   return (
     <HomeBackdrop>

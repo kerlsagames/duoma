@@ -298,6 +298,7 @@ export function featureFromStatusId(id: string): string | null {
   if (id.startsWith("chicken")) return "chicken";
   if (id.startsWith("fantasy")) return "fantasy-matcher";
   if (id.startsWith("sexy")) return "sexy-vault";
+  if (id.startsWith("spark")) return "spark";
   if (id.startsWith("checkin")) return "check-in";
   if (id.startsWith("curiosity")) return "curiosity";
   if (id.startsWith("talk")) return "talk";

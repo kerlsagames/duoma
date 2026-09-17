@@ -17,6 +17,7 @@ import { roleplays, ROLEPLAY_CATEGORIES } from "@/lib/roleplays";
 import { sexPositions, POSITION_CATEGORIES } from "@/lib/sex-positions";
 import { spicyDares, SPICY_DARE_CATEGORIES } from "@/lib/spicy-dares";
 import { howTechniques, HOW_CHAPTERS } from "@/lib/the-how";
+import { sparkCards, SPARK_CATEGORIES } from "@/lib/spark";
 import { CHICKEN_PACKS } from "@/lib/chicken-meta";
 import { COUPON_CATEGORIES } from "@/lib/couponIdeas";
 import { PHOTO_CATEGORIES } from "@/lib/photo-prompts";
@@ -111,6 +112,13 @@ export function catalogRows(key: CatalogKey): CatalogRow[] {
         body: row.label,
         group: row.category,
       }));
+    case "spark":
+      return sparkCards(true).map((row) => ({
+        id: row.id,
+        title: row.title,
+        body: row.prompt,
+        group: `${row.location}:${row.category}:${row.intensity}`,
+      }));
   }
 }
 
@@ -140,6 +148,8 @@ export function catalogGroups(key: CatalogKey): string[] {
       return [...STAGE_ORDER];
     case "photo":
       return PHOTO_CATEGORIES.map((row) => row.id);
+    case "spark":
+      return SPARK_CATEGORIES.map((row) => row.id);
   }
 }
 
@@ -182,6 +192,8 @@ export function catalogGroupChips(key: CatalogKey): CatalogChip[] {
       return STAGE_ORDER.map((id) => ({ id, label: STAGE_META[id].label }));
     case "photo":
       return PHOTO_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
+    case "spark":
+      return SPARK_CATEGORIES.map((row) => ({ id: row.id, label: row.label }));
   }
 }
 

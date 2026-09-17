@@ -70,6 +70,7 @@ export function CurrentStatus({
     dateNightAsks,
     positionInvites,
     sexyVault: mini.sexyVault,
+    sparkAsks: mini.spark?.asks,
     calendarReminders,
   }).filter((item) => prefsShowStatusId(prefs, item.id));
 

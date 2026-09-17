@@ -157,6 +157,13 @@ export const HUBS: HubDef[] = [
         href: "/game/setup",
       },
       {
+        id: "spark",
+        label: "Spark",
+        detail: "200 slow burns. From afar, or in the same room.",
+        icon: "bonfire",
+        href: "/hub/spark",
+      },
+      {
         id: "up-for-it",
         label: "Dare Me",
         detail: "18 packs. 200 dares. Send one or take one.",

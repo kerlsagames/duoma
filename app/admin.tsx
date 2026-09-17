@@ -52,6 +52,7 @@ const NAV: { id: Tab; label: string }[] = [
   { id: "how", label: "The How" },
   { id: "spicySeeds", label: "Spicy seeds" },
   { id: "photo", label: "Photos" },
+  { id: "spark", label: "Spark" },
 ];
 
 export default function AdminScreen() {

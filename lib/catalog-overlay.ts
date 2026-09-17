@@ -25,7 +25,8 @@ export type CatalogKey =
   | "curiosity"
   | "how"
   | "spicySeeds"
-  | "photo";
+  | "photo"
+  | "spark";
 
 export type CatalogRow = {
   id: string;
@@ -61,6 +62,7 @@ export const CATALOG_KEYS: { id: CatalogKey; label: string; add: boolean }[] = [
   { id: "how", label: "The How", add: false },
   { id: "spicySeeds", label: "Get Spicy seeds", add: true },
   { id: "photo", label: "Photo Memory", add: true },
+  { id: "spark", label: "Spark", add: true },
 ];
 
 function emptyDeck(): CatalogDeck {
@@ -81,6 +83,7 @@ export function emptyOverlay(): CatalogOverlay {
     how: emptyDeck(),
     spicySeeds: emptyDeck(),
     photo: emptyDeck(),
+    spark: emptyDeck(),
   };
 }
 

@@ -34,6 +34,11 @@ import { emptyWorldChoice,
   type WorldChoice,
 } from "@/lib/worlds";
 import {
+  emptySparkState,
+  hydrateSparkState,
+  type SparkState,
+} from "@/lib/spark";
+import {
   emptySexyVault,
   hydrateSexyVault,
   type SexyVaultItem,
@@ -500,6 +505,7 @@ export type MiniState = {
   mealPlan: MealPlanState;
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
+  spark: SparkState;
 };
 
 type PingIcon = ComponentProps<typeof Ionicons>["name"];
@@ -898,6 +904,7 @@ export function emptyMiniState(): MiniState {
     mealPlan: emptyMealPlan(),
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
+    spark: emptySparkState(),
   };
 }
 
@@ -1017,6 +1024,7 @@ export function hydrateMiniState(raw: unknown): MiniState {
     mealPlan: hydrateMealPlan(row.mealPlan),
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),
+    spark: hydrateSparkState(row.spark),
   };
 }
 

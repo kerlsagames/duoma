@@ -140,7 +140,7 @@ function migrateHomeBaseOrder(order: string[]): string[] {
   return next;
 }
 
-/** Old catalog had The How in slot 5. Leave custom orders alone. */
+/** Old catalog had The How in slot 5. Leave custom orders alone, but park Spark next to Spicy. */
 function migrateDesireOrder(order: string[]): string[] {
   if (order.length === 0) return order;
   const oldDefault = [
@@ -156,17 +156,26 @@ function migrateDesireOrder(order: string[]): string[] {
   const isOldDefault =
     order.length === oldDefault.length &&
     order.every((id, i) => id === oldDefault[i]);
-  if (!isOldDefault) return order;
-  return [
-    "spicy",
-    "up-for-it",
-    "roleplays",
-    "positions",
-    "fantasy-matcher",
-    "intimacy-streak",
-    "sexy-vault",
-    "the-how",
-  ];
+  let next = isOldDefault
+    ? [
+        "spicy",
+        "up-for-it",
+        "roleplays",
+        "positions",
+        "fantasy-matcher",
+        "intimacy-streak",
+        "sexy-vault",
+        "the-how",
+      ]
+    : order;
+  if (!next.includes("spark")) {
+    const spicyAt = next.indexOf("spicy");
+    next =
+      spicyAt >= 0
+        ? [...next.slice(0, spicyAt + 1), "spark", ...next.slice(spicyAt + 1)]
+        : ["spark", ...next];
+  }
+  return next;
 }
 
 /** Old catalog had Chicken first, then Daily Word last among games. */
