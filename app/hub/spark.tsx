@@ -1,11 +1,9 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
-import { PokeThem } from "@/components/ui/PokeThem";
 import { SPARK_TONE as T, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { useMiniApps } from "@/lib/mini-apps";
-import { useApp } from "@/lib/store";
 import {
   SPARK_CATEGORIES,
   categoryMeta,
@@ -15,8 +13,6 @@ import {
   locationLabel,
   markSparkDone,
   pickSpark,
-  sendSparkAsk,
-  shareCopy,
   sparkById,
   toggleFavorite,
   type SparkCard,
@@ -24,7 +20,6 @@ import {
   type SparkLocation,
 } from "@/lib/spark";
 import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import type { Href } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -32,16 +27,14 @@ import {
   Animated,
   Easing,
   Pressable,
-  Share,
   Text,
   View,
 } from "react-native";
 
 type Place = "all" | SparkLocation;
-type Pane = "deck" | "saved" | "inbox";
+type Pane = "deck" | "saved";
 
 export default function SparkScreen() {
-  const { user, partner } = useApp();
   const { data, patch } = useMiniApps();
   const look = useAppLook("spark", T.gold, { hideDone: false });
   const spark = data.spark ?? emptySparkState();
@@ -73,28 +66,10 @@ export default function SparkScreen() {
         .filter((row): row is SparkCard => Boolean(row)),
     [spark.favorites]
   );
-  const incoming = useMemo(
-    () =>
-      spark.asks
-        .filter((row) => row.toUserId === user?.id && row.status === "offered")
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [spark.asks, user?.id]
-  );
-  const outgoing = useMemo(
-    () =>
-      spark.asks.filter(
-        (row) =>
-          row.fromUserId === user?.id &&
-          row.status === "offered" &&
-          row.cardId === card?.id
-      ),
-    [spark.asks, user?.id, card?.id]
-  );
 
   const shown = card && pool.some((row) => row.id === card.id) ? card : pool[0] ?? null;
   const fav = shown ? spark.favorites.includes(shown.id) : false;
   const done = shown ? spark.doneIds.includes(shown.id) : false;
-  const them = partner?.displayName || "them";
 
   const flipTo = (next: SparkCard | null) => {
     Animated.timing(fade, {
@@ -135,36 +110,9 @@ export default function SparkScreen() {
 
   const onDidThis = async () => {
     if (!shown) return;
+    const already = spark.doneIds.includes(shown.id);
     await patch((state) => ({ ...state, spark: markSparkDone(state.spark, shown.id) }));
-    setNote("Marked. The night still has room.");
-  };
-
-  const onSend = async () => {
-    if (!shown || !user || !partner) {
-      setNote("Pair first — then you can send this to them.");
-      return;
-    }
-    await patch((state) => ({
-      ...state,
-      spark: sendSparkAsk(state.spark, {
-        cardId: shown.id,
-        fromUserId: user.id,
-        toUserId: partner.id,
-      }),
-    }));
-    const message = shareCopy(shown);
-    try {
-      await Share.share({ message, title: shown.title });
-    } catch {
-      await Clipboard.setStringAsync(message);
-    }
-    setNote(`Sent to ${them}. Copied if they live in another chat.`);
-  };
-
-  const onCopy = async () => {
-    if (!shown) return;
-    await Clipboard.setStringAsync(shareCopy(shown));
-    setNote("Copied. Paste it wherever they already are.");
+    setNote(already ? "Back in the mix." : "Completed. The night still has room.");
   };
 
   const openAsk = (cardId: string) => {
@@ -236,38 +184,14 @@ export default function SparkScreen() {
           }}
         >
           Two hundred slow burns. From across town, or in the same room — hours
-          before anyone undresses.
+          before anyone undresses. Little things for you to do.
         </Text>
-
-        {incoming.length ? (
-          <Pressable
-            onPress={() => setPane("inbox")}
-            style={{
-              marginTop: 16,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: T.gold,
-              backgroundColor: T.goldSoft,
-              padding: 12,
-            }}
-          >
-            <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>
-              {incoming.length === 1
-                ? `${them} sent you a spark`
-                : `${them} sent ${incoming.length} sparks`}
-            </Text>
-            <Text style={{ marginTop: 4, color: T.muted, fontSize: 13 }}>
-              Open the inbox to read what they want in motion.
-            </Text>
-          </Pressable>
-        ) : null}
 
         <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
           {(
             [
               ["deck", "Deck"],
-              ["saved", `Saved · ${saved.length}`],
-              ["inbox", incoming.length ? `From them · ${incoming.length}` : "From them"],
+              ["saved", `Favourited · ${saved.length}`],
             ] as const
           ).map(([id, label]) => {
             const on = pane === id;
@@ -303,7 +227,7 @@ export default function SparkScreen() {
           <View style={{ marginTop: 18, gap: 10 }}>
             {saved.length === 0 ? (
               <Text style={{ color: T.dim, fontFamily: SERIF, fontSize: 18, lineHeight: 26 }}>
-                Nothing bookmarked yet. Heart a card you want to keep.
+                Nothing favourited yet. Tap Favourited on a spark you want to keep.
               </Text>
             ) : (
               saved.map((row) => (
@@ -314,28 +238,6 @@ export default function SparkScreen() {
                   onPress={() => openAsk(row.id)}
                 />
               ))
-            )}
-          </View>
-        ) : pane === "inbox" ? (
-          <View style={{ marginTop: 18, gap: 10 }}>
-            {incoming.length === 0 ? (
-              <Text style={{ color: T.dim, fontFamily: SERIF, fontSize: 18, lineHeight: 26 }}>
-                Quiet. When they send a spark, it lands here — not in the shuffle.
-              </Text>
-            ) : (
-              incoming.map((ask) => {
-                const row = sparkById(ask.cardId);
-                if (!row) return null;
-                return (
-                  <SparkRow
-                    key={ask.id}
-                    card={row}
-                    done={false}
-                    kicker="They sent this"
-                    onPress={() => openAsk(row.id)}
-                  />
-                );
-              })
             )}
           </View>
         ) : (
@@ -461,17 +363,6 @@ export default function SparkScreen() {
                     >
                       {locationLabel(shown.location)} · {categoryMeta(shown.category).label}
                     </Text>
-                    <Pressable
-                      onPress={() => void onFavorite()}
-                      hitSlop={10}
-                      accessibilityLabel={fav ? "Remove bookmark" : "Bookmark"}
-                    >
-                      <Ionicons
-                        name={fav ? "heart" : "heart-outline"}
-                        size={22}
-                        color={fav ? T.ember : T.gold}
-                      />
-                    </Pressable>
                   </View>
                   <View style={{ flexDirection: "row", gap: 5, marginTop: 10 }}>
                     {[1, 2, 3].map((n) => (
@@ -536,57 +427,68 @@ export default function SparkScreen() {
 
                 <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
                   <Pressable
-                    onPress={() => void onSend()}
+                    onPress={() => void onFavorite()}
+                    accessibilityLabel={fav ? "Remove from favourited" : "Favourited"}
                     style={{
                       flex: 1,
                       height: 48,
                       borderRadius: 16,
                       borderWidth: 1,
-                      borderColor: T.gold,
+                      borderColor: fav ? T.ember : T.gold,
+                      backgroundColor: fav ? T.ember : "transparent",
                       alignItems: "center",
                       justifyContent: "center",
+                      flexDirection: "row",
+                      gap: 6,
                     }}
                   >
-                    <Text style={{ color: T.gold, fontWeight: "800", fontSize: 14 }}>
-                      Send to {them}
+                    <Ionicons
+                      name={fav ? "heart" : "heart-outline"}
+                      size={16}
+                      color={fav ? T.onGold : T.gold}
+                    />
+                    <Text
+                      style={{
+                        color: fav ? T.onGold : T.gold,
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
+                    >
+                      Favourited
                     </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => void onCopy()}
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: T.border,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    accessibilityLabel="Copy spark"
-                  >
-                    <Ionicons name="copy-outline" size={18} color={T.gold} />
                   </Pressable>
                   <Pressable
                     onPress={() => void onDidThis()}
+                    accessibilityLabel={done ? "Undo completed" : "Completed"}
                     style={{
                       flex: 1,
                       height: 48,
                       borderRadius: 16,
-                      backgroundColor: T.surfaceRaised,
+                      backgroundColor: done ? T.gold : T.surfaceRaised,
                       borderWidth: 1,
-                      borderColor: T.border,
+                      borderColor: done ? T.gold : T.border,
                       alignItems: "center",
                       justifyContent: "center",
+                      flexDirection: "row",
+                      gap: 6,
                     }}
                   >
-                    <Text style={{ color: T.ink, fontWeight: "800", fontSize: 14 }}>
-                      I did this
+                    <Ionicons
+                      name={done ? "checkmark-circle" : "checkmark-circle-outline"}
+                      size={16}
+                      color={done ? T.onGold : T.ink}
+                    />
+                    <Text
+                      style={{
+                        color: done ? T.onGold : T.ink,
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
+                    >
+                      Completed
                     </Text>
                   </Pressable>
                 </View>
-                {outgoing[0] ? (
-                  <PokeThem appId="spark" targetId={outgoing[0].id} color={T.gold} />
-                ) : null}
               </Animated.View>
             )}
           </>

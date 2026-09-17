@@ -29,7 +29,6 @@ import type { CalendarReminder } from "@/lib/calendar-reminders";
 import { dueCalendarReminders } from "@/lib/calendar-reminders";
 import { pokeAppMeta, pokeNoticeId } from "@/lib/partner-poke";
 import type { PartnerPoke } from "@/lib/types";
-import { sparkById, type SparkAsk } from "@/lib/spark";
 import type { Href } from "expo-router";
 
 export type StatusItem = {
@@ -152,7 +151,6 @@ export function buildHomeNotifications(input: {
   positionInvites?: PositionInvite[];
   sexyVault?: SexyVaultItem[];
   calendarReminders?: CalendarReminder[];
-  sparkAsks?: SparkAsk[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -529,21 +527,6 @@ export function buildHomeNotifications(input: {
         when: locked ? "Later" : recentWhen(item.createdAt),
         href: "/hub/sexy-vault",
         sortAt: Date.parse(item.createdAt) || now,
-      });
-    });
-
-  (input.sparkAsks ?? [])
-    .filter((row) => row.toUserId === myId && row.status === "offered")
-    .forEach((ask) => {
-      const card = sparkById(ask.cardId);
-      items.push({
-        id: `spark-${ask.id}`,
-        line: card
-          ? `Spark · ${card.title}`
-          : "Spark · they sent you one",
-        when: recentWhen(ask.createdAt),
-        href: "/hub/spark",
-        sortAt: Date.parse(ask.createdAt) || now,
       });
     });
 

@@ -37,7 +37,7 @@ const STEPS = [
   {
     kicker: "Desire",
     title: "Spice when you both want it",
-    body: "Get Spicy, Spark (200 slow burns — from afar or in the same room), Dare Me, roleplays, positions, The How (named techniques, try one this week, keep the words that work), Fantasy Matcher, and The Sexy Vault. The vault uses a shared pin. You can hide a photo or clip until a time you set — they still get told something is waiting.",
+    body: "Get Spicy, Spark (200 slow burns for you to do — from afar or in the same room; favourite and mark completed), Dare Me, roleplays, positions, The How (named techniques, try one this week, keep the words that work), Fantasy Matcher, and The Sexy Vault. The vault uses a shared pin. You can hide a photo or clip until a time you set — they still get told something is waiting.",
   },
   {
     kicker: "Fun",

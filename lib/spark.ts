@@ -196,17 +196,12 @@ export function toggleFavorite(state: SparkState, cardId: string): SparkState {
 }
 
 export function markSparkDone(state: SparkState, cardId: string): SparkState {
-  const doneIds = state.doneIds.includes(cardId)
-    ? state.doneIds
-    : [cardId, ...state.doneIds];
+  const on = state.doneIds.includes(cardId);
   return {
     ...state,
-    doneIds,
-    asks: state.asks.map((ask) =>
-      ask.cardId === cardId && ask.status === "offered"
-        ? { ...ask, status: "done", answeredAt: nowIso() }
-        : ask
-    ),
+    doneIds: on
+      ? state.doneIds.filter((id) => id !== cardId)
+      : [cardId, ...state.doneIds],
   };
 }
 

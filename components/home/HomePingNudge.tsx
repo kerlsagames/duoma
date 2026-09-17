@@ -6,7 +6,7 @@ import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function seenKey(userId: string) {
@@ -62,7 +62,8 @@ export function HomePingNudge() {
     void readSeen(user.id).then(setSeenId);
   }, [user?.id, ping?.id]);
 
-  const markSeen = useCallback(async () => {
+  const close = useCallback(async () => {
+    setOpen(false);
     if (!user?.id || !ping) return;
     setSeenId(ping.id);
     await writeSeen(user.id, ping.id);
@@ -74,50 +75,23 @@ export function HomePingNudge() {
   const them = partner?.displayName || "Them";
 
   return (
-    <>
-      <Pressable
-        onPress={() => setOpen(true)}
-        accessibilityRole="button"
-        accessibilityLabel={`Click me. ${them} sent ${meta.label}`}
-        hitSlop={8}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 6,
-          paddingVertical: 7,
-          paddingHorizontal: 10,
-          borderRadius: 999,
-          backgroundColor: meta.color,
-          maxWidth: 118,
-        }}
-      >
-        <Ionicons name={meta.icon} size={14} color="#1A0810" />
-        <Text
-          style={{
-            color: "#1A0810",
-            fontSize: 12,
-            fontWeight: "800",
-          }}
-          numberOfLines={1}
-        >
-          Click me
-        </Text>
-      </Pressable>
-
-      <Modal
-        visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => {
-          setOpen(false);
-          void markSeen();
-        }}
-      >
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 50,
+        elevation: 50,
+      }}
+    >
+      {open ? (
         <Pressable
-          onPress={() => {
-            setOpen(false);
-            void markSeen();
-          }}
+          onPress={() => void close()}
+          accessibilityRole="button"
+          accessibilityLabel="Close ping"
           style={{
             flex: 1,
             backgroundColor: "rgba(8,4,12,0.62)",
@@ -173,8 +147,7 @@ export function HomePingNudge() {
             </Text>
             <Pressable
               onPress={() => {
-                setOpen(false);
-                void markSeen();
+                void close();
                 router.push("/hub/thought-pings" as Href);
               }}
               style={{
@@ -189,10 +162,7 @@ export function HomePingNudge() {
               <Text style={{ color: "#1A0810", fontWeight: "800" }}>Open Thought pings</Text>
             </Pressable>
             <Pressable
-              onPress={() => {
-                setOpen(false);
-                void markSeen();
-              }}
+              onPress={() => void close()}
               hitSlop={8}
               style={{ marginTop: 10, alignItems: "center" }}
             >
@@ -200,7 +170,39 @@ export function HomePingNudge() {
             </Pressable>
           </Pressable>
         </Pressable>
-      </Modal>
-    </>
+      ) : (
+        <Pressable
+          onPress={() => setOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Click me. ${them} sent ${meta.label}`}
+          hitSlop={10}
+          style={{
+            position: "absolute",
+            left: 16,
+            top: 10,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            paddingVertical: 7,
+            paddingHorizontal: 10,
+            borderRadius: 999,
+            backgroundColor: meta.color,
+            maxWidth: 118,
+          }}
+        >
+          <Ionicons name={meta.icon} size={14} color="#1A0810" />
+          <Text
+            style={{
+              color: "#1A0810",
+              fontSize: 12,
+              fontWeight: "800",
+            }}
+            numberOfLines={1}
+          >
+            Click me
+          </Text>
+        </Pressable>
+      )}
+    </View>
   );
 }

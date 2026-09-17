@@ -105,6 +105,10 @@ export default function HomeScreen() {
   }, [mini.worldChoice, layout.showWorld]);
   const favoriteGap = 8;
   const favoriteBox = 72;
+  const favoriteSlots = layout.favoriteSlots;
+  const rhythmSize =
+    favoriteSlots <= 4 ? 72 : Math.max(42, 72 - (favoriteSlots - 4) * 8);
+  const rhythmIcon = Math.round(rhythmSize * 0.46);
 
   const appsByHub = useMemo(() => {
     const used = new Set(favorites.filter(Boolean) as string[]);
@@ -220,9 +224,6 @@ export default function HomeScreen() {
             minHeight: 44,
           }}
         >
-          <View style={{ position: "absolute", left: 0, top: 2 }}>
-            <HomePingNudge />
-          </View>
           <DuomaLogo size={44} />
           <View style={{ position: "absolute", right: 0, top: 2 }}>
             <HomeNotificationsBell onStartSpicy={() => void startSpicy()} />
@@ -389,9 +390,9 @@ export default function HomeScreen() {
             >
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  width: rhythmSize,
+                  height: rhythmSize,
+                  borderRadius: rhythmSize / 2,
                   backgroundColor: `${widget.accent}22`,
                   borderWidth: 1,
                   borderColor: `${widget.accent}66`,
@@ -399,13 +400,17 @@ export default function HomeScreen() {
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={widget.icon} size={22} color={widget.accent} />
+                <Ionicons
+                  name={widget.icon}
+                  size={rhythmIcon}
+                  color={widget.accent}
+                />
               </View>
               <Text
                 style={{
                   marginTop: 6,
                   color: "#F4F4F6",
-                  fontSize: 11,
+                  fontSize: favoriteSlots <= 4 ? 12 : 11,
                   fontWeight: "700",
                   textAlign: "center",
                 }}
@@ -698,6 +703,7 @@ export default function HomeScreen() {
         </Pressable>
       </Modal>
     </Screen>
+    <HomePingNudge />
     {!settingsOpen && !statsOpen ? (
       <HomeNotificationCards onStartSpicy={() => void startSpicy()} />
     ) : null}

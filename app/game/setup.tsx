@@ -231,7 +231,7 @@ export default function SetupScreen() {
               {
                 id: "simple" as const,
                 label: "Keep it simple",
-                hint: "Foreplay, Step it up, Finish Off. Shared cards. Flip until you go on.",
+                hint: "Foreplay, Step it up, Finish Off, Afterglow. Shared cards. Flip until you go on.",
               },
               {
                 id: "detailed" as const,

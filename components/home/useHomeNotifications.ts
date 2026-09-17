@@ -72,7 +72,6 @@ export function useHomeNotifications(onStartSpicy: () => void) {
         dateNightAsks,
         positionInvites,
         sexyVault: mini.sexyVault,
-        sparkAsks: mini.spark?.asks,
         calendarReminders,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
     [
