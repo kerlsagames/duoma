@@ -21,6 +21,7 @@ import {
   type PositionCategoryId,
   type SexPosition,
 } from "@/lib/sex-positions";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import {
   myPlayRating,
@@ -58,7 +59,7 @@ export default function PositionsScreen() {
   } = useApp();
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const look = useAppLook("positions", T.accent, {});
-  const partnerName = partner?.displayName ?? "them";
+  const partnerName = themLabel(partner);
   const [tab, setTab] = useState<Tab>("pick");
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -272,7 +273,7 @@ export default function PositionsScreen() {
             color: T.muted,
           }}
         >
-          Save positions to To-do. Tick them off when you try them. Tap one to ask{" "}
+          Save positions to Favourites. Tick them off when you try them. Tap one to ask{" "}
           {partnerName} tonight.
         </Text>
 
@@ -295,7 +296,7 @@ export default function PositionsScreen() {
                   { id: "pick" as const, label: "Pick" },
                   {
                     id: "todo" as const,
-                    label: `To-do / Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
+                    label: `Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
                   },
                   { id: "done" as const, label: "Completed" },
                 ]}
@@ -417,7 +418,7 @@ export default function PositionsScreen() {
                   fontWeight: "600",
                 }}
               >
-                Saved to To-do / Favourites.
+                Saved to Favourites.
               </Text>
             ) : null}
 
@@ -1087,7 +1088,7 @@ function PositionDone({
   if (!saves.length) {
     return (
       <Text style={{ color: T.muted, fontSize: 14, lineHeight: 20 }}>
-        Tick a pose off To-do and it lands here.
+        Tick a pose off Favourites and it lands here.
       </Text>
     );
   }

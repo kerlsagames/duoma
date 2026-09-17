@@ -19,6 +19,7 @@ import {
   type CouponIdea,
   type CouponUseOptionId,
 } from "@/lib/couponIdeas";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type { Coupon } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -341,7 +342,7 @@ function PageTabs({
 export default function CouponsScreen() {
   const { coupons, user, partner, createCoupon, acceptCoupon, redeemCoupon } =
     useApp();
-  const partnerName = partner?.displayName ?? "them";
+  const partnerName = themLabel(partner);
 
   const [tab, setTab] = useState<Tab>("give");
   const [categoryId, setCategoryId] = useState<CouponCategoryId | null>(null);

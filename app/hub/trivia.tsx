@@ -24,6 +24,7 @@ import {
   type KnowMePack,
   type PackFaceOff,
 } from "@/lib/know-me";
+import { themLabel, youLabel } from "@/lib/names";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,8 +42,8 @@ export default function TriviaScreen() {
   const { user, partner } = useApp();
   const { data, patch } = useMiniApps();
   const scrollRef = useRef<ScrollView>(null);
-  const you = user?.displayName || "You";
-  const them = partner?.displayName || "them";
+  const you = youLabel(user);
+  const them = themLabel(partner);
 
   const [view, setView] = useState<ViewMode>("shop");
   const look = useAppLook("trivia", KNOW_ME_TONE.foil, {

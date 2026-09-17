@@ -19,6 +19,7 @@ import {
   type Roleplay,
   type RoleplayCategoryId,
 } from "@/lib/roleplays";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type { RoleplayInvite, RoleplaySave } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -44,7 +45,7 @@ export default function RoleplaysScreen() {
     markRoleplaySaveDone,
   } = useApp();
 
-  const partnerName = partner?.displayName ?? "them";
+  const partnerName = themLabel(partner);
   const cast = useMemo(
     () => roleplayCastNames(user, partner),
     [partner, user]
@@ -249,7 +250,7 @@ export default function RoleplaysScreen() {
               { id: "spin" as const, label: "Spin" },
               {
                 id: "todo" as const,
-                label: `To-do / Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
+                label: `Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
               },
               { id: "done" as const, label: "Completed" },
             ]}
@@ -345,7 +346,7 @@ export default function RoleplaysScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    Saved to To-do / Favourites.
+                    Saved to Favourites.
                   </Text>
                 ) : null}
 
@@ -824,7 +825,7 @@ function RoleplayDone({
   if (!saves.length) {
     return (
       <Text style={{ color: T.muted, fontSize: 14, lineHeight: 20 }}>
-        Tick a scene off To-do and it lands here.
+        Tick a scene off Favourites and it lands here.
       </Text>
     );
   }

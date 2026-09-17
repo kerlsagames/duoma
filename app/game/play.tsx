@@ -11,6 +11,7 @@ import {
   resolveCardGenders,
   resolveCardNames,
 } from "@/lib/personalize";
+import { themLabel, themLabelTitle } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -42,6 +43,8 @@ export default function PlayScreen() {
     user,
     partner,
   } = useApp();
+  const them = themLabel(partner);
+  const themTitle = themLabelTitle(partner, "Partner");
 
   const [error, setError] = useState<string | null>(null);
   const [animating, setAnimating] = useState(false);
@@ -341,7 +344,7 @@ export default function PlayScreen() {
       <Screen>
         <FinishReveal
           youName={user?.displayName ?? "You"}
-          partnerName={partner?.displayName ?? "Partner"}
+          partnerName={themTitle}
           revealedName={finishName}
           afterglowName={afterglowName}
           onReveal={() => resolveFinishReveal()}
@@ -534,7 +537,7 @@ export default function PlayScreen() {
                     ? "M — your turn is coming…"
                     : myTurn
                       ? "Shuffling your deck…"
-                      : `Waiting on ${partner?.displayName ?? "them"}`
+                      : `Waiting on ${them}`
             }
             emptyBody={
               simplePace && game?.finishAwaitingMale
@@ -545,11 +548,11 @@ export default function PlayScreen() {
                     ? "She came. This next hand is how he finishes."
                     : myTurn
                       ? "Cards will deal to you in a moment. Pick one when they land."
-                      : `${partner?.displayName ?? "Your partner"} is choosing. Hang tight.`
+                      : `${themTitle === "Partner" ? "Your partner" : themTitle} is choosing. Hang tight.`
             }
           
             conceal={concealPreForeplay}
-            concealTitle={`${partner?.displayName ?? "They"} played a daytime tease`}
+            concealTitle={`${themLabelTitle(partner, "They")} played a daytime tease`}
             concealBody="You will see the card when you both move on to the night."
           />
         )}
@@ -564,7 +567,7 @@ export default function PlayScreen() {
                 ? "Live card"
                 : myTurn
                   ? "Your turn"
-                  : `${partner?.displayName ?? "Partner"}'s turn`}
+                  : `${themTitle}'s turn`}
           </Text>
           {simplePace ? null : (
             <Text className="text-[13px] text-mist/50">

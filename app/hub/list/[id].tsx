@@ -14,6 +14,7 @@ import {
   scoreLabel,
   starterDef,
 } from "@/lib/lists";
+import { themLabel, themLabelTitle } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
@@ -216,6 +217,8 @@ export default function ListDetailScreen() {
     rateListEntry,
     reopenListEntry,
   } = useApp();
+  const them = themLabel(partner);
+  const themTitle = themLabelTitle(partner);
 
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -343,7 +346,7 @@ export default function ListDetailScreen() {
             entry.createdBy === user?.id
               ? "you"
               : entry.createdBy === partner?.id
-                ? partner?.displayName ?? "them"
+                ? them
                 : null;
           return (
             <NotepadRow
@@ -389,7 +392,7 @@ export default function ListDetailScreen() {
             const scoreBits = [
               `Avg ${scoreLabel(avg)}`,
               `You ${mine ? scoreLabel(mine.stars) : "—"}`,
-              `${partner?.displayName ?? "Them"} ${
+              `${themTitle} ${
                 theirs ? scoreLabel(theirs.stars) : "—"
               }`,
             ].join(" · ");
@@ -402,7 +405,7 @@ export default function ListDetailScreen() {
                     [
                       doneOn ? `${copy.doneLabel} · ${doneOn}` : null,
                       `You ${mine ? scoreLabel(mine.stars) : "—"}`,
-                      `${partner?.displayName ?? "Them"} ${
+                      `${themTitle} ${
                         theirs ? scoreLabel(theirs.stars) : "—"
                       }`,
                     ]
@@ -638,7 +641,7 @@ export default function ListDetailScreen() {
               }}
             >
               Rate from 0 to 10 (decimals ok).{" "}
-              {partner?.displayName ?? "Your partner"} can add theirs too.
+              {themTitle === "Them" ? "Your partner" : themTitle} can add theirs too.
             </Text>
             <View style={{ marginTop: 18 }}>
               <ScoreSlider

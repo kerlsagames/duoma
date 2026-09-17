@@ -173,7 +173,7 @@ export const HUBS: HubDef[] = [
       {
         id: "roleplays",
         label: "Roleplays",
-        detail: "Spin scenes. Save to To-do. Tick them off.",
+        detail: "Spin scenes. Heart them. Tick them off.",
         icon: "sparkles",
         href: "/hub/roleplays",
       },
@@ -311,7 +311,7 @@ export const HUBS: HubDef[] = [
       {
         id: "countdowns",
         label: "Countdowns",
-        detail: "Special dates. Star one for the home ticker, or run them all.",
+        detail: "Days you’re counting down to.",
         icon: "timer",
         href: "/hub/milestones",
       },

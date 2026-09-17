@@ -62,7 +62,7 @@ export const DEFAULT_REMINDER_LEADS: Record<ReminderTargetKind, ReminderLead[]> 
   birthday: ["1d"],
   custom: [],
   trip: ["1d"],
-  job: ["1d"],
+  job: [],
 };
 
 const ALL_DAY_HOUR = 9;
@@ -285,6 +285,7 @@ export function buildCalendarReminders(input: {
   }
 
   for (const row of input.jobs) {
+    if (!row.lastDone) continue;
     const dateKey = jobDueDateKey(row.lastDone, row.everyDays);
     if (daysUntil(dateKey, now) < -1) continue;
     pushReminder(items, {

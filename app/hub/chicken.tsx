@@ -24,6 +24,7 @@ import {
   type ChickenPlay,
   type ChickenYardId,
 } from "@/lib/chicken";
+import { themLabelTitle, youLabel } from "@/lib/names";
 import { useAppLook } from "@/lib/app-prefs";
 import { useApp } from "@/lib/store";
 import { useMemo, useState } from "react";
@@ -41,8 +42,8 @@ export default function ChickenScreen() {
     respondChickenDare,
     completeChickenDare,
   } = useApp();
-  const you = user?.displayName || "You";
-  const them = partner?.displayName || "Them";
+  const you = youLabel(user);
+  const them = themLabelTitle(partner);
   const [tab, setTab] = useState<Tab>("coop");
   const [yardId, setYardId] = useState<ChickenYardId | null>(null);
   const [packId, setPackId] = useState<ChickenPackId | null>(null);

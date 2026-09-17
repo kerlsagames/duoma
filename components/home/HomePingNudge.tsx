@@ -2,6 +2,7 @@ import { LOVEBETZ_SCRIPT } from "@/lib/app-themes";
 import { formatRelativeWhen } from "@/lib/dates";
 import { useMiniApps } from "@/lib/mini-apps";
 import { PING_KINDS } from "@/lib/mini-content";
+import { themLabelTitle } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -72,7 +73,7 @@ export function HomePingNudge() {
   if (!couple || !ping || !meta || seenId === ping.id) return null;
 
   const when = formatRelativeWhen(ping.createdAt);
-  const them = partner?.displayName || "Them";
+  const them = themLabelTitle(partner);
 
   return (
     <View

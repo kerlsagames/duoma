@@ -295,7 +295,7 @@ export function buildBetStatement(input: {
   }
   const clause = whoClause(marked);
   if (input.mode === "name") {
-    const who = (input.subject || "them").trim();
+    const who = (input.subject?.trim() || input.them || "them").trim();
     return `${input.me} bets that ${who} ${clause}.`;
   }
   const who =

@@ -99,7 +99,7 @@ function gameAlert(input: {
   const gameId = `game-${game.status}${game.awaitingPrivate ? "-private" : ""}`;
 
   if (game.status === "inviting") {
-    return { id: gameId, line: "Spicy Game · waiting on them", when: "Now", href: "/(tabs)", sortAt };
+    return { id: gameId, line: `Spicy Game · waiting on ${input.partner?.displayName?.trim() || "them"}`, when: "Now", href: "/(tabs)", sortAt };
   }
   if (game.status === "setup") {
     return { id: gameId, line: "Spicy Game · finish setup", when: "Now", href, sortAt };

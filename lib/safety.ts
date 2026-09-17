@@ -1,10 +1,10 @@
 import type { AppDB } from "@/lib/types";
-import { emptyMiniState } from "@/lib/mini-content";
 import { nowIso } from "@/lib/ids";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 export const MINI_APPS_KEY = "duoma:miniApps:v1";
+const MINI_APPS_PREFIX = "duoma:miniApps:v1:";
 export const MEDIA_COUPLE_KEY = "duoma:mediaCouple";
 export const SAFETY_EVENT_KEY = "duoma:safety:event";
 export const REPORTS_KEY = "duoma:contentReports:v1";
@@ -39,13 +39,30 @@ async function wipeIndexedDb(name: string): Promise<void> {
   });
 }
 
+async function wipeMiniAppKeys(): Promise<void> {
+  const store = webStore();
+  if (store) {
+    const keys: string[] = [];
+    for (let i = 0; i < store.length; i += 1) {
+      const key = store.key(i);
+      if (key === MINI_APPS_KEY || (key && key.startsWith(MINI_APPS_PREFIX))) {
+        keys.push(key);
+      }
+    }
+    for (const key of keys) store.removeItem(key);
+    return;
+  }
+  const all = await AsyncStorage.getAllKeys();
+  const keys = all.filter(
+    (key) => key === MINI_APPS_KEY || key.startsWith(MINI_APPS_PREFIX)
+  );
+  await Promise.all(keys.map((key) => AsyncStorage.removeItem(key)));
+}
+
 export async function wipeLocalMediaCaches(): Promise<void> {
   await wipeIndexedDb(SEXY_VAULT_DB);
   await wipeIndexedDb(VOICE_DB);
-  const empty = JSON.stringify(emptyMiniState());
-  const store = webStore();
-  if (store) store.setItem(MINI_APPS_KEY, empty);
-  else await AsyncStorage.setItem(MINI_APPS_KEY, empty);
+  await wipeMiniAppKeys();
 }
 
 export function broadcastSafetyEvent(event: SafetyEvent): void {

@@ -34,6 +34,7 @@ import {
   DATE_NIGHT_PREFS_KEY,
   usePlayRatingsPrefs,
 } from "@/lib/play-prefs";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type {
   BucketItem,
@@ -151,7 +152,7 @@ export default function PlannerScreen() {
     hideMarquee: false,
   });
   const accent = () => look.accent;
-  const partnerName = partner?.displayName ?? "them";
+  const partnerName = themLabel(partner);
   const today = localDateKey();
 
   const [tab, setTab] = useState<Tab>("ideas");

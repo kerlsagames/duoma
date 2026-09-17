@@ -123,6 +123,31 @@ export function HomeNotificationCards({
         }}
       />
 
+      <Pressable
+        onPress={() =>
+          persist(dismissNotificationIds(prefs, rows.map((row) => row.id)))
+        }
+        accessibilityRole="button"
+        accessibilityLabel="Clear all notifications"
+        style={{
+          marginBottom: 14,
+          height: 36,
+          paddingHorizontal: 16,
+          borderRadius: 18,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(18,18,24,0.92)",
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.16)",
+          zIndex: 2,
+        }}
+      >
+        <Text style={{ color: "#F4F4F6", fontSize: 13, fontWeight: "800" }}>
+          Clear all
+        </Text>
+      </Pressable>
+
+      <View style={{ width: size, height: size }}>
       {rest > 0 ? (
         <View
           pointerEvents="none"
@@ -262,6 +287,7 @@ export function HomeNotificationCards({
           behind the card.
         </Text>
       </Animated.View>
+      </View>
     </View>
   );
 }

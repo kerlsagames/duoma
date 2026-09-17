@@ -876,12 +876,7 @@ export function emptyMiniState(): MiniState {
     trips: [],
     goals: defaultGoals(),
     budget: emptyBudget(),
-    maintenance: DEFAULT_MAINT.map((row) => ({
-      id: createId(),
-      label: row.label,
-      everyDays: row.everyDays,
-      lastDone: null,
-    })),
+    maintenance: [],
     vault: DEFAULT_VAULT.map((row) => ({ ...row })),
     vaultPin: "",
     vaultSkipPin: false,

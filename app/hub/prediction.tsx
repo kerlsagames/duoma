@@ -29,6 +29,7 @@ import {
   type BetPromptCategory,
   type BetStakeCategory,
 } from "@/lib/bets";
+import { themLabel, youLabel } from "@/lib/names";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import type { Prediction } from "@/lib/mini-content";
@@ -74,8 +75,8 @@ export default function PredictionScreen() {
   const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  const them = partner?.displayName || "them";
-  const me = user?.displayName || "You";
+  const them = themLabel(partner);
+  const me = youLabel(user);
 
   const incoming = data.predictions.filter(
     (row) => row.status === "offered" && user && row.toUserId === user.id

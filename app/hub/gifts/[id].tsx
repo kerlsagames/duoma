@@ -20,6 +20,7 @@ import {
   currentGiftYear,
   ensurePrivatePerson,
   formatGiftDate,
+  giftPersonLabel,
   giftYearChoices,
   GIFT_OCCASIONS,
   givenItems,
@@ -33,6 +34,7 @@ import {
   type GiftItem,
   type GiftLane,
   type GiftOccasionId,
+  type GiftPerson,
 } from "@/lib/gifts";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
@@ -47,9 +49,15 @@ type AddDest = "wish" | "shop" | "bought" | "given";
 export default function GiftPersonScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user } = useApp();
+  const { user, partner } = useApp();
   const { data, patch } = useMiniApps();
   const person = data.giftPeople.find((row) => row.id === id) ?? null;
+  const nameOf = (row: GiftPerson) =>
+    giftPersonLabel(row, {
+      you: user?.displayName,
+      them: partner?.displayName,
+    });
+  const liveName = person ? nameOf(person) : "";
 
   const [sheet, setSheet] = useState<Sheet>(null);
   const [lane, setLane] = useState<GiftLane>("shop");
@@ -223,9 +231,9 @@ export default function GiftPersonScreen() {
   const shopHeading =
     person.slot === "you"
       ? "Coming your way"
-      : `Getting for ${person.name}`;
+      : `Getting for ${liveName}`;
   const wishHeading =
-    person.slot === "you" ? "Your wish list" : `${person.name}’s wish list`;
+    person.slot === "you" ? "Your wish list" : `${liveName}’s wish list`;
 
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
@@ -294,7 +302,7 @@ export default function GiftPersonScreen() {
                   color: T.ink,
                 }}
               >
-                {person.name}
+                {liveName}
               </Text>
             </View>
           </View>
@@ -338,7 +346,7 @@ export default function GiftPersonScreen() {
               items={bought}
               onGive={(item) => {
                 setGiveId(item.id);
-                setGiveFrom(person.slot === "you" ? person.name : "Us");
+                setGiveFrom(person.slot === "you" ? liveName : "Us");
                 setGiveDate(localDateKey());
                 setGiveOccasion(
                   item.occasion === "just-because" ? "birthday" : item.occasion
@@ -377,7 +385,7 @@ export default function GiftPersonScreen() {
             onAdd={() => openAdd("wish")}
             onGive={(item) => {
               setGiveId(item.id);
-              setGiveFrom(person.slot === "you" ? person.name : "Us");
+              setGiveFrom(person.slot === "you" ? liveName : "Us");
               setGiveDate(localDateKey());
               setGiveOccasion(
                 item.occasion === "just-because" ? "birthday" : item.occasion
@@ -534,7 +542,7 @@ export default function GiftPersonScreen() {
               style={{ marginTop: 28, alignSelf: "flex-start" }}
             >
               <Text style={{ color: T.ribbon, fontWeight: "700" }}>
-                Remove {person.name}
+                Remove {liveName}
               </Text>
             </Pressable>
           ) : null}
@@ -831,7 +839,7 @@ export default function GiftPersonScreen() {
       />
       <ConfirmDialog
         open={removePerson}
-        title={`Remove ${person.name}?`}
+        title={`Remove ${liveName}?`}
         body="Their wish list, shopping list, and logged gifts go with them."
         confirmLabel="Remove"
         onConfirm={() => void confirmRemovePerson()}

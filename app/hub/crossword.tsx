@@ -24,6 +24,7 @@ import {
 } from "@/lib/daily-word";
 import { formatClockTime, formatLongDate, localDateKey } from "@/lib/dates";
 import { themedTone } from "@/lib/hub-theme";
+import { themLabel, youLabel } from "@/lib/names";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,8 +37,8 @@ export default function DailyWordScreen() {
   const { data, ready, patch } = useMiniApps();
   const youId = user?.id ?? "you";
   const themId = partner?.id ?? "partner";
-  const youName = user?.displayName || "You";
-  const themName = partner?.displayName || "Partner";
+  const youName = youLabel(user);
+  const themName = themLabel(partner);
   const dateKey = localDateKey();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);

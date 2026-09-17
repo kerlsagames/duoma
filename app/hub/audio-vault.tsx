@@ -8,6 +8,7 @@ import { sectionAccent } from "@/lib/hub-theme";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { type AudioFolder, type AudioNote } from "@/lib/mini-content";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import {
   abandonRecorder,
@@ -96,7 +97,7 @@ export default function AudioVaultScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
-  const them = partner?.displayName || "them";
+  const them = themLabel(partner);
   const notes = useMemo(
     () => data.audioNotes.filter((row) => row.folder === folder && row.hasAudio),
     [data.audioNotes, folder]

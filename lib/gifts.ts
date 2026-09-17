@@ -92,6 +92,15 @@ export const PERSON_EMOJIS = [
   "🧁",
 ];
 
+export function giftPersonLabel(
+  person: GiftPerson,
+  names: { you?: string | null; them?: string | null }
+): string {
+  if (person.slot === "you") return names.you?.trim() || person.name;
+  if (person.slot === "them") return names.them?.trim() || person.name;
+  return person.name;
+}
+
 export function emptyGifts(): { people: GiftPerson[]; items: GiftItem[] } {
   return { people: [], items: [] };
 }

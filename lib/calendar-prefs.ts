@@ -174,6 +174,15 @@ export function hydrateCalendarPrefs(
     itemLeads[key] = hydrateReminderLeads(value);
   }
 
+  const hasCustomJobItems = Object.keys(itemLeads).some((key) =>
+    key.startsWith("job:")
+  );
+  const jobLeads = defaultLeads.job;
+  const oldJobDefault = jobLeads.length === 1 && jobLeads[0] === "1d";
+  if (!hasCustomJobItems && oldJobDefault) {
+    defaultLeads.job = [];
+  }
+
   return {
     enabledKinds,
     listMode: raw.listMode === "all" ? "all" : "preview",

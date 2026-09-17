@@ -20,6 +20,7 @@ import {
   type SexyVaultItem,
   type SexyVaultKind,
 } from "@/lib/sexy-vault";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { ComboPad } from "@/components/ui/ComboPad";
 import { isVaultPin, vaultPinHint } from "@/lib/vault-pin";
@@ -82,7 +83,7 @@ export default function SexyVaultScreen() {
   const [attested, setAttested] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
-  const them = partner?.displayName || "them";
+  const them = themLabel(partner);
 
   useEffect(() => {
     const tick = setInterval(() => setNow(Date.now()), 15000);

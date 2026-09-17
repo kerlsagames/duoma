@@ -55,7 +55,7 @@ import {
   type ContentReport,
   type ReportReasonId,
 } from "@/lib/reports";
-import { wipeMiniApps } from "@/lib/mini-apps";
+import { bindMiniAppsCouple, wipeMiniApps } from "@/lib/mini-apps";
 import {
   registerDuomaWorker,
   sendPushToSubscriptions,
@@ -1006,6 +1006,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [version]
   );
   const couple = useMemo(() => coupleForUser(sessionUserId), [version]);
+  useEffect(() => {
+    void bindMiniAppsCouple(couple?.id ?? null);
+  }, [couple?.id]);
   const partner = useMemo(() => {
     if (!couple || !user) return null;
     const partnerId = otherUserId(couple, user.id);

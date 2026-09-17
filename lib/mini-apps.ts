@@ -2,8 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { emptyMiniState, hydrateMiniState, type MiniState } from "@/lib/mini-content";
 
-const KEY = "duoma:miniApps:v1";
+export const MINI_APPS_LEGACY_KEY = "duoma:miniApps:v1";
+const PREFIX = "duoma:miniApps:v1:";
 
+let activeCoupleId: string | null | undefined;
 let cache: MiniState | null = null;
 const listeners = new Set<(state: MiniState) => void>();
 
@@ -12,15 +14,108 @@ function emit(state: MiniState) {
   listeners.forEach((fn) => fn(state));
 }
 
+function storageKey(coupleId: string | null): string {
+  return `${PREFIX}${coupleId || "local"}`;
+}
+
+function isMiniAppsKey(key: string | null | undefined): boolean {
+  return Boolean(
+    key && (key === MINI_APPS_LEGACY_KEY || key.startsWith(PREFIX))
+  );
+}
+
+function resetJobLastDone(state: MiniState): MiniState {
+  let changed = false;
+  const maintenance = state.maintenance.map((row) => {
+    if (!row.lastDone) return row;
+    changed = true;
+    return { ...row, lastDone: null };
+  });
+  return changed ? { ...state, maintenance } : state;
+}
+
+async function readKey(key: string): Promise<string | null> {
+  if (typeof localStorage !== "undefined") {
+    return localStorage.getItem(key);
+  }
+  return AsyncStorage.getItem(key);
+}
+
+async function writeKey(key: string, raw: string): Promise<void> {
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(key, raw);
+    return;
+  }
+  await AsyncStorage.setItem(key, raw);
+}
+
+async function removeKey(key: string): Promise<void> {
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem(key);
+    return;
+  }
+  await AsyncStorage.removeItem(key);
+}
+
+async function listMiniKeys(): Promise<string[]> {
+  if (typeof localStorage !== "undefined") {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (isMiniAppsKey(key)) keys.push(key as string);
+    }
+    return keys;
+  }
+  const all = await AsyncStorage.getAllKeys();
+  return all.filter((key) => isMiniAppsKey(key));
+}
+
+async function parseState(raw: string | null): Promise<MiniState | null> {
+  if (!raw) return null;
+  try {
+    return hydrateMiniState(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
 export async function loadMiniState(): Promise<MiniState> {
   if (cache) return cache;
+  if (activeCoupleId === undefined) {
+    cache = emptyMiniState();
+    return cache;
+  }
+  const key = storageKey(activeCoupleId);
   try {
-    const raw = await AsyncStorage.getItem(KEY);
-    cache = raw ? hydrateMiniState(JSON.parse(raw)) : emptyMiniState();
+    const scoped = await parseState(await readKey(key));
+    if (scoped) {
+      cache = scoped;
+      return cache;
+    }
+    if (activeCoupleId) {
+      const legacy = await parseState(await readKey(MINI_APPS_LEGACY_KEY));
+      if (legacy) {
+        const migrated = resetJobLastDone(legacy);
+        cache = migrated;
+        await writeKey(key, JSON.stringify(migrated));
+        await removeKey(MINI_APPS_LEGACY_KEY);
+        return cache;
+      }
+    }
+    cache = emptyMiniState();
   } catch {
     cache = emptyMiniState();
   }
   return cache;
+}
+
+export async function bindMiniAppsCouple(coupleId: string | null): Promise<MiniState> {
+  if (activeCoupleId === coupleId && cache) return cache;
+  activeCoupleId = coupleId;
+  cache = null;
+  const next = await loadMiniState();
+  emit(next);
+  return next;
 }
 
 export async function patchMini(
@@ -29,8 +124,9 @@ export async function patchMini(
   const current = await loadMiniState();
   const next = fn(current);
   emit(next);
+  if (activeCoupleId === undefined) return next;
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(next));
+    await writeKey(storageKey(activeCoupleId), JSON.stringify(next));
   } catch {
     // Keep the in-memory update even if disk fails.
   }
@@ -41,7 +137,8 @@ export async function wipeMiniApps(): Promise<MiniState> {
   cache = emptyMiniState();
   emit(cache);
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(cache));
+    const keys = await listMiniKeys();
+    await Promise.all(keys.map((key) => removeKey(key)));
   } catch {
     // In-memory empty still applies.
   }
@@ -55,19 +152,24 @@ export async function reloadMiniFromDisk(): Promise<MiniState> {
 
 export function useMiniApps() {
   const [data, setData] = useState<MiniState>(cache ?? emptyMiniState());
-  const [ready, setReady] = useState(Boolean(cache));
+  const [ready, setReady] = useState(Boolean(cache) && activeCoupleId !== undefined);
 
   useEffect(() => {
-    const onChange = (state: MiniState) => setData(state);
-    listeners.add(onChange);
-    let alive = true;
-    loadMiniState().then((state) => {
-      if (!alive) return;
+    const onChange = (state: MiniState) => {
       setData(state);
       setReady(true);
-    });
+    };
+    listeners.add(onChange);
+    let alive = true;
+    if (activeCoupleId !== undefined) {
+      loadMiniState().then((state) => {
+        if (!alive) return;
+        setData(state);
+        setReady(true);
+      });
+    }
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== KEY && event.key !== "duoma:safety:event") return;
+      if (!isMiniAppsKey(event.key) && event.key !== "duoma:safety:event") return;
       void reloadMiniFromDisk().then((state) => {
         if (alive) setData(state);
       });

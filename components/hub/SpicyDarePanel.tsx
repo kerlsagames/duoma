@@ -17,6 +17,7 @@ import {
   type SpicyDareCategory,
 } from "@/lib/spicy-dares";
 import { openDareSave } from "@/lib/play-items";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type { SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -157,6 +158,7 @@ export function SpicyDarePanel({
     youGender: user?.gender,
     themGender: partner?.gender,
   };
+  const them = themLabel(partner);
   const showDare = (text: string) => personalizeDareText(text, names);
 
   const openFavs = dareSaves.filter((row) => !row.doneAt);
@@ -314,6 +316,52 @@ export function SpicyDarePanel({
     setError(null);
   };
 
+  const goFavs = () => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
+    setCompose(null);
+    setCategory(null);
+    setPicked(null);
+    setView("favs");
+    setError(null);
+  };
+
+  const goSent = () => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
+    setCompose(null);
+    setCategory(null);
+    setPicked(null);
+    setView("sent");
+    setError(null);
+  };
+
+  const goReceived = () => {
+    clearSpin();
+    setSpinning(false);
+    setFlashText(null);
+    setCompose(null);
+    setCategory(null);
+    setPicked(null);
+    setView("received");
+    setError(null);
+  };
+
+  const nav = (
+    <DareNav
+      current={view}
+      favCount={openFavs.length}
+      sentCount={sentOpenCount}
+      receivedCount={receivedWaitingCount}
+      onFavs={goFavs}
+      onSend={goSend}
+      onSent={goSent}
+      onReceived={goReceived}
+    />
+  );
+
   useEffect(() => {
     if (!onBindBack) return;
     onBindBack(() => {
@@ -348,6 +396,7 @@ export function SpicyDarePanel({
   if (view === "compose" && compose) {
     return (
       <View>
+        {nav}
         <Pressable onPress={() => {
           if (category) {
             setCompose(null);
@@ -457,7 +506,7 @@ export function SpicyDarePanel({
         ) : null}
 
         <CalendarDateField
-          label="Day to try this"
+          label="Night you want"
           value={askOn}
           onChange={setAskOn}
           accent={T.accent}
@@ -467,7 +516,7 @@ export function SpicyDarePanel({
           allowClear={false}
         />
         <Text style={{ marginTop: 10, fontSize: 13, color: T.muted }}>
-          They get a request to try this on {formatLongDate(askOn || today)}. A yes
+          {them} gets a request to try this on {formatLongDate(askOn || today)}. A yes
           drops it on the calendar.
         </Text>
 
@@ -476,7 +525,7 @@ export function SpicyDarePanel({
         ) : null}
         <View className="mt-5">
           <PrimaryButton
-            label={`Ask them for ${formatLongDate(askOn || today)}`}
+            label={`Ask ${them} for ${formatLongDate(askOn || today)}`}
             tone="teal"
             loading={loading}
             onPress={() => void send()}
@@ -489,6 +538,7 @@ export function SpicyDarePanel({
   if (view === "category" && category) {
     return (
       <View>
+        {nav}
         <Pressable onPress={goSend} className="mb-4 flex-row items-center">
           <Ionicons name="chevron-back" size={18} color={T.accent} />
           <Text
@@ -723,14 +773,15 @@ export function SpicyDarePanel({
     const rows = isSent ? sent : received;
     return (
       <View>
+        {nav}
         <BackLink label="Challenges & Dares" onPress={goHub} />
         <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
           {isSent ? "Sent dares" : "Dares received"}
         </Text>
         <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
           {isSent
-            ? "Everything you've thrown their way."
-            : `What ${partner?.displayName ?? "they"} sent you.`}
+            ? `Everything you've thrown ${them}'s way.`
+            : `What ${them} sent you.`}
         </Text>
         {error ? (
           <Text style={{ marginTop: 12, color: T.hot, fontFamily: SERIF }}>{error}</Text>
@@ -742,7 +793,7 @@ export function SpicyDarePanel({
                 key={play.id}
                 play={play}
                 userId={user?.id}
-                partnerName={partner?.displayName ?? "them"}
+                partnerName={them}
                 onRespond={(status) => void respondSpicyDare(play.id, status)}
                 onDone={() => void completeSpicyDare(play.id)}
                 markRead={markSpicyDareRead}
@@ -782,6 +833,7 @@ export function SpicyDarePanel({
   if (view === "send") {
     return (
       <View>
+        {nav}
         <BackLink label="Challenges & Dares" onPress={goHub} />
         <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
           Send a dare
@@ -889,9 +941,10 @@ export function SpicyDarePanel({
   if (view === "favs") {
     return (
       <View>
+        {nav}
         <BackLink label="Challenges & Dares" onPress={goHub} />
         <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
-          To-do / Favourites
+          Favourites
         </Text>
         <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
           Heart a dare while browsing and it lands here until you send it or let it go.
@@ -1002,7 +1055,7 @@ export function SpicyDarePanel({
       <View style={{ gap: 12 }}>
         <HubDoor
           icon="heart-outline"
-          title="To-do / Favourites"
+          title="Favourites"
           detail={
             openFavs.length
               ? `${openFavs.length} saved to try`
@@ -1045,6 +1098,106 @@ export function SpicyDarePanel({
           onPress={() => setView("received")}
         />
       </View>
+    </View>
+  );
+}
+
+function DareNav({
+  current,
+  favCount,
+  sentCount,
+  receivedCount,
+  onFavs,
+  onSend,
+  onSent,
+  onReceived,
+}: {
+  current: ViewMode;
+  favCount: number;
+  sentCount: number;
+  receivedCount: number;
+  onFavs: () => void;
+  onSend: () => void;
+  onSent: () => void;
+  onReceived: () => void;
+}) {
+  const active =
+    current === "category" || current === "compose" ? "send" : current;
+  const items = [
+    { id: "favs" as const, label: "Favourites", onPress: onFavs, badge: favCount },
+    { id: "send" as const, label: "Send a dare", onPress: onSend, badge: 0 },
+    { id: "sent" as const, label: "See sent dares", onPress: onSent, badge: sentCount },
+    {
+      id: "received" as const,
+      label: "Dares received",
+      onPress: onReceived,
+      badge: receivedCount,
+    },
+  ];
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+        marginBottom: 16,
+      }}
+    >
+      {items.map((item) => {
+        const on = active === item.id;
+        return (
+          <Pressable
+            key={item.id}
+            onPress={item.onPress}
+            accessibilityRole="button"
+            accessibilityLabel={item.label}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: on ? T.accent : T.border,
+              backgroundColor: on ? T.accentSoft : T.surface,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                color: on ? T.accent : T.muted,
+              }}
+            >
+              {item.label}
+            </Text>
+            {item.badge ? (
+              <View
+                style={{
+                  minWidth: 18,
+                  height: 18,
+                  paddingHorizontal: 5,
+                  borderRadius: 9,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: T.accent,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "SpaceMono",
+                    fontSize: 10,
+                    color: "#070B10",
+                  }}
+                >
+                  {item.badge}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

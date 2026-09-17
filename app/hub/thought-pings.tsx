@@ -7,6 +7,7 @@ import { formatDateAndTime } from "@/lib/dates";
 import { createId, nowIso } from "@/lib/ids";
 import { useMiniApps } from "@/lib/mini-apps";
 import { PING_KINDS, type PingKind } from "@/lib/mini-content";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -60,7 +61,7 @@ export default function ThoughtPingsScreen() {
   const [openPingId, setOpenPingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const boom = useRef(new Animated.Value(0)).current;
-  const them = partner?.displayName || "them";
+  const them = themLabel(partner);
   const meta = PING_KINDS.find((row) => row.id === kind) ?? PING_KINDS[0]!;
 
   const send = async () => {

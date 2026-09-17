@@ -28,6 +28,7 @@ import {
   givenItems,
   groupedPeople,
   groupGivenByOccasion,
+  giftPersonLabel,
   giftYearChoices,
   kindLabel,
   markGiftBought,
@@ -46,6 +47,7 @@ import {
   yearsInGiftBook,
   type GiftItem,
   type GiftOccasionId,
+  type GiftPerson,
   type GiftPersonKind,
 } from "@/lib/gifts";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -58,10 +60,20 @@ import { Pressable, Text, TextInput, View } from "react-native";
 type Tab = "people" | "wishes" | "book";
 type Sheet = "person" | "log" | "give" | null;
 
+function useGiftPersonName() {
+  const { user, partner } = useApp();
+  return (person: GiftPerson) =>
+    giftPersonLabel(person, {
+      you: user?.displayName,
+      them: partner?.displayName,
+    });
+}
+
 export default function GiftsScreen() {
   const router = useRouter();
   const { user, partner } = useApp();
   const { data, ready, patch } = useMiniApps();
+  const nameOf = useGiftPersonName();
   const [tab, setTab] = useState<Tab>("people");
   const look = useAppLook("gifts", T.gold, {
     hideLedger: false,
@@ -634,7 +646,7 @@ export default function GiftsScreen() {
                                 }}
                               >
                                 {person
-                                  ? `${person.emoji} ${person.name}`
+                                  ? `${person.emoji} ${nameOf(person)}`
                                   : "Someone"}
                               </Text>
                               <Text
@@ -835,7 +847,7 @@ export default function GiftsScreen() {
                       fontSize: 13,
                     }}
                   >
-                    {person.emoji} {person.name}
+                    {person.emoji} {nameOf(person)}
                   </Text>
                 </Pressable>
               );
@@ -1010,6 +1022,7 @@ function ClassicPad({
   onAddBought?: (personId: string, title: string) => void;
   onLogGift?: (personId: string) => void;
 }) {
+  const nameOf = useGiftPersonName();
   const selected =
     (secret && selectedId === secret.id ? secret : null) ??
     people.find((row) => row.id === selectedId) ??
@@ -1048,7 +1061,7 @@ function ClassicPad({
                   fontSize: 13,
                 }}
               >
-                {person.emoji} {person.name}
+                {person.emoji} {nameOf(person)}
               </Text>
             </Pressable>
           );
@@ -1141,6 +1154,7 @@ function PersonGroup({
   onOpen: (id: string) => void;
   onRemove?: (id: string) => void;
 }) {
+  const nameOf = useGiftPersonName();
   return (
     <View>
       <Text
@@ -1195,7 +1209,7 @@ function PersonGroup({
                     }}
                     numberOfLines={1}
                   >
-                    {person.name}
+                    {nameOf(person)}
                     {person.hidden ? "  · secret" : ""}
                   </Text>
                   <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
@@ -1211,7 +1225,7 @@ function PersonGroup({
                   <Pressable
                     onPress={() => onRemove(person.id)}
                     hitSlop={8}
-                    accessibilityLabel={`Remove ${person.name}`}
+                    accessibilityLabel={`Remove ${nameOf(person)}`}
                   >
                     <Ionicons name="trash-outline" size={16} color={T.ribbon} />
                   </Pressable>
@@ -1234,15 +1248,16 @@ function WishCard({
   items: import("@/lib/gifts").GiftItem[];
   onOpen: () => void;
 }) {
+  const nameOf = useGiftPersonName();
   const wishes = items.filter(
     (row) => row.personId === person.id && row.lane === "wish" && row.status === "open"
   );
   const heading =
     person.slot === "you"
-      ? `${person.name} wants`
+      ? `${nameOf(person)} wants`
       : person.slot === "them"
-        ? `${person.name} wants`
-        : `${person.name}’s list`;
+        ? `${nameOf(person)} wants`
+        : `${nameOf(person)}’s list`;
   return (
     <Pressable
       onPress={onOpen}

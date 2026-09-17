@@ -36,6 +36,7 @@ import {
   type SpendCategory,
   type SpendWho,
 } from "@/lib/money";
+import { themLabelTitle } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -91,7 +92,7 @@ export default function BudgetScreen() {
   const [pending, setPending] = useState<PendingDelete>(null);
 
   const me = user?.displayName?.split(" ")[0] || "Me";
-  const them = partner?.displayName?.split(" ")[0] || "Them";
+  const them = themLabelTitle(partner).split(" ")[0] || "Them";
 
   const saveBudget = async (
     fn: (current: typeof budget) => typeof budget

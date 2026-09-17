@@ -97,7 +97,8 @@ export type RoleplayArtKey =
   | "werewolf"
   | "witch"
   | "yoga-studio"
-  | "country-club";
+  | "country-club"
+  | "houseguest";
 
 const CATEGORY_FALLBACK: Record<RoleplayCategoryId, RoleplayArtKey> = {
   professional: "trades",
@@ -197,7 +198,7 @@ const ART_BY_ID: Record<string, RoleplayArtKey> = {
 
   "the-roommate-s-walk-in": "trades",
   "the-landlord-s-master-key": "cop",
-  "the-houseguest-s-late-night": "clinic",
+  "the-houseguest-s-late-night": "houseguest",
   "the-gardener-s-shed": "locker",
   "the-butler-s-service": "butler",
   "the-chauffeur-s-partition": "chauffeur",
@@ -346,6 +347,7 @@ const SOURCES: Record<RoleplayArtKey, ImageSourcePropType> = {
   witch: require("../assets/roleplays/rp-witch.png"),
   "yoga-studio": require("../assets/roleplays/rp-yoga-studio.png"),
   "country-club": require("../assets/roleplays/rp-country-club.png"),
+  houseguest: require("../assets/roleplays/rp-houseguest.png"),
 };
 
 export function roleplayArtSource(

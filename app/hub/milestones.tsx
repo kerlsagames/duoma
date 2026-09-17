@@ -150,7 +150,7 @@ export default function MilestonesScreen() {
         <View style={{ gap: 10 }}>
           {visible.length === 0 ? (
             <Text style={{ color: T.muted, fontSize: 15, lineHeight: 22 }}>
-              Nothing on the clock yet. Add the next thing that matters, then tap it so Home knows which one to count.
+              Nothing on the clock yet.
             </Text>
           ) : (
             visible.map((item) => {
