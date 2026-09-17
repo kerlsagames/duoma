@@ -343,6 +343,24 @@ export default function GiftsScreen() {
                 ...state,
                 giftItems: removeGiftItem(state.giftItems, id),
               }))}
+              onAddBought={(personId, title) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: addGiftItem(state.giftItems, {
+                    personId,
+                    title,
+                    lane: "shop",
+                    occasion: "just-because",
+                    year: currentGiftYear(),
+                    status: "bought",
+                  }),
+                }));
+              }}
+              onLogGift={(personId) => {
+                setError(null);
+                setLogPersonId(personId);
+                setSheet("log");
+              }}
               onSecret={
                 user?.id
                   ? (item) => {
@@ -986,6 +1004,8 @@ function ClassicPad({
   onGive,
   onRemove,
   onSecret,
+  onAddBought,
+  onLogGift,
 }: {
   people: ReturnType<typeof visibleGiftPeople>;
   secret: ReturnType<typeof secretListForUser>;
@@ -999,6 +1019,8 @@ function ClassicPad({
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   onSecret?: (item: GiftItem) => void;
+  onAddBought?: (personId: string, title: string) => void;
+  onLogGift?: (personId: string) => void;
 }) {
   const selected =
     (secret && selectedId === secret.id ? secret : null) ??
@@ -1092,8 +1114,20 @@ function ClassicPad({
           onRemove={onRemove}
           onSecret={steal}
         />
-        <BoughtList items={bought} onGive={onGive} onRemove={onRemove} />
-        <GiftBookList items={given} />
+        <BoughtList
+          items={bought}
+          onGive={onGive}
+          onRemove={onRemove}
+          onAdd={
+            selected && onAddBought
+              ? (title) => onAddBought(selected.id, title)
+              : undefined
+          }
+        />
+        <GiftBookList
+          items={given}
+          onLog={selected && onLogGift ? () => onLogGift(selected.id) : undefined}
+        />
         </>
       ) : (
         <Text style={{ marginTop: 16, fontFamily: SERIF, color: T.muted }}>

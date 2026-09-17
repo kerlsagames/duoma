@@ -44,6 +44,7 @@ export function useCalendarActivities(): CalendarActivity[] {
         trips: data.trips,
         maintenance: data.maintenance,
         period: data.period,
+        intimacy: data.intimacy,
         partner,
         user,
       }),
@@ -64,6 +65,7 @@ export function useCalendarActivities(): CalendarActivity[] {
       data.trips,
       data.maintenance,
       data.period,
+      data.intimacy,
       partner,
       user,
     ]

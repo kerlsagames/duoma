@@ -21,6 +21,8 @@ export type CalendarPrefs = {
   listMode: CalendarListMode;
   layout: CalendarLayout;
   periodPlacement: PeriodPlacement;
+  /** Keep it simple intimacy logs. Off until they turn it on. */
+  showSimpleIntimacy: boolean;
   defaultLeads: Record<ReminderTargetKind, ReminderLead[]>;
   itemLeads: Record<string, ReminderLead[]>;
 };
@@ -109,11 +111,13 @@ export function defaultCalendarPrefs(): CalendarPrefs {
   for (const row of CALENDAR_KIND_OPTIONS) {
     enabledKinds[row.kind] = true;
   }
+  enabledKinds.intimacy = false;
   return {
     enabledKinds,
     listMode: "preview",
     layout: "stack",
     periodPlacement: "off",
+    showSimpleIntimacy: false,
     defaultLeads: {
       birthday: [...DEFAULT_REMINDER_LEADS.birthday],
       custom: [...DEFAULT_REMINDER_LEADS.custom],
@@ -180,6 +184,7 @@ export function hydrateCalendarPrefs(
         ? raw.layout
         : "stack",
     periodPlacement: hydratePeriodPlacement(raw as Record<string, unknown>),
+    showSimpleIntimacy: raw.showSimpleIntimacy === true,
     defaultLeads,
     itemLeads,
   };

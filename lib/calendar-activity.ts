@@ -8,7 +8,8 @@ import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { sexPositions } from "@/lib/sex-positions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import { holidaysAround } from "@/lib/holidays";
-import type { MaintTask, Trip } from "@/lib/mini-content";
+import type { IntimacyLog, MaintTask, Trip } from "@/lib/mini-content";
+import { INTIMACY_KINDS, SIMPLE_INTIMACY_KINDS } from "@/lib/mini-content";
 import {
   FLOW_OPTIONS,
   MOOD_OPTIONS,
@@ -79,7 +80,8 @@ export type CalendarActivityKind =
   | "trip"
   | "job"
   | "period"
-  | "holiday";
+  | "holiday"
+  | "intimacy";
 
 export type CalendarLane = "together" | "life" | "cycle";
 
@@ -112,6 +114,7 @@ export type CalendarActivityInput = {
   trips?: Trip[];
   maintenance?: MaintTask[];
   period?: PeriodState;
+  intimacy?: IntimacyLog[];
   partner: Profile | null;
   user: Profile | null;
 };
@@ -128,6 +131,7 @@ const TOGETHER_KINDS = new Set<CalendarActivityKind>([
   "jar",
   "curiosity",
   "position",
+  "intimacy",
 ]);
 
 const LIFE_KINDS = new Set<CalendarActivityKind>([
@@ -534,6 +538,33 @@ export function buildCalendarActivities(
   }
 
   items.push(...periodActivities(input.period));
+
+  for (const row of input.intimacy ?? []) {
+    if (row.sourceId) continue;
+    const simpleKind = SIMPLE_INTIMACY_KINDS.some((item) => item.id === row.kind);
+    if (!simpleKind && row.kind !== "adventure") continue;
+    const title =
+      row.kind === "adventure"
+        ? row.note.split(" · ")[0]?.trim() || "Custom"
+        : SIMPLE_INTIMACY_KINDS.find((item) => item.id === row.kind)?.label ??
+          INTIMACY_KINDS.find((item) => item.id === row.kind)?.label ??
+          row.kind;
+    const detail =
+      row.kind === "adventure"
+        ? row.note.split(" · ").slice(1).join(" · ").trim()
+        : row.note.trim();
+    items.push({
+      id: `intimacy:${row.id}`,
+      kind: "intimacy",
+      dateKey: row.date,
+      at: row.createdAt,
+      title,
+      subtitle: detail || "Keep it simple",
+      mark: "play",
+      href: "/hub/intimacy-streak",
+      allDay: true,
+    });
+  }
 
   for (const row of holidaysAround()) {
     items.push({

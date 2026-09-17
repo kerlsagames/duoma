@@ -93,6 +93,10 @@ export default function CalendarScreen() {
   const cells = monthGrid(cursor.year, cursor.month);
   const activities = useMemo(() => {
     return allActivities.filter((row) => {
+      if (row.kind === "intimacy") {
+        if (!prefs.showSimpleIntimacy) return false;
+        return laneForKind(row.kind) === lane;
+      }
       if (row.kind === "period") {
         if (prefs.periodPlacement === "off") return false;
         if (prefs.periodPlacement === "own") return lane === "cycle";
@@ -101,7 +105,7 @@ export default function CalendarScreen() {
       if (prefs.enabledKinds[row.kind] === false) return false;
       return laneForKind(row.kind) === lane;
     });
-  }, [allActivities, lane, prefs.enabledKinds, prefs.periodPlacement]);
+  }, [allActivities, lane, prefs.enabledKinds, prefs.periodPlacement, prefs.showSimpleIntimacy]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
   const dayItems = useMemo(
     () => activitiesForDate(activities, selected),
@@ -578,6 +582,66 @@ export default function CalendarScreen() {
                 muted="rgba(22,24,29,0.58)"
                 pageColor={HUB_TONES.calendar.background}
               />
+              <SectionLabel>Keep it simple</SectionLabel>
+              <Pressable
+                onPress={() =>
+                  savePrefs({
+                    ...prefs,
+                    showSimpleIntimacy: !prefs.showSimpleIntimacy,
+                  })
+                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingVertical: 12,
+                  paddingHorizontal: 14,
+                  marginBottom: 22,
+                  borderWidth: 1,
+                  borderColor: prefs.showSimpleIntimacy
+                    ? "#C23B55"
+                    : "rgba(22,24,29,0.1)",
+                  backgroundColor: prefs.showSimpleIntimacy
+                    ? "rgba(194,59,85,0.08)"
+                    : "#FFFFFF",
+                }}
+              >
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "600",
+                      color: "#16181D",
+                    }}
+                  >
+                    Show on calendar
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 3,
+                      fontSize: 13,
+                      color: "rgba(22,24,29,0.5)",
+                      lineHeight: 18,
+                    }}
+                  >
+                    Kiss, cuddle, sex and the rest from Keep it simple. Off
+                    until you want them here. They land on Desire & Connect.
+                  </Text>
+                </View>
+                <Ionicons
+                  name={
+                    prefs.showSimpleIntimacy
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
+                  size={22}
+                  color={
+                    prefs.showSimpleIntimacy
+                      ? "#C23B55"
+                      : "rgba(22,24,29,0.35)"
+                  }
+                />
+              </Pressable>
               <SectionLabel>Calendar view</SectionLabel>
               <View style={{ gap: 8, marginBottom: 22 }}>
                 {CALENDAR_LAYOUT_OPTIONS.map((row) => {

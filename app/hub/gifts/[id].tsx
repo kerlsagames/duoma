@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import {
   BoughtList,
+  GiftBookList,
   GiftModeToggle,
   GiftNotepad,
 } from "@/components/hub/GiftNotepad";
@@ -41,6 +42,7 @@ import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 type Sheet = "add" | "give" | null;
+type AddDest = "wish" | "shop" | "bought" | "given";
 
 export default function GiftPersonScreen() {
   const router = useRouter();
@@ -51,6 +53,7 @@ export default function GiftPersonScreen() {
 
   const [sheet, setSheet] = useState<Sheet>(null);
   const [lane, setLane] = useState<GiftLane>("shop");
+  const [addDest, setAddDest] = useState<AddDest>("wish");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [occasion, setOccasion] = useState<GiftOccasionId>("christmas");
@@ -101,8 +104,9 @@ export default function GiftPersonScreen() {
     setError(null);
   };
 
-  const openAdd = (next: GiftLane) => {
-    setLane(next);
+  const openAdd = (next: AddDest) => {
+    setAddDest(next);
+    setLane(next === "wish" ? "wish" : "shop");
     setOccasion(next === "wish" ? "just-because" : "christmas");
     setError(null);
     setSheet("add");
@@ -126,9 +130,11 @@ export default function GiftPersonScreen() {
         personId: person.id,
         title,
         notes,
-        lane,
+        lane: addDest === "wish" ? "wish" : "shop",
         occasion,
         year: parsedYear,
+        status: addDest === "given" ? "given" : addDest === "bought" ? "bought" : "open",
+        dateKey: addDest === "given" ? localDateKey() : null,
       }),
     }));
     resetAdd();
@@ -340,6 +346,23 @@ export default function GiftPersonScreen() {
                 setSheet("give");
               }}
               onRemove={setRemoveItemId}
+              onAdd={(nextTitle) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: addGiftItem(state.giftItems, {
+                    personId: person.id,
+                    title: nextTitle,
+                    lane: "shop",
+                    occasion: "just-because",
+                    year: currentGiftYear(),
+                    status: "bought",
+                  }),
+                }));
+              }}
+            />
+            <GiftBookList
+              items={given}
+              onLog={() => openAdd("given")}
             />
             </>
           ) : (
@@ -388,9 +411,29 @@ export default function GiftPersonScreen() {
             }}
             onRemove={setRemoveItemId}
           />
+          <ListBlock
+            kicker="Bought"
+            title="Already bought"
+            hint="Skip the wishlist. Add something you already picked up."
+            items={bought}
+            empty="Nothing bought yet."
+            action="Add a bought gift"
+            onAdd={() => openAdd("bought")}
+            onGive={(item) => {
+              setGiveId(item.id);
+              setGiveFrom("Us");
+              setGiveDate(localDateKey());
+              setGiveOccasion(
+                item.occasion === "just-because" ? "birthday" : item.occasion
+              );
+              setSheet("give");
+            }}
+            onRemove={setRemoveItemId}
+          />
             </>
           )}
 
+          {classic ? null : (
           <View style={{ marginTop: 20 }}>
             <Text
               style={{
@@ -467,7 +510,23 @@ export default function GiftPersonScreen() {
                 ))}
               </View>
             )}
+            <Pressable
+              onPress={() => openAdd("given")}
+              style={{
+                marginTop: 12,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: T.gold,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "#1A1408", fontWeight: "800", fontSize: 14 }}>
+                Log a gift in the book
+              </Text>
+            </Pressable>
           </View>
+          )}
 
           {!person.slot ? (
             <Pressable
@@ -484,14 +543,77 @@ export default function GiftPersonScreen() {
 
       {sheet === "add" ? (
         <SheetOverlay
-          kicker={lane === "wish" ? "WISH" : "SHOP"}
-          title={lane === "wish" ? "Add a wish" : "Add a present"}
+          kicker={
+            addDest === "wish"
+              ? "WISH"
+              : addDest === "bought"
+                ? "BOUGHT"
+                : addDest === "given"
+                  ? "GIFT BOOK"
+                  : "SHOP"
+          }
+          title={
+            addDest === "wish"
+              ? "Add a wish"
+              : addDest === "bought"
+                ? "Add a bought gift"
+                : addDest === "given"
+                  ? "Log in the gift book"
+                  : "Add a present"
+          }
           onClose={resetAdd}
           background={T.surfaceRaised}
           ink={T.ink}
           muted={T.muted}
         >
-          <Text style={label}>What</Text>
+          <Text style={label}>Put it on</Text>
+          <View
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            {(
+              [
+                ["wish", "Wishlist"],
+                ["shop", "Shopping"],
+                ["bought", "Bought"],
+                ["given", "Gift book"],
+              ] as const
+            ).map(([id, destLabel]) => {
+              const on = addDest === id;
+              return (
+                <Pressable
+                  key={id}
+                  onPress={() => {
+                    setAddDest(id);
+                    setLane(id === "wish" ? "wish" : "shop");
+                  }}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    backgroundColor: on ? T.gold : T.surface,
+                    borderWidth: 1,
+                    borderColor: on ? T.gold : T.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: on ? "#1A1408" : T.ink,
+                      fontWeight: "700",
+                      fontSize: 13,
+                    }}
+                  >
+                    {destLabel}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={[label, { marginTop: 14 }]}>What</Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
@@ -599,7 +721,13 @@ export default function GiftPersonScreen() {
             }}
           >
             <Text style={{ color: "#1A1408", fontWeight: "800" }}>
-              {lane === "wish" ? "Save wish" : "Save present"}
+              {addDest === "wish"
+                ? "Save wish"
+                : addDest === "bought"
+                  ? "Save as bought"
+                  : addDest === "given"
+                    ? "Save in gift book"
+                    : "Save present"}
             </Text>
           </Pressable>
         </SheetOverlay>

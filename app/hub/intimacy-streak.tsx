@@ -237,6 +237,34 @@ function kindLabel(kind: string): string {
   return fireLabel(kind as never, meta?.label ?? kind);
 }
 
+function extraNoteParts(note: string, label: string): { match: boolean; detail: string } {
+  if (note === label) return { match: true, detail: "" };
+  const prefix = `${label} · `;
+  if (note.startsWith(prefix)) return { match: true, detail: note.slice(prefix.length) };
+  return { match: false, detail: "" };
+}
+
+function composeExtraNote(label: string, detail: string): string {
+  const next = detail.trim();
+  return next ? `${label} · ${next}` : label;
+}
+
+function logCaption(
+  row: { kind: string; note: string },
+  extraButtons: string[]
+): { title: string; detail: string } {
+  if (row.kind === "adventure") {
+    for (const label of extraButtons) {
+      const parts = extraNoteParts(row.note, label);
+      if (parts.match) return { title: label, detail: parts.detail };
+    }
+    const [title, ...rest] = row.note.split(" · ");
+    return { title: title || "Custom", detail: rest.join(" · ") };
+  }
+  const meta = INTIMACY_KINDS.find((item) => item.id === row.kind);
+  return { title: meta?.label ?? row.kind, detail: row.note };
+}
+
 /** Fixed-height bar window — no nested ScrollView, so it always paints on web. */
 function ActivityChart({
   bars,
@@ -523,6 +551,8 @@ export default function IntimacyStreakScreen() {
   const [note, setNote] = useState("");
   const [adding, setAdding] = useState(false);
   const [addDraft, setAddDraft] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailDraft, setDetailDraft] = useState("");
   const today = localDateKey();
   const [selectedDay, setSelectedDay] = useState(today);
 
@@ -606,9 +636,11 @@ export default function IntimacyStreakScreen() {
 
   const todayCount = (id: ManualIntimacyKind, extraNote?: string) =>
     extraNote
-      ? todayLogs.filter((row) => row.kind === "adventure" && row.note === extraNote)
-          .length
-      : todayLogs.filter((row) => row.kind === id && !row.note).length;
+      ? todayLogs.filter(
+          (row) =>
+            row.kind === "adventure" && extraNoteParts(row.note, extraNote).match
+        ).length
+      : todayLogs.filter((row) => row.kind === id).length;
 
   const addExtraButton = () => {
     const label = addDraft.trim();
@@ -626,6 +658,34 @@ export default function IntimacyStreakScreen() {
     look.patch({ extraSimple: [...extraButtons, label].join(",") });
     setAddDraft("");
     setAdding(false);
+  };
+
+  const beginEdit = (row: { id: string; kind: string; note: string }) => {
+    const caption = logCaption(row, extraButtons);
+    setEditingId(row.id);
+    setDetailDraft(caption.detail);
+  };
+
+  const saveDetail = async () => {
+    if (!editingId) return;
+    const row = logs.find((item) => item.id === editingId);
+    if (!row) {
+      setEditingId(null);
+      return;
+    }
+    const caption = logCaption(row, extraButtons);
+    const nextNote =
+      row.kind === "adventure"
+        ? composeExtraNote(caption.title, detailDraft)
+        : detailDraft.trim();
+    await patch((state) => ({
+      ...state,
+      intimacy: state.intimacy.map((item) =>
+        item.id === editingId ? { ...item, note: nextNote } : item
+      ),
+    }));
+    setEditingId(null);
+    setDetailDraft("");
   };
 
   const headline = !ready
@@ -853,7 +913,7 @@ export default function IntimacyStreakScreen() {
             >
               {simple
                 ? selectedDay === today
-                  ? "TODAY"
+                  ? "TODAY  ·  tap a log for details"
                   : selectedDay
                 : selectedDay === today
                   ? "TODAY’S FUEL"
@@ -861,31 +921,107 @@ export default function IntimacyStreakScreen() {
             </Text>
             {selectedLogs.slice(0, 10).map((row) => {
               const meta = INTIMACY_KINDS.find((item) => item.id === row.kind);
+              const caption = logCaption(row, extraButtons);
+              const editing = editingId === row.id;
               return (
                 <View
                   key={row.id}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
                     paddingVertical: 8,
                     paddingHorizontal: 12,
                     borderRadius: 12,
                     backgroundColor: "#2A1410",
+                    gap: 8,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 99,
-                      backgroundColor: meta?.color ?? hot(),
-                    }}
-                  />
-                  <Text style={{ flex: 1, color: "#FFD2B4", fontSize: 14 }}>
-                    {fireLabel(row.kind, meta?.label ?? row.kind)}
-                    {row.note ? ` · ${row.note}` : ""}
-                  </Text>
+                  <Pressable
+                    onPress={() => (simple ? beginEdit(row) : undefined)}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+                  >
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 99,
+                        backgroundColor: meta?.color ?? hot(),
+                      }}
+                    />
+                    <Text style={{ flex: 1, color: "#FFD2B4", fontSize: 14 }}>
+                      {caption.title}
+                      {caption.detail ? ` · ${caption.detail}` : ""}
+                    </Text>
+                    {simple ? (
+                      <Text
+                        style={{
+                          color: "rgba(255,179,71,0.85)",
+                          fontFamily: "SpaceMono",
+                          fontSize: 10,
+                        }}
+                      >
+                        {editing ? "editing" : "details"}
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                  {editing ? (
+                    <View>
+                      <TextInput
+                        value={detailDraft}
+                        onChangeText={setDetailDraft}
+                        placeholder="e.g. on the bathroom bench"
+                        placeholderTextColor="rgba(255,210,180,0.35)"
+                        autoFocus
+                        multiline
+                        onSubmitEditing={() => void saveDetail()}
+                        style={{
+                          minHeight: 56,
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: "rgba(255,106,61,0.35)",
+                          backgroundColor: "#1C0C08",
+                          color: "#FFE8D6",
+                          paddingHorizontal: 12,
+                          paddingVertical: 10,
+                          fontSize: 15,
+                        }}
+                      />
+                      <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+                        <Pressable
+                          onPress={() => {
+                            setEditingId(null);
+                            setDetailDraft("");
+                          }}
+                          style={{
+                            flex: 1,
+                            height: 36,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderWidth: 1,
+                            borderColor: "rgba(255,210,180,0.2)",
+                          }}
+                        >
+                          <Text style={{ color: "#FFD2B4", fontWeight: "700", fontSize: 13 }}>
+                            Cancel
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => void saveDetail()}
+                          style={{
+                            flex: 1,
+                            height: 36,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: hot(),
+                          }}
+                        >
+                          <Text style={{ color: "#1A0806", fontWeight: "800", fontSize: 13 }}>
+                            Save details
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
               );
             })}
@@ -1005,45 +1141,78 @@ export default function IntimacyStreakScreen() {
             {adding ? (
               <View
                 style={{
-                  width: "48%",
-                  flexGrow: 1,
-                  minWidth: 140,
-                  padding: 10,
+                  width: "100%",
+                  padding: 14,
                   borderRadius: 16,
                   backgroundColor: "#2A1410",
                   borderWidth: 1,
                   borderColor: "rgba(255,106,61,0.35)",
                 }}
               >
+                <Text
+                  style={{
+                    color: "rgba(255,210,180,0.7)",
+                    fontSize: 13,
+                    marginBottom: 8,
+                  }}
+                >
+                  Name the new button. Long-press a custom one later to remove it.
+                </Text>
                 <TextInput
                   value={addDraft}
                   onChangeText={setAddDraft}
-                  placeholder="Name it"
+                  placeholder="e.g. Massage, shower, quickie"
                   placeholderTextColor="rgba(255,210,180,0.35)"
                   autoFocus
                   onSubmitEditing={addExtraButton}
                   style={{
+                    minHeight: 52,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,106,61,0.28)",
+                    backgroundColor: "#1C0C08",
                     color: "#FFE8D6",
                     fontWeight: "700",
-                    fontSize: 15,
-                    textAlign: "center",
+                    fontSize: 16,
+                    paddingHorizontal: 14,
                   }}
                 />
-                <Pressable
-                  onPress={addExtraButton}
-                  style={{
-                    marginTop: 8,
-                    height: 34,
-                    borderRadius: 12,
-                    backgroundColor: hot(),
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ color: "#1A0806", fontWeight: "800", fontSize: 13 }}>
-                    Add
-                  </Text>
-                </Pressable>
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+                  <Pressable
+                    onPress={() => {
+                      setAdding(false);
+                      setAddDraft("");
+                    }}
+                    style={{
+                      flex: 1,
+                      height: 40,
+                      borderRadius: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderColor: "rgba(255,210,180,0.2)",
+                    }}
+                  >
+                    <Text style={{ color: "#FFD2B4", fontWeight: "700", fontSize: 14 }}>
+                      Cancel
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={addExtraButton}
+                    style={{
+                      flex: 1,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: hot(),
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ color: "#1A0806", fontWeight: "800", fontSize: 14 }}>
+                      Add button
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             ) : extraButtons.length < 8 ? (
               <Pressable

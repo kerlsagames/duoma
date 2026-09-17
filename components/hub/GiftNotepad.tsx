@@ -213,12 +213,22 @@ export function BoughtList({
   items,
   onGive,
   onRemove,
+  onAdd,
 }: {
   items: GiftItem[];
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
+  /** Add a bought present without putting it on the wishlist first. */
+  onAdd?: (title: string) => void;
 }) {
-  if (items.length === 0) return null;
+  const [draft, setDraft] = useState("");
+  const submit = () => {
+    const title = draft.trim();
+    if (!title || !onAdd) return;
+    onAdd(title);
+    setDraft("");
+  };
+
   return (
     <View style={{ marginTop: 20 }}>
       <Text
@@ -241,7 +251,7 @@ export function BoughtList({
           color: T.muted,
         }}
       >
-        Off the wishlist. Remove it, or give it and pick the occasion.
+        Already wrapped, or bought without a wish. Give it to land it in the gift book.
       </Text>
       <View
         style={{
@@ -312,13 +322,53 @@ export function BoughtList({
             </Pressable>
           </View>
         ))}
+        {onAdd ? (
+          <View
+            style={{
+              minHeight: LINE,
+              paddingLeft: 12,
+              paddingRight: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Ionicons name="add" size={16} color={T.ribbon} />
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              onSubmitEditing={submit}
+              placeholder="Add a bought gift…"
+              placeholderTextColor="rgba(42,28,18,0.32)"
+              returnKeyType="done"
+              style={{
+                flex: 1,
+                height: LINE,
+                fontFamily: HANDWRITING,
+                fontSize: 20,
+                color: T.paperInk,
+              }}
+            />
+          </View>
+        ) : items.length === 0 ? (
+          <View style={{ minHeight: LINE, paddingLeft: 12, justifyContent: "center" }}>
+            <Text style={{ fontFamily: SERIF, fontSize: 13, color: T.paperMuted }}>
+              Nothing bought yet.
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );
 }
 
-export function GiftBookList({ items }: { items: GiftItem[] }) {
-  if (items.length === 0) return null;
+export function GiftBookList({
+  items,
+  onLog,
+}: {
+  items: GiftItem[];
+  onLog?: () => void;
+}) {
   return (
     <View style={{ marginTop: 20 }}>
       <Text
@@ -341,7 +391,7 @@ export function GiftBookList({ items }: { items: GiftItem[] }) {
           color: T.muted,
         }}
       >
-        What they actually received, by occasion.
+        What they actually received. Log one here without a wishlist.
       </Text>
       <View
         style={{
@@ -384,7 +434,31 @@ export function GiftBookList({ items }: { items: GiftItem[] }) {
             </Text>
           </View>
         ))}
+        {items.length === 0 ? (
+          <View style={{ minHeight: LINE, paddingLeft: 12, justifyContent: "center" }}>
+            <Text style={{ fontFamily: SERIF, fontSize: 13, color: T.paperMuted }}>
+              Empty book.
+            </Text>
+          </View>
+        ) : null}
       </View>
+      {onLog ? (
+        <Pressable
+          onPress={onLog}
+          style={{
+            marginTop: 10,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: T.gold,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "#1A1408", fontWeight: "800", fontSize: 14 }}>
+            Log a gift in the book
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
