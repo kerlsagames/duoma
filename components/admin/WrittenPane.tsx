@@ -47,7 +47,7 @@ export function WrittenPane() {
   useEffect(() => {
     if (!ready) return;
     let alive = true;
-    setLoading(true);
+    setLoading((was) => was || rows.length === 0);
     void gatherWritten({ db: adminDb, couples: allCouples }).then((next) => {
       if (!alive) return;
       setRows(next);

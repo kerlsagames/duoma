@@ -225,9 +225,7 @@ function pushChicken(
 function isCatalogBet(title: string): boolean {
   const needle = normWritten(title);
   if (!needle) return true;
-  return [...BET_PROMPTS, ...betPrompts(true)].some(
-    (row) => normWritten(row.text) === needle
-  );
+  return BET_PROMPTS.some((row) => normWritten(row.text) === needle);
 }
 
 function pushBet(

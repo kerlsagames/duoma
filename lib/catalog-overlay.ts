@@ -129,6 +129,25 @@ export function hydrateOverlay(raw: unknown): CatalogOverlay {
   return base;
 }
 
+function mergeDecks(remote: CatalogDeck, local: CatalogDeck): CatalogDeck {
+  const extras = new Map<string, CatalogRow>();
+  for (const row of remote.extras) extras.set(row.id, row);
+  for (const row of local.extras) extras.set(row.id, row);
+  return {
+    hiddenIds: [...new Set([...remote.hiddenIds, ...local.hiddenIds])],
+    edits: { ...remote.edits, ...local.edits },
+    extras: [...extras.values()],
+  };
+}
+
+function mergeOverlays(remote: CatalogOverlay, local: CatalogOverlay): CatalogOverlay {
+  const out = emptyOverlay();
+  for (const key of Object.keys(out) as CatalogKey[]) {
+    out[key] = mergeDecks(remote[key] ?? emptyDeck(), local[key] ?? emptyDeck());
+  }
+  return out;
+}
+
 async function readRaw(): Promise<string | null> {
   if (Platform.OS === "web" && typeof localStorage !== "undefined") {
     return localStorage.getItem(CATALOG_KEY);
@@ -172,7 +191,7 @@ export async function loadCatalog(): Promise<CatalogOverlay> {
         .eq("id", "v1")
         .maybeSingle();
       if (data?.payload) {
-        const next = hydrateOverlay(data.payload);
+        const next = mergeOverlays(hydrateOverlay(data.payload), cache);
         emit(next);
         try {
           await writeRaw(JSON.stringify(next));
@@ -192,7 +211,9 @@ export async function loadCatalog(): Promise<CatalogOverlay> {
   }
 }
 
-export async function writeCatalog(next: CatalogOverlay): Promise<void> {
+let writeQueue: Promise<void> = Promise.resolve();
+
+async function persistCatalog(next: CatalogOverlay): Promise<void> {
   emit(next);
   try {
     await writeRaw(JSON.stringify(next));
@@ -219,6 +240,16 @@ export async function writeCatalog(next: CatalogOverlay): Promise<void> {
   }
 }
 
+function enqueueCatalog(fn: () => Promise<void>): Promise<void> {
+  const queued = writeQueue.then(fn, fn);
+  writeQueue = queued.catch(() => undefined);
+  return queued;
+}
+
+export async function writeCatalog(next: CatalogOverlay): Promise<void> {
+  await enqueueCatalog(() => persistCatalog(next));
+}
+
 export function applyOverlay<T extends { id: string }>(
   key: CatalogKey,
   seed: T[],
@@ -242,20 +273,24 @@ export function applyOverlay<T extends { id: string }>(
 }
 
 export async function hideCatalogRow(key: CatalogKey, id: string): Promise<void> {
-  const next = { ...peekCatalog() };
-  const deck = { ...next[key], hiddenIds: [...next[key].hiddenIds] };
-  if (!deck.hiddenIds.includes(id)) deck.hiddenIds.push(id);
-  next[key] = deck;
-  await writeCatalog(next);
+  await enqueueCatalog(async () => {
+    const next = { ...peekCatalog() };
+    const deck = { ...next[key], hiddenIds: [...next[key].hiddenIds] };
+    if (!deck.hiddenIds.includes(id)) deck.hiddenIds.push(id);
+    next[key] = deck;
+    await persistCatalog(next);
+  });
 }
 
 export async function restoreCatalogRow(key: CatalogKey, id: string): Promise<void> {
-  const next = { ...peekCatalog() };
-  next[key] = {
-    ...next[key],
-    hiddenIds: next[key].hiddenIds.filter((item) => item !== id),
-  };
-  await writeCatalog(next);
+  await enqueueCatalog(async () => {
+    const next = { ...peekCatalog() };
+    next[key] = {
+      ...next[key],
+      hiddenIds: next[key].hiddenIds.filter((item) => item !== id),
+    };
+    await persistCatalog(next);
+  });
 }
 
 export async function editCatalogRow(
@@ -263,37 +298,43 @@ export async function editCatalogRow(
   id: string,
   edit: FieldEdit
 ): Promise<void> {
-  const next = { ...peekCatalog() };
-  const deck = { ...next[key] };
-  const extraIndex = deck.extras.findIndex((row) => row.id === id);
-  if (extraIndex >= 0) {
-    const extras = [...deck.extras];
-    extras[extraIndex] = {
-      ...extras[extraIndex]!,
-      title: edit.title ?? extras[extraIndex]!.title,
-      body: edit.body ?? extras[extraIndex]!.body,
-      group: edit.group ?? extras[extraIndex]!.group,
-    };
-    next[key] = { ...deck, extras };
-  } else {
-    next[key] = {
-      ...deck,
-      edits: {
-        ...deck.edits,
-        [id]: { ...deck.edits[id], ...edit },
-      },
-    };
-  }
-  await writeCatalog(next);
+  await enqueueCatalog(async () => {
+    const next = { ...peekCatalog() };
+    const deck = { ...next[key] };
+    const extraIndex = deck.extras.findIndex((row) => row.id === id);
+    if (extraIndex >= 0) {
+      const extras = [...deck.extras];
+      extras[extraIndex] = {
+        ...extras[extraIndex]!,
+        title: edit.title ?? extras[extraIndex]!.title,
+        body: edit.body ?? extras[extraIndex]!.body,
+        group: edit.group ?? extras[extraIndex]!.group,
+      };
+      next[key] = { ...deck, extras };
+    } else {
+      next[key] = {
+        ...deck,
+        edits: {
+          ...deck.edits,
+          [id]: { ...deck.edits[id], ...edit },
+        },
+      };
+    }
+    await persistCatalog(next);
+  });
 }
 
 export async function addCatalogRow(key: CatalogKey, row: CatalogRow): Promise<void> {
-  const next = { ...peekCatalog() };
-  next[key] = {
-    ...next[key],
-    extras: [...next[key].extras, row],
-  };
-  await writeCatalog(next);
+  await enqueueCatalog(async () => {
+    const next = { ...peekCatalog() };
+    const deck = next[key] ?? emptyDeck();
+    if (deck.extras.some((item) => item.id === row.id)) return;
+    next[key] = {
+      ...deck,
+      extras: [...deck.extras, row],
+    };
+    await persistCatalog(next);
+  });
 }
 
 const CatalogRevContext = createContext(0);
