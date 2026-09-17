@@ -227,7 +227,7 @@ export default function SparkScreen() {
           <View style={{ marginTop: 18, gap: 10 }}>
             {saved.length === 0 ? (
               <Text style={{ color: T.dim, fontFamily: SERIF, fontSize: 18, lineHeight: 26 }}>
-                Nothing favourited yet. Tap Favourited on a spark you want to keep.
+                Nothing favourited yet. Tap the heart on a spark you want to keep.
               </Text>
             ) : (
               saved.map((row) => (
