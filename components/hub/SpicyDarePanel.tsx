@@ -33,9 +33,10 @@ const STATUS_RANK: Record<SpicyDarePlay["status"], number> = {
 
 function sortDares(rows: SpicyDarePlay[]): SpicyDarePlay[] {
   return [...rows].sort((a, b) => {
-    const rank = STATUS_RANK[a.status] - STATUS_RANK[b.status];
+    const rank =
+      (STATUS_RANK[a.status] ?? 9) - (STATUS_RANK[b.status] ?? 9);
     if (rank !== 0) return rank;
-    return b.createdAt.localeCompare(a.createdAt);
+    return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
   });
 }
 
@@ -128,13 +129,13 @@ export function SpicyDarePanel({
 
   const sent = useMemo(
     () =>
-      sortDares(spicyDares.filter((row) => row.fromUserId === user?.id)),
+      sortDares((spicyDares ?? []).filter((row) => row.fromUserId === user?.id)),
     [spicyDares, user?.id]
   );
 
   const received = useMemo(
     () =>
-      sortDares(spicyDares.filter((row) => row.toUserId === user?.id)),
+      sortDares((spicyDares ?? []).filter((row) => row.toUserId === user?.id)),
     [spicyDares, user?.id]
   );
 

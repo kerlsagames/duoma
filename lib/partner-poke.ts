@@ -46,17 +46,17 @@ export function pokeReady(
 }
 
 export function latestPokeAt(
-  pokes: PartnerPoke[],
+  pokes: PartnerPoke[] | null | undefined,
   input: { fromUserId: string; appId: string; targetId: string }
 ): string | null {
-  const match = pokes
+  const match = (pokes ?? [])
     .filter(
       (row) =>
         row.fromUserId === input.fromUserId &&
         row.appId === input.appId &&
         row.targetId === input.targetId
     )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))[0];
   return match?.createdAt ?? null;
 }
 

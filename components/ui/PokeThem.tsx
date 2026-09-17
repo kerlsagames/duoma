@@ -16,7 +16,7 @@ export function PokeThem({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastAt = user
-    ? latestPokeAt(partnerPokes, {
+    ? latestPokeAt(partnerPokes ?? [], {
         fromUserId: user.id,
         appId,
         targetId,

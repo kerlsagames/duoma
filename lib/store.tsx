@@ -1349,7 +1349,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [version]
   );
   const spicyDares = useMemo(
-    () => db.spicyDares.filter((row) => row.coupleId === couple?.id),
+    () => (db.spicyDares ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
