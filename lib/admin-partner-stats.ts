@@ -749,7 +749,7 @@ function collectFair(ctx: Ctx): Bucket {
 }
 
 function collectMeals(ctx: Ctx): Bucket {
-  const notes = ctx.mini.mealPlan?.notes ?? [];
+  const notes = (ctx.mini.mealPlan?.notes ?? []).filter((row) => row.title.trim());
   const eaten = notes.filter((row) => row.eaten);
   const rounds = ctx.db.mealRounds.filter((row) => involved(row.coupleId, ctx.coupleIds));
   const wants = ctx.db.mealWants.filter(
@@ -867,7 +867,19 @@ function collectTravel(ctx: Ctx): Bucket {
 }
 
 function collectGoals(ctx: Ctx): Bucket {
-  const goals = ctx.mini.goals;
+  const seedSaved = (target: number) => Math.round(target * 0.18);
+  const seedTitles = new Set([
+    "Escape weekend",
+    "The nice couch",
+    "Anniversary dinner that hurts a little",
+  ]);
+  const goals = ctx.mini.goals.filter(
+    (row) =>
+      Boolean(row.completedAt) ||
+      Boolean(row.note.trim()) ||
+      !seedTitles.has(row.title) ||
+      row.saved !== seedSaved(row.target)
+  );
   return {
     facts: [
       fact("goals", "Goals", goals.length),
@@ -906,7 +918,13 @@ function collectBudget(ctx: Ctx): Bucket {
 }
 
 function collectEmergency(ctx: Ctx): Bucket {
-  const filled = ctx.mini.vault.filter((row) => row.value.trim());
+  const placeholders = new Set([
+    "Network · password in the cookie tin",
+    "Top drawer, blue folder",
+  ]);
+  const filled = ctx.mini.vault.filter(
+    (row) => row.value.trim() && !placeholders.has(row.value.trim())
+  );
   return {
     facts: [
       fact("slots", "Slots", ctx.mini.vault.length),
