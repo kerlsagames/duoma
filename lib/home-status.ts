@@ -485,60 +485,30 @@ export function buildHomeNotifications(input: {
   });
 
   (input.positionInvites ?? [])
-    .filter((row) => {
-      const involved = row.toUserId === myId || row.fromUserId === myId;
-      return involved && (row.status === "offered" || row.status === "accepted");
-    })
+    .filter((row) => row.toUserId === myId && row.status === "offered")
     .forEach((row) => {
       const when = row.whenLabel ?? nightAskLabel(row.dateKey);
       const title = positionById(row.positionId)?.name ?? "a pose";
-      const incoming = row.toUserId === myId;
       items.push({
-        id: `position-${row.status}-${row.id}`,
-        line:
-          row.status === "accepted"
-            ? `${when} is on · ${title}`
-            : incoming
-              ? `Try this ${when}? · ${title}`
-              : `Waiting on ${partnerName} · ${title}`,
-        when:
-          row.status === "accepted"
-            ? upcomingWhen(row.dateKey ?? localDateKey())
-            : recentWhen(row.createdAt),
+        id: `position-ask-${row.id}`,
+        line: `Try this ${when}? · ${title}`,
+        when: recentWhen(row.createdAt),
         href: "/hub/positions",
-        sortAt:
-          row.status === "accepted" && row.dateKey
-            ? midday(row.dateKey)
-            : Date.parse(row.createdAt) || now,
+        sortAt: Date.parse(row.createdAt) || now,
       });
     });
 
   (input.roleplayInvites ?? [])
-    .filter((row) => {
-      const involved = row.toUserId === myId || row.fromUserId === myId;
-      return involved && (row.status === "offered" || row.status === "accepted");
-    })
+    .filter((row) => row.toUserId === myId && row.status === "offered")
     .forEach((row) => {
       const when = row.whenLabel ?? nightAskLabel(row.dateKey);
       const title = roleplayById(row.roleplayId)?.name ?? "a scene";
-      const incoming = row.toUserId === myId;
       items.push({
-        id: `roleplay-${row.status}-${row.id}`,
-        line:
-          row.status === "accepted"
-            ? `${when} is on · ${title}`
-            : incoming
-              ? `Try this ${when}? · ${title}`
-              : `Waiting on ${partnerName} · ${title}`,
-        when:
-          row.status === "accepted"
-            ? upcomingWhen(row.dateKey ?? localDateKey())
-            : recentWhen(row.createdAt),
+        id: `roleplay-ask-${row.id}`,
+        line: `Try this ${when}? · ${title}`,
+        when: recentWhen(row.createdAt),
         href: "/hub/roleplays",
-        sortAt:
-          row.status === "accepted" && row.dateKey
-            ? midday(row.dateKey)
-            : Date.parse(row.createdAt) || now,
+        sortAt: Date.parse(row.createdAt) || now,
       });
     });
 
