@@ -14,7 +14,7 @@ export function PhoneShell({ children }: Props) {
 
   if (isAdminPath(pathname)) {
     return (
-      <View style={{ flex: 1, width: "100%", backgroundColor: "#0B0B0E" }}>
+      <View style={{ flex: 1, width: "100%", backgroundColor: "#0B0B0E", overflow: "hidden" }}>
         {children}
       </View>
     );
@@ -22,7 +22,7 @@ export function PhoneShell({ children }: Props) {
 
   if (Platform.OS !== "web" || width < 560) {
     return (
-      <View style={{ flex: 1, width: "100%", backgroundColor: "#0B0B0E" }}>
+      <View style={{ flex: 1, width: "100%", backgroundColor: "#0B0B0E", overflow: "hidden" }}>
         {children}
       </View>
     );
@@ -35,6 +35,7 @@ export function PhoneShell({ children }: Props) {
         width: "100%",
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
         backgroundColor: "#050507",
         paddingVertical: 24,
       }}

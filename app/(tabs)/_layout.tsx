@@ -7,6 +7,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: { display: "none", height: 0 },
         tabBarShowLabel: false,
+        animation: "none",
       }}
       tabBar={() => null}
     >

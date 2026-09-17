@@ -58,6 +58,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -209,7 +210,15 @@ export default function HomeScreen() {
   return (
     <HomeBackdrop wallpaperId={wallpaperId}>
     <Screen scroll={false} background="transparent">
-      <View className="pt-1" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <View
+        className="pt-1"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          ...(Platform.OS === "web" ? { touchAction: "none" as const } : null),
+        }}
+      >
         <View
           style={{
             flexDirection: "row",

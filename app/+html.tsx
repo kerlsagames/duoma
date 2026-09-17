@@ -9,7 +9,7 @@ export default function Root({ children }: { children: ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no"
         />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#FF007F" />
@@ -33,6 +33,14 @@ html, body, #root {
   background-color: #050507;
   color: #F4F4F6;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+html, body {
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
 }
 html {
   color-scheme: dark;

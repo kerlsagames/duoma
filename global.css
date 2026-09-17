@@ -12,6 +12,10 @@ body,
 #root {
   background-color: #0B0B0E;
   color: #f4f4f6;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 [data-app-typeface="serif"] {

@@ -41,7 +41,7 @@ export function Screen({
     return (
       <SafeAreaView
         className="flex-1"
-        style={{ flex: 1, backgroundColor: canvas }}
+        style={{ flex: 1, backgroundColor: canvas, overflow: "hidden" }}
         edges={["top", "left", "right"]}
       >
         <View className="flex-1" style={{ backgroundColor: canvas }} {...webAttrs}>
@@ -66,7 +66,7 @@ export function Screen({
   return (
     <SafeAreaView
       className="flex-1"
-      style={{ flex: 1, backgroundColor: canvas }}
+      style={{ flex: 1, backgroundColor: canvas, overflow: "hidden" }}
       edges={["top", "left", "right"]}
     >
       <View
@@ -74,6 +74,9 @@ export function Screen({
         style={{
           backgroundColor: canvas,
           paddingHorizontal: padX,
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
         }}
         {...webAttrs}
       >

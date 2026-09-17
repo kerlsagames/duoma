@@ -56,7 +56,7 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507" }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507", overflow: "hidden" }}>
       <SafeAreaProvider>
         <CatalogProvider>
           <AppProvider>
@@ -104,13 +104,14 @@ function RootChrome() {
   return (
     <PhoneShell>
       <SafetyWatch />
-      <View style={{ flex: 1, backgroundColor: "#0B0B0E" }}>
-        <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: "#0B0B0E", overflow: "hidden" }}>
+        <View style={{ flex: 1, overflow: "hidden" }}>
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: "#0B0B0E" },
+              contentStyle: { backgroundColor: "#0B0B0E", flex: 1 },
               animation: "fade",
+              gestureEnabled: false,
             }}
           >
             <Stack.Screen name="index" />
