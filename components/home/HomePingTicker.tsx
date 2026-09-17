@@ -11,15 +11,17 @@ const GAP = "        ";
 
 export function HomePingTicker() {
   const router = useRouter();
-  const { couple } = useApp();
+  const { couple, partner } = useApp();
   const { data } = useMiniApps();
   const ping = useMemo(() => {
-    const rows = data.pings ?? [];
+    const them = partner?.id;
+    if (!them) return null;
+    const rows = (data.pings ?? []).filter((row) => row.fromId === them);
     if (!rows.length) return null;
     return [...rows].sort((a, b) =>
       (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
     )[0];
-  }, [data.pings]);
+  }, [data.pings, partner?.id]);
   const meta = ping
     ? (PING_KINDS.find((row) => row.id === ping.kind) ?? PING_KINDS[0]!)
     : null;
@@ -27,7 +29,8 @@ export function HomePingTicker() {
   if (!couple || !ping || !meta) return null;
 
   const when = formatRelativeWhen(ping.createdAt);
-  const line = `${meta.emoji}  ${meta.label}   ${when}`;
+  // GreatVibes has no ping glyphs — they render as @ — so the line is words only.
+  const line = `${meta.label}   ${when}`;
 
   return (
     <FlowingTape
