@@ -3,13 +3,13 @@ import {
   type Birthday,
 } from "@/lib/birthdays";
 import {
-  addDaysToDateKey,
   dateAtLocalHours,
   daysUntil,
   endOfLocalDay,
   formatLongDate,
   localDateKey,
 } from "@/lib/dates";
+import { dueOn } from "@/lib/maintenance";
 import type { MaintTask, Trip } from "@/lib/mini-content";
 import type { CalendarCustomEvent } from "@/lib/types";
 import type { Href } from "expo-router";
@@ -116,9 +116,7 @@ export function leadsForItem(
 }
 
 function jobDueDateKey(lastDone: string | null, everyDays: number): string {
-  const start =
-    lastDone ?? localDateKey(new Date(Date.now() - everyDays * 86400000));
-  return addDaysToDateKey(start, everyDays);
+  return dueOn(lastDone, everyDays);
 }
 
 function eventInstant(dateKey: string, at: Date | null): Date {

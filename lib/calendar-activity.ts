@@ -7,6 +7,7 @@ import {
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { sexPositions } from "@/lib/sex-positions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
+import { dueOn } from "@/lib/maintenance";
 import { holidaysAround } from "@/lib/holidays";
 import type { IntimacyLog, MaintTask, Trip } from "@/lib/mini-content";
 import { INTIMACY_KINDS, SIMPLE_INTIMACY_KINDS } from "@/lib/mini-content";
@@ -186,15 +187,6 @@ function birthdaySubtitle(row: Birthday, year: number): string {
 }
 
 const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function dueOn(lastDone: string | null, everyDays: number): string {
-  const start =
-    lastDone ?? localDateKey(new Date(Date.now() - everyDays * 86400000));
-  const [y, m, d] = start.split("-").map(Number);
-  const date = new Date(y, (m || 1) - 1, d || 1);
-  date.setDate(date.getDate() + everyDays);
-  return localDateKey(date);
-}
 
 const NIGHT_STATUSES = new Set([
   "playing",

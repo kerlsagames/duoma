@@ -1,4 +1,4 @@
-import { localDateKey } from "@/lib/dates";
+import { addDaysToDateKey, localDateKey } from "@/lib/dates";
 
 type Task = {
   id: string;
@@ -57,23 +57,27 @@ export function hydrateMaintPrefs(raw: unknown): MaintPrefs {
   };
 }
 
-export function dueOn(lastDone: string | null, everyDays: number): string {
-  const start = lastDone ?? localDateKey(new Date(Date.now() - everyDays * 86400000));
-  const [y, m, d] = start.split("-").map(Number);
-  const date = new Date(y, (m || 1) - 1, d || 1);
-  date.setDate(date.getDate() + everyDays);
-  return localDateKey(date);
+/** First ping for a job nobody has ticked yet — so a new pair is not flooded. */
+export const DEFAULT_FIRST_DUE_DAYS = 90;
+
+export function dueOn(
+  lastDone: string | null,
+  everyDays: number,
+  today = localDateKey()
+): string {
+  if (!lastDone) return addDaysToDateKey(today, DEFAULT_FIRST_DUE_DAYS);
+  return addDaysToDateKey(lastDone, everyDays);
 }
 
 export function daysUntilDue(lastDone: string | null, everyDays: number, today = localDateKey()): number {
-  const due = dueOn(lastDone, everyDays);
+  const due = dueOn(lastDone, everyDays, today);
   const a = Date.parse(`${today}T12:00:00`);
   const b = Date.parse(`${due}T12:00:00`);
   return Math.round((b - a) / 86400000);
 }
 
 export function isOverdue(lastDone: string | null, everyDays: number, today = localDateKey()): boolean {
-  return dueOn(lastDone, everyDays) <= today;
+  return dueOn(lastDone, everyDays, today) <= today;
 }
 
 export function dueLabel(lastDone: string | null, everyDays: number, today = localDateKey()): string {
