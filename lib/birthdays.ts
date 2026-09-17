@@ -1,7 +1,12 @@
 import { createId, nowIso } from "@/lib/ids";
 import { daysUntil, localDateKey } from "@/lib/dates";
 
-export type BirthdayCircle = "family" | "friends";
+export type BirthdayCircle = string;
+
+export type BirthdayGroup = {
+  id: string;
+  label: string;
+};
 
 export type Birthday = {
   id: string;
@@ -12,6 +17,11 @@ export type Birthday = {
   year: number | null;
   createdAt: string;
 };
+
+export const CORE_BIRTHDAY_CIRCLES: { id: BirthdayCircle; label: string }[] = [
+  { id: "family", label: "Family" },
+  { id: "friends", label: "Friends" },
+];
 
 export const BIRTHDAY_MONTHS = [
   "January",
@@ -131,16 +141,119 @@ export function emptyBirthdays(): Birthday[] {
   return [];
 }
 
+export function emptyBirthdayGroups(): BirthdayGroup[] {
+  return [];
+}
+
+export function slugBirthdayCircle(label: string): string {
+  const slug = label
+    .trim()
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "group";
+}
+
+export function circleLabel(id: string, groups: BirthdayGroup[] = []): string {
+  if (id === "family") return "Family";
+  if (id === "friends") return "Friends";
+  const named = groups.find((row) => row.id === id)?.label?.trim();
+  if (named) return named;
+  return id
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "Group";
+}
+
+export function visibleBirthdayCircles(
+  groups: BirthdayGroup[],
+  birthdays: Birthday[]
+): { id: string; label: string }[] {
+  const out: { id: string; label: string }[] = CORE_BIRTHDAY_CIRCLES.map((row) => ({
+    ...row,
+  }));
+  const seen = new Set(out.map((row) => row.id));
+  for (const group of groups) {
+    if (seen.has(group.id)) continue;
+    seen.add(group.id);
+    out.push({ id: group.id, label: group.label });
+  }
+  for (const row of birthdays) {
+    if (seen.has(row.circle)) continue;
+    seen.add(row.circle);
+    out.push({ id: row.circle, label: circleLabel(row.circle, groups) });
+  }
+  return out;
+}
+
+export function addBirthdayGroup(
+  groups: BirthdayGroup[],
+  label: string
+): BirthdayGroup[] {
+  const name = label.trim();
+  if (!name) return groups;
+  if (groups.some((row) => row.label.toLowerCase() === name.toLowerCase())) {
+    return groups;
+  }
+  const base = slugBirthdayCircle(name);
+  if (base === "family" || base === "friends") return groups;
+  let id = base;
+  let n = 2;
+  while (groups.some((row) => row.id === id)) {
+    id = `${base}-${n}`;
+    n += 1;
+  }
+  return [...groups, { id, label: name }];
+}
+
+export function removeBirthdayGroup(
+  groups: BirthdayGroup[],
+  id: string
+): BirthdayGroup[] {
+  if (id === "family" || id === "friends") return groups;
+  return groups.filter((row) => row.id !== id);
+}
+
+export function hydrateBirthdayGroup(raw: unknown): BirthdayGroup | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Partial<BirthdayGroup>;
+  const label = typeof row.label === "string" ? row.label.trim() : "";
+  if (!label) return null;
+  const id =
+    typeof row.id === "string" && row.id.trim()
+      ? slugBirthdayCircle(row.id)
+      : slugBirthdayCircle(label);
+  if (!id || id === "family" || id === "friends") return null;
+  return { id, label };
+}
+
+export function hydrateBirthdayGroups(raw: unknown): BirthdayGroup[] {
+  if (!Array.isArray(raw)) return emptyBirthdayGroups();
+  const groups: BirthdayGroup[] = [];
+  const seen = new Set<string>();
+  for (const row of raw) {
+    const group = hydrateBirthdayGroup(row);
+    if (!group || seen.has(group.id)) continue;
+    seen.add(group.id);
+    groups.push(group);
+  }
+  return groups;
+}
+
 export function hydrateBirthday(raw: unknown): Birthday | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Partial<Birthday>;
   if (typeof row.name !== "string" || !row.name.trim()) return null;
   const month = typeof row.month === "number" ? row.month : 0;
   const day = typeof row.day === "number" ? row.day : 1;
+  const circleRaw = typeof row.circle === "string" ? row.circle.trim() : "";
+  const circle = circleRaw ? slugBirthdayCircle(circleRaw) : "family";
   return {
     id: typeof row.id === "string" ? row.id : createId(),
     name: row.name.trim(),
-    circle: row.circle === "friends" ? "friends" : "family",
+    circle: circle || "family",
     month: Math.max(0, Math.min(11, month)),
     day: clampBirthdayDay(Math.max(0, Math.min(11, month)), day),
     year: normalizeBirthYear(typeof row.year === "number" ? row.year : null),
