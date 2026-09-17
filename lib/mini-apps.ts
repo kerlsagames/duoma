@@ -109,6 +109,20 @@ export async function loadMiniState(): Promise<MiniState> {
   return cache;
 }
 
+/** Read one pair’s hub cache without switching the live session. */
+export async function peekMiniForCouple(coupleId: string): Promise<MiniState | null> {
+  if (!coupleId) return null;
+  try {
+    if (activeCoupleId === coupleId && cache) return cache;
+    const scoped = await parseState(await readKey(storageKey(coupleId)));
+    if (scoped) return scoped;
+    if (activeCoupleId === coupleId) return await loadMiniState();
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function bindMiniAppsCouple(coupleId: string | null): Promise<MiniState> {
   if (activeCoupleId === coupleId && cache) return cache;
   activeCoupleId = coupleId;

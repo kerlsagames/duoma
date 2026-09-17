@@ -8,7 +8,7 @@ type IconName = ComponentProps<typeof Ionicons>["name"];
 /** Bite-lip mark, same weight and colour as the Ionicons around it. */
 function LipsMark({ size, color }: { size: number; color: string }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+    <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path
         fill={color}
         fillRule="evenodd"

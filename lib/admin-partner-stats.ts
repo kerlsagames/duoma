@@ -1101,6 +1101,8 @@ function packApp(
   };
 }
 
+const HIDDEN_ADMIN_APPS = new Set(["sexy-vault", "audio-vault", "emergency-vault"]);
+
 function packHub(
   ctx: Ctx,
   hub: HubDef | {
@@ -1113,7 +1115,9 @@ function packHub(
     features: HubFeature[] | typeof HOME_HEADER_WIDGETS;
   }
 ): HubInsight {
-  const apps = hub.features.map((feature) => packApp(ctx, hub.id, feature));
+  const apps = hub.features
+    .filter((feature) => !HIDDEN_ADMIN_APPS.has(feature.id))
+    .map((feature) => packApp(ctx, hub.id, feature));
   const seconds = apps.reduce((sum, app) => sum + app.seconds, 0);
   let lastAt: string | null = null;
   let eventCount = 0;
