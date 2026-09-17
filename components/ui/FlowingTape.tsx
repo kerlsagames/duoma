@@ -11,7 +11,7 @@ import {
   type ViewStyle,
 } from "react-native";
 
-const SPEED = 36;
+const DEFAULT_SPEED = 36;
 
 type Props = {
   text: string;
@@ -19,8 +19,10 @@ type Props = {
   height?: number;
   fontSize?: number;
   fontFamily?: string;
-  fontWeight?: "700" | "800" | "600";
+  fontWeight?: "400" | "500" | "600" | "700" | "800";
   letterSpacing?: number;
+  /** Pixels per second. Countdown uses 36; slower reads more like handwriting. */
+  speed?: number;
   backgroundColor?: string;
   onPress?: () => void;
   accessibilityLabel?: string;
@@ -55,6 +57,7 @@ function WebTape({
   fontFamily,
   fontWeight = "700",
   letterSpacing = 0.3,
+  speed = DEFAULT_SPEED,
   backgroundColor,
   onPress,
   accessibilityLabel,
@@ -67,6 +70,8 @@ function WebTape({
   const last = useRef(0);
   const copyW = useRef(0);
   const clipW = useRef(0);
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
   const [copies, setCopies] = useState(4);
 
   useEffect(() => {
@@ -105,7 +110,7 @@ function WebTape({
       const unit = copyW.current;
       const track = trackRef.current;
       if (unit > 0 && track) {
-        pos.current -= SPEED * dt;
+        pos.current -= speedRef.current * dt;
         while (pos.current <= -unit) pos.current += unit;
         track.style.transform = `translate3d(${pos.current}px,0,0)`;
       }
@@ -195,6 +200,7 @@ export function FlowingTape(props: Props) {
     fontFamily,
     fontWeight = "700",
     letterSpacing = 0.3,
+    speed = DEFAULT_SPEED,
     backgroundColor,
     onPress,
     accessibilityLabel,
@@ -216,7 +222,8 @@ export function FlowingTape(props: Props) {
     }
     const loopTo = -copyWidth;
     translate.setValue(0);
-    const loopMs = Math.max(2500, Math.round(copyWidth * (1000 / SPEED)));
+    const pixelsPerSec = speed > 0 ? speed : DEFAULT_SPEED;
+    const loopMs = Math.max(2500, Math.round(copyWidth * (1000 / pixelsPerSec)));
     const loopShift = () => {
       if (!running.current) return;
       translate.setValue(0);
@@ -234,7 +241,7 @@ export function FlowingTape(props: Props) {
       running.current = false;
       translate.stopAnimation();
     };
-  }, [boxWidth, copyWidth, text, translate]);
+  }, [boxWidth, copyWidth, speed, text, translate]);
 
   if (Platform.OS === "web") {
     return <WebTape {...props} />;

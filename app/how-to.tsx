@@ -17,7 +17,7 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. Saved countdowns can run as a ticker just above that bar.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. The latest Thought of You ping tapes across just above that bar — bigger script, in the ping's colour, with when it was sent — and starred countdowns run underneath it.",
   },
   {
     kicker: "Notifications",

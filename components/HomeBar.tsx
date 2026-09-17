@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HomeCountdownTicker } from "@/components/home/HomeCountdownTicker";
+import { HomePingTicker } from "@/components/home/HomePingTicker";
 import { requestHomeSettings, requestHomeStats } from "@/lib/home-chrome";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -86,6 +87,7 @@ export function HomeBar() {
         shadowRadius: 16,
       }}
     >
+      {atHome ? <HomePingTicker /> : null}
       {atHome ? <HomeCountdownTicker /> : null}
       <View
         style={{

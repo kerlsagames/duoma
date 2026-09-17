@@ -25,6 +25,20 @@ export function formatMonthYear(year: number, month: number): string {
   });
 }
 
+/** e.g. just now, 12m ago, yesterday — for tickers and inboxes. */
+export function formatRelativeWhen(iso: string, from = Date.now()): string {
+  const at = Date.parse(iso);
+  if (Number.isNaN(at)) return "today";
+  const mins = Math.max(0, Math.round((from - at) / 60000));
+  if (mins < 2) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "yesterday";
+  return `${days}d ago`;
+}
+
 /** e.g. Wed, Sep 16 · 9:43 pm */
 export function formatDateAndTime(iso: string): string {
   const time = formatClockTime(iso);
