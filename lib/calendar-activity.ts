@@ -231,7 +231,7 @@ function nightSubtitle(night: GameSession): string {
 }
 
 function isPositionCalendarEvent(row: CalendarCustomEvent): boolean {
-  if (row.source === "position") return true;
+  if (row.source === "position" || row.source === "roleplay") return true;
   if (row.title === "Try a position") return true;
   if (!row.title.startsWith("Try ")) return false;
   return sexPositions(true).some((pose) => row.title === `Try ${pose.name}`);
@@ -451,11 +451,13 @@ export function buildCalendarActivities(
       title: row.title,
       subtitle: row.notes.trim()
         ? row.notes.slice(0, 80)
-        : position
-          ? "Position"
-          : allDay
-            ? "All day"
-            : "Your note",
+        : row.source === "roleplay"
+          ? "Roleplay"
+          : position
+            ? "Position"
+            : allDay
+              ? "All day"
+              : "Your note",
       mark: position ? "play" : "custom",
       href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
       allDay,

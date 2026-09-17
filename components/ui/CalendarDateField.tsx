@@ -12,6 +12,7 @@ type Props = {
   accent?: string;
   background?: string;
   allowClear?: boolean;
+  minDate?: string;
 };
 
 export function CalendarDateField({
@@ -23,6 +24,7 @@ export function CalendarDateField({
   accent = "#3D8BDB",
   background = "#0F1822",
   allowClear = true,
+  minDate,
 }: Props) {
   const selected = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
   const initial = selected ? parseDateKey(selected) : new Date();
@@ -161,16 +163,22 @@ export function CalendarDateField({
             }
             const on = selected === cell.date;
             const isToday = today === cell.date;
+            const tooSoon = Boolean(minDate && cell.date < minDate);
             return (
               <Pressable
                 key={cell.date}
-                onPress={() => onChange(cell.date)}
+                onPress={() => {
+                  if (tooSoon) return;
+                  onChange(cell.date);
+                }}
+                disabled={tooSoon}
                 accessibilityLabel={formatLongDate(cell.date)}
                 style={{
                   width: "14.2857%",
                   height: 36,
                   alignItems: "center",
                   justifyContent: "center",
+                  opacity: tooSoon ? 0.28 : 1,
                 }}
               >
                 <View

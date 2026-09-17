@@ -1,7 +1,8 @@
 import type { ChickenPlay } from "@/lib/chicken";
+import type { FeedbackNote } from "@/lib/feedback";
 import type { ContentReport } from "@/lib/reports";
 
-export type { ChickenPlay, ContentReport };
+export type { ChickenPlay, ContentReport, FeedbackNote };
 
 export const STAGES = [
   "pre_foreplay",
@@ -577,6 +578,9 @@ export type RoleplayInvite = {
   toUserId: string;
   roleplayId: string;
   status: RoleplayInviteStatus;
+  /** When set, partner must confirm before it lands on the calendar. */
+  dateKey: string | null;
+  whenLabel: string | null;
   createdAt: string;
   answeredAt: string | null;
   completedAt: string | null;
@@ -686,8 +690,8 @@ export type CalendarCustomEvent = {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  /** Positions land on Desire, not General. */
-  source?: "position";
+  /** Positions and roleplays land on Desire, not General. */
+  source?: "position" | "roleplay";
 };
 
 export type AppDB = {
@@ -737,6 +741,7 @@ export type AppDB = {
   customMeals: CustomMeal[];
   hiddenMeals: HiddenMeal[];
   contentReports: ContentReport[];
+  feedbackNotes: FeedbackNote[];
 };
 
 export type GameModule = {

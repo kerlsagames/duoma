@@ -1,15 +1,15 @@
+import { AskNightBox } from "@/components/hub/AskNightBox";
 import { LookPanel } from "@/components/hub/AppSettings";
 import { PlayRatingsToggle, PlayTabs } from "@/components/hub/PlayTabs";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import { BackButton } from "@/components/ui/BackButton";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
-import { addDaysToDateKey, localDateKey, upcomingWeekday } from "@/lib/dates";
+import { localDateKey } from "@/lib/dates";
 import {
   categoryMeta,
   pickRandomPosition,
@@ -25,6 +25,8 @@ import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import {
   myPlayRating,
+  nightAskLabel,
+  nightWindowCopy,
   openPositionSave,
   positionAskForPose,
   ratingsForTarget,
@@ -71,12 +73,7 @@ export default function PositionsScreen() {
   const [sending, setSending] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
-  const [scheduledFlash, setScheduledFlash] = useState<string | null>(null);
-  const [askWhen, setAskWhen] = useState<{
-    dateKey: string;
-    label: string;
-    positionId: string;
-  } | null>(null);
+  const [askOn, setAskOn] = useState(localDateKey);
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
   const [browseId, setBrowseId] = useState<string | null>(null);
@@ -129,8 +126,6 @@ export default function PositionsScreen() {
     setError(null);
     setSentFlash(false);
     setSavedFlash(false);
-    setScheduledFlash(null);
-    setAskWhen(null);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -150,8 +145,6 @@ export default function PositionsScreen() {
   const skip = () => {
     setSentFlash(false);
     setSavedFlash(false);
-    setScheduledFlash(null);
-    setAskWhen(null);
     const next = pickRandomPosition(enabled, current?.id ?? null);
     if (!next) {
       setError("Turn on at least one category.");
@@ -160,12 +153,20 @@ export default function PositionsScreen() {
     setCurrent(next);
   };
 
-  const send = async (pose: SexPosition) => {
+  const send = async (pose: SexPosition, dateKey = askOn) => {
+    const night = /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? dateKey : localDateKey();
+    if (night < localDateKey()) {
+      setError("Pick today or a day still ahead.");
+      return;
+    }
     setError(null);
     setSending(true);
     try {
       await savePosition(pose.id);
-      await sendPositionInvite(pose.id);
+      await sendPositionInvite(pose.id, {
+        dateKey: night,
+        label: nightAskLabel(night),
+      });
       setSentFlash(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
@@ -185,21 +186,6 @@ export default function PositionsScreen() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update favourites.");
-    }
-  };
-
-  const scheduleOn = async (pose: SexPosition, dateKey: string, label: string) => {
-    setError(null);
-    setSending(true);
-    try {
-      await savePosition(pose.id);
-      await sendPositionInvite(pose.id, { dateKey, label });
-      setSentFlash(true);
-      setScheduledFlash(label);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not ask them.");
-    } finally {
-      setSending(false);
     }
   };
 
@@ -404,8 +390,7 @@ export default function PositionsScreen() {
                   lineHeight: 22,
                 }}
               >
-                Asked {partnerName} to confirm
-                {scheduledFlash ? ` ${scheduledFlash}` : " tonight"}.
+                Asked {partnerName} to confirm {nightAskLabel(askOn)}.
               </Text>
             ) : null}
             {savedFlash ? (
@@ -422,78 +407,18 @@ export default function PositionsScreen() {
               </Text>
             ) : null}
 
-            {scheduledFlash && !sentFlash ? (
-              <Text
-                style={{
-                  marginTop: 10,
-                  textAlign: "center",
-                  color: T.accent,
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}
-              >
-                Waiting on {partnerName} for {scheduledFlash}.
-              </Text>
-            ) : null}
-
             <View style={{ marginTop: 16, gap: 10 }}>
-              <PrimaryButton
-                label="Try this tonight?"
-                tone="crimson"
-                loading={sending}
-                onPress={() => void send(current)}
+              <AskNightBox
+                dateKey={askOn}
+                onChangeDate={setAskOn}
+                partnerName={partnerName}
+                sending={sending}
+                onSend={() => void send(current)}
+                accent={T.accent}
+                ink={T.ink}
+                muted={T.muted}
+                background={T.surface}
               />
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {(
-                  [
-                    { dateKey: localDateKey(), label: "tonight", title: "Tonight" },
-                    {
-                      dateKey: upcomingWeekday(6),
-                      label: "this Saturday",
-                      title: "This Saturday",
-                    },
-                    {
-                      dateKey: addDaysToDateKey(upcomingWeekday(6), 7),
-                      label: "next Saturday",
-                      title: "Next Saturday",
-                    },
-                  ] as const
-                ).map((chip) => {
-                  const on =
-                    askWhen?.label === chip.label &&
-                    askWhen.positionId === current.id;
-                  return (
-                    <Pressable
-                      key={chip.label}
-                      onPress={() =>
-                        setAskWhen({
-                          dateKey: chip.dateKey,
-                          label: chip.label,
-                          positionId: current.id,
-                        })
-                      }
-                      style={{
-                        borderRadius: 999,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        borderWidth: 1,
-                        borderColor: on ? T.accent : "rgba(255,255,255,0.16)",
-                        backgroundColor: on ? "rgba(255,0,127,0.18)" : "transparent",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: T.accent,
-                          fontWeight: "700",
-                          fontSize: 16,
-                        }}
-                      >
-                        {chip.title}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
               <PrimaryButton label="Skip" tone="ghost" onPress={skip} />
             </View>
           </View>
@@ -697,69 +622,20 @@ export default function PositionsScreen() {
                                 fontWeight: "600",
                               }}
                             >
-                              Asked {partnerName} to confirm
-                              {scheduledFlash ? ` ${scheduledFlash}` : " tonight"}.
+                              Asked {partnerName} to confirm {nightAskLabel(askOn)}.
                             </Text>
                           ) : null}
-                          <PrimaryButton
-                            label="Try this tonight?"
-                            tone="crimson"
-                            loading={sending}
-                            onPress={() => void send(pose)}
+                          <AskNightBox
+                            dateKey={askOn}
+                            onChangeDate={setAskOn}
+                            partnerName={partnerName}
+                            sending={sending}
+                            onSend={() => void send(pose)}
+                            accent={T.accent}
+                            ink={T.ink}
+                            muted={T.muted}
+                            background={T.surface}
                           />
-                          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                            {(
-                              [
-                                { dateKey: localDateKey(), label: "tonight", title: "Tonight" },
-                                {
-                                  dateKey: upcomingWeekday(6),
-                                  label: "this Saturday",
-                                  title: "This Saturday",
-                                },
-                                {
-                                  dateKey: addDaysToDateKey(upcomingWeekday(6), 7),
-                                  label: "next Saturday",
-                                  title: "Next Saturday",
-                                },
-                              ] as const
-                            ).map((chip) => {
-                              const chipOn =
-                                askWhen?.label === chip.label &&
-                                askWhen.positionId === pose.id;
-                              return (
-                                <Pressable
-                                  key={chip.label}
-                                  onPress={() =>
-                                    setAskWhen({
-                                      dateKey: chip.dateKey,
-                                      label: chip.label,
-                                      positionId: pose.id,
-                                    })
-                                  }
-                                  style={{
-                                    borderRadius: 999,
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 12,
-                                    borderWidth: 1,
-                                    borderColor: chipOn ? T.accent : "rgba(255,255,255,0.16)",
-                                    backgroundColor: chipOn
-                                      ? "rgba(255,0,127,0.18)"
-                                      : "transparent",
-                                  }}
-                                >
-                                  <Text
-                                    style={{
-                                      color: T.accent,
-                                      fontWeight: "700",
-                                      fontSize: 16,
-                                    }}
-                                  >
-                                    {chip.title}
-                                  </Text>
-                                </Pressable>
-                              );
-                            })}
-                          </View>
                         </View>
                       ) : null}
                     </View>
@@ -772,7 +648,7 @@ export default function PositionsScreen() {
 
         {incoming.length ? (
           <InviteSection
-            title={`Tonight? · from ${partnerName}`}
+            title={`From ${partnerName}`}
             rows={incoming}
             partnerName={partnerName}
             outgoing={false}
@@ -800,11 +676,10 @@ export default function PositionsScreen() {
                 invites={positionInvites}
                 userId={user?.id ?? null}
                 partnerName={partnerName}
-                onAsk={(positionId) =>
-                  void sendPositionInvite(positionId).catch((err) =>
-                    setError(err instanceof Error ? err.message : "Could not send.")
-                  )
-                }
+                onAsk={(positionId, dateKey) => {
+                  const pose = positionById(positionId);
+                  if (pose) void send(pose, dateKey);
+                }}
                 onDone={(id) => void markPositionSaveDone(id)}
                 incoming={incoming}
                 onRespond={(id, status) => void respondPositionInvite(id, status)}
@@ -825,23 +700,6 @@ export default function PositionsScreen() {
           </>
         )}
       </View>
-      <ConfirmDialog
-        open={Boolean(askWhen)}
-        title={`Ask ${partnerName} to confirm?`}
-        body={`${askWhen?.label === "tonight" ? "Tonight" : askWhen?.label === "this Saturday" ? "This Saturday" : "Next Saturday"} stays off the calendar until they say yes.`}
-        confirmLabel="Ask them"
-        cancelLabel="Not now"
-        onCancel={() => setAskWhen(null)}
-        onConfirm={() => {
-          const next = askWhen;
-          setAskWhen(null);
-          if (!next) return;
-          const pose =
-            positionById(next.positionId) ??
-            (current?.id === next.positionId ? current : null);
-          if (pose) void scheduleOn(pose, next.dateKey, next.label);
-        }}
-      />
     </Screen>
   );
 }
@@ -910,10 +768,10 @@ function InviteSection({
               >
                   {row.status === "offered"
                     ? outgoing
-                      ? `Waiting on ${partnerName}${row.whenLabel ? ` · ${row.whenLabel}` : ""}`
-                      : `${partnerName} asked · ${row.whenLabel ?? "tonight"}?`
+                      ? `Waiting on ${partnerName} · ${row.whenLabel ?? nightAskLabel(row.dateKey)}`
+                      : `${partnerName} asked · ${row.whenLabel ?? nightAskLabel(row.dateKey)}?`
                     : row.status === "accepted"
-                      ? `${row.whenLabel ?? "Tonight"}'s on`
+                      ? `${row.whenLabel ?? nightAskLabel(row.dateKey)} is on`
                       : row.status}
               </Text>
               <Text
@@ -929,12 +787,16 @@ function InviteSection({
               {!outgoing && row.status === "offered" ? (
                 <View style={{ marginTop: 12, gap: 8 }}>
                   <PrimaryButton
-                    label={row.whenLabel ? `Yes — ${row.whenLabel}` : "Yes — tonight"}
+                    label={
+                      row.whenLabel
+                        ? `Yes — ${row.whenLabel}`
+                        : `Yes — ${nightAskLabel(row.dateKey)}`
+                    }
                     tone="crimson"
                     onPress={() => onRespond(row.id, "accepted")}
                   />
                   <PrimaryButton
-                    label="Not tonight"
+                    label="Not this time"
                     tone="ghost"
                     onPress={() => onRespond(row.id, "declined")}
                   />
@@ -944,9 +806,12 @@ function InviteSection({
                 <PokeThem appId="positions" targetId={row.id} color={T.accent} />
               ) : null}
               {row.status === "accepted" ? (
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: 12, gap: 8 }}>
+                  <Text style={{ fontSize: 13, lineHeight: 19, color: T.muted }}>
+                    {nightWindowCopy(row.dateKey)} Either of you can tap Complete.
+                  </Text>
                   <PrimaryButton
-                    label="Mark done"
+                    label="Complete"
                     tone="ghost"
                     onPress={() => onDone(row.id)}
                   />
@@ -975,17 +840,19 @@ function PositionTodo({
   invites: PositionInvite[];
   userId: string | null;
   partnerName: string;
-  onAsk: (positionId: string) => void;
+  onAsk: (positionId: string, dateKey: string) => void;
   onDone: (id: string) => void;
   incoming: PositionInvite[];
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onInviteDone: (id: string) => void;
 }) {
+  const [askingId, setAskingId] = useState<string | null>(null);
+  const [todoOn, setTodoOn] = useState(localDateKey);
   return (
     <View>
       {incoming.length ? (
         <InviteSection
-          title={`Tonight? · from ${partnerName}`}
+          title={`From ${partnerName}`}
           rows={incoming}
           partnerName={partnerName}
           outgoing={false}
@@ -1002,7 +869,7 @@ function PositionTodo({
         }}
       >
         {saves.length
-          ? "Tick one off after you try it. Or send try this tonight?"
+          ? "Heart a pose, pick a night, then ask. If they say yes, it lands on the calendar."
           : "Save a pose from Pick. It waits here until you tick it off."}
       </Text>
       <View style={{ marginTop: 14, gap: 10 }}>
@@ -1033,33 +900,68 @@ function PositionTodo({
                   color: T.muted,
                 }}
               >
-                {tonightAskCopy(ask?.status ?? null, mine, partnerName, "position")}
+                {tonightAskCopy(
+                  ask?.status ?? null,
+                  mine,
+                  partnerName,
+                  "position",
+                  ask?.dateKey
+                )}
               </Text>
               <View style={{ marginTop: 12, gap: 8 }}>
                 {ask?.status === "offered" && !mine ? (
                   <>
                     <PrimaryButton
-                      label={ask.whenLabel ? `Yes — ${ask.whenLabel}` : "Yes — tonight"}
+                      label={
+                        ask.whenLabel
+                          ? `Yes — ${ask.whenLabel}`
+                          : `Yes — ${nightAskLabel(ask.dateKey)}`
+                      }
                       tone="crimson"
                       onPress={() => onRespond(ask.id, "accepted")}
                     />
                     <PrimaryButton
-                      label="Not tonight"
+                      label="Not this time"
                       tone="ghost"
                       onPress={() => onRespond(ask.id, "declined")}
                     />
                   </>
                 ) : !ask ? (
-                  <PrimaryButton
-                    label="Try this tonight?"
-                    tone="crimson"
-                    onPress={() => onAsk(row.positionId)}
-                  />
+                  askingId === row.positionId ? (
+                    <AskNightBox
+                      dateKey={todoOn}
+                      onChangeDate={setTodoOn}
+                      partnerName={partnerName}
+                      onSend={() => {
+                        onAsk(row.positionId, todoOn);
+                        setAskingId(null);
+                      }}
+                      accent={T.accent}
+                      ink={T.ink}
+                      muted={T.muted}
+                      background={T.surfaceRaised}
+                    />
+                  ) : (
+                    <PrimaryButton
+                      label={`Ask ${partnerName}`}
+                      tone="crimson"
+                      onPress={() => {
+                        setAskingId(row.positionId);
+                        setTodoOn(localDateKey());
+                      }}
+                    />
+                  )
+                ) : ask.status === "accepted" ? (
+                  <Text style={{ fontSize: 13, lineHeight: 19, color: T.muted }}>
+                    {nightWindowCopy(ask.dateKey)}
+                  </Text>
                 ) : null}
                 <PrimaryButton
-                  label="Mark done"
+                  label="Complete"
                   tone="ghost"
-                  onPress={() => onDone(row.id)}
+                  onPress={() =>
+                    ask?.status === "accepted" ? onInviteDone(ask.id) : onDone(row.id)
+                  }
                 />
               </View>
             </View>

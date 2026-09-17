@@ -16,6 +16,7 @@ import {
   rowInGroup,
 } from "@/lib/catalog-rows";
 import { STAGE_META, STAGE_ORDER } from "@/games/get-spicy/engine";
+import { FeedbackPane } from "@/components/admin/FeedbackPane";
 import { DemoPane } from "@/components/admin/DemoPane";
 import { ReportsPane } from "@/components/admin/ReportsPane";
 import { UsersSpreadsheet } from "@/components/admin/UsersSpreadsheet";
@@ -32,13 +33,14 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type Tab = "setup" | "users" | "reports" | "demo" | CatalogKey | "spicyLive";
+type Tab = "setup" | "users" | "reports" | "feedback" | "demo" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
   { id: "setup", label: "Setup" },
   { id: "demo", label: "Demo" },
   { id: "users", label: "Users" },
   { id: "reports", label: "Reports" },
+  { id: "feedback", label: "Feedback" },
   { id: "spicyLive", label: "Copies" },
   { id: "fantasy", label: "Fantasy" },
   { id: "spicyDares", label: "Dare Me" },
@@ -211,6 +213,8 @@ export default function AdminScreen() {
           <UsersSpreadsheet />
         ) : tab === "reports" ? (
           <ReportsPane />
+        ) : tab === "feedback" ? (
+          <FeedbackPane />
         ) : tab === "demo" ? (
           <DemoPane />
         ) : tab === "spicyLive" ? (

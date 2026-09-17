@@ -41,6 +41,15 @@ import {
 import { discoverQuestionById } from "@/lib/discover-questions";
 import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
 import { positionById } from "@/lib/sex-positions";
+import { roleplayById } from "@/lib/roleplays";
+import { nightAskLabel } from "@/lib/play-items";
+import {
+  buildFeedbackNote,
+  hydrateFeedbackNote,
+  readLocalFeedback,
+  writeLocalFeedback,
+  type FeedbackNote,
+} from "@/lib/feedback";
 import {
   broadcastSafetyEvent,
   safetyEventNow,
@@ -623,6 +632,8 @@ type AppContextValue = {
     action: "dismiss" | "action_taken"
   ) => Promise<void>;
   contentReports: import("@/lib/reports").ContentReport[];
+  sendFeedback: (body: string) => Promise<void>;
+  feedbackNotes: import("@/lib/feedback").FeedbackNote[];
   sendSpicyInvite: () => Promise<void>;
   acceptInvite: () => Promise<void>;
   declineInvite: () => Promise<void>;
@@ -719,7 +730,10 @@ type AppContextValue = {
     id: string,
     status: "accepted" | "declined"
   ) => Promise<void>;
-  sendRoleplayInvite: (roleplayId: string) => Promise<void>;
+  sendRoleplayInvite: (
+    roleplayId: string,
+    when?: { dateKey: string; label: string }
+  ) => Promise<void>;
   respondRoleplayInvite: (
     id: string,
     status: "accepted" | "declined"
@@ -909,6 +923,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const extra = localReports.filter((row) => !seen.has(row.id));
         if (extra.length) {
           db = { ...db, contentReports: [...(db.contentReports ?? []), ...extra] };
+        }
+      }
+      const localFeedback = await readLocalFeedback();
+      if (localFeedback.length) {
+        const seen = new Set((db.feedbackNotes ?? []).map((row) => row.id));
+        const extra = localFeedback.filter((row) => !seen.has(row.id));
+        if (extra.length) {
+          db = { ...db, feedbackNotes: [...(db.feedbackNotes ?? []), ...extra] };
         }
       }
       const pardoned = db.profiles.map(pardonCreator);
@@ -1269,6 +1291,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const contentReports = useMemo(
     () => db.contentReports ?? [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const feedbackNotes = useMemo(
+    () =>
+      [...(db.feedbackNotes ?? [])].sort((a, b) =>
+        b.createdAt.localeCompare(a.createdAt)
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1683,6 +1713,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const seen = new Set(remote.map((row) => row.id));
         const extra = (db.contentReports ?? []).filter((row) => !seen.has(row.id));
         db = { ...db, contentReports: [...remote, ...extra] };
+      }
+      try {
+        const { data: feedbackRows } = await supabase
+          .from("feedback_notes")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (feedbackRows) {
+          const remote = feedbackRows
+            .map((row) =>
+              hydrateFeedbackNote({
+                id: row.id,
+                userId: row.user_id,
+                displayName: row.display_name,
+                email: row.email,
+                coupleId: row.couple_id,
+                body: row.body,
+                createdAt: row.created_at,
+              })
+            )
+            .filter((row): row is FeedbackNote => Boolean(row));
+          const seen = new Set(remote.map((row) => row.id));
+          const extra = (db.feedbackNotes ?? []).filter((row) => !seen.has(row.id));
+          db = { ...db, feedbackNotes: [...remote, ...extra] };
+        }
+      } catch {
+        // Table may not exist yet.
       }
     }
     if (!directory && !(cloudAccountsOn() && supabase)) return;
@@ -2320,6 +2377,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
     },
     []
+  );
+
+  const sendFeedback = useCallback(
+    async (body: string) => {
+      if (!user) throw new Error("Sign in first.");
+      const text = body.trim();
+      if (!text) throw new Error("Write a note first.");
+      const row = buildFeedbackNote({
+        userId: user.id,
+        displayName: user.displayName,
+        email: user.email,
+        coupleId: couple?.id ?? null,
+        body: text,
+      });
+      db = { ...db, feedbackNotes: [...(db.feedbackNotes ?? []), row] };
+      await writeLocalFeedback(db.feedbackNotes);
+      await persist();
+      if (cloudAccountsOn() && supabase) {
+        try {
+          await supabase.from("feedback_notes").insert({
+            id: row.id,
+            user_id: row.userId,
+            display_name: row.displayName,
+            email: row.email,
+            couple_id: row.coupleId,
+            body: row.body,
+            created_at: row.createdAt,
+          });
+        } catch {
+          // Local copy is enough if the cloud table is not live yet.
+        }
+      }
+    },
+    [user, couple?.id]
   );
 
   const sendSpicyInvite = useCallback(async () => {
@@ -4947,7 +5038,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const sendRoleplayInvite = useCallback(
-    async (roleplayId: string) => {
+    async (roleplayId: string, when?: { dateKey: string; label: string }) => {
       if (!user || !couple) {
         throw new Error("Pair first, then send a roleplay.");
       }
@@ -4957,6 +5048,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const id = roleplayId.trim();
       if (!id) throw new Error("Pick a roleplay first.");
+      const dateKey = when?.dateKey ?? null;
+      const already = db.roleplayInvites.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.roleplayId === id &&
+          (row.status === "offered" || row.status === "accepted") &&
+          (row.dateKey ?? null) === dateKey
+      );
+      if (already?.status === "accepted") {
+        throw new Error("That's already a yes on this one.");
+      }
+      if (already?.status === "offered") {
+        if (already.fromUserId === user.id) {
+          throw new Error("They're still answering this one.");
+        }
+        throw new Error("They already asked you this one. Answer that first.");
+      }
       const row: RoleplayInvite = {
         id: createId(),
         coupleId: couple.id,
@@ -4964,6 +5072,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toUserId,
         roleplayId: id,
         status: "offered",
+        dateKey,
+        whenLabel: when?.label ?? null,
         createdAt: nowIso(),
         answeredAt: null,
         completedAt: null,
@@ -4973,9 +5083,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         roleplayInvites: [...db.roleplayInvites, row],
       };
       await persist();
+      const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
-        title: "Roleplays",
-        body: `${user.displayName} suggested a roleplay.`,
+        title: `Try this ${whenBit}?`,
+        body: `${user.displayName} wants to try a roleplay ${whenBit}. Confirm it first.`,
         url: "/hub/roleplays",
       });
     },
@@ -4988,21 +5099,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const existing = db.roleplayInvites.find((row) => row.id === id);
       if (!existing || existing.status !== "offered") return;
       if (existing.toUserId !== user.id) return;
+      const stamp = nowIso();
+      const scene = roleplayById(existing.roleplayId);
+      const calendarRow: CalendarCustomEvent | null =
+        status === "accepted" && existing.dateKey
+          ? {
+              id: createId(),
+              coupleId: existing.coupleId,
+              title: scene ? `Try ${scene.name}` : "Try a roleplay",
+              notes: scene?.blurb ?? "",
+              date: existing.dateKey,
+              happenedAt: stamp,
+              allDay: true,
+              createdBy: user.id,
+              createdAt: stamp,
+              updatedAt: stamp,
+              source: "roleplay",
+            }
+          : null;
       db = {
         ...db,
         roleplayInvites: db.roleplayInvites.map((row) =>
           row.id === id
-            ? { ...row, status, answeredAt: nowIso() }
+            ? { ...row, status, answeredAt: stamp }
             : row
         ),
+        calendarEvents: calendarRow
+          ? [...db.calendarEvents, calendarRow]
+          : db.calendarEvents,
       };
       await persist();
+      const whenBit = existing.whenLabel ?? "tonight";
       pingPartner(couple, user, partner, {
-        title: "Roleplays",
+        title: status === "accepted" ? `${whenBit} is on` : "Not this time",
         body:
           status === "accepted"
-            ? `${user.displayName} is into that roleplay.`
-            : `${user.displayName} passed on that one.`,
+            ? `${user.displayName} said yes — that roleplay is on ${whenBit}.`
+            : `${user.displayName} said not ${whenBit} for that roleplay.`,
         url: "/hub/roleplays",
       });
     },
@@ -6530,6 +6663,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitContentReport,
     resolveContentReport,
     contentReports,
+    sendFeedback,
+    feedbackNotes,
     sendSpicyInvite,
     acceptInvite,
     declineInvite,

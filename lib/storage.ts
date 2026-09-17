@@ -1,4 +1,5 @@
 import { hydrateChickenPlay } from "@/lib/chicken";
+import { hydrateFeedbackNote } from "@/lib/feedback";
 import { hydrateContentReport } from "@/lib/reports";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
@@ -51,6 +52,7 @@ const hubEmpty = () => ({
   customMeals: [],
   hiddenMeals: [],
   contentReports: [],
+  feedbackNotes: [],
 });
 
 export function emptyDb(): AppDB {
@@ -211,7 +213,7 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
       .map(hydrateChickenPlay)
       .filter((row): row is NonNullable<typeof row> => Boolean(row)),
     positionInvites: (raw.positionInvites ?? []).map(hydratePositionInvite),
-    roleplayInvites: raw.roleplayInvites ?? [],
+    roleplayInvites: (raw.roleplayInvites ?? []).map(hydrateRoleplayInvite),
     roleplaySaves: (raw.roleplaySaves ?? []).map(hydrateRoleplaySave),
     dareSaves: (raw.dareSaves ?? []).map(hydrateDareSave),
     calendarEvents: (raw.calendarEvents ?? []).map(hydrateCalendarEvent),
@@ -222,6 +224,9 @@ export function hydrateDb(raw: Partial<AppDB> | null | undefined): AppDB {
     hiddenMeals: raw.hiddenMeals ?? [],
     contentReports: (raw.contentReports ?? [])
       .map(hydrateContentReport)
+      .filter((row): row is NonNullable<typeof row> => Boolean(row)),
+    feedbackNotes: (raw.feedbackNotes ?? [])
+      .map(hydrateFeedbackNote)
       .filter((row): row is NonNullable<typeof row> => Boolean(row)),
   };
 }
@@ -319,6 +324,24 @@ function hydratePositionSave(
   };
 }
 
+function hydrateRoleplayInvite(
+  row: AppDB["roleplayInvites"][number]
+): AppDB["roleplayInvites"][number] {
+  const dateKey =
+    typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
+      ? row.dateKey
+      : null;
+  const whenLabel =
+    typeof row.whenLabel === "string" && row.whenLabel.trim()
+      ? row.whenLabel.trim()
+      : null;
+  return {
+    ...row,
+    dateKey,
+    whenLabel,
+  };
+}
+
 function hydrateRoleplaySave(
   row: AppDB["roleplaySaves"][number]
 ): AppDB["roleplaySaves"][number] {
@@ -346,7 +369,10 @@ function hydrateCalendarEvent(
     happenedAt: row.happenedAt ?? row.createdAt,
     allDay: row.allDay !== false,
     updatedAt: row.updatedAt ?? row.createdAt,
-    source: row.source === "position" ? "position" : undefined,
+    source:
+      row.source === "position" || row.source === "roleplay"
+        ? row.source
+        : undefined,
   };
 }
 

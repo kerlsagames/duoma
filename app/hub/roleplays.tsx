@@ -1,3 +1,4 @@
+import { AskNightBox } from "@/components/hub/AskNightBox";
 import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { RoleplayArt } from "@/components/hub/RoleplayArt";
@@ -7,7 +8,8 @@ import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
-import { roleplayAskForScene, tonightAskCopy, openRoleplaySave } from "@/lib/play-items";
+import { roleplayAskForScene, tonightAskCopy, openRoleplaySave, nightAskLabel, nightWindowCopy } from "@/lib/play-items";
+import { localDateKey } from "@/lib/dates";
 import {
   ROLEPLAY_CATEGORIES,
   categoryMeta,
@@ -58,6 +60,7 @@ export default function RoleplaysScreen() {
   const [sending, setSending] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [askOn, setAskOn] = useState(localDateKey);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const look = useAppLook("roleplays", T.accent, {
     hideBlurb: false,
@@ -160,19 +163,44 @@ export default function RoleplaysScreen() {
     }
   };
 
-  const sendCurrent = async () => {
+  const sendCurrent = async (dateKey = askOn) => {
     if (!current) return;
+    const night = /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? dateKey : localDateKey();
+    if (night < localDateKey()) {
+      setError("Pick today or a day still ahead.");
+      return;
+    }
     setError(null);
     setSending(true);
     try {
       await saveRoleplay(current.id);
-      await sendRoleplayInvite(current.id);
+      await sendRoleplayInvite(current.id, {
+        dateKey: night,
+        label: nightAskLabel(night),
+      });
       setSentFlash(true);
-      setTab("todo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const sendSaved = async (roleplayId: string, dateKey: string) => {
+    const night = /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? dateKey : localDateKey();
+    if (night < localDateKey()) {
+      setError("Pick today or a day still ahead.");
+      return;
+    }
+    setError(null);
+    try {
+      await saveRoleplay(roleplayId);
+      await sendRoleplayInvite(roleplayId, {
+        dateKey: night,
+        label: nightAskLabel(night),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send.");
     }
   };
 
@@ -323,19 +351,6 @@ export default function RoleplaysScreen() {
                   {blurb}
                 </Text>
 
-                {sentFlash ? (
-                  <Text
-                    style={{
-                      marginTop: 14,
-                      textAlign: "center",
-                      color: T.warm,
-                      fontSize: 13,
-                      fontWeight: "600",
-                    }}
-                  >
-                    Sent to {partnerName}.
-                  </Text>
-                ) : null}
                 {savedFlash && !sentFlash ? (
                   <Text
                     style={{
@@ -357,11 +372,28 @@ export default function RoleplaysScreen() {
                     onPress={() => spin(current.id)}
                     disabled={poolSize === 0}
                   />
-                  <PrimaryButton
-                    label={`Send to ${partnerName}`}
-                    tone="ghost"
-                    loading={sending}
-                    onPress={() => void sendCurrent()}
+                  {sentFlash ? (
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        color: T.accent,
+                        fontSize: 15,
+                        fontWeight: "600",
+                      }}
+                    >
+                      Asked {partnerName} to confirm {nightAskLabel(askOn)}.
+                    </Text>
+                  ) : null}
+                  <AskNightBox
+                    dateKey={askOn}
+                    onChangeDate={setAskOn}
+                    partnerName={partnerName}
+                    sending={sending}
+                    onSend={() => void sendCurrent()}
+                    accent={T.accent}
+                    ink={T.ink}
+                    muted={T.muted}
+                    background={T.surface}
                   />
                 </View>
               </View>
@@ -553,13 +585,7 @@ export default function RoleplaysScreen() {
             partnerName={partnerName}
             cast={cast}
             incoming={incoming}
-            onAsk={(roleplayId) =>
-              void sendRoleplayInvite(roleplayId).catch((err) =>
-                setError(
-                  err instanceof Error ? err.message : "Could not send."
-                )
-              )
-            }
+            onAsk={(roleplayId, dateKey) => void sendSaved(roleplayId, dateKey)}
             onDone={(id) => void markRoleplaySaveDone(id)}
             onRespond={(id, status) => void respondRoleplayInvite(id, status)}
             onInviteDone={(id) => void completeRoleplayInvite(id)}
@@ -647,10 +673,10 @@ function InviteSection({
               >
                 {row.status === "offered"
                   ? outgoing
-                    ? `Waiting on ${partnerName}`
-                    : `${partnerName} asked · tonight?`
+                    ? `Waiting on ${partnerName} · ${row.whenLabel ?? nightAskLabel(row.dateKey)}`
+                    : `${partnerName} asked · ${row.whenLabel ?? nightAskLabel(row.dateKey)}?`
                   : row.status === "accepted"
-                    ? "Tonight's on"
+                    ? `${row.whenLabel ?? nightAskLabel(row.dateKey)} is on`
                     : row.status}
               </Text>
               <Text
@@ -666,7 +692,11 @@ function InviteSection({
               {!outgoing && row.status === "offered" ? (
                 <View style={{ marginTop: 12, gap: 8 }}>
                   <PrimaryButton
-                    label="I'm into it"
+                    label={
+                      row.whenLabel
+                        ? `Yes — ${row.whenLabel}`
+                        : `Yes — ${nightAskLabel(row.dateKey)}`
+                    }
                     tone="crimson"
                     onPress={() => onRespond(row.id, "accepted")}
                   />
@@ -681,9 +711,12 @@ function InviteSection({
                 <PokeThem appId="roleplays" targetId={row.id} color={T.accent} />
               ) : null}
               {row.status === "accepted" ? (
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: 12, gap: 8 }}>
+                  <Text style={{ fontSize: 13, lineHeight: 19, color: T.muted }}>
+                    {nightWindowCopy(row.dateKey)} Either of you can tap Complete.
+                  </Text>
                   <PrimaryButton
-                    label="Mark done"
+                    label="Complete"
                     tone="ghost"
                     onPress={() => onDone(row.id)}
                   />
@@ -715,16 +748,18 @@ function RoleplayTodo({
   partnerName: string;
   cast: { f: string; m: string };
   incoming: RoleplayInvite[];
-  onAsk: (roleplayId: string) => void;
+  onAsk: (roleplayId: string, dateKey: string) => void;
   onDone: (id: string) => void;
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onInviteDone: (id: string) => void;
 }) {
+  const [askingId, setAskingId] = useState<string | null>(null);
+  const [todoOn, setTodoOn] = useState(localDateKey);
   return (
     <View>
       {incoming.length ? (
         <InviteSection
-          title={`Tonight? · from ${partnerName}`}
+          title={`From ${partnerName}`}
           rows={incoming}
           partnerName={partnerName}
           cast={cast}
@@ -742,7 +777,7 @@ function RoleplayTodo({
         }}
       >
         {saves.length
-          ? "Tick one off after you play it. Or send try this tonight?"
+          ? "Heart a scene, pick a night, then ask. If they say yes, it lands on the calendar."
           : "Save a scene from Spin. It waits here until you tick it off."}
       </Text>
       <View style={{ marginTop: 14, gap: 10 }}>
@@ -777,14 +812,19 @@ function RoleplayTodo({
                   ask?.status ?? null,
                   mine,
                   partnerName,
-                  "roleplay"
+                  "roleplay",
+                  ask?.dateKey
                 )}
               </Text>
               <View style={{ marginTop: 12, gap: 8 }}>
                 {ask?.status === "offered" && !mine ? (
                   <>
                     <PrimaryButton
-                      label="I'm into it"
+                      label={
+                        ask.whenLabel
+                          ? `Yes — ${ask.whenLabel}`
+                          : `Yes — ${nightAskLabel(ask.dateKey)}`
+                      }
                       tone="crimson"
                       onPress={() => onRespond(ask.id, "accepted")}
                     />
@@ -795,16 +835,41 @@ function RoleplayTodo({
                     />
                   </>
                 ) : !ask ? (
-                  <PrimaryButton
-                    label="Try this tonight?"
-                    tone="crimson"
-                    onPress={() => onAsk(row.roleplayId)}
-                  />
+                  askingId === row.roleplayId ? (
+                    <AskNightBox
+                      dateKey={todoOn}
+                      onChangeDate={setTodoOn}
+                      partnerName={partnerName}
+                      onSend={() => {
+                        onAsk(row.roleplayId, todoOn);
+                        setAskingId(null);
+                      }}
+                      accent={T.accent}
+                      ink={T.ink}
+                      muted={T.muted}
+                      background={T.surfaceRaised}
+                    />
+                  ) : (
+                    <PrimaryButton
+                      label={`Ask ${partnerName}`}
+                      tone="crimson"
+                      onPress={() => {
+                        setAskingId(row.roleplayId);
+                        setTodoOn(localDateKey());
+                      }}
+                    />
+                  )
+                ) : ask.status === "accepted" ? (
+                  <Text style={{ fontSize: 13, lineHeight: 19, color: T.muted }}>
+                    {nightWindowCopy(ask.dateKey)}
+                  </Text>
                 ) : null}
                 <PrimaryButton
-                  label="Mark done"
+                  label="Complete"
                   tone="ghost"
-                  onPress={() => onDone(row.id)}
+                  onPress={() =>
+                    ask?.status === "accepted" ? onInviteDone(ask.id) : onDone(row.id)
+                  }
                 />
               </View>
             </View>

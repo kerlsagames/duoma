@@ -1,4 +1,4 @@
-import { formatLongDate } from "@/lib/dates";
+import { addDaysToDateKey, daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
 import type {
   DateNightAsk,
   DareSave,
@@ -93,6 +93,41 @@ export function myPlayRating(
   );
 }
 
+export function nightAskLabel(
+  dateKey: string | null | undefined,
+  today = localDateKey()
+): string {
+  if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return "tonight";
+  if (dateKey === today) return "tonight";
+  if (dateKey === addDaysToDateKey(today, 1)) return "tomorrow";
+  return formatLongDate(dateKey);
+}
+
+export function nightWindowCopy(
+  dateKey: string | null | undefined,
+  today = localDateKey()
+): string {
+  if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+    return "You can complete it whenever you’re ready.";
+  }
+  const days = daysUntil(dateKey);
+  if (days >= 2) {
+    return `You have until ${formatLongDate(dateKey)}. You can complete it sooner.`;
+  }
+  if (days === 1) return "On for tomorrow. You can complete it tonight if you like.";
+  if (days === 0) return "On for tonight.";
+  return `Night was ${formatLongDate(dateKey)}. Still mark it complete if you already did.`;
+}
+
+export function nightAskHint(dateKey: string): string {
+  const days = daysUntil(dateKey);
+  if (days >= 2) {
+    return `They have until ${formatLongDate(dateKey)} to do it, and can complete it sooner.`;
+  }
+  if (days === 1) return "On for tomorrow. You can complete it tonight if you like.";
+  return "On for tonight.";
+}
+
 export function tonightAskCopy(
   status: "offered" | "accepted" | "declined" | "done" | null,
   mine: boolean,
@@ -102,16 +137,11 @@ export function tonightAskCopy(
 ): string {
   const thing =
     kind === "date" ? "date" : kind === "position" ? "pose" : "scene";
-  const when =
-    kind === "date" && nightKey && /^\d{4}-\d{2}-\d{2}$/.test(nightKey)
-      ? formatLongDate(nightKey)
-      : kind === "date"
-        ? "that night"
-        : "tonight";
+  const when = nightAskLabel(nightKey);
   if (!status || status === "done") {
     return kind === "date"
       ? `Pick a night, then send ${partnerLabel} the ask. If they say yes, it lands on the calendar.`
-      : `Send ${partnerLabel} “try this tonight?” They answer yes or no.`;
+      : `Pick a night, then send ${partnerLabel} the ask. If they say yes, it lands on the calendar.`;
   }
   if (status === "offered") {
     return mine
@@ -119,7 +149,7 @@ export function tonightAskCopy(
       : `${partnerLabel} asked for ${when}. Yes puts this ${thing} on the calendar.`;
   }
   if (status === "accepted") {
-    return `It’s a go — ${when} is on the calendar.`;
+    return `It’s a go — ${when} is on the calendar. ${nightWindowCopy(nightKey)}`;
   }
   return mine
     ? `${partnerLabel} said not ${when}.`
