@@ -64,6 +64,7 @@ export default function AdminScreen() {
   const [tab, setTab] = useState<Tab>("users");
   const [q, setQ] = useState("");
   const rev = useCatalogRevision();
+  void rev;
   const {
     allProfiles,
     allCouples,
@@ -220,7 +221,7 @@ export default function AdminScreen() {
         ) : tab === "spicyLive" ? (
           <LiveSpicyPane cards={allCards} profiles={allProfiles} couples={allCouples} />
         ) : (
-          <CatalogPane key={`${tab}-${rev}`} catalog={tab} query={q} onQuery={setQ} />
+          <CatalogPane key={tab} catalog={tab} query={q} onQuery={setQ} />
         )}
       </View>
     </View>
@@ -375,8 +376,7 @@ function CatalogPane({
     if (!needle) return true;
     return `${row.title} ${row.body} ${row.group} ${row.id}`.toLowerCase().includes(needle);
   });
-  const live = matched.filter((row) => !hidden.has(row.id));
-  const tucked = matched.filter((row) => hidden.has(row.id));
+  const hiddenCount = matched.filter((row) => hidden.has(row.id)).length;
 
   const open = (row: { id: string; title: string; body: string; group: string }) => {
     setAdding(false);
@@ -398,6 +398,7 @@ function CatalogPane({
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
         <Text style={{ color: "#F4F4F6", fontSize: 20, fontWeight: "800" }}>
           {meta.label} · {matched.length}
+          {hiddenCount ? ` · ${hiddenCount} hidden` : ""}
         </Text>
         <ChipRow
           chips={chips}
@@ -527,48 +528,26 @@ function CatalogPane({
           </View>
         ) : null}
 
-        {live.length === 0 && tucked.length === 0 ? (
+        {matched.length === 0 ? (
           <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 8 }}>
             {needle ? "No cards match that search." : "No cards in this category."}
           </Text>
         ) : null}
 
-        {live.map((row) => (
-          <CardLine
-            key={row.id}
-            title={row.title}
-            detail={detailOf(row)}
-            hidden={false}
-            onEdit={() => open(row)}
-            onHide={() => void hideCatalogRow(catalog, row.id)}
-          />
-        ))}
-
-        {tucked.length ? (
-          <Text
-            style={{
-              color: "rgba(244,244,246,0.4)",
-              fontSize: 11,
-              fontWeight: "700",
-              letterSpacing: 1.2,
-              marginTop: 22,
-              marginBottom: 4,
-            }}
-          >
-            HIDDEN · {tucked.length}
-          </Text>
-        ) : null}
-
-        {tucked.map((row) => (
-          <CardLine
-            key={row.id}
-            title={row.title}
-            detail={detailOf(row)}
-            hidden
-            onEdit={() => open(row)}
-            onRestore={() => void restoreCatalogRow(catalog, row.id)}
-          />
-        ))}
+        {matched.map((row) => {
+          const isHidden = hidden.has(row.id);
+          return (
+            <CardLine
+              key={row.id}
+              title={row.title}
+              detail={detailOf(row)}
+              hidden={isHidden}
+              onEdit={() => open(row)}
+              onHide={() => void hideCatalogRow(catalog, row.id)}
+              onRestore={() => void restoreCatalogRow(catalog, row.id)}
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -639,13 +618,18 @@ function CardLine({
           {detail}
         </Text>
       ) : null}
+      {hidden ? (
+        <Text style={{ color: "rgba(244,244,246,0.4)", fontSize: 11, marginTop: 2 }}>
+          Hidden from the game
+        </Text>
+      ) : null}
       <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
         <Pressable onPress={onEdit} hitSlop={8}>
           <Text style={{ color: "#FF007F", fontSize: 11, fontWeight: "700" }}>Edit</Text>
         </Pressable>
         {hidden ? (
           <Pressable onPress={onRestore} hitSlop={8}>
-            <Text style={{ color: "#3ECFBF", fontSize: 11, fontWeight: "700" }}>Restore</Text>
+            <Text style={{ color: "#3ECFBF", fontSize: 11, fontWeight: "700" }}>Show</Text>
           </Pressable>
         ) : (
           <Pressable onPress={onHide} hitSlop={8}>

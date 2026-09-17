@@ -242,7 +242,6 @@ export async function hideCatalogRow(key: CatalogKey, id: string): Promise<void>
   const next = { ...peekCatalog() };
   const deck = { ...next[key], hiddenIds: [...next[key].hiddenIds] };
   if (!deck.hiddenIds.includes(id)) deck.hiddenIds.push(id);
-  deck.extras = deck.extras.filter((row) => row.id !== id);
   next[key] = deck;
   await writeCatalog(next);
 }
