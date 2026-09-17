@@ -1,4 +1,5 @@
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { inviteShareMessage, joinUrl } from "@/lib/invite";
 import { useApp } from "@/lib/store";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
@@ -7,23 +8,25 @@ import { Share, Text, View } from "react-native";
 export function HomeConnectButton() {
   const { couple, partner, demoMode } = useApp();
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"code" | "invite" | null>(null);
 
   if (demoMode || !couple || couple.partnerB || partner) return null;
 
+  const message = inviteShareMessage(couple.inviteCode);
+  const link = joinUrl(couple.inviteCode);
+
   const share = async () => {
-    const message = `Join me on Duoma — the couples app. My invite code is ${couple.inviteCode}`;
     try {
-      await Share.share({ message });
+      await Share.share({ message, url: link });
     } catch {
-      await Clipboard.setStringAsync(couple.inviteCode);
-      setCopied(true);
+      await Clipboard.setStringAsync(message);
+      setCopied("invite");
     }
   };
 
   const copy = async () => {
-    await Clipboard.setStringAsync(couple.inviteCode);
-    setCopied(true);
+    await Clipboard.setStringAsync(message);
+    setCopied("invite");
   };
 
   if (!open) {
@@ -39,7 +42,7 @@ export function HomeConnectButton() {
             lineHeight: 18,
           }}
         >
-          Send them the pair code. This button leaves when they join.
+          Send them the invite link. This button leaves when they join.
         </Text>
       </View>
     );
@@ -90,12 +93,25 @@ export function HomeConnectButton() {
           lineHeight: 18,
         }}
       >
-        They tap I have a code, enter this, then type the 6-digit email code.
+        Send the link. It opens Join with this code already in the box. They
+        still type the 6-digit email code after that.
+      </Text>
+      <Text
+        style={{
+          marginTop: 8,
+          textAlign: "center",
+          color: "#FF8AB8",
+          fontSize: 12,
+          lineHeight: 18,
+        }}
+        selectable
+      >
+        {link}
       </Text>
       <View style={{ marginTop: 14, gap: 10 }}>
-        <PrimaryButton label="Send the code" onPress={() => void share()} />
+        <PrimaryButton label="Send the invite" onPress={() => void share()} />
         <PrimaryButton
-          label={copied ? "Copied" : "Copy code"}
+          label={copied ? "Copied" : "Copy invite"}
           tone="ghost"
           onPress={() => void copy()}
         />

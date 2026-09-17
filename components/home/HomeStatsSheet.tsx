@@ -6,6 +6,7 @@ import {
   type StatSectionId,
 } from "@/lib/couple-stats";
 import { useThemedHubs } from "@/lib/hub-theme";
+import { useMiniApps } from "@/lib/mini-apps";
 import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,13 +36,23 @@ const LANES: { id: StatSectionId; label: string }[] = [
 
 export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
   const app = useApp();
+  const mini = useMiniApps();
   const hubs = useThemedHubs();
   const [tab, setTab] = useState<Tab>("stats");
   const [lane, setLane] = useState<StatSectionId>("general");
   const [areaH, setAreaH] = useState(0);
   const sheetH = areaH > 0 ? Math.max(280, areaH - 20) : undefined;
-  const input: CoupleStatInput = useMemo(
-    () => ({
+  const input: CoupleStatInput = useMemo(() => {
+    const youId = app.user?.id;
+    const wordleSolved = (mini.data.wordle?.days ?? []).filter((day) =>
+      day.players.some((player) => player.userId === youId && player.solvedAt)
+    ).length;
+    const doodleRounds = (mini.data.doodle?.history ?? []).filter(
+      (row) =>
+        (row.status === "revealed" || Boolean(row.guessedAt)) &&
+        (!youId || row.drawerId === youId || row.guesserId === youId)
+    ).length;
+    return {
       user: app.user,
       partner: app.partner,
       couple: app.couple,
@@ -69,9 +80,18 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
       errandItems: app.errandItems,
       mealRounds: app.mealRounds,
       ritualChecks: app.ritualChecks,
-    }),
-    [app]
-  );
+      knowMeGuesses: mini.data.knowMeGuesses.filter((row) => row.guesserId === youId).length,
+      knowMeSheets: mini.data.knowMeSheets.filter((row) => row.userId === youId).length,
+      predictionsSent: mini.data.predictions.filter(
+        (row) => row.fromUserId === youId || row.createdBy === youId
+      ).length,
+      predictionsSettled: mini.data.predictions.filter((row) => row.status === "settled").length,
+      photoMemories: mini.data.photos.filter((row) => !youId || row.userId === youId).length,
+      wordleSolved,
+      doodleRounds,
+      fairSpins: mini.data.fairSpins.length,
+    };
+  }, [app, mini.data]);
   const sections = useMemo(() => buildCoupleStats(input), [input]);
   const badges = useMemo(() => evaluateBadges(input), [input]);
   const unlocked = badges.filter((row) => row.unlocked).length;
@@ -438,7 +458,7 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
                       }}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        <Ionicons name={head.icon} size={18} color={accentFor(lane)} />
+                        <Text style={{ fontSize: 20, lineHeight: 24 }}>{head.emoji}</Text>
                         <Text style={{ color: PAPER.ink, fontSize: 15, fontWeight: "800" }}>
                           {head.familyTitle}
                         </Text>
@@ -459,10 +479,12 @@ export function HomeStatsSheet({ onClose }: { onClose: () => void }) {
                               paddingHorizontal: 8,
                             }}
                           >
+                            <Text style={{ fontSize: 22, lineHeight: 26 }}>{badge.emoji}</Text>
                             <Text
                               style={{
+                                marginTop: 4,
                                 fontFamily: "SpaceMono",
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: "700",
                                 color: badge.unlocked ? accentFor(lane) : PAPER.fine,
                               }}

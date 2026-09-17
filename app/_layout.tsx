@@ -16,7 +16,7 @@ import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform, View } from "react-native";
+import { Image, Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
@@ -24,6 +24,28 @@ import "../global.css";
 export { ErrorBoundary } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
+
+function LoadingMark() {
+  useEffect(() => {
+    void SplashScreen.hideAsync();
+  }, []);
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#0B0B0E",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Image
+        source={require("../assets/images/splash-icon.png")}
+        style={{ width: 168, height: 168 }}
+        resizeMode="contain"
+      />
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -53,7 +75,7 @@ export default function RootLayout() {
     }
   }, []);
 
-  if (!loaded) return null;
+  if (!loaded) return <LoadingMark />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050507", overflow: "hidden" }}>

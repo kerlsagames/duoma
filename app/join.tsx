@@ -3,22 +3,44 @@ import { ConsentChecks } from "@/components/ConsentChecks";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
+import { normalizeInviteCode } from "@/lib/invite";
 import { useApp } from "@/lib/store";
 import type { Gender } from "@/lib/types";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Platform, Text, TextInput, View } from "react-native";
+
+function codeFromWindow(): string {
+  if (Platform.OS !== "web" || typeof window === "undefined") return "";
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeInviteCode(params.get("code") ?? params.get("invite"));
+  } catch {
+    return "";
+  }
+}
 
 export default function JoinScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ code?: string | string[]; invite?: string | string[] }>();
   const { joinWithCode, usingCloud } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(() =>
+    normalizeInviteCode(params.code) || normalizeInviteCode(params.invite) || codeFromWindow()
+  );
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const next =
+      normalizeInviteCode(params.code) ||
+      normalizeInviteCode(params.invite) ||
+      codeFromWindow();
+    if (next && next !== code) setCode(next);
+  }, [params.code, params.invite, code]);
 
   const submit = async () => {
     if (!gender) return;
@@ -60,8 +82,9 @@ export default function JoinScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
-          Two of you. One code. Email is the account on this phone and the next
-          one. The code is still how you become a pair.
+          {code.length === 6
+            ? `Code ${code} is already in the box from their invite. Add your name and email, then the 6-digit email code.`
+            : "Two of you. One code. Email is the account on this phone and the next one. The code is still how you become a pair."}
         </Text>
 
         <TextInput

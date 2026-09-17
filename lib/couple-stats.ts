@@ -73,6 +73,15 @@ export type CoupleStatInput = {
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
   ritualChecks: RitualCheck[];
+  /** Fun mini-apps — counts only, never photo binaries. */
+  knowMeGuesses: number;
+  knowMeSheets: number;
+  predictionsSent: number;
+  predictionsSettled: number;
+  photoMemories: number;
+  wordleSolved: number;
+  doodleRounds: number;
+  fairSpins: number;
 };
 
 function n(value: number): string {
@@ -215,7 +224,7 @@ export function buildCoupleStats(input: CoupleStatInput): StatSection[] {
     {
       id: "fun",
       label: "Fun",
-      hint: "Chicken, coupons, play for play's sake",
+      hint: "Games, bets, photos, the silly stuff",
       accent: "#F0A46A",
       rows: [
         { id: "chick-you", label: "Chicken dares you sent", value: n(input.chickenPlays.filter((row) => row.fromUserId === you).length) },
@@ -224,6 +233,14 @@ export function buildCoupleStats(input: CoupleStatInput): StatSection[] {
         { id: "coup-you", label: "Coupons you gave", value: n(input.coupons.filter((row) => row.fromUserId === you).length) },
         { id: "coup-them", label: "Coupons they gave", value: n(input.coupons.filter((row) => row.fromUserId === them).length) },
         { id: "coup-use", label: "Coupons redeemed", value: n(input.coupons.filter((row) => row.status === "redeemed" || row.redeemedAt).length) },
+        { id: "know-guess", label: "How Well Do You Know Me guesses", value: n(input.knowMeGuesses) },
+        { id: "know-sheets", label: "How Well Do You Know Me packs you answered", value: n(input.knowMeSheets) },
+        { id: "bets-sent", label: "LoveBetz slips you sent", value: n(input.predictionsSent) },
+        { id: "bets-done", label: "LoveBetz slips settled", value: n(input.predictionsSettled) },
+        { id: "photos", label: "Photo Memory shots", value: n(input.photoMemories) },
+        { id: "wordle", label: "Daily Words you solved", value: n(input.wordleSolved) },
+        { id: "doodle", label: "Draw It rounds finished", value: n(input.doodleRounds) },
+        { id: "fair", label: "Fair Share spins", value: n(input.fairSpins) },
         { id: "bucket", label: "To-do dates saved", value: n(input.bucketItems.length) },
         { id: "bucket-done", label: "To-do dates done", value: n(input.bucketItems.filter((row) => row.doneAt).length) },
       ],

@@ -18,8 +18,8 @@ export default function Root({ children }: { children: ReactNode }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <title>Duoma</title>
         <meta name="apple-mobile-web-app-title" content="Duoma" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
-        <link rel="icon" href="/favicon.png?v=3" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4" />
+        <link rel="icon" href="/favicon.png?v=4" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
@@ -44,5 +44,18 @@ html, body {
 }
 html {
   color-scheme: dark;
+}
+img[src*="splash"],
+img[src*="favicon"],
+img[src*="icon.png"],
+img[src*="icon-192"],
+img[src*="icon-512"],
+img[src*="apple-touch"] {
+  border-radius: 50%;
+}
+#splash-screen img,
+[id*="splash"] img,
+[class*="splash"] img {
+  border-radius: 50%;
 }
 `;

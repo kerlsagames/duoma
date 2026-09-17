@@ -91,8 +91,8 @@ function ensurePwaHead() {
   add("meta", { name: "mobile-web-app-capable", content: "yes" });
   add("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" });
   add("meta", { name: "apple-mobile-web-app-title", content: "Duoma" });
-  add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" });
-  add("link", { rel: "icon", href: "/favicon.png?v=3" });
+  add("link", { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=4" });
+  add("link", { rel: "icon", href: "/favicon.png?v=4" });
 }
 
 export async function subscribeToPush() {
@@ -147,8 +147,8 @@ export async function showLocalPush(payload: PushPayload): Promise<void> {
   const registration = await navigator.serviceWorker.ready.catch(() => null);
   const options: NotificationOptions = {
     body: payload.body,
-    icon: "/icon-192.png?v=3",
-    badge: "/favicon.png?v=3",
+    icon: "/icon-192.png?v=4",
+    badge: "/favicon.png?v=4",
     tag: "duoma-test",
     data: { url: payload.url ?? "/" },
   };
