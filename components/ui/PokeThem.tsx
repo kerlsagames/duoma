@@ -24,6 +24,10 @@ export function PokeThem({
     : null;
   const state = pokeReady(lastAt);
 
+  const fill = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)
+    ? `${color}22`
+    : "rgba(255,255,255,0.1)";
+
   const send = async () => {
     if (!state.ready || busy) return;
     setError(null);
@@ -38,19 +42,29 @@ export function PokeThem({
   };
 
   return (
-    <View style={{ marginTop: 10, alignItems: "flex-start" }}>
+    <View style={{ marginTop: 12, alignItems: "center", width: "100%" }}>
       <Pressable
         onPress={() => void send()}
         disabled={!state.ready || busy}
         accessibilityRole="button"
         accessibilityLabel={state.label}
         hitSlop={8}
-        style={{ opacity: !state.ready || busy ? 0.55 : 1 }}
+        style={{
+          minWidth: 160,
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+          borderRadius: 999,
+          borderWidth: 1.5,
+          borderColor: color,
+          backgroundColor: state.ready ? fill : "transparent",
+          opacity: !state.ready || busy ? 0.7 : 1,
+          alignItems: "center",
+        }}
       >
         <Text
           style={{
             color,
-            fontSize: 13,
+            fontSize: 16,
             fontWeight: "800",
             letterSpacing: 0.3,
           }}
@@ -59,7 +73,7 @@ export function PokeThem({
         </Text>
       </Pressable>
       {error ? (
-        <Text style={{ marginTop: 4, color, fontSize: 12, opacity: 0.8 }}>
+        <Text style={{ marginTop: 6, color, fontSize: 13, opacity: 0.8 }}>
           {error}
         </Text>
       ) : null}

@@ -6,13 +6,16 @@ import { localDateKey } from "@/lib/dates";
 import {
   batteryLabel,
   CHECK_IN_METRIC_META,
-  checkInLines,
   DESIRE_GAUGE,
+  desireGaugeMeta,
   loveTankLabel,
+  moodMeta,
   MOODS,
   partnerHint,
   SOCIAL_BATTERY,
+  socialBatteryMeta,
   TODAY_NEEDS,
+  todayNeedMeta,
   TONIGHT_SEX,
 } from "@/lib/hub";
 import { useApp } from "@/lib/store";
@@ -37,16 +40,19 @@ import { Pressable, Switch, Text, View } from "react-native";
 function Gauge({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: number;
-  onChange: (n: number) => void;
+  onChange?: (n: number) => void;
+  readOnly?: boolean;
 }) {
   return (
     <View className="mt-1.5 flex-row gap-1">
       {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
         <Pressable
           key={n}
-          onPress={() => onChange(n)}
+          disabled={readOnly || !onChange}
+          onPress={() => onChange?.(n)}
           className={`h-5 flex-1 rounded-md ${
             n <= value ? "bg-neon" : "bg-white/10"
           }`}
@@ -98,6 +104,41 @@ function Choice<T extends string>({
           </Pressable>
         );
       })}
+    </View>
+  );
+}
+
+function PeekChip({
+  title,
+  detail,
+}: {
+  title: string;
+  detail: string;
+}) {
+  return (
+    <View className="mt-1.5 rounded-xl border border-neon bg-neon/20 p-3">
+      <Text className="text-[14px] font-semibold text-mist">{title}</Text>
+      <Text className="mt-0.5 text-[12px] leading-4 text-mist/55">{detail}</Text>
+    </View>
+  );
+}
+
+function PeekBlock({
+  icon,
+  title,
+  children,
+}: {
+  icon: ComponentProps<typeof Ionicons>["name"];
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <View className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+      <View className="flex-row items-center">
+        <Ionicons name={icon} size={18} color="#FF007F" />
+        <Text className="ml-2 text-[15px] font-semibold text-mist">{title}</Text>
+      </View>
+      {children}
     </View>
   );
 }
@@ -390,16 +431,73 @@ export default function CheckInScreen() {
       {mode === "peek" ? (
         <View>
           {partnerCheckIn ? (
-            <View className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-6">
-              <Text className="text-[13px] font-bold uppercase tracking-[2px] text-neon">
+            <View className="mb-4">
+              <Text className="mb-3 text-[13px] font-bold uppercase tracking-[2px] text-neon">
                 {partner?.displayName} · {partnerCheckIn.date}
               </Text>
-              {checkInLines(partnerCheckIn).map((line) => (
-                <Text key={line} className="mt-3 text-[18px] leading-7 text-mist">
-                  {line}
-                </Text>
-              ))}
-              <Text className="mt-5 text-[16px] leading-6 text-mist/70">
+              {partnerCheckIn.loveTank != null ? (
+                <PeekBlock
+                  icon="heart-outline"
+                  title={`Love language / tank (${partnerCheckIn.loveTank}/10)`}
+                >
+                  <Gauge value={partnerCheckIn.loveTank} readOnly />
+                  <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
+                    {loveTankLabel(partnerCheckIn.loveTank)}
+                  </Text>
+                </PeekBlock>
+              ) : null}
+              {partnerCheckIn.energy != null ? (
+                <PeekBlock
+                  icon="battery-charging-outline"
+                  title={`Energy & battery (${partnerCheckIn.energy}/10)`}
+                >
+                  <Gauge value={partnerCheckIn.energy} readOnly />
+                  <Text className="mt-2 text-[12px] italic leading-5 text-mist/60">
+                    {batteryLabel(partnerCheckIn.energy)}
+                  </Text>
+                </PeekBlock>
+              ) : null}
+              {partnerCheckIn.mood ? (
+                <PeekBlock icon="partly-sunny-outline" title="Mood radar">
+                  <PeekChip
+                    title={moodMeta(partnerCheckIn.mood).label}
+                    detail={moodMeta(partnerCheckIn.mood).sky}
+                  />
+                </PeekBlock>
+              ) : null}
+              {socialBatteryMeta(partnerCheckIn.socialBattery) ? (
+                <PeekBlock icon="people-outline" title="Stress / social meter">
+                  <PeekChip
+                    title={socialBatteryMeta(partnerCheckIn.socialBattery)!.title}
+                    detail={socialBatteryMeta(partnerCheckIn.socialBattery)!.detail}
+                  />
+                </PeekBlock>
+              ) : null}
+              {todayNeedMeta(partnerCheckIn.todayNeed) ? (
+                <PeekBlock icon="compass-outline" title="Need from you today">
+                  <PeekChip
+                    title={todayNeedMeta(partnerCheckIn.todayNeed)!.title}
+                    detail={todayNeedMeta(partnerCheckIn.todayNeed)!.detail}
+                  />
+                </PeekBlock>
+              ) : null}
+              {desireGaugeMeta(partnerCheckIn.desireGauge) ? (
+                <PeekBlock icon="flame-outline" title="Intimacy temperature">
+                  <PeekChip
+                    title={desireGaugeMeta(partnerCheckIn.desireGauge)!.title}
+                    detail={desireGaugeMeta(partnerCheckIn.desireGauge)!.detail}
+                  />
+                </PeekBlock>
+              ) : null}
+              {TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight) ? (
+                <PeekBlock icon="sparkles-outline" title="Bedtime wind-down">
+                  <PeekChip
+                    title={TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight)!.title}
+                    detail={TONIGHT_SEX.find((item) => item.id === partnerCheckIn.tonight)!.detail}
+                  />
+                </PeekBlock>
+              ) : null}
+              <Text className="mt-3 text-[16px] leading-6 text-mist/70">
                 {partnerHint(partnerCheckIn)}
               </Text>
             </View>

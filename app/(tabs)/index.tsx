@@ -209,15 +209,15 @@ export default function HomeScreen() {
 
   return (
     <HomeBackdrop wallpaperId={wallpaperId}>
-    <Screen scroll background="transparent">
-      <View className="pt-1 pb-10">
+    <Screen scroll={false} background="transparent">
+      <View className="pt-1" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: 10,
-            paddingTop: 2,
+            marginBottom: 6,
+            paddingTop: 0,
             position: "relative",
             minHeight: 44,
           }}
@@ -248,7 +248,7 @@ export default function HomeScreen() {
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 8,
+            marginBottom: 6,
           }}
         >
           Your hubs
@@ -261,9 +261,9 @@ export default function HomeScreen() {
                   flexDirection: "row",
                   flexWrap: "wrap",
                   justifyContent: "space-between",
-                  marginBottom: 14,
+                  marginBottom: 8,
                 }
-              : { gap: 8, marginBottom: 14 }
+              : { gap: 8, marginBottom: 8 }
           }
         >
           {visibleHubs.map((hub, index) => {
@@ -277,9 +277,9 @@ export default function HomeScreen() {
                 layout.hubView === "grid"
                   ? {
                       width: fullRow ? "100%" : "48%",
-                      marginBottom: 10,
+                      marginBottom: 8,
                       borderRadius: 18,
-                      paddingVertical: 12,
+                      paddingVertical: 10,
                       paddingHorizontal: 10,
                       backgroundColor: hub.tile,
                       alignItems: "center",
@@ -361,7 +361,7 @@ export default function HomeScreen() {
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 8,
+            marginBottom: 6,
           }}
         >
           Daily rhythm
@@ -423,16 +423,16 @@ export default function HomeScreen() {
         ) : null}
 
         {layout.showFavorites ? (
-          <>
+          <View style={{ flex: 1, minHeight: 0 }}>
         <Text
           style={{
-            marginTop: 12,
+            marginTop: 8,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 8,
+            marginBottom: 6,
           }}
         >
           Favorites
@@ -440,6 +440,8 @@ export default function HomeScreen() {
 
         <View
           style={{
+            flex: 1,
+            minHeight: 0,
             borderWidth: 1.5,
             borderStyle: "dashed",
             borderColor: "rgba(244,244,246,0.28)",
@@ -537,7 +539,7 @@ export default function HomeScreen() {
             Tap + to pin an app · long-press a favorite to remove
           </Text>
         </View>
-          </>
+          </View>
         ) : null}
       </View>
 

@@ -394,10 +394,13 @@ export default function DoodleScreen() {
         ) : null}
 
         {round?.status === "pick" && seat !== "drawer" ? (
-          <Note>
-            {nameFor(round.drawerId)} is picking from three prompts. Hide your eyes or
-            hand over the phone.
-          </Note>
+          <View>
+            <Note>
+              {nameFor(round.drawerId)} is picking from three prompts. Hide your eyes or
+              hand over the phone.
+            </Note>
+            <PokeThem appId="doodle" targetId={round.id} color={PAPER} />
+          </View>
         ) : null}
 
         {round?.status === "draw" && seat === "drawer" ? (
@@ -419,9 +422,7 @@ export default function DoodleScreen() {
             <Note>
               {nameFor(round.drawerId)} is still drawing. No peeking at the prompt.
             </Note>
-            <View style={{ alignItems: "center" }}>
-              <PokeThem appId="doodle" targetId={round.id} color={PAPER} />
-            </View>
+            <PokeThem appId="doodle" targetId={round.id} color={PAPER} />
           </View>
         ) : null}
 
@@ -845,9 +846,7 @@ function GuessBox({
           : "Type your guess. One shot."}
       </Text>
       {forPartner ? (
-        <View style={{ alignItems: "center" }}>
-          <PokeThem appId="doodle" targetId={roundId} color={PAPER} />
-        </View>
+        <PokeThem appId="doodle" targetId={roundId} color={PAPER} />
       ) : null}
       <TextInput
         value={guess}
