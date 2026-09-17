@@ -423,16 +423,16 @@ export default function HomeScreen() {
         ) : null}
 
         {layout.showFavorites ? (
-          <View style={{ flex: 1, minHeight: 0 }}>
+          <>
         <Text
           style={{
-            marginTop: 8,
+            marginTop: 12,
             fontFamily: "SpaceMono",
             fontSize: 11,
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "rgba(244,244,246,0.45)",
-            marginBottom: 6,
+            marginBottom: 8,
           }}
         >
           Favorites
@@ -440,8 +440,6 @@ export default function HomeScreen() {
 
         <View
           style={{
-            flex: 1,
-            minHeight: 0,
             borderWidth: 1.5,
             borderStyle: "dashed",
             borderColor: "rgba(244,244,246,0.28)",
@@ -539,7 +537,7 @@ export default function HomeScreen() {
             Tap + to pin an app · long-press a favorite to remove
           </Text>
         </View>
-          </View>
+          </>
         ) : null}
       </View>
 

@@ -503,7 +503,12 @@ function pingPartner(
 ) {
   if (!couple || !user || partner?.isDemo) return;
   const target = otherUserId(couple, user.id);
-  void notifyUser(target, db.pushSubscriptions, payload);
+  const senderEndpoints = new Set(
+    db.pushSubscriptions
+      .filter((row) => row.userId === user.id)
+      .map((row) => row.endpoint)
+  );
+  void notifyUser(target, db.pushSubscriptions, payload, senderEndpoints);
 }
 
 type CreateAccountInput = { displayName: string; gender: Gender; email?: string };

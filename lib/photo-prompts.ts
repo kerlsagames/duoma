@@ -1,6 +1,6 @@
 import { applyOverlay } from "@/lib/catalog-overlay";
 
-export type PhotoPromptCategory = "dramatic" | "domestic" | "outdoor" | "wholesome";
+export type PhotoPromptCategory = "dramatic" | "domestic" | "outdoor" | "wholesome" | "stunts";
 
 export type PhotoPrompt = {
   id: string;
@@ -18,6 +18,7 @@ export const PHOTO_CATEGORIES: {
   { id: "domestic", label: "Everyday", detail: "House, laundry, couch" },
   { id: "outdoor", label: "Outdoors", detail: "Town, park, street" },
   { id: "wholesome", label: "Cute", detail: "Wholesome and creative" },
+  { id: "stunts", label: "Couple stunts", detail: "Challenges you shoot together" },
 ];
 
 function p(
@@ -29,7 +30,7 @@ function p(
   return { id, category, title, label };
 }
 
-/** 100 weekly photo ideas, four packs of 25. */
+/** Weekly photo ideas, including couple stunts you shoot together. */
 export const PHOTO_PROMPTS: PhotoPrompt[] = [
   p("dramatic", "overly-happy-dishes", "The Overly Happy Dishes", "Take a photo doing the dishes together looking unnaturally, absurdly overjoyed."),
   p("dramatic", "movie-poster", "The Movie Poster", "Recreate a dramatic action movie poster using household items as props."),
@@ -134,6 +135,57 @@ export const PHOTO_PROMPTS: PhotoPrompt[] = [
   p("wholesome", "dessert-share", "The Dessert Share", "Two spoons digging into one single shared dessert at the exact same time."),
   p("wholesome", "polaroid-vibe", "The Polaroid Vibe", "A flash photo taken in the dark that looks like an old-school vintage instant print."),
   p("wholesome", "year-1-vs-now", "The Year 1 vs. Now", "Recreating the very first photo you ever took together as a couple."),
+
+  p("stunts", "each-others-clothes", "Each Other's Clothes", "Both of you fully dressed in the other's clothes, shoes included if they fit even badly."),
+  p("stunts", "fake-living-room-wedding", "Fake Living-Room Wedding", "A full fake wedding in the living room: something borrowed as a veil, a bouquet of kitchen utensils, vows optional."),
+  p("stunts", "piggyback-grocery", "Piggyback Grocery", "One of you carrying the other plus a grocery bag. Indoor or driveway. Try not to drop the milk."),
+  p("stunts", "mirror-twins", "Mirror Twins", "Stand facing each other and copy poses like a mirror. One photo of the sync, one of the fail."),
+  p("stunts", "tiny-table-dinner", "Tiny Table Dinner", "Eat a full plated meal on the smallest surface you can find (stool, suitcase, child's table)."),
+  p("stunts", "balcony-opera", "Balcony Opera", "One of you dramatically 'sings' from a balcony, stairs, or the back step. The other is the stunned audience."),
+  p("stunts", "swap-shoes-walk", "Swap Shoes Walk", "Wear each other's shoes around the block or the hallway. Photo at the furthest point."),
+  p("stunts", "newspaper-kiss", "Newspaper Kiss", "Hold a newspaper or tablet up like a 1940s V-J Day kiss. Stay in character."),
+  p("stunts", "human-chair", "Human Chair", "One partner sits on the other as if they are a fancy armchair. Include a drink if you dare."),
+  p("stunts", "synchronized-yawn", "Synchronized Yawn", "Fake the biggest yawn of your lives at the exact same time, mid-couch."),
+  p("stunts", "tarp-picnic-rain", "Tarp Picnic", "Picnic on a tarp in the backyard or bathroom. Fancy plates. Weather optional."),
+  p("stunts", "red-carpet-hallway", "Hallway Red Carpet", "Towel or sheet as a carpet. Paparazzi flash from the other end of the hall."),
+  p("stunts", "cook-blindfold", "Blindfold Chef", "One of you cooks one simple step blindfolded. The other documents the crime."),
+  p("stunts", "lift-over-threshold", "Threshold Lift", "Carry them over a doorway like you just got married. Repeat until the photo isn't blurry."),
+  p("stunts", "matching-mud-masks", "Matching Mud Masks", "Full face masks, robes or towels, serious spa faces in the least spa room in the house."),
+  p("stunts", "fort-royal-portrait", "Fort Royal Portrait", "Sit in a blanket fort like monarchs. Use a colander or mixing bowl as a crown."),
+  p("stunts", "dance-dip-kitchen", "Kitchen Dip", "Dip them in the kitchen like a ballroom. Oven light for mood."),
+  p("stunts", "back-to-back-detectives", "Back-to-Back Detectives", "Sunglasses, serious faces, back-to-back in an alley, carpark, or hallway."),
+  p("stunts", "one-coat-two-people", "One Coat, Two People", "Both of you inside one coat or blanket, walking. Only four feet should show."),
+  p("stunts", "breakfast-in-bed-mess", "Breakfast in Bed Mess", "Tray, crumbs, both of you still in bed looking proud of the disaster."),
+  p("stunts", "statue-challenge", "Statue Challenge", "Hold a ridiculous pose in public or the garden for a full 10-second timer. No laughing. (You will laugh.)"),
+  p("stunts", "hair-swap-styles", "Hair Swap", "Do each other's hair as badly as possible. Side-by-side portrait."),
+  p("stunts", "yoga-fail", "Yoga Fail", "Attempt a partner yoga pose. Photograph the collapse, not the success."),
+  p("stunts", "car-karaoke-still", "Parked Karaoke Still", "Parked car, both singing, windows up. Night photo with interior lights."),
+  p("stunts", "apology-bouquet-weeds", "Weeds Bouquet", "Present a bouquet of weeds or supermarket herbs on one knee."),
+  p("stunts", "shadow-puppet-fight", "Shadow Puppet Fight", "A lamp, a wall, two silhouettes pretending to sword-fight."),
+  p("stunts", "suitcase-escape", "Suitcase Escape", "One of you in an empty suitcase or laundry basket, the other 'catching you packing to leave'."),
+  p("stunts", "formal-takeaway", "Formal Takeaway", "Your fanciest clothes, eating chips or pizza on the floor."),
+  p("stunts", "three-legged-hallway", "Three-Legged Hallway", "Tie two inside legs together, walk the hall. Action shot of the tangle."),
+  p("stunts", "makeup-swap", "Makeup Swap", "If you have makeup, do each other's. If you don't, use sunscreen or flour artfully."),
+  p("stunts", "rain-dance-driveway", "Driveway Rain Dance", "If it's dry, use the hose. Dance like a music video. Neighbours are the extras."),
+  p("stunts", "slow-mo-run-towards", "Slow-Mo Run Towards", "Run toward each other in a park or the backyard in dramatic slow-mo. Hair optional."),
+  p("stunts", "bed-sheet-ghosts", "Bed Sheet Ghosts", "Two ghosts in the living room, eye holes cut or held. Hold hands."),
+  p("stunts", "trophy-night", "Trophy Night", "Award each other a homemade trophy (foil, mug, banana). Acceptance speech faces."),
+  p("stunts", "under-table-spies", "Under-Table Spies", "Both under the dining table with torches, like kids hiding from a party."),
+  p("stunts", "lean-tower", "Lean Tower", "How far can you both lean out holding hands before someone steps. Safety first, drama second."),
+  p("stunts", "matching-sunglasses-night", "Night Sunglasses", "Sunglasses after dark, streetlight, trying to look famous."),
+  p("stunts", "carry-all-the-bags", "Carry All the Bags", "One partner carries every bag from a shop. Heroic pose on the footpath."),
+  p("stunts", "recreate-album-cover", "Recreate an Album Cover", "Pick a famous album and rebuild it with household props. Hold the original on your phone in the corner."),
+  p("stunts", "first-dance-redo", "First Dance Redo", "If you had a first dance, redo it in socks. If you didn't, invent one in the kitchen."),
+  p("stunts", "sleeping-beauty-couch", "Sleeping Beauty Couch", "One 'asleep' in a ridiculous pose, the other about to wake them with a kiss. Or a snack."),
+  p("stunts", "wanted-poster", "Wanted Poster", "Mugshot-style photos of each other, then a couple shot holding the 'posters'."),
+  p("stunts", "balance-book-heads", "Books on Heads", "Walk toward each other with a book on each head. Photo of the drop."),
+  p("stunts", "fake-fight-pillow", "Pillow Fight Freeze", "Mid-pillow-fight freeze frame. Feathers optional, sofa cushions required."),
+  p("stunts", "window-press", "Window Press", "Faces and hands pressed to the same window from opposite sides if you can, or both from inside looking tragic."),
+  p("stunts", "supermarket-ballroom", "Supermarket Ballroom", "One slow-dance dip in an empty aisle. Be brief. Be kind to staff."),
+  p("stunts", "hat-swap-portraits", "Hat Swap Portraits", "Serious studio portraits wearing each other's hats, beanies, or a saucepan."),
+  p("stunts", "jump-sync", "Jump Sync", "Both jump at the same time in the backyard or a quiet street. Catch air or catch the fail."),
+  p("stunts", "love-letter-prop", "Giant Love Letter", "Write a huge cardboard letter and pose delivering it on one knee at the front door."),
+  p("stunts", "movie-end-credits-walk", "End Credits Walk", "Walk away from the camera down a path or hallway, holding hands, like the credits are rolling."),
 ];
 
 export function photoPrompts(includeHidden = false): PhotoPrompt[] {

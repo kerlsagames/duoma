@@ -62,10 +62,13 @@ export async function subscriptionsForUser(
 export async function notifyUser(
   userId: string | null | undefined,
   local: PushSubscriptionRow[],
-  payload: PushPayload
+  payload: PushPayload,
+  excludeEndpoints?: Set<string>
 ) {
   if (!userId) return;
-  const rows = await subscriptionsForUser(userId, local);
+  const rows = (await subscriptionsForUser(userId, local)).filter(
+    (row) => !excludeEndpoints?.has(row.endpoint)
+  );
   if (!rows.length) return;
   try {
     await sendPushToSubscriptions(rows, payload);

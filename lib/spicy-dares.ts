@@ -1206,6 +1206,506 @@ export const SPICY_DARES: SpicyDare[] = [
     text: "Two-minute turns. When the timer buzzes, you freeze and swap who is in charge.",
     categories: ["Games & Rules", "Edging & Teasing"],
   },
+  {
+    id: "sd-201",
+    text: "{f} texts {m} a hallway instruction before she walks in. He has to be following it when the door opens.",
+    categories: ["Digital & Media", "Roleplay & Teasing"],
+  },
+  {
+    id: "sd-202",
+    text: "Take a photo of {f}'s collarbone and {m}'s jaw. No faces. Save it only in the app.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-203",
+    text: "{m} picks a toy. {f} uses it on herself for two minutes while he watches with his hands on the headboard.",
+    categories: ["Toys & Accessories", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-204",
+    text: "Roleplay that {m} just got home from a work trip. {f} doesn't let him put the bag down.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-205",
+    text: "Ice cube down {f}'s spine, then {m}'s mouth follows the melt. One cube. Don't rush.",
+    categories: ["Sensory & Touch", "Food & Taste"],
+  },
+  {
+    id: "sd-206",
+    text: "Carpark kiss with the engine running. Two minutes. Hands stay above the waist until you're home.",
+    categories: ["Location & Adventure", "Quickies & Impulse"],
+  },
+  {
+    id: "sd-207",
+    text: "{f} wears his shirt and nothing else until dinner is plated. Then he may take it off her.",
+    categories: ["Dress Up & Lingerie", "Quick & Playful"],
+  },
+  {
+    id: "sd-208",
+    text: "{m} is not allowed to speak for ten minutes. He answers with yes/no nods and his hands.",
+    categories: ["Submission & Control", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-209",
+    text: "Leave the blinds as they are. Lights low. Stay in the room you'd normally hide from.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-210",
+    text: "Send a 10-second voice note of what you want, then delete the chat. Do it anyway.",
+    categories: ["Digital & Media", "Dirty Talk & Words"],
+  },
+  {
+    id: "sd-211",
+    text: "{f} uses a vibe on her clit while {m} is inside her. Low setting. She says when it goes up.",
+    categories: ["Tech & Toys", "Edging & Teasing"],
+  },
+  {
+    id: "sd-212",
+    text: "Edge {m} twice with a hand. He doesn't get to finish until {f} says the word now.",
+    categories: ["Edging & Teasing", "Oral & Hands"],
+  },
+  {
+    id: "sd-213",
+    text: "Kitchen counter. {f} sits. {m} stands. Clothes half on. Timer set to four minutes.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-214",
+    text: "{m} has to describe what he's doing out loud. If he goes quiet, {f} stops him.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-215",
+    text: "{f} puts on the lace he likes. {m} takes it off with his mouth, not his hands.",
+    categories: ["Dress Up & Lingerie", "Oral & Hands"],
+  },
+  {
+    id: "sd-216",
+    text: "{m} goes down on {f} for three songs. He may not use his hands until the third.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-217",
+    text: "After you finish, {m} gets a glass of water and a warm cloth without being asked.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-218",
+    text: "Whipped cream on {f}'s hip bone. {m} has two minutes. No rushing to the obvious place.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-219",
+    text: "Coin flip: heads {f} leads the next ten minutes, tails {m} does. No arguing with the coin.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-220",
+    text: "Film ten seconds of your hands only — no faces, no genitals. Watch it together, then delete.",
+    categories: ["Film & Photo", "Digital & Media"],
+  },
+  {
+    id: "sd-221",
+    text: "{f} picks a plug or toy. {m} wears it or uses it on her for the length of one show episode.",
+    categories: ["Toys & Accessories"],
+  },
+  {
+    id: "sd-222",
+    text: "Strangers in a hotel corridor. You 'shouldn't' know each other. Room key is in someone's pocket.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-223",
+    text: "Silk scarf over {f}'s eyes. {m} uses only one finger for two minutes. Then the scarf comes off.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-224",
+    text: "Lift {f} against the nearest wall that will hold you. If it won't, the door will.",
+    categories: ["Location & Adventure", "Quickies & Impulse"],
+  },
+  {
+    id: "sd-225",
+    text: "Thirty-second kiss in the hallway when you both get home. Bags stay on the floor.",
+    categories: ["Quick & Playful"],
+  },
+  {
+    id: "sd-226",
+    text: "{f} holds {m}'s wrists. He doesn't get them back until she has finished with her mouth.",
+    categories: ["Submission & Control", "Oral & Hands"],
+  },
+  {
+    id: "sd-227",
+    text: "Balcony or backyard after dark. One song. Hands under clothes. Back inside before the next.",
+    categories: ["Exhibition & Risk", "Location & Adventure"],
+  },
+  {
+    id: "sd-228",
+    text: "Mirror selfie of {m} shirtless and {f} in his shirt. Caption it with a time for later.",
+    categories: ["Digital & Media", "Film & Photo"],
+  },
+  {
+    id: "sd-229",
+    text: "Remote toy if you have one. {f} holds the remote during dinner dishes.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-230",
+    text: "Bring {f} to the edge three times with a hand. The fourth time she may finish.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-231",
+    text: "Shower, still in work clothes until they're soaked. Then they come off.",
+    categories: ["Quickies & Impulse", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-232",
+    text: "{f} writes three filthy words on {m}'s chest. He has to say them before you start.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-233",
+    text: "{f} wears a skirt with nothing underneath for the evening at home. {m} finds out when he does.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-234",
+    text: "{m} uses only his tongue on {f} until she pulls his hair. Then he may use a hand.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-235",
+    text: "Lotion on the places you were rough. Two minutes each spot. No restarting anything else.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-236",
+    text: "Honey or chocolate sauce on {m}'s stomach. {f} has until it threatens to drip.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-237",
+    text: "Dice: 1–2 kiss only, 3–4 hands, 5 mouth, 6 they pick. Best of three rounds.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-238",
+    text: "Polaroid or print of you two from the waist up, messy hair. Hide it in a book.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-239",
+    text: "{m} picks a cock ring or delay spray if you have it. {f} decides when it comes off.",
+    categories: ["Toys & Accessories"],
+  },
+  {
+    id: "sd-240",
+    text: "He's the mechanic who stayed late. She's the customer who 'can't start the car.' Two minutes of the bit, then drop it.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-241",
+    text: "Feather, ice, then mouth on the same path down {f}'s side. {m} does not skip a step.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-242",
+    text: "Laundry room or hallway. Door not fully shut. Quiet on purpose.",
+    categories: ["Location & Adventure", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-243",
+    text: "Sixty-second makeout when a song chorus hits. Hands wherever. Freeze when the verse returns.",
+    categories: ["Quick & Playful", "Games & Rules"],
+  },
+  {
+    id: "sd-244",
+    text: "{m} kneels. {f} stands. He stays there until she says up. Mouth only.",
+    categories: ["Submission & Control", "Oral & Hands"],
+  },
+  {
+    id: "sd-245",
+    text: "Wear something you'd only wear for each other under normal clothes for a short errand.",
+    categories: ["Exhibition & Risk", "Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-246",
+    text: "Record a 15-second audio of kissing, nothing else. Play it back once. Delete.",
+    categories: ["Digital & Media"],
+  },
+  {
+    id: "sd-247",
+    text: "App-controlled toy if you have one. {m} gets the phone for the walk from the car to the door.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-248",
+    text: "Hold {m} at the edge with a slow hand. Count to thirty out loud. Then decide if he gets to finish.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-249",
+    text: "Against the fridge. One of {f}'s legs up. Two minutes. Dinner can wait.",
+    categories: ["Quickies & Impulse"],
+  },
+  {
+    id: "sd-250",
+    text: "{f} narrates what she wants {m} to do. He may only do what she has already said.",
+    categories: ["Dirty Talk & Words", "Submission & Control"],
+  },
+  {
+    id: "sd-251",
+    text: "{m} picks underwear for {f} and lays it on the bed. She wears that, nothing else, until he takes it off.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-252",
+    text: "{f} sits on {m}'s face. He doesn't come up for air until she taps twice.",
+    categories: ["Oral & Hands"],
+  },
+  {
+    id: "sd-253",
+    text: "Hair wash or scalp scratch for five minutes after. No jokes, no rushing to sleep.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-254",
+    text: "Share one dessert in bed. The other person is not allowed to use their own spoon.",
+    categories: ["Food & Taste", "Quick & Playful"],
+  },
+  {
+    id: "sd-255",
+    text: "Truth or dare, three rounds, dares only from this list. No skipping the last one.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-256",
+    text: "Black-and-white photo of {f}'s back and {m}'s hands. Keep it in the vault, not the camera roll.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-257",
+    text: "Blindfold plus a toy {f} chooses. {m} operates it. She says faster or slower only.",
+    categories: ["Toys & Accessories", "Sensory & Touch"],
+  },
+  {
+    id: "sd-258",
+    text: "She's the boss who kept him after hours. Desk or table. Laptops shut.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-259",
+    text: "Massage oil on {f}'s inner thighs. {m} has three minutes. He stops where she tells him.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-260",
+    text: "Parked car, last song on the playlist. Steam the windows a little. Then drive home.",
+    categories: ["Location & Adventure"],
+  },
+  {
+    id: "sd-261",
+    text: "Steal a kiss in the pantry with the door almost closed. If someone could walk in, even better.",
+    categories: ["Quick & Playful", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-262",
+    text: "{f} ties {m}'s hands with a scarf. She does what she wants for five minutes. Then she unties him.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-263",
+    text: "Open a window. Keep the volume down. Pretend the street can hear you anyway.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-264",
+    text: "Send one photo from the bathroom mirror with no caption. They have to reply with a plan.",
+    categories: ["Digital & Media"],
+  },
+  {
+    id: "sd-265",
+    text: "Suction toy on {f}'s clit while {m} kisses her. He does not take it off when she squirms.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-266",
+    text: "Bring {m} close with your mouth, then stop and kiss him. Repeat. He finishes on the third try.",
+    categories: ["Edging & Teasing", "Oral & Hands"],
+  },
+  {
+    id: "sd-267",
+    text: "Alarm for seven minutes. Use the sofa. When it rings, you stop whether you want to or not.",
+    categories: ["Quickies & Impulse", "Games & Rules"],
+  },
+  {
+    id: "sd-268",
+    text: "{m} has to ask permission before every new place he puts his mouth. {f} can say not yet.",
+    categories: ["Dirty Talk & Words", "Submission & Control"],
+  },
+  {
+    id: "sd-269",
+    text: "He wears an open shirt, nothing else. She wears the silk slip. That's the dress code until midnight.",
+    categories: ["Dress Up & Lingerie"],
+  },
+  {
+    id: "sd-270",
+    text: "{f} uses her hand on {m} while he tries to keep talking. If his sentence breaks, she slows down.",
+    categories: ["Oral & Hands", "Games & Rules"],
+  },
+  {
+    id: "sd-271",
+    text: "Water, snack, and a blanket within reach before you start. Aftercare is part of the dare.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-272",
+    text: "Mint or ice in {f}'s mouth, then she kisses {m} down his chest. He says when it's too much.",
+    categories: ["Food & Taste", "Sensory & Touch"],
+  },
+  {
+    id: "sd-273",
+    text: "Card draw: red she leads, black he leads, ace means no talking. One draw, one song.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-274",
+    text: "Timer photo every minute for five minutes as clothes come off. Faces cropped. Delete after.",
+    categories: ["Film & Photo"],
+  },
+  {
+    id: "sd-275",
+    text: "Wand or vibe pressed between you while you grind clothed. First person to beg loses a layer.",
+    categories: ["Toys & Accessories", "Edging & Teasing"],
+  },
+  {
+    id: "sd-276",
+    text: "Wrong room at a party, but it's your living room. Whisper. Act like you'll get caught.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-277",
+    text: "Warm oil on {m}'s back, then {f} sits on him and talks while she works it in. Hands wander last.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-278",
+    text: "Stair landing. Two minutes. If you have no stairs, the bottom step of a stool counts.",
+    categories: ["Location & Adventure"],
+  },
+  {
+    id: "sd-279",
+    text: "Playful slap on {f}'s ass every time she walks past {m} in the kitchen tonight. She can return them.",
+    categories: ["Quick & Playful"],
+  },
+  {
+    id: "sd-280",
+    text: "{m} asks {f} to use him. He stays still. She doesn't have to be gentle.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-281",
+    text: "Keep the bathroom door open. Shower together like the house isn't empty.",
+    categories: ["Exhibition & Risk"],
+  },
+  {
+    id: "sd-282",
+    text: "Video call from another room in the same house. Tell them what to take off. Then walk in.",
+    categories: ["Digital & Media", "Tech & Toys"],
+  },
+  {
+    id: "sd-283",
+    text: "If you have a thrusting toy, {f} uses it while {m} kisses her. He does not take over until she asks.",
+    categories: ["Tech & Toys"],
+  },
+  {
+    id: "sd-284",
+    text: "Edge {f} with a slow grind, clothes on. Stop when she says please. Wait. Start again.",
+    categories: ["Edging & Teasing"],
+  },
+  {
+    id: "sd-285",
+    text: "Bent over the washer or dryer if it's on. The vibration is the point.",
+    categories: ["Quickies & Impulse", "Location & Adventure"],
+  },
+  {
+    id: "sd-286",
+    text: "{f} says one filthy paragraph. {m} has to repeat it back before he gets to touch her.",
+    categories: ["Dirty Talk & Words"],
+  },
+  {
+    id: "sd-287",
+    text: "Tie {f}'s hair up, then take it down with your teeth. That's the start, not a joke.",
+    categories: ["Dress Up & Lingerie", "Sensory & Touch"],
+  },
+  {
+    id: "sd-288",
+    text: "{m}'s mouth on {f} while she's trying to send one text. She may not hit send until he stops.",
+    categories: ["Oral & Hands", "Games & Rules"],
+  },
+  {
+    id: "sd-289",
+    text: "After, {f} names one thing that felt good. {m} names one. No fixing, no critique.",
+    categories: ["Aftercare & Soft"],
+  },
+  {
+    id: "sd-290",
+    text: "Feed each other three bites of something sweet. The fourth bite is a kiss.",
+    categories: ["Food & Taste"],
+  },
+  {
+    id: "sd-291",
+    text: "Strip a category: each of you names a dare category. You have to play one from each.",
+    categories: ["Games & Rules"],
+  },
+  {
+    id: "sd-292",
+    text: "Photo of both your left hands on skin. That's the only picture. Set it as a lock screen for an hour.",
+    categories: ["Film & Photo", "Digital & Media"],
+  },
+  {
+    id: "sd-293",
+    text: "{f} wears a harness or strap if you have one. {m} follows her pace. She doesn't ask if he's ready twice.",
+    categories: ["Toys & Accessories"],
+  },
+  {
+    id: "sd-294",
+    text: "Nurse and impatient patient. Two minutes of the bit. Then drop the accents and stay in the pose.",
+    categories: ["Roleplay & Teasing"],
+  },
+  {
+    id: "sd-295",
+    text: "Blindfold {m}. {f} uses nails, then tongue, then ice. He guesses the order after.",
+    categories: ["Sensory & Touch"],
+  },
+  {
+    id: "sd-296",
+    text: "Walk to the letterbox or bins in coats over almost nothing. Come back inside immediately.",
+    categories: ["Location & Adventure", "Exhibition & Risk"],
+  },
+  {
+    id: "sd-297",
+    text: "Race: first to make the other make a sound wins the next dare pick. Hands only, one minute.",
+    categories: ["Quick & Playful", "Oral & Hands"],
+  },
+  {
+    id: "sd-298",
+    text: "{f} puts {m} on his back and tells him not to help. If he helps, she starts the minute over.",
+    categories: ["Submission & Control"],
+  },
+  {
+    id: "sd-299",
+    text: "Leave a hickey where a collar will hide it. If it won't hide, pick a different spot.",
+    categories: ["Exhibition & Risk", "Sensory & Touch"],
+  },
+  {
+    id: "sd-300",
+    text: "Last dare of the night: one of you picks the finish, the other picks the aftercare. No swapping.",
+    categories: ["Games & Rules", "Aftercare & Soft"],
+  },
 ];
 
 export const SPICY_DARES_CATEGORIES = SPICY_DARE_CATEGORIES;

@@ -1,6 +1,7 @@
 import { LookPanel } from "@/components/hub/AppSettings";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
+import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { SPARK_TONE as T, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { useMiniApps } from "@/lib/mini-apps";
@@ -346,10 +347,17 @@ export default function SparkScreen() {
                     borderColor: T.gold,
                     backgroundColor: T.velvet,
                     padding: 18,
+                    paddingTop: 20,
                     minHeight: 240,
                   }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <FavoriteHeart
+                    on={fav}
+                    color={T.ember}
+                    onToggle={() => void onFavorite()}
+                    style={favoriteHeartCorner}
+                  />
+                  <View style={{ flexDirection: "row", alignItems: "center", paddingRight: 28 }}>
                     <Text
                       style={{
                         flex: 1,
@@ -424,70 +432,37 @@ export default function SparkScreen() {
                   </Text>
                 </Pressable>
 
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
-                  <Pressable
-                    onPress={() => void onFavorite()}
-                    accessibilityLabel={fav ? "Remove from favourited" : "Favourited"}
+                <Pressable
+                  onPress={() => void onDidThis()}
+                  accessibilityLabel={done ? "Undo completed" : "Completed"}
+                  style={{
+                    marginTop: 10,
+                    height: 48,
+                    borderRadius: 16,
+                    backgroundColor: done ? T.gold : T.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: done ? T.gold : T.border,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                    gap: 6,
+                  }}
+                >
+                  <Ionicons
+                    name={done ? "checkmark-circle" : "checkmark-circle-outline"}
+                    size={16}
+                    color={done ? T.onGold : T.ink}
+                  />
+                  <Text
                     style={{
-                      flex: 1,
-                      height: 48,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: fav ? T.ember : T.gold,
-                      backgroundColor: fav ? T.ember : "transparent",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexDirection: "row",
-                      gap: 6,
+                      color: done ? T.onGold : T.ink,
+                      fontWeight: "800",
+                      fontSize: 14,
                     }}
                   >
-                    <Ionicons
-                      name={fav ? "heart" : "heart-outline"}
-                      size={16}
-                      color={fav ? T.onGold : T.gold}
-                    />
-                    <Text
-                      style={{
-                        color: fav ? T.onGold : T.gold,
-                        fontWeight: "800",
-                        fontSize: 14,
-                      }}
-                    >
-                      Favourited
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => void onDidThis()}
-                    accessibilityLabel={done ? "Undo completed" : "Completed"}
-                    style={{
-                      flex: 1,
-                      height: 48,
-                      borderRadius: 16,
-                      backgroundColor: done ? T.gold : T.surfaceRaised,
-                      borderWidth: 1,
-                      borderColor: done ? T.gold : T.border,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexDirection: "row",
-                      gap: 6,
-                    }}
-                  >
-                    <Ionicons
-                      name={done ? "checkmark-circle" : "checkmark-circle-outline"}
-                      size={16}
-                      color={done ? T.onGold : T.ink}
-                    />
-                    <Text
-                      style={{
-                        color: done ? T.onGold : T.ink,
-                        fontWeight: "800",
-                        fontSize: 14,
-                      }}
-                    >
-                      Completed
-                    </Text>
-                  </Pressable>
-                </View>
+                    Completed
+                  </Text>
+                </Pressable>
               </Animated.View>
             )}
           </>
@@ -498,15 +473,6 @@ export default function SparkScreen() {
             {note}
           </Text>
         ) : null}
-        <Text
-          style={{
-            marginTop: 18,
-            color: T.dim,
-            fontSize: 12,
-          }}
-        >
-          {pool.length} in this mix · {spark.doneIds.length} done
-        </Text>
       </Stage>
     </Screen>
   );

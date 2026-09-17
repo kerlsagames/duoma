@@ -5,7 +5,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
-import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
+import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
@@ -170,16 +170,6 @@ export default function PositionsScreen() {
       setError(err instanceof Error ? err.message : "Could not send.");
     } finally {
       setSending(false);
-    }
-  };
-
-  const saveCurrent = async (pose: SexPosition) => {
-    setError(null);
-    try {
-      await savePosition(pose.id);
-      setSavedFlash(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save.");
     }
   };
 
@@ -351,12 +341,19 @@ export default function PositionsScreen() {
             style={{
               marginTop: 22,
               padding: 16,
+              paddingTop: 18,
               borderRadius: 28,
               backgroundColor: T.frame,
               borderWidth: 1,
               borderColor: T.border,
             }}
           >
+            <FavoriteHeart
+              on={Boolean(openPositionSave(positionSaves, current.id))}
+              color={T.accent}
+              onToggle={() => void toggleFav(current)}
+              style={favoriteHeartCorner}
+            />
             <Text
               style={{
                 fontSize: 12,
@@ -365,6 +362,7 @@ export default function PositionsScreen() {
                 color: T.accent,
                 textAlign: "center",
                 fontWeight: "600",
+                paddingHorizontal: 28,
               }}
             >
               {categoryMeta(current.category)?.label}
@@ -381,20 +379,6 @@ export default function PositionsScreen() {
             >
               {current.name}
             </Text>
-            <View
-              style={{
-                marginTop: 8,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <FavoriteHeart
-                on={Boolean(openPositionSave(positionSaves, current.id))}
-                color={T.accent}
-                onToggle={() => void toggleFav(current)}
-              />
-            </View>
             <Text
               style={{
                 marginTop: 14,
@@ -452,11 +436,6 @@ export default function PositionsScreen() {
             ) : null}
 
             <View style={{ marginTop: 16, gap: 10 }}>
-              <PrimaryButton
-                label="Save to to-do"
-                tone="ghost"
-                onPress={() => void saveCurrent(current)}
-              />
               <PrimaryButton
                 label="Try this tonight?"
                 tone="crimson"
@@ -656,17 +635,22 @@ export default function PositionsScreen() {
                         borderColor: on ? T.border : "rgba(255,255,255,0.1)",
                         backgroundColor: on ? T.accentSoft : T.surface,
                         padding: 14,
+                        paddingRight: 40,
                       }}
                     >
-                      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
-                        <Pressable
+                      <FavoriteHeart
+                        on={fav}
+                        color={T.accent}
+                        onToggle={() => void toggleFav(pose)}
+                        style={favoriteHeartCorner}
+                      />
+                      <Pressable
                           onPress={() => {
                             setSentFlash(false);
                             setSavedFlash(false);
                             setError(null);
                             setBrowseId(on ? null : pose.id);
                           }}
-                          style={{ flex: 1 }}
                         >
                           <Text
                             style={{
@@ -701,12 +685,6 @@ export default function PositionsScreen() {
                             {categoryMeta(pose.category)?.label}
                           </Text>
                         </Pressable>
-                        <FavoriteHeart
-                          on={fav}
-                          color={T.accent}
-                          onToggle={() => void toggleFav(pose)}
-                        />
-                      </View>
                       {on ? (
                         <View style={{ marginTop: 14, gap: 10 }}>
                           {sentFlash && browseId === pose.id ? (

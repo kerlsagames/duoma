@@ -24,6 +24,7 @@ import type {
   FantasyTonightAsk,
   DateNightAsk,
   PositionInvite,
+  RoleplayInvite,
 } from "@/lib/types";
 import type { CalendarReminder } from "@/lib/calendar-reminders";
 import { dueCalendarReminders } from "@/lib/calendar-reminders";
@@ -149,6 +150,7 @@ export function buildHomeNotifications(input: {
   fantasyTonightAsks?: FantasyTonightAsk[];
   dateNightAsks?: DateNightAsk[];
   positionInvites?: PositionInvite[];
+  roleplayInvites?: RoleplayInvite[];
   sexyVault?: SexyVaultItem[];
   calendarReminders?: CalendarReminder[];
 }): StatusItem[] {
@@ -487,30 +489,27 @@ export function buildHomeNotifications(input: {
   });
 
   (input.positionInvites ?? [])
-    .filter((row) => row.status === "offered" || row.status === "accepted")
+    .filter((row) => row.toUserId === myId && row.status === "offered")
     .forEach((row) => {
-      const incoming = row.toUserId === myId;
-      const outgoing = row.fromUserId === myId;
-      if (!incoming && !outgoing) return;
-      if (row.status === "offered" && incoming) {
-        items.push({
-          id: `position-ask-${row.id}`,
-          line: "Try this tonight? · a pose",
-          when: recentWhen(row.createdAt),
-          href: "/hub/positions",
-          sortAt: Date.parse(row.createdAt) || now,
-        });
-        return;
-      }
-      if (row.status === "offered" && outgoing) {
-        items.push({
-          id: `position-wait-${row.id}`,
-          line: "Waiting on them · a pose",
-          when: recentWhen(row.createdAt),
-          href: "/hub/positions",
-          sortAt: Date.parse(row.createdAt) || now,
-        });
-      }
+      items.push({
+        id: `position-ask-${row.id}`,
+        line: "Try this tonight? · a pose",
+        when: recentWhen(row.createdAt),
+        href: "/hub/positions",
+        sortAt: Date.parse(row.createdAt) || now,
+      });
+    });
+
+  (input.roleplayInvites ?? [])
+    .filter((row) => row.toUserId === myId && row.status === "offered")
+    .forEach((row) => {
+      items.push({
+        id: `roleplay-ask-${row.id}`,
+        line: "Roleplays · they sent you a scene",
+        when: recentWhen(row.createdAt),
+        href: "/hub/roleplays",
+        sortAt: Date.parse(row.createdAt) || now,
+      });
     });
 
   (input.sexyVault ?? [])

@@ -1,7 +1,7 @@
 import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { RoleplayArt } from "@/components/hub/RoleplayArt";
-import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
+import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
@@ -55,7 +55,6 @@ export default function RoleplaysScreen() {
   const [current, setCurrent] = useState<Roleplay | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -157,21 +156,6 @@ export default function RoleplaysScreen() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update favourites.");
-    }
-  };
-
-  const saveCurrent = async () => {
-    if (!current) return;
-    setError(null);
-    setSaving(true);
-    try {
-      await saveRoleplay(current.id);
-      setSavedFlash(true);
-      setTab("todo");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save.");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -283,12 +267,19 @@ export default function RoleplaysScreen() {
                 style={{
                   marginTop: 6,
                   padding: 18,
+                  paddingTop: 20,
                   borderRadius: 28,
                   backgroundColor: T.frame,
                   borderWidth: 1,
                   borderColor: T.border,
                 }}
               >
+                <FavoriteHeart
+                  on={Boolean(openRoleplaySave(roleplaySaves, current.id))}
+                  color={T.accent}
+                  onToggle={() => void toggleFav()}
+                  style={favoriteHeartCorner}
+                />
                 <Text
                   style={{
                     fontSize: 11,
@@ -297,6 +288,7 @@ export default function RoleplaysScreen() {
                     color: T.accent,
                     fontWeight: "700",
                     textAlign: "center",
+                    paddingHorizontal: 28,
                   }}
                 >
                   {categoryMeta(current.category)?.label}
@@ -313,13 +305,6 @@ export default function RoleplaysScreen() {
                 >
                   {current.name}
                 </Text>
-                <View style={{ alignItems: "center", marginTop: 4 }}>
-                  <FavoriteHeart
-                    on={Boolean(openRoleplaySave(roleplaySaves, current.id))}
-                    color={T.accent}
-                    onToggle={() => void toggleFav()}
-                  />
-                </View>
                 <RoleplayArt
                   roleplayId={current.id}
                   category={current.category}
@@ -370,12 +355,6 @@ export default function RoleplaysScreen() {
                     tone="crimson"
                     onPress={() => spin(current.id)}
                     disabled={poolSize === 0}
-                  />
-                  <PrimaryButton
-                    label="Save to To-do"
-                    tone="ghost"
-                    loading={saving}
-                    onPress={() => void saveCurrent()}
                   />
                   <PrimaryButton
                     label={`Send to ${partnerName}`}

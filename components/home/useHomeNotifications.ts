@@ -37,6 +37,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
     fantasyTonightAsks,
     dateNightAsks,
     positionInvites,
+    roleplayInvites,
   } = useApp();
   const { data: mini } = useMiniApps();
   const calendarReminders = useCalendarReminderItems();
@@ -71,6 +72,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
         fantasyTonightAsks,
         dateNightAsks,
         positionInvites,
+        roleplayInvites,
         sexyVault: mini.sexyVault,
         calendarReminders,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
@@ -93,6 +95,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
       fantasyTonightAsks,
       dateNightAsks,
       positionInvites,
+      roleplayInvites,
       mini.sexyVault,
       mini.spark?.asks,
       calendarReminders,

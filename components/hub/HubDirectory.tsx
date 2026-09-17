@@ -73,15 +73,14 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
     <HomeBackdrop>
       <Screen scroll={!fillGrid} background="transparent">
         <View
-          className={fillGrid ? "flex-1 pt-1 pb-2" : "pt-2 pb-8"}
+          className={fillGrid ? "flex-1 pt-2 pb-2" : "pt-4 pb-10"}
           style={fillGrid ? { flex: 1, minHeight: 0 } : undefined}
         >
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              marginBottom: fillGrid ? 8 : 10,
-              gap: 8,
+              marginBottom: fillGrid ? 4 : 6,
             }}
           >
             <BackButton
@@ -89,49 +88,13 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               fallback="/"
               style={{ marginBottom: 0 }}
             />
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
-                backgroundColor: hub.accentSoft,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name={hub.icon} size={20} color={hub.accent} />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text
-                style={{
-                  fontFamily: SERIF,
-                  fontSize: fillGrid ? 22 : 24,
-                  lineHeight: fillGrid ? 26 : 28,
-                  color: "#F4F4F6",
-                }}
-                numberOfLines={1}
-              >
-                {hub.label}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 1,
-                  fontFamily: SERIF,
-                  fontSize: 13,
-                  lineHeight: 16,
-                  color: "rgba(244,244,246,0.58)",
-                }}
-                numberOfLines={1}
-              >
-                {hub.tagline}
-              </Text>
-            </View>
+            <View style={{ flex: 1 }} />
             <Pressable
               onPress={() => setSettingsOpen(true)}
               accessibilityLabel={`${hub.label} settings`}
               style={{
-                width: 40,
-                height: 40,
+                width: fillGrid ? 40 : 44,
+                height: fillGrid ? 40 : 44,
                 borderRadius: 16,
                 backgroundColor: "#14141A",
                 borderWidth: 1,
@@ -142,6 +105,64 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
             >
               <Ionicons name="settings-outline" size={20} color={hub.accent} />
             </Pressable>
+          </View>
+
+          <View
+            style={{
+              alignItems: "center",
+              marginBottom: fillGrid ? 10 : 18,
+            }}
+          >
+            <View
+              style={{
+                width: fillGrid ? 48 : 44,
+                height: fillGrid ? 48 : 44,
+                borderRadius: 16,
+                backgroundColor: hub.accentSoft,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name={hub.icon} size={fillGrid ? 26 : 24} color={hub.accent} />
+            </View>
+            {fillGrid ? null : (
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontFamily: "SpaceMono",
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: hub.accent,
+                }}
+              >
+                Hub
+              </Text>
+            )}
+            <Text
+              style={{
+                marginTop: fillGrid ? 8 : 2,
+                fontFamily: SERIF,
+                fontSize: fillGrid ? 28 : 30,
+                lineHeight: fillGrid ? 32 : 36,
+                color: "#F4F4F6",
+                textAlign: "center",
+              }}
+            >
+              {hub.label}
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF,
+                fontSize: fillGrid ? 14 : 16,
+                lineHeight: fillGrid ? 20 : 24,
+                color: "rgba(244,244,246,0.58)",
+                textAlign: "center",
+              }}
+            >
+              {hub.tagline}
+            </Text>
           </View>
 
           {loading ? (

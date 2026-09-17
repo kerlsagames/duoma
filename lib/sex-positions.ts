@@ -946,6 +946,258 @@ export const SEX_POSITIONS: SexPosition[] = [
     "side-creative",
     "Pillows stacked under her hips so she is on a slope, him kneeling. The furniture is the pose."
   ),
+  pose(
+    "forehead-press",
+    "Forehead Press",
+    "face-to-face",
+    "Missionary with foreheads touching the whole time. Short strokes. If you lose the contact, you slow down."
+  ),
+  pose(
+    "wrapped-ankles",
+    "Wrapped Ankles",
+    "face-to-face",
+    "She hooks her ankles at his lower back and keeps them there. He doesn't get to pull out far."
+  ),
+  pose(
+    "side-eye-contact",
+    "Side, Eye Contact",
+    "face-to-face",
+    "Both on your sides facing each other, her top leg over his hip. Close, a bit awkward, very in each other's faces."
+  ),
+  pose(
+    "kneeling-hug",
+    "Kneeling Hug",
+    "face-to-face",
+    "Both kneeling, her in his lap facing him, arms around his neck. More hug than bounce."
+  ),
+  pose(
+    "edge-sit",
+    "Edge Sit",
+    "face-to-face",
+    "He sits on the edge of the bed, she straddles facing him, feet on the floor. Easy to kiss and stand up from."
+  ),
+  pose(
+    "folded-kiss",
+    "Folded Kiss",
+    "face-to-face",
+    "Her knees toward her chest, him kneeling over her. Folded enough to kiss. Don't crush her lungs."
+  ),
+  pose(
+    "wall-face",
+    "Wall, Face to Face",
+    "face-to-face",
+    "Her back on the wall, one thigh up, him holding that leg. Standing missionary. Use the wall."
+  ),
+  pose(
+    "chair-lean-in",
+    "Chair Lean-In",
+    "face-to-face",
+    "He sits, she stands between his knees then sits facing him. Slow, because the chair will complain."
+  ),
+  pose(
+    "pillow-cradle",
+    "Pillow Cradle",
+    "face-to-face",
+    "Pillow under her head and one under her hips. Him close, chest to chest. The pillows do the angle."
+  ),
+  pose(
+    "bent-table",
+    "Bent Over the Table",
+    "from-behind",
+    "She folds over a table or bench, him behind. Keep a hand on her hip so she doesn't slide."
+  ),
+  pose(
+    "kitchen-sink-hold",
+    "Kitchen Sink Hold",
+    "from-behind",
+    "She holds the sink or counter, him behind, knees soft. If the tap drips, ignore it."
+  ),
+  pose(
+    "bed-end-fold",
+    "Bed-End Fold",
+    "from-behind",
+    "She bends at the end of the bed, chest on the mattress, him standing. Classic for a reason."
+  ),
+  pose(
+    "prone-flat",
+    "Prone Flat",
+    "from-behind",
+    "She on her stomach, legs together, him over her. Shallow, heavy, close. Go easy on her lower back."
+  ),
+  pose(
+    "knees-wide-rear",
+    "Knees Wide, From Behind",
+    "from-behind",
+    "She on all fours, knees wider than her hands. He stays kneeling. Lower, deeper, slower."
+  ),
+  pose(
+    "standing-hook",
+    "Standing Hook",
+    "from-behind",
+    "Both standing, she hooks one foot back around his calf. His arm across her chest. Don't overbalance."
+  ),
+  pose(
+    "sofa-kneel-rear",
+    "Sofa Kneel Rear",
+    "from-behind",
+    "She kneeling on the sofa facing the back, him behind on the floor or cushion. Hold the sofa."
+  ),
+  pose(
+    "side-rear-reach",
+    "Side Rear Reach",
+    "from-behind",
+    "Both on your sides, him behind, her top knee pulled up. His hand can reach around easily."
+  ),
+  pose(
+    "lap-drop",
+    "Lap Drop",
+    "sitting",
+    "He sits. She drops into his lap facing away and stays low. He holds her waist, not her shoulders."
+  ),
+  pose(
+    "couch-straddle-in",
+    "Couch Straddle In",
+    "sitting",
+    "He in the couch corner, she straddles facing him, one knee in the cushions. Kissing distance."
+  ),
+  pose(
+    "desk-chair-spin",
+    "Desk Chair",
+    "sitting",
+    "Wheeled chair, brakes on if it has them. She faces him. Don't actually spin unless you want a bruise."
+  ),
+  pose(
+    "floor-sit-wrap",
+    "Floor Sit Wrap",
+    "sitting",
+    "He sits on the floor against the bed. She wraps her legs around him. Slow because your hips will burn."
+  ),
+  pose(
+    "ottoman-perch",
+    "Ottoman Perch",
+    "sitting",
+    "He sits on a low ottoman. She sits on him facing away, feet on the floor. Easy to stand up from."
+  ),
+  pose(
+    "bath-edge",
+    "Bath Edge",
+    "sitting",
+    "He sits on the edge of the tub, feet in the water. She straddles. Towels on the floor. Wet is the point."
+  ),
+  pose(
+    "stool-lean",
+    "Stool Lean",
+    "sitting",
+    "Bar stool or kitchen stool. She sits, he stands between her knees, or she sits on him if the stool is solid."
+  ),
+  pose(
+    "washer-sit",
+    "Washer Sit",
+    "sitting",
+    "If the machine is on, she sits on it facing him, legs around. If it isn't, turn it on for the joke."
+  ),
+  pose(
+    "doorframe-lift",
+    "Doorframe Lift",
+    "standing",
+    "Her back on the doorframe, one thigh up. He holds that thigh. Use the frame, not just your arms."
+  ),
+  pose(
+    "counter-perch-stand",
+    "Counter Perch",
+    "standing",
+    "She sits on the counter, him standing. Pull her to the edge. Watch her head on the cupboards."
+  ),
+  pose(
+    "wall-slide",
+    "Wall Slide",
+    "standing",
+    "Both standing, her back sliding a little down the wall, one knee bent out. Stay on your feet."
+  ),
+  pose(
+    "shower-corner",
+    "Shower Corner",
+    "standing",
+    "Her in the shower corner, one foot on the ledge if there is one. Him close. Non-slip mat first."
+  ),
+  pose(
+    "hallway-press",
+    "Hallway Press",
+    "standing",
+    "Narrow hallway, her hands on one wall, him behind. You don't need much room. That's the heat."
+  ),
+  pose(
+    "fridge-lean",
+    "Fridge Lean",
+    "standing",
+    "She faces the fridge, him behind, one of her feet on his. Cold door, warm everything else."
+  ),
+  pose(
+    "kneel-worship",
+    "Kneel Worship",
+    "oral",
+    "He kneels, she stands or sits on the bed edge. His hands on her thighs. She can hold the headboard."
+  ),
+  pose(
+    "chair-oral",
+    "Chair Oral",
+    "oral",
+    "She in a chair, he on the floor between her knees. Her legs over his shoulders if it feels good."
+  ),
+  pose(
+    "sixty-side",
+    "Sixty-Nine on Your Sides",
+    "oral",
+    "Both on your sides, heads opposite. Less crush, more aiming. Fine if you laugh."
+  ),
+  pose(
+    "face-sit-lean",
+    "Face Sit, Lean Forward",
+    "oral",
+    "She sits on his face and leans forward onto her hands. He holds her hips. She can rock."
+  ),
+  pose(
+    "bed-edge-mouth",
+    "Bed-Edge Mouth",
+    "oral",
+    "She on her back, hips at the edge. He kneeling on the floor. Best angle for his neck."
+  ),
+  pose(
+    "standing-oral-hold",
+    "Standing Oral Hold",
+    "oral",
+    "She standing, one leg over his shoulder, him kneeling. Hold her other hip. Wall nearby."
+  ),
+  pose(
+    "lap-oral",
+    "Lap Oral",
+    "oral",
+    "He sits. She kneels between his knees. His hands stay on the chair unless she puts them in her hair."
+  ),
+  pose(
+    "cross-ankles",
+    "Crossed Ankles",
+    "side-creative",
+    "She on her back, ankles crossed, him kneeling. Tight. Small movements."
+  ),
+  pose(
+    "figure-four",
+    "Figure Four",
+    "side-creative",
+    "She on her back, one ankle on the opposite knee. He kneels into the opening. Go slow until it fits."
+  ),
+  pose(
+    "spoon-top-leg",
+    "Spoon, Top Leg High",
+    "side-creative",
+    "Classic spoon with her top knee pulled toward her chest. His hand free for the front."
+  ),
+  pose(
+    "yoga-split-assist",
+    "Assisted Split",
+    "side-creative",
+    "She on her back, one leg toward her shoulder if her body allows. He holds that leg. Stop if anything pinches."
+  ),
 ];
 
 export function sexPositions(includeHidden = false): SexPosition[] {

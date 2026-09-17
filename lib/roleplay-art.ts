@@ -38,7 +38,66 @@ export type RoleplayArtKey =
   | "ski"
   | "fitting"
   | "plane"
-  | "train";
+  | "train"
+  | "accidental-view"
+  | "android-lab"
+  | "babysitter"
+  | "bandit-carriage"
+  | "bedside-exam"
+  | "best-friends-dad"
+  | "boot-worship"
+  | "boss-audit"
+  | "chauffeur"
+  | "chiropractor"
+  | "coat-room"
+  | "customs"
+  | "dance-studio"
+  | "demon"
+  | "dermatologist"
+  | "detention"
+  | "electrician"
+  | "elevator"
+  | "executive-interview"
+  | "fitness-locker"
+  | "french-maid"
+  | "judge-chambers"
+  | "landlord"
+  | "law-firm"
+  | "locksmith"
+  | "maid-uniform"
+  | "masquerade"
+  | "military-drill"
+  | "night-nurse"
+  | "night-pool"
+  | "outdoor-shower"
+  | "overtime"
+  | "performance-review"
+  | "pet-handler"
+  | "physical-therapy"
+  | "plumber"
+  | "princess-assassin"
+  | "prison-cell"
+  | "promotion"
+  | "quarantine"
+  | "receptionist"
+  | "reflexology"
+  | "royal-bodyguard"
+  | "security-search"
+  | "sensory-chamber"
+  | "ski-lift"
+  | "sorcerer"
+  | "spanking-bench"
+  | "sponge-bath"
+  | "stockroom"
+  | "tennis-coach"
+  | "traffic-stop"
+  | "uber"
+  | "ultrasound"
+  | "washing-machine"
+  | "werewolf"
+  | "witch"
+  | "yoga-studio"
+  | "country-club";
 
 const CATEGORY_FALLBACK: Record<RoleplayCategoryId, RoleplayArtKey> = {
   professional: "trades",
@@ -53,9 +112,9 @@ const CATEGORY_FALLBACK: Record<RoleplayCategoryId, RoleplayArtKey> = {
   bdsm: "dungeon",
 };
 
-/** One still per scene. Mapped to what is actually in the frame. */
+/** One still per scene when a unique frame exists. */
 const ART_BY_ID: Record<string, RoleplayArtKey> = {
-  "the-late-night-electrician": "trades",
+  "the-late-night-electrician": "electrician",
   "the-maid-s-inspection": "maid",
   "the-personal-trainer-s-stretch": "trainer",
   "the-massage-therapist-s-upgrade": "massage",
@@ -64,123 +123,123 @@ const ART_BY_ID: Record<string, RoleplayArtKey> = {
   "the-private-chef-s-taste-test": "chef",
   "the-car-detailer-s-inspection": "car",
   "the-tutor-s-extra-credit": "classroom",
-  "the-locksmith-s-entry": "trades",
-  "the-plumber-under-the-sink": "chef",
-  "the-accidental-view": "trades",
+  "the-locksmith-s-entry": "locksmith",
+  "the-plumber-under-the-sink": "plumber",
+  "the-accidental-view": "accidental-view",
 
-  "the-boss-s-after-hours-audit": "office",
-  "the-executive-interview": "office",
-  "the-performance-review": "office",
-  "the-overtime-interruption": "office",
-  "the-promotion-contract": "office",
-  "the-law-firm-partner": "office",
-  "the-receptionist-s-bell": "office",
+  "the-boss-s-after-hours-audit": "boss-audit",
+  "the-executive-interview": "executive-interview",
+  "the-performance-review": "performance-review",
+  "the-overtime-interruption": "overtime",
+  "the-promotion-contract": "promotion",
+  "the-law-firm-partner": "law-firm",
+  "the-receptionist-s-bell": "receptionist",
   "the-ceo-s-private-jet": "plane",
   "the-business-trip-hotel": "hotel",
   "the-photo-studio-shoot": "fitting",
-  "the-elevator-malfunction": "office",
-  "the-stockroom-inventory": "office",
+  "the-elevator-malfunction": "elevator",
+  "the-stockroom-inventory": "stockroom",
 
-  "the-hotel-room-miscount": "hotel",
+  "the-hotel-room-miscount": "office",
   "the-vip-backstage-pass": "club",
   "the-library-stacks": "library",
   "the-cinema-back-row": "cinema",
-  "the-uber-driver-s-extra-route": "car",
-  "the-first-class-curtain": "plane",
+  "the-uber-driver-s-extra-route": "uber",
+  "the-first-class-curtain": "trades",
   "the-train-compartment": "train",
-  "the-ski-lift-hold": "ski",
+  "the-ski-lift-hold": "ski-lift",
   "the-beach-cabana": "beach",
-  "the-fitting-room-slip": "fitting",
+  "the-fitting-room-slip": "cop",
   "the-rainy-bus-stop": "rain",
   "the-museum-alcove": "museum",
   "the-rooftop-access": "rooftop",
   "the-sauna-steam": "sauna",
   "the-campground-tent": "tent",
-  "the-underground-club-nook": "club",
-  "the-house-party-coat-room": "home",
-  "the-masked-masquerade": "dungeon",
+  "the-underground-club-nook": "clinic",
+  "the-house-party-coat-room": "coat-room",
+  "the-masked-masquerade": "masquerade",
 
-  "the-bedside-exam": "clinic",
-  "the-night-nurse-s-rounds": "clinic",
-  "the-physical-therapy-session": "massage",
-  "the-chiropractor-s-adjustment": "massage",
-  "the-reflexology-session": "massage",
-  "the-post-op-sponge-bath": "clinic",
-  "the-quarantine-check": "clinic",
-  "the-dermatologist-s-skin-check": "clinic",
-  "the-ultrasound-friction": "clinic",
+  "the-bedside-exam": "bedside-exam",
+  "the-night-nurse-s-rounds": "night-nurse",
+  "the-physical-therapy-session": "physical-therapy",
+  "the-chiropractor-s-adjustment": "chiropractor",
+  "the-reflexology-session": "reflexology",
+  "the-post-op-sponge-bath": "sponge-bath",
+  "the-quarantine-check": "quarantine",
+  "the-dermatologist-s-skin-check": "dermatologist",
+  "the-ultrasound-friction": "ultrasound",
 
   "the-knight-the-queen": "knight",
   "the-captive-the-pirate-captain": "pirate",
-  "the-lord-the-governess": "library",
+  "the-lord-the-governess": "ski",
   "the-vampire-s-feeding": "vampire",
-  "the-french-maid-the-count": "maid",
+  "the-french-maid-the-count": "french-maid",
   "the-mermaid-s-grotto": "mermaid",
   "the-elven-guard-the-lost-traveler": "garden",
-  "the-roman-bath-attendant": "sauna",
-  "the-bandit-the-carriage": "pirate",
-  "the-princess-the-assassin": "knight",
-  "the-sorcerer-the-apprentice": "vampire",
+  "the-roman-bath-attendant": "locker",
+  "the-bandit-the-carriage": "bandit-carriage",
+  "the-princess-the-assassin": "princess-assassin",
+  "the-sorcerer-the-apprentice": "sorcerer",
   "the-space-captain-the-alien-envoy": "scifi",
 
-  "the-principal-s-after-school-detention": "classroom",
-  "the-police-officer-s-traffic-stop": "cop",
-  "the-security-guard-s-shoplifting-search": "fitting",
-  "the-prison-guard-s-cell-check": "dungeon",
-  "the-military-drill-sergeant-s-inspection": "locker",
-  "the-strict-landlord-s-rent-deficit": "home",
-  "the-customs-officer-s-private-room": "cop",
-  "the-flight-attendant-s-rule-break": "plane",
-  "the-judge-s-chambers": "office",
-  "the-royal-bodyguard-s-protocol": "knight",
-  "the-bouncer-s-back-alley-choice": "club",
-  "the-parole-officer-s-home-visit": "home",
+  "the-principal-s-after-school-detention": "detention",
+  "the-police-officer-s-traffic-stop": "traffic-stop",
+  "the-security-guard-s-shoplifting-search": "security-search",
+  "the-prison-guard-s-cell-check": "prison-cell",
+  "the-military-drill-sergeant-s-inspection": "military-drill",
+  "the-strict-landlord-s-rent-deficit": "landlord",
+  "the-customs-officer-s-private-room": "customs",
+  "the-flight-attendant-s-rule-break": "dungeon",
+  "the-judge-s-chambers": "judge-chambers",
+  "the-royal-bodyguard-s-protocol": "royal-bodyguard",
+  "the-bouncer-s-back-alley-choice": "home",
+  "the-parole-officer-s-home-visit": "office",
 
-  "the-roommate-s-walk-in": "home",
-  "the-landlord-s-master-key": "home",
-  "the-houseguest-s-late-night": "home",
-  "the-gardener-s-shed": "garden",
+  "the-roommate-s-walk-in": "trades",
+  "the-landlord-s-master-key": "cop",
+  "the-houseguest-s-late-night": "clinic",
+  "the-gardener-s-shed": "locker",
   "the-butler-s-service": "butler",
-  "the-chauffeur-s-partition": "car",
-  "the-maid-s-uniform": "maid",
-  "the-washing-machine-stuck": "home",
-  "the-babysitter-s-bedtime": "home",
-  "the-estate-manager-s-tour": "garden",
-  "the-best-friend-s-dad": "home",
+  "the-chauffeur-s-partition": "chauffeur",
+  "the-maid-s-uniform": "maid-uniform",
+  "the-washing-machine-stuck": "washing-machine",
+  "the-babysitter-s-bedtime": "babysitter",
+  "the-estate-manager-s-tour": "ski",
+  "the-best-friend-s-dad": "best-friends-dad",
 
-  "the-alien-abduction-lab": "scifi",
+  "the-alien-abduction-lab": "dungeon",
   "the-superhero-the-villain": "hero",
-  "the-android-calibration": "clinic",
-  "the-werewolf-s-full-moon": "vampire",
-  "the-demon-s-possession": "vampire",
-  "the-witch-s-love-potion": "vampire",
-  "the-genie-s-wish": "hotel",
-  "the-holodeck-simulation": "scifi",
+  "the-android-calibration": "android-lab",
+  "the-werewolf-s-full-moon": "werewolf",
+  "the-demon-s-possession": "demon",
+  "the-witch-s-love-potion": "witch",
+  "the-genie-s-wish": "home",
+  "the-holodeck-simulation": "office",
 
-  "the-fitness-club-locker-room": "locker",
-  "the-tennis-coach-s-serve": "trainer",
-  "the-lifeguard-tower": "beach",
-  "the-yoga-instructor-s-adjustment": "trainer",
-  "the-ski-resort-hot-tub": "sauna",
-  "the-equestrian-barn": "garden",
-  "the-swimming-pool-night-dip": "pool",
-  "the-dance-studio-mirror": "trainer",
-  "the-outdoor-shower": "pool",
-  "the-camping-hammock": "tent",
-  "the-country-club-changing-room": "locker",
+  "the-fitness-club-locker-room": "fitness-locker",
+  "the-tennis-coach-s-serve": "tennis-coach",
+  "the-lifeguard-tower": "trades",
+  "the-yoga-instructor-s-adjustment": "yoga-studio",
+  "the-ski-resort-hot-tub": "cop",
+  "the-equestrian-barn": "clinic",
+  "the-swimming-pool-night-dip": "night-pool",
+  "the-dance-studio-mirror": "dance-studio",
+  "the-outdoor-shower": "outdoor-shower",
+  "the-camping-hammock": "locker",
+  "the-country-club-changing-room": "country-club",
 
-  "the-pet-girl-the-handler": "dungeon",
+  "the-pet-girl-the-handler": "pet-handler",
   "the-bondage-furniture-test": "dungeon",
-  "the-sensory-deprivation-chamber": "dungeon",
-  "the-spanking-bench-audit": "dungeon",
-  "the-rope-harness-suspension": "dungeon",
-  "the-chastity-keyholder": "dungeon",
-  "the-master-the-house-slave": "dungeon",
-  "the-dominant-female-male-slave": "dungeon",
+  "the-sensory-deprivation-chamber": "sensory-chamber",
+  "the-spanking-bench-audit": "spanking-bench",
+  "the-rope-harness-suspension": "ski",
+  "the-chastity-keyholder": "home",
+  "the-master-the-house-slave": "office",
+  "the-dominant-female-male-slave": "trades",
   "the-public-leash-walk": "garden",
-  "the-cane-submissive-apology": "dungeon",
-  "the-heavy-boot-worship": "dungeon",
-  "the-latex-suit-enclosure": "dungeon",
+  "the-cane-submissive-apology": "cop",
+  "the-heavy-boot-worship": "boot-worship",
+  "the-latex-suit-enclosure": "clinic",
 };
 
 export function roleplayArtKey(
@@ -228,6 +287,65 @@ const SOURCES: Record<RoleplayArtKey, ImageSourcePropType> = {
   fitting: require("../assets/roleplays/rp-fitting.png"),
   plane: require("../assets/roleplays/rp-plane.png"),
   train: require("../assets/roleplays/rp-train.png"),
+  "accidental-view": require("../assets/roleplays/rp-accidental-view.png"),
+  "android-lab": require("../assets/roleplays/rp-android-lab.png"),
+  babysitter: require("../assets/roleplays/rp-babysitter.png"),
+  "bandit-carriage": require("../assets/roleplays/rp-bandit-carriage.png"),
+  "bedside-exam": require("../assets/roleplays/rp-bedside-exam.png"),
+  "best-friends-dad": require("../assets/roleplays/rp-best-friends-dad.png"),
+  "boot-worship": require("../assets/roleplays/rp-boot-worship.png"),
+  "boss-audit": require("../assets/roleplays/rp-boss-audit.png"),
+  chauffeur: require("../assets/roleplays/rp-chauffeur.png"),
+  chiropractor: require("../assets/roleplays/rp-chiropractor.png"),
+  "coat-room": require("../assets/roleplays/rp-coat-room.png"),
+  customs: require("../assets/roleplays/rp-customs.png"),
+  "dance-studio": require("../assets/roleplays/rp-dance-studio.png"),
+  demon: require("../assets/roleplays/rp-demon.png"),
+  dermatologist: require("../assets/roleplays/rp-dermatologist.png"),
+  detention: require("../assets/roleplays/rp-detention.png"),
+  electrician: require("../assets/roleplays/rp-electrician.png"),
+  elevator: require("../assets/roleplays/rp-elevator.png"),
+  "executive-interview": require("../assets/roleplays/rp-executive-interview.png"),
+  "fitness-locker": require("../assets/roleplays/rp-fitness-locker.png"),
+  "french-maid": require("../assets/roleplays/rp-french-maid.png"),
+  "judge-chambers": require("../assets/roleplays/rp-judge-chambers.png"),
+  landlord: require("../assets/roleplays/rp-landlord.png"),
+  "law-firm": require("../assets/roleplays/rp-law-firm.png"),
+  locksmith: require("../assets/roleplays/rp-locksmith.png"),
+  "maid-uniform": require("../assets/roleplays/rp-maid-uniform.png"),
+  masquerade: require("../assets/roleplays/rp-masquerade.png"),
+  "military-drill": require("../assets/roleplays/rp-military-drill.png"),
+  "night-nurse": require("../assets/roleplays/rp-night-nurse.png"),
+  "night-pool": require("../assets/roleplays/rp-night-pool.png"),
+  "outdoor-shower": require("../assets/roleplays/rp-outdoor-shower.png"),
+  overtime: require("../assets/roleplays/rp-overtime.png"),
+  "performance-review": require("../assets/roleplays/rp-performance-review.png"),
+  "pet-handler": require("../assets/roleplays/rp-pet-handler.png"),
+  "physical-therapy": require("../assets/roleplays/rp-physical-therapy.png"),
+  plumber: require("../assets/roleplays/rp-plumber.png"),
+  "princess-assassin": require("../assets/roleplays/rp-princess-assassin.png"),
+  "prison-cell": require("../assets/roleplays/rp-prison-cell.png"),
+  promotion: require("../assets/roleplays/rp-promotion.png"),
+  quarantine: require("../assets/roleplays/rp-quarantine.png"),
+  receptionist: require("../assets/roleplays/rp-receptionist.png"),
+  reflexology: require("../assets/roleplays/rp-reflexology.png"),
+  "royal-bodyguard": require("../assets/roleplays/rp-royal-bodyguard.png"),
+  "security-search": require("../assets/roleplays/rp-security-search.png"),
+  "sensory-chamber": require("../assets/roleplays/rp-sensory-chamber.png"),
+  "ski-lift": require("../assets/roleplays/rp-ski-lift.png"),
+  sorcerer: require("../assets/roleplays/rp-sorcerer.png"),
+  "spanking-bench": require("../assets/roleplays/rp-spanking-bench.png"),
+  "sponge-bath": require("../assets/roleplays/rp-sponge-bath.png"),
+  stockroom: require("../assets/roleplays/rp-stockroom.png"),
+  "tennis-coach": require("../assets/roleplays/rp-tennis-coach.png"),
+  "traffic-stop": require("../assets/roleplays/rp-traffic-stop.png"),
+  uber: require("../assets/roleplays/rp-uber.png"),
+  ultrasound: require("../assets/roleplays/rp-ultrasound.png"),
+  "washing-machine": require("../assets/roleplays/rp-washing-machine.png"),
+  werewolf: require("../assets/roleplays/rp-werewolf.png"),
+  witch: require("../assets/roleplays/rp-witch.png"),
+  "yoga-studio": require("../assets/roleplays/rp-yoga-studio.png"),
+  "country-club": require("../assets/roleplays/rp-country-club.png"),
 };
 
 export function roleplayArtSource(

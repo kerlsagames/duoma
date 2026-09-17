@@ -1,4 +1,4 @@
-import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
+import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
@@ -576,9 +576,18 @@ export function SpicyDarePanel({
             borderColor: spinning ? T.flash : T.border,
             backgroundColor: T.surfaceRaised,
             padding: 18,
+            paddingRight: 44,
             justifyContent: "center",
           }}
         >
+          {heroText && !spinning && picked ? (
+            <FavoriteHeart
+              on={Boolean(openDareSave(dareSaves, picked.id))}
+              color={T.accent}
+              onToggle={() => void toggleFav(picked.id)}
+              style={favoriteHeartCorner}
+            />
+          ) : null}
           {heroText ? (
             <>
               <Text
@@ -606,13 +615,6 @@ export function SpicyDarePanel({
               </Text>
               {!spinning && picked ? (
                 <View className="mt-4" style={{ gap: 10 }}>
-                  <View style={{ alignItems: "center" }}>
-                    <FavoriteHeart
-                      on={Boolean(openDareSave(dareSaves, picked.id))}
-                      color={T.accent}
-                      onToggle={() => void toggleFav(picked.id)}
-                    />
-                  </View>
                   <PrimaryButton
                     label="Use this"
                     tone="teal"
@@ -652,6 +654,7 @@ export function SpicyDarePanel({
                 style={{
                   borderRadius: 18,
                   padding: 14,
+                  paddingRight: 40,
                   borderWidth: 1,
                   borderColor: selected
                     ? T.accent
@@ -660,18 +663,20 @@ export function SpicyDarePanel({
                       : "rgba(232,244,241,0.1)",
                   backgroundColor: selected ? T.accentSoft : T.surface,
                   opacity: played && !selected ? 0.65 : 1,
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  gap: 8,
                 }}
               >
+                <FavoriteHeart
+                  on={fav}
+                  color={T.accent}
+                  onToggle={() => void toggleFav(dare.id)}
+                  style={favoriteHeartCorner}
+                />
                 <Pressable
                   onPress={() => {
                     setPicked(dare);
                     setFlashText(null);
                   }}
                   onLongPress={() => openCompose(dare)}
-                  style={{ flex: 1 }}
                 >
                   <Text
                     style={{
@@ -696,11 +701,6 @@ export function SpicyDarePanel({
                     </Text>
                   ) : null}
                 </Pressable>
-                <FavoriteHeart
-                  on={fav}
-                  color={T.accent}
-                  onToggle={() => void toggleFav(dare.id)}
-                />
               </View>
             );
           })}
@@ -931,29 +931,28 @@ export function SpicyDarePanel({
                   style={{
                     borderRadius: 18,
                     padding: 14,
+                    paddingRight: 40,
                     borderWidth: 1,
                     borderColor: T.border,
                     backgroundColor: T.surfaceRaised,
                   }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontFamily: SERIF,
-                        fontSize: 16,
-                        lineHeight: 22,
-                        color: T.ink,
-                      }}
-                    >
-                      {text}
-                    </Text>
-                    <FavoriteHeart
-                      on
-                      color={T.accent}
-                      onToggle={() => void toggleFav(row.dareId)}
-                    />
-                  </View>
+                  <FavoriteHeart
+                    on
+                    color={T.accent}
+                    onToggle={() => void toggleFav(row.dareId)}
+                    style={favoriteHeartCorner}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: SERIF,
+                      fontSize: 16,
+                      lineHeight: 22,
+                      color: T.ink,
+                    }}
+                  >
+                    {text}
+                  </Text>
                   <View style={{ marginTop: 12, gap: 8 }}>
                     {dare ? (
                       <PrimaryButton
