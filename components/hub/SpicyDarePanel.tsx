@@ -1,3 +1,4 @@
+import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { CalendarDateField } from "@/components/ui/CalendarDateField";
@@ -10,10 +11,12 @@ import {
   isSpicyDareDeck,
   spicyCategoryMeta,
   timeframeLabel,
+  dareById,
   withPlayStatus,
   type SpicyDare,
   type SpicyDareCategory,
 } from "@/lib/spicy-dares";
+import { openDareSave } from "@/lib/play-items";
 import { useApp } from "@/lib/store";
 import type { SpicyDarePlay } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,7 +25,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = UP_FOR_IT_TONE;
 
-type ViewMode = "hub" | "send" | "sent" | "received" | "category" | "compose";
+type ViewMode = "hub" | "send" | "sent" | "received" | "category" | "compose" | "favs";
 
 const STATUS_RANK: Record<SpicyDarePlay["status"], number> = {
   offered: 0,
@@ -95,6 +98,10 @@ export function SpicyDarePanel({
     respondSpicyDare,
     completeSpicyDare,
     markSpicyDareRead,
+    dareSaves,
+    saveDare,
+    unsaveDare,
+    markDareSaveDone,
   } = useApp();
 
   const [view, setView] = useState<ViewMode>("hub");
@@ -151,6 +158,19 @@ export function SpicyDarePanel({
     themGender: partner?.gender,
   };
   const showDare = (text: string) => personalizeDareText(text, names);
+
+  const openFavs = dareSaves.filter((row) => !row.doneAt);
+
+  const toggleFav = async (dareId: string) => {
+    setError(null);
+    const fav = openDareSave(dareSaves, dareId);
+    try {
+      if (fav) await unsaveDare(dareId);
+      else await saveDare(dareId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update favourites.");
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -585,7 +605,14 @@ export function SpicyDarePanel({
                 {heroText}
               </Text>
               {!spinning && picked ? (
-                <View className="mt-4">
+                <View className="mt-4" style={{ gap: 10 }}>
+                  <View style={{ alignItems: "center" }}>
+                    <FavoriteHeart
+                      on={Boolean(openDareSave(dareSaves, picked.id))}
+                      color={T.accent}
+                      onToggle={() => void toggleFav(picked.id)}
+                    />
+                  </View>
                   <PrimaryButton
                     label="Use this"
                     tone="teal"
@@ -618,14 +645,10 @@ export function SpicyDarePanel({
           {catalog.map((dare) => {
             const played = dare.status === "played";
             const selected = picked?.id === dare.id && !spinning;
+            const fav = Boolean(openDareSave(dareSaves, dare.id));
             return (
-              <Pressable
+              <View
                 key={dare.id}
-                onPress={() => {
-                  setPicked(dare);
-                  setFlashText(null);
-                }}
-                onLongPress={() => openCompose(dare)}
                 style={{
                   borderRadius: 18,
                   padding: 14,
@@ -637,31 +660,48 @@ export function SpicyDarePanel({
                       : "rgba(232,244,241,0.1)",
                   backgroundColor: selected ? T.accentSoft : T.surface,
                   opacity: played && !selected ? 0.65 : 1,
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 8,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: SERIF,
-                    fontSize: 15,
-                    lineHeight: 22,
-                    color: T.ink,
+                <Pressable
+                  onPress={() => {
+                    setPicked(dare);
+                    setFlashText(null);
                   }}
+                  onLongPress={() => openCompose(dare)}
+                  style={{ flex: 1 }}
                 >
-                  {showDare(dare.text)}
-                </Text>
-                {played ? (
                   <Text
                     style={{
-                      marginTop: 6,
-                      fontFamily: "SpaceMono",
-                      fontSize: 10,
-                      color: T.muted,
+                      fontFamily: SERIF,
+                      fontSize: 15,
+                      lineHeight: 22,
+                      color: T.ink,
                     }}
                   >
-                    Sent before
+                    {showDare(dare.text)}
                   </Text>
-                ) : null}
-              </Pressable>
+                  {played ? (
+                    <Text
+                      style={{
+                        marginTop: 6,
+                        fontFamily: "SpaceMono",
+                        fontSize: 10,
+                        color: T.muted,
+                      }}
+                    >
+                      Sent before
+                    </Text>
+                  ) : null}
+                </Pressable>
+                <FavoriteHeart
+                  on={fav}
+                  color={T.accent}
+                  onToggle={() => void toggleFav(dare.id)}
+                />
+              </View>
             );
           })}
         </View>
@@ -846,6 +886,97 @@ export function SpicyDarePanel({
     );
   }
 
+  if (view === "favs") {
+    return (
+      <View>
+        <BackLink label="Challenges & Dares" onPress={goHub} />
+        <Text style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 34, color: T.ink }}>
+          To-do / Favourites
+        </Text>
+        <Text style={{ marginTop: 8, fontFamily: SERIF, fontSize: 15, lineHeight: 22, color: T.muted }}>
+          Heart a dare while browsing and it lands here until you send it or let it go.
+        </Text>
+        {error ? (
+          <Text style={{ marginTop: 14, color: T.hot, fontFamily: SERIF }}>{error}</Text>
+        ) : null}
+        {openFavs.length === 0 ? (
+          <View
+            style={{
+              marginTop: 22,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: T.border,
+              backgroundColor: T.surface,
+              padding: 20,
+            }}
+          >
+            <Text style={{ fontFamily: SERIF, fontSize: 17, lineHeight: 24, color: T.ink }}>
+              Nothing favourited yet.
+            </Text>
+            <Text style={{ marginTop: 6, fontSize: 14, lineHeight: 21, color: T.muted }}>
+              Tap the heart outline on a dare to fill it and save it here.
+            </Text>
+            <View className="mt-4">
+              <PrimaryButton label="Browse dares" tone="teal" onPress={goSend} />
+            </View>
+          </View>
+        ) : (
+          <View style={{ marginTop: 18, gap: 8 }}>
+            {openFavs.map((row) => {
+              const dare = dareById(row.dareId);
+              const text = dare ? showDare(dare.text) : row.dareId;
+              return (
+                <View
+                  key={row.id}
+                  style={{
+                    borderRadius: 18,
+                    padding: 14,
+                    borderWidth: 1,
+                    borderColor: T.border,
+                    backgroundColor: T.surfaceRaised,
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontFamily: SERIF,
+                        fontSize: 16,
+                        lineHeight: 22,
+                        color: T.ink,
+                      }}
+                    >
+                      {text}
+                    </Text>
+                    <FavoriteHeart
+                      on
+                      color={T.accent}
+                      onToggle={() => void toggleFav(row.dareId)}
+                    />
+                  </View>
+                  <View style={{ marginTop: 12, gap: 8 }}>
+                    {dare ? (
+                      <PrimaryButton
+                        label="Use this"
+                        tone="teal"
+                        onPress={() => openCompose(dare)}
+                      />
+                    ) : null}
+                    <PrimaryButton
+                      label="Mark done"
+                      tone="ghost"
+                      onPress={() => void markDareSaveDone(row.id)}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View>
       {mode === "sheet" ? (
@@ -870,6 +1001,17 @@ export function SpicyDarePanel({
       ) : null}
 
       <View style={{ gap: 12 }}>
+        <HubDoor
+          icon="heart-outline"
+          title="To-do / Favourites"
+          detail={
+            openFavs.length
+              ? `${openFavs.length} saved to try`
+              : "Heart a dare to keep it here"
+          }
+          badge={openFavs.length || undefined}
+          onPress={() => setView("favs")}
+        />
         <HubDoor
           icon="flash-outline"
           title="Send a dare"

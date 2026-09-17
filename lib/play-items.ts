@@ -1,6 +1,7 @@
 import { formatLongDate } from "@/lib/dates";
 import type {
   DateNightAsk,
+  DareSave,
   PlayItemRating,
   PositionInvite,
   PositionSave,
@@ -62,6 +63,13 @@ export function openRoleplaySave(
   roleplayId: string
 ): RoleplaySave | null {
   return saves.find((row) => row.roleplayId === roleplayId && !row.doneAt) ?? null;
+}
+
+export function openDareSave(
+  saves: DareSave[],
+  dareId: string
+): DareSave | null {
+  return saves.find((row) => row.dareId === dareId && !row.doneAt) ?? null;
 }
 
 export function ratingsForTarget(

@@ -11,8 +11,9 @@ import {
   categoryById,
   questionById,
   remainingToday,
+  TALKS_PER_DAY,
   todaysDraw,
-  todaysPick,
+  todaysPicks,
 } from "@/lib/talk";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
@@ -36,8 +37,10 @@ export default function TalkScreen() {
   } = useApp();
 
   const today = localDateKey();
-  const myPick = user ? todaysPick(talkDraws, user.id, today) : undefined;
-  const picksLeft = user ? remainingToday(talkDraws, user.id, today) : 1;
+  const myPicks = user ? todaysPicks(talkDraws, user.id, today) : [];
+  const picksLeft = user ? remainingToday(talkDraws, user.id, today) : TALKS_PER_DAY;
+  const allAnswered =
+    myPicks.length >= TALKS_PER_DAY && myPicks.every((row) => row.answeredAt);
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,10 +81,9 @@ export default function TalkScreen() {
 
   const openCategoryTile = async (categoryId: string) => {
     setError(null);
-    if (myPick && myPick.categoryId !== categoryId) {
-      setError(
-        "You already picked today's topic. Other decks stay locked until tomorrow."
-      );
+    const alreadyMine = myPicks.some((row) => row.categoryId === categoryId);
+    if (!alreadyMine && picksLeft <= 0) {
+      setError("You already picked two topics today. Other decks stay locked until tomorrow.");
       return;
     }
     try {
@@ -109,7 +111,7 @@ export default function TalkScreen() {
     setError(null);
     setLoading(true);
     try {
-      await shuffleTalkQuestion();
+      await shuffleTalkQuestion(openId ?? undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not shuffle");
     } finally {
@@ -126,7 +128,7 @@ export default function TalkScreen() {
     <HubScreen
       tone="talk"
       kicker="Talk to me"
-      body="One topic each per day. Read it out loud, then tap Answered."
+      body="Two topics each per day, four between you. Read them out loud, then tap Answered."
       accent={look.accent}
       look={look}
       settingsLabel="Talk settings"
@@ -167,13 +169,13 @@ export default function TalkScreen() {
           color: THEME.accent,
         }}
       >
-        {myPick
-          ? myPick.answeredAt
-            ? "Today's card is in — locked until tomorrow"
-            : "Topic locked — finish or shuffle this card"
-          : picksLeft
-            ? "Pick one topic for today"
-            : "Come back tomorrow"}
+        {allAnswered
+          ? "Today's cards are in, two more tomorrow"
+          : myPicks.length >= TALKS_PER_DAY
+            ? "Two topics locked, finish or shuffle those cards"
+            : myPicks.length === 1
+              ? "One more topic today"
+              : "Pick two topics for today"}
       </Text>
 
       <View
@@ -196,7 +198,7 @@ export default function TalkScreen() {
           );
           const told = deck?.played.length ?? 0;
           const isMine = Boolean(draw);
-          const lockedOut = Boolean(myPick && !isMine);
+          const lockedOut = myPicks.length >= TALKS_PER_DAY && !isMine;
           const done = Boolean(draw?.answeredAt);
           const tint = TALK_DECK_TINT[category.id] ?? THEME.accent;
 
@@ -553,7 +555,7 @@ export default function TalkScreen() {
                   color: "rgba(244,237,224,0.45)",
                 }}
               >
-                Your partner still has every topic open until they pick theirs.
+                Your partner still has two topics of their own, four cards between you.
               </Text>
             </ScrollView>
           </View>

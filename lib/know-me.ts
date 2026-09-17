@@ -1108,14 +1108,25 @@ export function packFaceOff(
   guesses: { packId: string; ownerId: string; guesserId: string; score: number; guesses: number[] }[],
   packId: string,
   userId: string | null | undefined,
-  partnerId: string | null | undefined
+  partnerId: string | null | undefined,
+  sheets?: { packId: string; userId: string; answers: number[] }[]
 ): PackFaceOff {
   const mine = latestGuess(guesses, packId, partnerId, userId);
   const theirs = latestGuess(guesses, packId, userId, partnerId);
+  const theirSheet = sheets ? sheetFor(sheets, partnerId, packId) : null;
+  const mySheet = sheets ? sheetFor(sheets, userId, packId) : null;
+  const myScore =
+    mine && theirSheet ? scoreKnowMe(theirSheet.answers, mine.guesses) : mine && !sheets ? mine.score : null;
+  const theirScore =
+    theirs && mySheet
+      ? scoreKnowMe(mySheet.answers, theirs.guesses)
+      : theirs && !sheets
+        ? theirs.score
+        : null;
   return {
-    myScore: mine ? mine.score : null,
+    myScore,
     myCards: mine?.guesses.length || KNOW_ME_CARDS,
-    theirScore: theirs ? theirs.score : null,
+    theirScore,
     theirCards: theirs?.guesses.length || KNOW_ME_CARDS,
   };
 }
@@ -1163,8 +1174,8 @@ export function packLane(input: {
   const myGuess = latestGuess(guesses, current.id, partnerId, userId);
   const theirGuess = latestGuess(guesses, current.id, userId, partnerId);
   if (!mine) return "fill";
-  if (!theirs) return "wait";
   if (!myGuess) return "guess";
+  if (!theirs) return "wait";
   if (!theirGuess) return "waitGuess";
   return "done";
 }
@@ -1176,11 +1187,11 @@ export function laneLabel(lane: KnowMeLane, them: string): string {
     case "fill":
       return "Rip yours";
     case "wait":
-      return `Waiting on ${them}`;
+      return `Waiting on ${them} to answer and guess`;
     case "guess":
       return `Guess ${them}`;
     case "waitGuess":
-      return `${them} still guessing`;
+      return `${them} still guessing you`;
     case "done":
       return "In the binder";
   }

@@ -125,6 +125,7 @@ import type {
   PositionInvite,
   RoleplayInvite,
   RoleplaySave,
+  DareSave,
   DateNightAsk,
   PositionSave,
   PlayItemRating,
@@ -152,8 +153,10 @@ import {
   nextQuestionId,
   questionById,
   rotatePlayed,
+  TALKS_PER_DAY,
   todaysDraw,
   todaysPick,
+  todaysPicks,
   vaultQuestionIds,
 } from "@/lib/talk";
 import {
@@ -571,6 +574,7 @@ type AppContextValue = {
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   roleplaySaves: RoleplaySave[];
+  dareSaves: DareSave[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
@@ -666,7 +670,7 @@ type AppContextValue = {
   restoreDiscoverSkip: (questionId: string) => Promise<void>;
   undoDiscover: (questionId: string) => Promise<void>;
   drawTalkQuestion: (categoryId: string) => Promise<TalkDraw>;
-  shuffleTalkQuestion: () => Promise<TalkDraw>;
+  shuffleTalkQuestion: (categoryId?: string) => Promise<TalkDraw>;
   submitTalkAnswer: (input?: { categoryId?: string }) => Promise<void>;
   sendSpicyDare: (input: {
     dareId: string | null;
@@ -698,6 +702,7 @@ type AppContextValue = {
   ) => Promise<void>;
   completePositionInvite: (id: string) => Promise<void>;
   savePosition: (positionId: string) => Promise<PositionSave>;
+  unsavePosition: (positionId: string) => Promise<void>;
   markPositionSaveDone: (id: string) => Promise<void>;
   ratePlayItem: (
     kind: PlayItemRating["kind"],
@@ -716,7 +721,11 @@ type AppContextValue = {
   ) => Promise<void>;
   completeRoleplayInvite: (id: string) => Promise<void>;
   saveRoleplay: (roleplayId: string) => Promise<RoleplaySave>;
+  unsaveRoleplay: (roleplayId: string) => Promise<void>;
   markRoleplaySaveDone: (id: string) => Promise<void>;
+  saveDare: (dareId: string) => Promise<DareSave>;
+  unsaveDare: (dareId: string) => Promise<void>;
+  markDareSaveDone: (id: string) => Promise<void>;
   addMilestone: (input: {
     title: string;
     kind: MilestoneKind;
@@ -1390,6 +1399,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const roleplaySaves = useMemo(
     () => (db.roleplaySaves ?? []).filter((row) => row.coupleId === couple?.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version]
+  );
+  const dareSaves = useMemo(
+    () => (db.dareSaves ?? []).filter((row) => row.coupleId === couple?.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -4015,16 +4029,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       categoryById(categoryId);
       const today = localDateKey();
-      const pick = todaysPick(db.talkDraws, user.id, today);
-      if (pick && pick.categoryId !== categoryId) {
-        throw new Error("You already picked today's topic. Come back tomorrow for another.");
-      }
       const existing = todaysDraw(db.talkDraws, {
         userId: user.id,
         categoryId,
         date: today,
       });
       if (existing) return existing;
+      const picks = todaysPicks(db.talkDraws, user.id, today);
+      if (picks.length >= TALKS_PER_DAY) {
+        throw new Error("You already picked two topics today. Come back tomorrow for more.");
+      }
 
       const previous = db.talkDecks.find(
         (row) =>
@@ -4070,12 +4084,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
-  const shuffleTalkQuestion = useCallback(async () => {
+  const shuffleTalkQuestion = useCallback(async (categoryId?: string) => {
     if (!user || !couple) {
       throw new Error("Pair first, then shuffle.");
     }
     const today = localDateKey();
-    const existing = todaysPick(db.talkDraws, user.id, today);
+    const existing =
+      (categoryId
+        ? todaysDraw(db.talkDraws, {
+            userId: user.id,
+            categoryId,
+            date: today,
+          })
+        : undefined) ?? todaysPick(db.talkDraws, user.id, today);
     if (!existing) {
       throw new Error("Pick a topic first.");
     }
@@ -4726,6 +4747,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [couple, user]
   );
 
+  const unsavePosition = useCallback(
+    async (positionId: string) => {
+      if (!couple) return;
+      db = {
+        ...db,
+        positionSaves: (db.positionSaves ?? []).filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.positionId === positionId &&
+              !row.doneAt
+            )
+        ),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
   const markPositionSaveDone = useCallback(async (id: string) => {
     const stamp = nowIso();
     const save = (db.positionSaves ?? []).find((row) => row.id === id);
@@ -5025,6 +5065,77 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [couple, user]
   );
+
+  const unsaveRoleplay = useCallback(
+    async (roleplayId: string) => {
+      if (!couple) return;
+      db = {
+        ...db,
+        roleplaySaves: (db.roleplaySaves ?? []).filter(
+          (row) =>
+            !(
+              row.coupleId === couple.id &&
+              row.roleplayId === roleplayId &&
+              !row.doneAt
+            )
+        ),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
+  const saveDare = useCallback(
+    async (dareId: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then save a dare.");
+      }
+      const id = dareId.trim();
+      if (!id) throw new Error("Pick a dare first.");
+      const existing = (db.dareSaves ?? []).find(
+        (row) => row.coupleId === couple.id && row.dareId === id && !row.doneAt
+      );
+      if (existing) return existing;
+      const row: DareSave = {
+        id: createId(),
+        coupleId: couple.id,
+        dareId: id,
+        createdBy: user.id,
+        createdAt: nowIso(),
+        doneAt: null,
+      };
+      db = { ...db, dareSaves: [...(db.dareSaves ?? []), row] };
+      await persist();
+      return row;
+    },
+    [couple, user]
+  );
+
+  const unsaveDare = useCallback(
+    async (dareId: string) => {
+      if (!couple) return;
+      db = {
+        ...db,
+        dareSaves: (db.dareSaves ?? []).filter(
+          (row) =>
+            !(row.coupleId === couple.id && row.dareId === dareId && !row.doneAt)
+        ),
+      };
+      await persist();
+    },
+    [couple]
+  );
+
+  const markDareSaveDone = useCallback(async (id: string) => {
+    const stamp = nowIso();
+    db = {
+      ...db,
+      dareSaves: (db.dareSaves ?? []).map((row) =>
+        row.id === id ? { ...row, doneAt: stamp } : row
+      ),
+    };
+    await persist();
+  }, []);
 
   const markRoleplaySaveDone = useCallback(async (id: string) => {
     const stamp = nowIso();
@@ -6374,6 +6485,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     playItemRatings,
     roleplayInvites,
     roleplaySaves,
+    dareSaves,
     milestones,
     desireToggles,
     fantasySwipes,
@@ -6456,6 +6568,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     respondPositionInvite,
     completePositionInvite,
     savePosition,
+    unsavePosition,
     markPositionSaveDone,
     ratePlayItem,
     sendDateNightAsk,
@@ -6464,7 +6577,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     respondRoleplayInvite,
     completeRoleplayInvite,
     saveRoleplay,
+    unsaveRoleplay,
     markRoleplaySaveDone,
+    saveDare,
+    unsaveDare,
+    markDareSaveDone,
     addMilestone,
     setFeaturedMilestone,
     removeMilestone,

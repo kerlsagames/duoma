@@ -130,13 +130,15 @@ export function todaysDraw(
   );
 }
 
-/** The single topic this player already chose today (if any). */
-export function todaysPick(
+export const TALKS_PER_DAY = 2;
+
+/** Topics this player already chose today. */
+export function todaysPicks(
   draws: TalkDraw[],
   userId: string,
   date = localDateKey()
-): TalkDraw | undefined {
-  return draws.find(
+): TalkDraw[] {
+  return draws.filter(
     (row) =>
       row.userId === userId &&
       row.date === date &&
@@ -144,23 +146,32 @@ export function todaysPick(
   );
 }
 
+/** The first topic this player already chose today (if any). */
+export function todaysPick(
+  draws: TalkDraw[],
+  userId: string,
+  date = localDateKey()
+): TalkDraw | undefined {
+  return todaysPicks(draws, userId, date)[0];
+}
+
 export function categoryLockedToday(
   draws: TalkDraw[],
   input: { userId: string; categoryId: string; date?: string }
 ): boolean {
   const date = input.date ?? localDateKey();
-  const pick = todaysPick(draws, input.userId, date);
-  if (!pick) return false;
-  return pick.categoryId !== input.categoryId;
+  const picks = todaysPicks(draws, input.userId, date);
+  if (picks.some((row) => row.categoryId === input.categoryId)) return false;
+  return picks.length >= TALKS_PER_DAY;
 }
 
-/** 1 if they have not picked a topic yet today, else 0. */
+/** How many topics they can still pick today (max two). */
 export function remainingToday(
   draws: TalkDraw[],
   userId: string,
   date = localDateKey()
 ): number {
-  return todaysPick(draws, userId, date) ? 0 : 1;
+  return Math.max(0, TALKS_PER_DAY - todaysPicks(draws, userId, date).length);
 }
 
 export function canShuffleDraw(draw: TalkDraw | undefined): boolean {

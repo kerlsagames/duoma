@@ -134,6 +134,7 @@ export function stripCoupleFromDb(db: AppDB, coupleId: string): AppDB {
     positionInvites: dropCouple(db.positionInvites, coupleId),
     roleplayInvites: dropCouple(db.roleplayInvites, coupleId),
     roleplaySaves: dropCouple(db.roleplaySaves, coupleId),
+    dareSaves: dropCouple(db.dareSaves ?? [], coupleId),
     calendarEvents: dropCouple(db.calendarEvents, coupleId),
     errandItems: dropCouple(db.errandItems, coupleId),
     mealRounds: dropCouple(db.mealRounds, coupleId),

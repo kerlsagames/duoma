@@ -9,7 +9,8 @@ export type CategoryId =
   | "daily-checkin"
   | "growth-values"
   | "lighthearted"
-  | "appreciation";
+  | "appreciation"
+  | "secret-menu";
 
 export type Question = {
   id: string;
@@ -105,7 +106,17 @@ export const LETS_TALK_DECK: Category[] = [
     "Which of my playlists is secretly about you?",
     "What is a two-person ritual we could start tomorrow in under five minutes?",
     "If we wrote a postcard to our future selves, what is the joke in the corner?",
-    "What is one thing we do that still feels like flirting?"
+    "What is one thing we do that still feels like flirting?",
+    "If we were a pair of emojis in a group chat, which two?",
+    "What fake holiday should we invent and actually celebrate this month?",
+    "Which of my kitchen crimes do you find the most charming?",
+    "If we had a couple mascot, is it a raccoon, a pigeon, or something weirder?",
+    "What is a dare I could text you at 2pm that would make you grin at work?",
+    "Which of my rants should be a TED Talk nobody asked for?",
+    "If we swapped phone wallpapers for a week, what would you put on mine?",
+    "What is the silliest compliment you want on a random Tuesday?",
+    "If our relationship was a board game, what is the chaotic extra rule?",
+    "What nickname would a sitcom give us after one episode?"
   ]),
   deck("deep-reflections", "Deep Reflections", "people", "deep", [
     "When did you last feel completely safe with me, and what made it so?",
@@ -167,7 +178,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a hope for us that you have not said because it felt too big?",
     "What do you want to be remembered for in this relationship?",
     "When do you feel most like we are building something, not just surviving?",
-    "What is one truth you want on the table before the week gets busy?"
+    "What is one truth you want on the table before the week gets busy?",
+    "If your inner world had a gift shop, what souvenir would I bring home?",
+    "What is a dramatic movie title for the week we are actually having?",
+    "If we had a tiny museum of us, what exhibit would make you laugh first?",
+    "What secret superpower do you think I have that I keep underusing?",
+    "If your feelings had a weather app, what is the weirdest current alert?",
+    "What is a plot twist about you that still surprises you?",
+    "If we wrote a letter to our past selves, what joke would we include in the margin?",
+    "What tiny ritual feels bigger than it looks, and why do you protect it?",
+    "If your heart had hold music, what song is looping?",
+    "What truth is easier to say if we are both a little silly first?"
   ]),
   deck("bedroom-throwbacks", "Bedroom Throwbacks", "time-outline", "bt", [
     "What is the first time with me you still replay in high definition?",
@@ -229,7 +250,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a throwback you want to recreate this month, not 'someday'?",
     "Which of my sounds, breaths, or words is your favorite souvenir?",
     "What is a night that started vanilla and did not stay there?",
-    "When did we feel like beginners again, in a good way?"
+    "When did we feel like beginners again, in a good way?",
+    "What is the funniest almost that still lives rent-free in your head?",
+    "If that night had a DVD extras menu, which blooper do you replay?",
+    "What ridiculous compliment should I have said in the moment and didn't?",
+    "Which of my 'I'm tired' lies did you see through immediately?",
+    "If we gave that memory a snack pairing, what are we eating while we tell it?",
+    "What is a throwback so chaotic it should have a warning label?",
+    "When did we laugh so hard it ruined the mood in the best way?",
+    "What is a bedroom nickname that is too stupid to say in daylight?",
+    "If we recast that night as a heist movie, what was I stealing?",
+    "What encore would you request if we could press replay once this week?"
   ]),
   deck("future-dreams", "Future & Dreams", "compass-outline", "fut", [
     "Where should we be standing a year from now, in a photo nobody posts?",
@@ -291,7 +322,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What should we protect from other people's timelines?",
     "How do you want us to talk about aging bodies with respect and heat?",
     "What is a horizon you want me to keep pointing at when you forget?",
-    "If this year had a title in our story, what do you want it to be?"
+    "If this year had a title in our story, what do you want it to be?",
+    "If we won a slightly useless lottery, what is the first silly thing we buy?",
+    "What future version of us would make present-us snort-laugh?",
+    "If we had a five-year scrapbook, what ridiculous page is mandatory?",
+    "What hobby should we be bad at together on purpose?",
+    "If we designed a retirement bit, what is the running joke?",
+    "Where should we get spectacularly lost once, on purpose?",
+    "What is a future house rule that is 90 percent bit, 10 percent real?",
+    "If we had a couple time capsule, what snack goes in so future us is confused?",
+    "What dream is funnier if we say it like a movie trailer?",
+    "If next summer had a mascot, what is it wearing?"
   ]),
   deck("intimacy-romance", "Intimacy & Romance", "heart", "ir", [
     "What is a romantic gesture that actually works on you, not the movie version?",
@@ -353,7 +394,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a way to end a night that makes tomorrow easier?",
     "When do you feel most beautiful with me, and what is happening?",
     "What is a closeness you want that we keep skipping because we are competent at life?",
-    "If romance had a temperature tonight, what do you want it set to?"
+    "If romance had a temperature tonight, what do you want it set to?",
+    "What is a flirty text that would still work if I sent it from the supermarket?",
+    "If romance was a playlist, which track is the wink, not the slow dance?",
+    "What tiny gesture is secretly my whole personality, according to you?",
+    "If we had a secret couple signal in public, what is the dumbest version?",
+    "What compliment should I weaponize more often, kindly?",
+    "If tonight had a tropes list, which cheesy one do you actually want?",
+    "What is a kiss location that is inconvenient and therefore perfect?",
+    "If I wrote you a note on a receipt, what should the punchline be?",
+    "What is a romantic cliché we should steal and make ours anyway?",
+    "If we had a 'do over' of our first flirt, what joke do you add?"
   ]),
   deck("daily-checkin", "Daily Connection", "sunny-outline", "dc", [
     "What is taking up the most space in your head today?",
@@ -415,7 +466,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a feeling sitting in your chest with no name yet?",
     "How can we make tonight a closed loop, not an open tab?",
     "What is one sentence you want me to remember until breakfast?",
-    "If we rated this day together, what would you want my rating to include?"
+    "If we rated this day together, what would you want my rating to include?",
+    "If today was a sitcom cold open, what was the bit?",
+    "What is the funniest thing that almost went wrong since breakfast?",
+    "If your mood had a snack, what are we eating about it?",
+    "What tiny win should get a standing ovation in the kitchen?",
+    "If we gave this day a weather emoji, which one is cheating?",
+    "What is a 90-second treat we could still squeeze in before bed?",
+    "Who or what was the unexpected side character of today?",
+    "If we had a scoreboard for kindness today, what play do you want replayed?",
+    "What is a ridiculous highlight from a completely ordinary hour?",
+    "If tomorrow's you could send a meme to tonight's you, what is it?"
   ]),
   deck("growth-values", "Growth & Values", "trending-up-outline", "gv", [
     "What value of yours did I get to see in action this month?",
@@ -477,7 +538,17 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a growth you want credit for that I have under-noticed?",
     "Where are we aligned, and where are we just avoiding the map?",
     "What is a value you want on the fridge, not in a speech?",
-    "If we wrote a couple manifesto in five lines, what is line one?"
+    "If we wrote a couple manifesto in five lines, what is line one?",
+    "What value of ours would make a terrible bumper sticker and a great fridge magnet?",
+    "If we taught a one-night class called Us 101, what is the joke syllabus?",
+    "What growth of mine deserves a silly trophy, not a speech?",
+    "If our principles had a mascot, is it stern, chaotic, or both?",
+    "What is a hill we will die on that is actually pretty funny?",
+    "If we ranked our shared rules from noble to petty, what is number one petty?",
+    "What advice would we give a couple who is us, but with worse snacks?",
+    "If we had a couple coat of arms, what ridiculous object is on it?",
+    "What is a value you want us to practice like a sport, with a halftime snack?",
+    "If this year's lesson had a B-side, what is the funnier track?"
   ]),
   deck("lighthearted", "Would You Rather & Debates", "help-circle-outline", "wyr", [
     "Would you rather have a perfect Saturday in or a chaotic Saturday out?",
@@ -539,7 +610,17 @@ export const LETS_TALK_DECK: Category[] = [
     "Would you rather I learn a skill for you or teach you a skill I love?",
     "Would you rather have a rain day with movies or a sun day with nowhere to be?",
     "Would you rather I ask more questions or tell more stories?",
-    "Would you rather we be legendary at hosting breakfast or legendary at leaving a party at the right time?"
+    "Would you rather we be legendary at hosting breakfast or legendary at leaving a party at the right time?",
+    "Would you rather share a dessert we both want or two desserts we pretend to share?",
+    "Would you rather I roast you lovingly in public or praise you a little too much?",
+    "Would you rather win a couple costume contest or lose spectacularly on purpose?",
+    "Would you rather have a secret handshake or a secret menu item named after us?",
+    "Would you rather I pick the movie and you pick the snacks, or the other way round?",
+    "Would you rather be slightly lost together or slightly over-planned together?",
+    "Would you rather I learn your favourite game badly or teach you mine patiently?",
+    "Would you rather a spontaneous 20-minute adventure or a scheduled 2-hour one?",
+    "Would you rather I send voice notes or handwritten scraps?",
+    "Would you rather we be known as the couple who hosts or the couple who disappears early?"
   ]),
   deck("appreciation", "Gratitude & Praise", "happy-outline", "gp", [
     "What is a small thing I do that you notice every time?",
@@ -601,7 +682,69 @@ export const LETS_TALK_DECK: Category[] = [
     "What is a piece of our history I honor well?",
     "How do I make play feel allowed?",
     "What is a way I have loved you that you want more of, not less?",
-    "If you had to thank me for one thing from this month, what is it?"
+    "If you had to thank me for one thing from this month, what is it?",
+    "What is a thank-you that would make me laugh and blush at the same time?",
+    "Which of my useless talents do you want on a trophy?",
+    "What is a praise so specific it could only be about me this week?",
+    "If I had a fan club, what would the merch say?",
+    "What tiny thing I did deserves a parade of one?",
+    "Which of my habits is secretly a love language with a sense of humor?",
+    "What compliment should I put on a sticky note and find later?",
+    "If we gave out couple Oscars tonight, what category do I sweep?",
+    "What is a way I am extra that you actually want more of?",
+    "If gratitude had a snack pairing, what are we toasting with?"
+  ]),
+  deck("secret-menu", "Secret Menu", "gift-outline", "sm", [
+    "What is an off-menu request you have been too shy to put on the specials board?",
+    "If I could order one surprise for you tonight, what is the fun version?",
+    "What guilty-pleasure show, snack, or song do you want us to stop pretending we are above?",
+    "What is a tiny yes you wish I would offer without a whole conversation?",
+    "If our secret menu had a spicy item and a silly item, which do you tap first?",
+    "What compliment is so specific it should only be whispered in the kitchen?",
+    "What is a flirty errand you would send me on if embarrassment was not a thing?",
+    "If we had a couple punch card, what stamp would you want tonight?",
+    "What is a 'just this once' you would actually like to become a regular?",
+    "What nickname belongs on the secret menu and nowhere near our friends?",
+    "If I packed a surprise bag for you, what ridiculous object has to be in it?",
+    "What is an after-hours order you would put in if the kitchen never closed?",
+    "Which of my looks is the 'I'll have the usual' and which is the special?",
+    "What is a dare that is more cute than filthy, and still counts?",
+    "If we had a secret handshake for later, what is the last silly move?",
+    "What is a yes you want me to practice saying in a funny voice first?",
+    "If tonight was a tasting menu of us, what is the amuse-bouche?",
+    "What is a slightly extra request you would love if I made it easy?",
+    "Which song should be the unofficial anthem of our secret menu?",
+    "What is a public-safe code word that actually means something private?",
+    "If we invented a couple cocktail, what is it called and how strong is the bit?",
+    "What is a 'come find me' game you would actually play around the house?",
+    "What off-menu kindness would melt you faster than the spicy stuff?",
+    "If I wrote tonight's specials on a sticky note, what two items are listed?",
+    "What is a role we could try for ten minutes that is more silly than serious?",
+    "What snack should never be in the same sentence as romance, except tonight?",
+    "If we had a secret booth in a diner, what do we always order?",
+    "What is a tiny ritual that would make an ordinary weeknight feel off-menu?",
+    "Which of my outfits is secretly on the specials board and I have not noticed?",
+    "What is a yes you want to hear even if the answer is later, not now?",
+    "If we rated secret-menu nights, what detail would make it five stars?",
+    "What is a playful ask you have only made as a joke that was not a joke?",
+    "If I could steal twenty minutes of the day for us, how do you spend them?",
+    "What is the funniest way I could flirt with you in a supermarket aisle?",
+    "If our secret menu had a seasonal item, what is this month's special?",
+    "What is a compliment you want on a receipt, not a speech?",
+    "Which room in the house is underrated as a secret-menu venue?",
+    "What is a 'we don't tell anyone' tradition we should start this week?",
+    "If I sent you a menu with only three words, which three would work?",
+    "What is an off-menu request for tomorrow morning, not tonight?",
+    "If we had a couple loyalty card, what freebie do you redeem first?",
+    "What silly luxury would make you feel chosen in under five minutes?",
+    "Which of my habits is actually an invitation I keep missing?",
+    "If tonight's secret was a movie genre, are we rom-com, heist, or cartoon?",
+    "What is a yes you want me to ask for, so you can enjoy saying it?",
+    "If we printed a fake restaurant menu of us, what is the chef's kiss item?",
+    "What is a playful boundary that makes the yes more fun, not less?",
+    "If I could only do one extra thing this week, which secret-menu item is it?",
+    "What is the last thing on the menu you would never skip, even on a tired night?",
+    "If we closed the kitchen at midnight, what do we sneak anyway?"
   ]),
 ];
 

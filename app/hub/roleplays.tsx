@@ -1,12 +1,13 @@
 import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { RoleplayArt } from "@/components/hub/RoleplayArt";
+import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { Screen } from "@/components/ui/Screen";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
-import { roleplayAskForScene, tonightAskCopy } from "@/lib/play-items";
+import { roleplayAskForScene, tonightAskCopy, openRoleplaySave } from "@/lib/play-items";
 import {
   ROLEPLAY_CATEGORIES,
   categoryMeta,
@@ -39,6 +40,7 @@ export default function RoleplaysScreen() {
     respondRoleplayInvite,
     completeRoleplayInvite,
     saveRoleplay,
+    unsaveRoleplay,
     markRoleplaySaveDone,
   } = useApp();
 
@@ -142,6 +144,21 @@ export default function RoleplaysScreen() {
   };
 
   const toggleAll = () => setEnabled(allOn ? [] : ALL_IDS);
+
+  const toggleFav = async () => {
+    if (!current) return;
+    setError(null);
+    const fav = openRoleplaySave(roleplaySaves, current.id);
+    try {
+      if (fav) await unsaveRoleplay(current.id);
+      else {
+        await saveRoleplay(current.id);
+        setSavedFlash(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update favourites.");
+    }
+  };
 
   const saveCurrent = async () => {
     if (!current) return;
@@ -248,7 +265,7 @@ export default function RoleplaysScreen() {
               { id: "spin" as const, label: "Spin" },
               {
                 id: "todo" as const,
-                label: `To-do${openSaves.length ? ` · ${openSaves.length}` : ""}`,
+                label: `To-do / Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
               },
               { id: "done" as const, label: "Completed" },
             ]}
@@ -296,6 +313,13 @@ export default function RoleplaysScreen() {
                 >
                   {current.name}
                 </Text>
+                <View style={{ alignItems: "center", marginTop: 4 }}>
+                  <FavoriteHeart
+                    on={Boolean(openRoleplaySave(roleplaySaves, current.id))}
+                    color={T.accent}
+                    onToggle={() => void toggleFav()}
+                  />
+                </View>
                 <RoleplayArt
                   roleplayId={current.id}
                   category={current.category}
@@ -336,7 +360,7 @@ export default function RoleplaysScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    Saved to To-do.
+                    Saved to To-do / Favourites.
                   </Text>
                 ) : null}
 

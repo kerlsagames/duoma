@@ -323,6 +323,7 @@ export const TALK_DECK_TINT: Record<string, string> = {
   "growth-values": "#A3B17A",
   lighthearted: "#B5A3D4",
   appreciation: "#E0B48A",
+  "secret-menu": "#E8A0B8",
 };
 
 /** Corkboard and post-its for the weekly Meal Plan. */

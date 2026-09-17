@@ -60,6 +60,8 @@ export default function TriviaScreen() {
     score: number;
     theirScore: number | null;
     theirCards: number;
+    myAnswers: number[];
+    theirGuesses: number[] | null;
   } | null>(null);
 
   const sheets = data.knowMeSheets;
@@ -103,6 +105,7 @@ export default function TriviaScreen() {
   const openResult = (id: string) => {
     const row = knowMePackById(id);
     const theirs = sheetFor(sheets, partner?.id, id);
+    const mineSheet = sheetFor(sheets, user?.id, id);
     const mine = user ? latestGuess(guesses, id, partner?.id, user.id) : null;
     const themGuess = latestGuess(guesses, id, user?.id, partner?.id);
     if (!row || !theirs || !mine) return;
@@ -111,9 +114,16 @@ export default function TriviaScreen() {
       pack: row,
       guesses: [...mine.guesses],
       answers: [...theirs.answers],
-      score: mine.score,
-      theirScore: themGuess ? themGuess.score : null,
+      score: scoreKnowMe(theirs.answers, mine.guesses),
+      theirScore:
+        themGuess && mineSheet
+          ? scoreKnowMe(mineSheet.answers, themGuess.guesses)
+          : themGuess
+            ? themGuess.score
+            : null,
       theirCards: themGuess?.guesses.length || row.questions.length,
+      myAnswers: mineSheet ? [...mineSheet.answers] : [],
+      theirGuesses: themGuess ? [...themGuess.guesses] : null,
     });
     go("result");
   };
@@ -150,6 +160,9 @@ export default function TriviaScreen() {
             },
           ]
         : [];
+    const alreadyGuessed = user
+      ? latestGuess(guesses, pack.id, partner?.id, user.id)
+      : null;
     await patch((state) => ({
       ...state,
       knowMeSheets: [
@@ -162,25 +175,28 @@ export default function TriviaScreen() {
             )
         ),
       ],
+      knowMeGuesses: state.knowMeGuesses.map((row) =>
+        row.packId === pack.id && row.ownerId === user.id
+          ? { ...row, score: scoreKnowMe(picks, row.guesses) }
+          : row
+      ),
     }));
-    const theirsReady = Boolean(sheetFor(sheets, partner?.id, pack.id)) || extras.length > 0;
-    if (theirsReady) {
-      setPlayKind("guess");
-      setCursor(0);
-      setPicks([]);
-      go("play");
+    if (alreadyGuessed) {
+      setPackId(null);
+      go("shop");
       return;
     }
-    setPackId(null);
-    go("shop");
+    setPlayKind("guess");
+    setCursor(0);
+    setPicks([]);
+    go("play");
   };
 
   const saveGuess = async () => {
     if (!user || !partner || !pack) return;
-    const sheet = sheetFor(sheets, partner.id, pack.id);
-    if (!sheet) return;
     if (picks.length < pack.questions.length || picks.some((n) => n == null)) return;
-    const score = scoreKnowMe(sheet.answers, picks);
+    const sheet = sheetFor(sheets, partner.id, pack.id);
+    const score = sheet ? scoreKnowMe(sheet.answers, picks) : 0;
     const now = nowIso();
     const myGuess = {
       id: createId(),
@@ -213,6 +229,11 @@ export default function TriviaScreen() {
       ...state,
       knowMeGuesses: [myGuess, ...demoGuess, ...state.knowMeGuesses],
     }));
+    if (!sheet) {
+      setPackId(null);
+      go("shop");
+      return;
+    }
     setResult({
       pack,
       guesses: [...picks],
@@ -220,6 +241,8 @@ export default function TriviaScreen() {
       score,
       theirScore: demoGuess[0]?.score ?? latestGuess(guesses, pack.id, user.id, partner.id)?.score ?? null,
       theirCards: pack.questions.length,
+      myAnswers: theirSheet ? [...theirSheet.answers] : [],
+      theirGuesses: demoGuess[0] ? [...demoGuess[0].guesses] : null,
     });
     go("result");
   };
@@ -370,7 +393,7 @@ function Shop({
   myStats: ReturnType<typeof tallyKnowMeGuesses>;
   theirStats: ReturnType<typeof tallyKnowMeGuesses>;
   gate: {
-    sheets: { packId: string; userId: string }[];
+    sheets: { packId: string; userId: string; answers: number[] }[];
     guesses: {
       packId: string;
       ownerId: string;
@@ -491,7 +514,13 @@ function Shop({
       <View style={{ marginTop: 18, gap: 14 }}>
         {KNOW_ME_PACKS.map((item) => {
           const lane = packLane({ ...gate, pack: item });
-          const face = packFaceOff(gate.guesses, item.id, gate.userId, gate.partnerId);
+          const face = packFaceOff(
+            gate.guesses,
+            item.id,
+            gate.userId,
+            gate.partnerId,
+            gate.sheets
+          );
           return (
             <View key={item.id}>
             <PackSleeve
@@ -906,7 +935,7 @@ function RipPack({
           color: T.foil,
         }}
       >
-        {kind === "fill" ? "Ripping your pack" : `Opening ${them}’s pack`}
+        {kind === "fill" ? "Ripping your pack" : `Guessing ${them}`}
       </Text>
       <Text
         style={{
@@ -1022,7 +1051,7 @@ function PlayCard({
           color: pack.foil,
         }}
       >
-        {kind === "fill" ? "Your card" : `${them}’s card`} · pack{" "}
+        {kind === "fill" ? "Your card" : `What would ${them} pick?`} · pack{" "}
         {String(pack.number).padStart(2, "0")}
       </Text>
       <View
@@ -1071,7 +1100,7 @@ function PlayCard({
               color: T.packInk,
             }}
           >
-            {kind === "guess" ? `What would ${them} pick?\n` : ""}
+            {kind === "guess" ? `Pick the answer you think ${them} would choose.\n` : ""}
             {current.prompt}
           </Text>
         </View>
@@ -1186,7 +1215,7 @@ function PlayCard({
 }
 
 function playKindLabel(kind: PlayKind): string {
-  return kind === "fill" ? "Seal your pack" : "Score the pack";
+  return kind === "fill" ? "Seal your pack" : "Lock in guesses";
 }
 
 function ResultBinder({
@@ -1204,14 +1233,19 @@ function ResultBinder({
     score: number;
     theirScore: number | null;
     theirCards: number;
+    myAnswers: number[];
+    theirGuesses: number[] | null;
   };
   onShop: () => void;
 }) {
+  const [review, setReview] = useState<"you" | "them">("you");
   const cards = result.pack.questions.length;
   const myLine = scoreLine(result.score, cards);
   const theirLine = scoreLine(result.theirScore, result.theirCards);
   const youLead =
     result.theirScore == null || result.score >= result.theirScore;
+  const viewingThem = review === "them";
+  const partnerReady = Boolean(result.theirGuesses && result.myAnswers.length);
   const line =
     result.theirScore == null
       ? `You guessed ${them} ${myLine}. Waiting on their pull of yours.`
@@ -1221,6 +1255,29 @@ function ResultBinder({
           ? `You know ${them} better this pack.`
           : `${them} knew you better this pack.`;
   const next = KNOW_ME_PACKS.find((row) => row.number === result.pack.number + 1);
+  const rows = result.pack.questions.map((q, i) => {
+    if (!viewingThem) {
+      const ok = result.guesses[i] === result.answers[i];
+      return {
+        id: q.id,
+        prompt: q.prompt,
+        ok,
+        truth: q.options[result.answers[i]],
+        guess: q.options[result.guesses[i]],
+      };
+    }
+    const theirPick = result.theirGuesses?.[i];
+    const mine = result.myAnswers[i];
+    const ok = typeof theirPick === "number" && theirPick === mine;
+    return {
+      id: q.id,
+      prompt: q.prompt,
+      ok,
+      truth: typeof mine === "number" ? q.options[mine] : "—",
+      guess:
+        typeof theirPick === "number" ? q.options[theirPick] : "Not guessed yet",
+    };
+  });
   return (
     <View>
       <Text
@@ -1246,13 +1303,15 @@ function ResultBinder({
       </Text>
 
       <View style={{ marginTop: 16, flexDirection: "row", gap: 10 }}>
-        <View
+        <Pressable
+          onPress={() => setReview("you")}
+          accessibilityLabel={`You guessed ${them}`}
           style={{
             flex: 1,
             backgroundColor: T.felt,
             borderRadius: 16,
             borderWidth: 1.5,
-            borderColor: youLead ? T.foil : T.border,
+            borderColor: review === "you" ? T.foil : youLead ? T.foil : T.border,
             padding: 12,
           }}
         >
@@ -1278,14 +1337,28 @@ function ResultBinder({
           >
             {myLine}
           </Text>
-        </View>
-        <View
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "SpaceMono",
+              fontSize: 9,
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
+              color: review === "you" ? T.foil : T.dim,
+            }}
+          >
+            {review === "you" ? "Showing this" : "Tap to review"}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setReview("them")}
+          accessibilityLabel={`${them} guessed you`}
           style={{
             flex: 1,
             backgroundColor: T.felt,
             borderRadius: 16,
             borderWidth: 1.5,
-            borderColor: !youLead ? T.foil : T.border,
+            borderColor: review === "them" ? T.foil : !youLead ? T.foil : T.border,
             padding: 12,
           }}
         >
@@ -1311,7 +1384,19 @@ function ResultBinder({
           >
             {theirLine}
           </Text>
-        </View>
+          <Text
+            style={{
+              marginTop: 4,
+              fontFamily: "SpaceMono",
+              fontSize: 9,
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
+              color: review === "them" ? T.foil : T.dim,
+            }}
+          >
+            {review === "them" ? "Showing this" : "Tap to review"}
+          </Text>
+        </Pressable>
       </View>
 
       <Text
@@ -1325,6 +1410,18 @@ function ResultBinder({
       >
         {line}
       </Text>
+      {viewingThem && !partnerReady ? (
+        <Text
+          style={{
+            marginTop: 8,
+            fontFamily: SERIF,
+            fontSize: 15,
+            color: T.foil,
+          }}
+        >
+          {them} hasn’t guessed you on this pack yet.
+        </Text>
+      ) : null}
       {next ? (
         <Text
           style={{
@@ -1344,39 +1441,50 @@ function ResultBinder({
       )}
 
       <View style={{ marginTop: 18, gap: 8 }}>
-        {result.pack.questions.map((q, i) => {
-          const ok = result.guesses[i] === result.answers[i];
-          return (
-            <View
-              key={q.id}
+        {rows.map((row) => (
+          <View
+            key={row.id}
+            style={{
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: viewingThem && !partnerReady ? T.border : row.ok ? T.win : T.miss,
+              backgroundColor: T.felt,
+              padding: 12,
+            }}
+          >
+            <Text style={{ fontSize: 13, lineHeight: 18, color: T.muted }}>{row.prompt}</Text>
+            <Text
               style={{
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: ok ? T.win : T.miss,
-                backgroundColor: T.felt,
-                padding: 12,
+                marginTop: 6,
+                fontFamily: SERIF,
+                fontSize: 15,
+                color:
+                  viewingThem && !partnerReady ? T.cream : row.ok ? T.win : T.miss,
               }}
             >
-              <Text style={{ fontSize: 13, lineHeight: 18, color: T.muted }}>{q.prompt}</Text>
-              <Text
-                style={{
-                  marginTop: 6,
-                  fontFamily: SERIF,
-                  fontSize: 15,
-                  color: ok ? T.win : T.miss,
-                }}
-              >
-                {ok ? "Hit — " : `${them} said — `}
-                {q.options[result.answers[i]]}
+              {viewingThem
+                ? partnerReady
+                  ? row.ok
+                    ? "They hit — "
+                    : "You said — "
+                  : "You said — "
+                : row.ok
+                  ? "Hit — "
+                  : `${them} said — `}
+              {row.truth}
+            </Text>
+            {viewingThem && partnerReady && !row.ok ? (
+              <Text style={{ marginTop: 2, fontSize: 13, color: T.dim }}>
+                They pulled {row.guess}
               </Text>
-              {!ok ? (
-                <Text style={{ marginTop: 2, fontSize: 13, color: T.dim }}>
-                  You pulled {q.options[result.guesses[i]]}
-                </Text>
-              ) : null}
-            </View>
-          );
-        })}
+            ) : null}
+            {!viewingThem && !row.ok ? (
+              <Text style={{ marginTop: 2, fontSize: 13, color: T.dim }}>
+                You pulled {row.guess}
+              </Text>
+            ) : null}
+          </View>
+        ))}
       </View>
 
       <Pressable

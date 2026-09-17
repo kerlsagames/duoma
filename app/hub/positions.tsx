@@ -5,6 +5,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
+import { FavoriteHeart } from "@/components/ui/FavoriteHeart";
 import { Screen } from "@/components/ui/Screen";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
@@ -23,6 +24,7 @@ import {
 import { useApp } from "@/lib/store";
 import {
   myPlayRating,
+  openPositionSave,
   positionAskForPose,
   ratingsForTarget,
   tonightAskCopy,
@@ -50,6 +52,7 @@ export default function PositionsScreen() {
     respondPositionInvite,
     completePositionInvite,
     savePosition,
+    unsavePosition,
     markPositionSaveDone,
     ratePlayItem,
   } = useApp();
@@ -68,11 +71,14 @@ export default function PositionsScreen() {
   const [sentFlash, setSentFlash] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [scheduledFlash, setScheduledFlash] = useState<string | null>(null);
-  const [askWhen, setAskWhen] = useState<{ dateKey: string; label: string } | null>(
-    null
-  );
+  const [askWhen, setAskWhen] = useState<{
+    dateKey: string;
+    label: string;
+    positionId: string;
+  } | null>(null);
   const [showBrowse, setShowBrowse] = useState(false);
   const [query, setQuery] = useState("");
+  const [browseId, setBrowseId] = useState<string | null>(null);
 
   const poolSize = useMemo(() => searchPositions(enabled, "").length, [enabled]);
   const browse = useMemo(() => searchPositions(enabled, query), [enabled, query]);
@@ -153,13 +159,12 @@ export default function PositionsScreen() {
     setCurrent(next);
   };
 
-  const send = async () => {
-    if (!current) return;
+  const send = async (pose: SexPosition) => {
     setError(null);
     setSending(true);
     try {
-      await savePosition(current.id);
-      await sendPositionInvite(current.id);
+      await savePosition(pose.id);
+      await sendPositionInvite(pose.id);
       setSentFlash(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
@@ -168,24 +173,36 @@ export default function PositionsScreen() {
     }
   };
 
-  const saveCurrent = async () => {
-    if (!current) return;
+  const saveCurrent = async (pose: SexPosition) => {
     setError(null);
     try {
-      await savePosition(current.id);
+      await savePosition(pose.id);
       setSavedFlash(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save.");
     }
   };
 
-  const scheduleOn = async (dateKey: string, label: string) => {
-    if (!current) return;
+  const toggleFav = async (pose: SexPosition) => {
+    setError(null);
+    const fav = openPositionSave(positionSaves, pose.id);
+    try {
+      if (fav) await unsavePosition(pose.id);
+      else {
+        await savePosition(pose.id);
+        setSavedFlash(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update favourites.");
+    }
+  };
+
+  const scheduleOn = async (pose: SexPosition, dateKey: string, label: string) => {
     setError(null);
     setSending(true);
     try {
-      await savePosition(current.id);
-      await sendPositionInvite(current.id, { dateKey, label });
+      await savePosition(pose.id);
+      await sendPositionInvite(pose.id, { dateKey, label });
       setSentFlash(true);
       setScheduledFlash(label);
     } catch (err) {
@@ -288,7 +305,7 @@ export default function PositionsScreen() {
                   { id: "pick" as const, label: "Pick" },
                   {
                     id: "todo" as const,
-                    label: `To-do${openSaves.length ? ` · ${openSaves.length}` : ""}`,
+                    label: `To-do / Favourites${openSaves.length ? ` · ${openSaves.length}` : ""}`,
                   },
                   { id: "done" as const, label: "Completed" },
                 ]}
@@ -364,6 +381,20 @@ export default function PositionsScreen() {
             >
               {current.name}
             </Text>
+            <View
+              style={{
+                marginTop: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <FavoriteHeart
+                on={Boolean(openPositionSave(positionSaves, current.id))}
+                color={T.accent}
+                onToggle={() => void toggleFav(current)}
+              />
+            </View>
             <Text
               style={{
                 marginTop: 14,
@@ -402,7 +433,7 @@ export default function PositionsScreen() {
                   fontWeight: "600",
                 }}
               >
-                Saved to To-do.
+                Saved to To-do / Favourites.
               </Text>
             ) : null}
 
@@ -424,13 +455,13 @@ export default function PositionsScreen() {
               <PrimaryButton
                 label="Save to to-do"
                 tone="ghost"
-                onPress={() => void saveCurrent()}
+                onPress={() => void saveCurrent(current)}
               />
               <PrimaryButton
                 label="Try this tonight?"
                 tone="crimson"
                 loading={sending}
-                onPress={() => void send()}
+                onPress={() => void send(current)}
               />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 {(
@@ -449,11 +480,18 @@ export default function PositionsScreen() {
                   ] as const
                 ).map((chip) => {
                   const on =
-                    askWhen?.label === chip.label || scheduledFlash === chip.label;
+                    askWhen?.label === chip.label &&
+                    askWhen.positionId === current.id;
                   return (
                     <Pressable
                       key={chip.label}
-                      onPress={() => setAskWhen({ dateKey: chip.dateKey, label: chip.label })}
+                      onPress={() =>
+                        setAskWhen({
+                          dateKey: chip.dateKey,
+                          label: chip.label,
+                          positionId: current.id,
+                        })
+                      }
                       style={{
                         borderRadius: 999,
                         paddingHorizontal: 16,
@@ -607,16 +645,11 @@ export default function PositionsScreen() {
             ) : (
               <View style={{ gap: 8 }}>
                 {browse.map((pose) => {
-                  const on = current?.id === pose.id;
+                  const on = browseId === pose.id;
+                  const fav = Boolean(openPositionSave(positionSaves, pose.id));
                   return (
-                    <Pressable
+                    <View
                       key={pose.id}
-                      onPress={() => {
-                        setSentFlash(false);
-                        setSavedFlash(false);
-                        setError(null);
-                        setCurrent(pose);
-                      }}
                       style={{
                         borderRadius: 18,
                         borderWidth: 1,
@@ -625,39 +658,132 @@ export default function PositionsScreen() {
                         padding: 14,
                       }}
                     >
-                      <Text
-                        style={{
-                          fontFamily: SERIF,
-                          fontSize: 18,
-                          color: T.ink,
-                        }}
-                      >
-                        {pose.name}
-                      </Text>
-                      <Text
-                        style={{
-                          marginTop: 4,
-                          fontSize: 13,
-                          lineHeight: 18,
-                          color: T.muted,
-                        }}
-                        numberOfLines={2}
-                      >
-                        {pose.blurb}
-                      </Text>
-                      <Text
-                        style={{
-                          marginTop: 8,
-                          fontSize: 11,
-                          letterSpacing: 0.6,
-                          textTransform: "uppercase",
-                          color: T.accent,
-                          fontWeight: "600",
-                        }}
-                      >
-                        {categoryMeta(pose.category)?.label}
-                      </Text>
-                    </Pressable>
+                      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+                        <Pressable
+                          onPress={() => {
+                            setSentFlash(false);
+                            setSavedFlash(false);
+                            setError(null);
+                            setBrowseId(on ? null : pose.id);
+                          }}
+                          style={{ flex: 1 }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: SERIF,
+                              fontSize: 18,
+                              color: T.ink,
+                            }}
+                          >
+                            {pose.name}
+                          </Text>
+                          <Text
+                            style={{
+                              marginTop: 4,
+                              fontSize: 13,
+                              lineHeight: 18,
+                              color: T.muted,
+                            }}
+                            numberOfLines={on ? 6 : 2}
+                          >
+                            {pose.blurb}
+                          </Text>
+                          <Text
+                            style={{
+                              marginTop: 8,
+                              fontSize: 11,
+                              letterSpacing: 0.6,
+                              textTransform: "uppercase",
+                              color: T.accent,
+                              fontWeight: "600",
+                            }}
+                          >
+                            {categoryMeta(pose.category)?.label}
+                          </Text>
+                        </Pressable>
+                        <FavoriteHeart
+                          on={fav}
+                          color={T.accent}
+                          onToggle={() => void toggleFav(pose)}
+                        />
+                      </View>
+                      {on ? (
+                        <View style={{ marginTop: 14, gap: 10 }}>
+                          {sentFlash && browseId === pose.id ? (
+                            <Text
+                              style={{
+                                textAlign: "center",
+                                color: T.accent,
+                                fontSize: 15,
+                                fontWeight: "600",
+                              }}
+                            >
+                              Asked {partnerName} to confirm
+                              {scheduledFlash ? ` ${scheduledFlash}` : " tonight"}.
+                            </Text>
+                          ) : null}
+                          <PrimaryButton
+                            label="Try this tonight?"
+                            tone="crimson"
+                            loading={sending}
+                            onPress={() => void send(pose)}
+                          />
+                          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                            {(
+                              [
+                                { dateKey: localDateKey(), label: "tonight", title: "Tonight" },
+                                {
+                                  dateKey: upcomingWeekday(6),
+                                  label: "this Saturday",
+                                  title: "This Saturday",
+                                },
+                                {
+                                  dateKey: addDaysToDateKey(upcomingWeekday(6), 7),
+                                  label: "next Saturday",
+                                  title: "Next Saturday",
+                                },
+                              ] as const
+                            ).map((chip) => {
+                              const chipOn =
+                                askWhen?.label === chip.label &&
+                                askWhen.positionId === pose.id;
+                              return (
+                                <Pressable
+                                  key={chip.label}
+                                  onPress={() =>
+                                    setAskWhen({
+                                      dateKey: chip.dateKey,
+                                      label: chip.label,
+                                      positionId: pose.id,
+                                    })
+                                  }
+                                  style={{
+                                    borderRadius: 999,
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 12,
+                                    borderWidth: 1,
+                                    borderColor: chipOn ? T.accent : "rgba(255,255,255,0.16)",
+                                    backgroundColor: chipOn
+                                      ? "rgba(255,0,127,0.18)"
+                                      : "transparent",
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      color: T.accent,
+                                      fontWeight: "700",
+                                      fontSize: 16,
+                                    }}
+                                  >
+                                    {chip.title}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      ) : null}
+                    </View>
                   );
                 })}
               </View>
@@ -730,7 +856,11 @@ export default function PositionsScreen() {
         onConfirm={() => {
           const next = askWhen;
           setAskWhen(null);
-          if (next) void scheduleOn(next.dateKey, next.label);
+          if (!next) return;
+          const pose =
+            positionById(next.positionId) ??
+            (current?.id === next.positionId ? current : null);
+          if (pose) void scheduleOn(pose, next.dateKey, next.label);
         }}
       />
     </Screen>

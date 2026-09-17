@@ -592,6 +592,16 @@ export type RoleplaySave = {
   doneAt: string | null;
 };
 
+/** Shared to-do / favourites list for spicy dares. */
+export type DareSave = {
+  id: string;
+  coupleId: string;
+  dareId: string;
+  createdBy: string;
+  createdAt: string;
+  doneAt: string | null;
+};
+
 /** Shared dinner spin + thumbs (Meal Decisions). */
 export type MealVoteKind = "up" | "down";
 
@@ -719,6 +729,7 @@ export type AppDB = {
   positionInvites: PositionInvite[];
   roleplayInvites: RoleplayInvite[];
   roleplaySaves: RoleplaySave[];
+  dareSaves: DareSave[];
   calendarEvents: CalendarCustomEvent[];
   errandItems: ErrandItem[];
   mealRounds: MealRound[];
