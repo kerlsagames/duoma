@@ -23,7 +23,7 @@ This is a Progressive Web App. You do **not** need an Apple Developer account ($
 - **Coupons** — 250 favor ideas across Food, Pamper, Favors, Outings, Romance, Wildcard, Escapes, Nostalgia, Relief, Surprises, and Connection.
 - **Positions** — Category toggles, Pick me a Position, search the whole list (actions open on the pose you tap), heart to Favourites, tick off. Sending to your partner opens a calendar: pick the night, they accept, it lands on Desire. If the night is two or more days away they have that long, but either of you can tap Complete sooner. Rating sliders stay off until you turn them on in the cog.
 - **Roleplays** — Unique scenes with a matching still. One man and one woman in every frame. Copy is written to the picture. Sending a scene uses the same calendar → accept → Complete flow as Positions.
-- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Setup is Detailed (five stages, you set the counts, passes, and shuffles) or Keep it simple (one phone, Foreplay → Step it up → Finish Off → Afterglow). Simple cards alternate between you so both sides get a go. After an F-cums card, **Next Card, F has cum** deals the M cums card; Afterglow waits until he has finished too.
+- **Get Spicy** — Named cards, turns, blocks, daytime-to-private pause, ratings. Setup is Detailed (five stages, you set the counts, passes, and shuffles) or Keep it simple (one phone, Foreplay → Step it up → Finish Off → Afterglow). Simple cards alternate between you so both sides get a go. After an F-cums card, **Next Card, F has cum** deals the M card. After that, **Afterglow, M has cum** opens Afterglow — it does not deal more F cards.
 
 Creator catalog tools are not in the hub. They live on a hidden route, gated by `EXPO_PUBLIC_DUOMA_ADMIN_KEY` (see `.env.example`). Edits write a catalog overlay for this origin so every couple on the same app sees the change.
 
@@ -53,9 +53,11 @@ Email is the account (new phone, bans). The pair code is still how two people be
 
 ### Two phones, and a new phone
 
-Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins and a pose/roleplay you send now follow that pair: they show on the other phone’s Home notifications **and** in Check-in / Positions / Roleplays. Sign in on a new phone with the same email and those come back.
+Pairing was never the same as “everything is in the cloud.” Your **account** (name, email, pair) already lived in Supabase. Check-ins, pose/roleplay asks, lists, calendar, games, Daily Word, photos, and vaults now copy up so a new phone can restore them after you sign in with the same email.
 
-Photos, Sexy Vault, lists, Daily Word, Get Spicy hands, and most other hubs still live on the phone that made them. If you change phones, copy is not enough — those stay on the old device until we sync them too. Sign out does not wipe. **Unpair** is the only burn-it-down button.
+You still have to run two SQL files once in the Supabase SQL editor: `012_hub_sync.sql` and `013_couple_state.sql`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste those files, a second phone can pair but will not see the asks or the backup.
+
+Sign out does not wipe. **Unpair** is the only burn-it-down button.
 
 Home notifications are incoming only. If you send a pose to them, you will not get their “try this?” card on your Home. They will.
 
@@ -97,7 +99,7 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
    - `EXPO_PUBLIC_DUOMA_ADMIN_KEY` — passphrase for the hidden creator tools. Set this before a public deploy.
 3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
-4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `012_hub_sync.sql` (do not stop at 007 — Help → admin Feedback needs `011_feedback.sql`, two-phone check-ins and pose asks need `012_hub_sync.sql`), then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `supabase/migrations/001_init.sql` through `013_couple_state.sql` (do not stop at 007 — Help → admin Feedback needs `011_feedback.sql`, two-phone check-ins and pose asks need `012_hub_sync.sql`, a new phone needs `013_couple_state.sql`), then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 
 ## Accounts & scale
 

@@ -43,7 +43,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One phone in the middle. Cards alternate — one of you does a card, then the other — so you get both sides, not only things one of you would do to F. Skip swaps a card you don’t want. No passes or shuffles. Finish Off still tags F, M, or both. After an F-cums card, tap Next Card, F has cum — that deals the M cums card. Afterglow waits until he has finished too.",
+    body: "One phone in the middle. Cards alternate — one of you does a card, then the other — so you get both sides, not only things one of you would do to F. Skip swaps a card you don’t want. No passes or shuffles. Finish Off still tags F, M, or both. After an F-cums card, tap Next Card, F has cum. After the M-cums card, tap Afterglow, M has cum — that goes to Afterglow, not back to F cards.",
   },
   {
     title: "Finish Off",

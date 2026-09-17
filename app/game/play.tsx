@@ -8,7 +8,7 @@ import { Screen } from "@/components/ui/Screen";
 import {
   cardFinishClimax,
 } from "@/games/get-spicy/finish-climax";
-import { isSimpleOpenStage, simpleCanLeaveFinish, stagesForPace } from "@/games/get-spicy/engine";
+import { isSimpleOpenStage, stagesForPace } from "@/games/get-spicy/engine";
 import {
   personalizeCard,
   resolveCardGenders,
@@ -136,23 +136,23 @@ export default function PlayScreen() {
       ? cardFinishClimax(card, genders)
       : null;
   const nextCardLabel =
-    simplePace && finishClimax === "F" && !game?.finishAwaitingMale
-      ? "Next Card, F has cum"
-      : simplePace &&
-          (finishClimax === "M" || Boolean(game?.finishAwaitingMale)) &&
-          game?.currentStage === "finish_off"
-        ? "Next Card, M has cum"
+    simplePace &&
+    game?.currentStage === "finish_off" &&
+    (finishClimax === "M" ||
+      finishClimax === "FM" ||
+      Boolean(game?.finishAwaitingMale))
+      ? "Afterglow, M has cum"
+      : simplePace && finishClimax === "F"
+        ? "Next Card, F has cum"
         : simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
           ? "Next card"
           : "Complete";
-  const canLeaveFinish = simpleCanLeaveFinish({
-    finishAwaitingMale: Boolean(game?.finishAwaitingMale),
-    finishUnitsDone: game?.finishUnitsDone ?? 0,
-  });
   const showStageJump =
-    simplePace && isSimpleOpenStage(game?.pace, game?.currentStage)
-      ? game?.currentStage !== "finish_off" || canLeaveFinish
-      : false;
+    Boolean(
+      simplePace &&
+        isSimpleOpenStage(game?.pace, game?.currentStage) &&
+        game?.currentStage !== "finish_off"
+    );
 
   const stageNeed = game?.currentStage
     ? game.stageCounts[game.currentStage]

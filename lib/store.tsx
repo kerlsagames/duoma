@@ -27,6 +27,7 @@ import {
   subscribeCoupleHub,
   type HubKind,
 } from "@/lib/hub-sync";
+import { absorbCoupleState, scheduleCoupleBackup } from "@/lib/couple-backup";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
@@ -231,6 +232,12 @@ async function persist() {
   if (typeof BroadcastChannel !== "undefined") {
     new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now() });
   }
+  if (!sessionIsDemo() && sessionUserId) {
+    const couple = db.couples.find(
+      (row) => row.partnerA === sessionUserId || row.partnerB === sessionUserId
+    );
+    if (couple?.id) scheduleCoupleBackup(couple.id, db);
+  }
 }
 
 function mergeCloudPair(input: {
@@ -261,6 +268,7 @@ async function absorbHubForCouple(coupleId: string | null | undefined) {
   if (!coupleId || sessionIsDemo()) return;
   const bundle = await pullCoupleHub(coupleId);
   if (bundle) db = mergeHubBundle(db, coupleId, bundle);
+  db = await absorbCoupleState(coupleId, db);
 }
 
 function mergeCloudDirectory(profiles: Profile[], couples: Couple[]) {
@@ -2675,13 +2683,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
       }
       const units = (row.finishUnitsDone ?? 0) + 1;
-      if (row.pace === "simple" || units < stageCounts.finish_off) {
+      if (row.pace !== "simple" && units < stageCounts.finish_off) {
         return {
           currentStage: "finish_off",
-          turnUserId:
-            row.pace === "simple"
-              ? passToUserId
-              : exclusiveTurnForStage(row, "finish_off", passToUserId),
+          turnUserId: exclusiveTurnForStage(row, "finish_off", passToUserId),
           handCardIds: [],
           awaitingFinishReveal: false,
           finishAwaitingMale: false,

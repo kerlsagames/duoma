@@ -12,7 +12,7 @@ const STEPS = [
   {
     kicker: "Two phones",
     title: "Check-ins and pose asks land on both",
-    body: "When they send you a pose or a roleplay, it shows in your notifications and in that app on your phone — not an empty screen. Same for a check-in they fill in, or a check-in they asked you for. New phone: sign in with the same email and those come back. Photos, vaults, lists, Daily Word, and Get Spicy hands still live on the phone that made them until we sync those too.",
+    body: "When they send you a pose or a roleplay, it shows in your notifications and in that app on your phone — not an empty screen. Same for a check-in they fill in, or a check-in they asked you for. New phone: sign in with the same email. Lists, calendar, games, check-ins, photos, vaults, and Daily Word come back. In Supabase, run SQL 012 and 013 once so that backup table exists.",
   },
   {
     kicker: "Names",
@@ -62,7 +62,7 @@ const STEPS = [
   {
     kicker: "Get Spicy",
     title: "If you open that game",
-    body: "Detailed deals three cards on a turn; pick one, then it is your partner’s turn. Keep it simple is one phone: cards alternate between you so both sides get a go, not only things one of you would do to F. After an F-cums card, tap Next Card, F has cum — that deals the M cums card. Afterglow does not start until he has finished too. Daytime cards in Detailed stay private until you both tap that you are ready to move on.",
+    body: "Detailed deals three cards on a turn; pick one, then it is your partner’s turn. Keep it simple is one phone: cards alternate between you so both sides get a go, not only things one of you would do to F. After an F-cums card, tap Next Card, F has cum. After the M-cums card, tap Afterglow, M has cum — that opens Afterglow instead of dealing more F cards. Daytime cards in Detailed stay private until you both tap that you are ready to move on.",
   },
   {
     kicker: "Safety",

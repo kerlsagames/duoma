@@ -127,6 +127,12 @@ export async function patchMini(
   if (activeCoupleId === undefined) return next;
   try {
     await writeKey(storageKey(activeCoupleId), JSON.stringify(next));
+    const coupleId = activeCoupleId;
+    if (coupleId) {
+      void import("@/lib/couple-backup").then((mod) =>
+        mod.scheduleFromMini(coupleId)
+      );
+    }
   } catch {
     // Keep the in-memory update even if disk fails.
   }
