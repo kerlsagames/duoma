@@ -470,7 +470,7 @@ function IdeasTab({
       />
       <View style={{ marginTop: 10 }}>
         <PrimaryButton
-          label={showBrowse ? "Hide the list" : "Search all 400"}
+          label={showBrowse ? "Hide the list" : "Browse all dates"}
           tone="ghost"
           onPress={onToggleBrowse}
         />

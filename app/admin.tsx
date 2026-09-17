@@ -359,19 +359,23 @@ function CatalogPane({
   onQuery: (value: string) => void;
 }) {
   const meta = CATALOG_KEYS.find((row) => row.id === catalog)!;
+  const rev = useCatalogRevision();
   const rows = catalogRows(catalog);
-  const chips = catalogGroupChips(catalog);
+  const groupChips = catalogGroupChips(catalog);
+  const chips = [{ id: "all", label: "All" }, ...groupChips];
   const groups = catalogGroups(catalog);
   const hidden = new Set(hiddenIds(catalog));
-  const [group, setGroup] = useState(chips[0]?.id ?? "");
+  const [group, setGroup] = useState("all");
+  void rev;
   const [draftId, setDraftId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [editGroup, setEditGroup] = useState(chips[0]?.id ?? "");
+  const [editGroup, setEditGroup] = useState(groups[0] || "");
   const [adding, setAdding] = useState(false);
 
   const needle = query.trim().toLowerCase();
-  const inCategory = rows.filter((row) => rowInGroup(row, group));
+  const inCategory =
+    group === "all" ? rows : rows.filter((row) => rowInGroup(row, group));
   const matched = inCategory.filter((row) => {
     if (!needle) return true;
     return `${row.title} ${row.body} ${row.group} ${row.id}`.toLowerCase().includes(needle);
@@ -383,7 +387,9 @@ function CatalogPane({
     setDraftId(row.id);
     setTitle(row.title);
     setBody(row.body);
-    setEditGroup(row.group.split(",")[0]?.trim() || group);
+    setEditGroup(
+      row.group.split(",")[0]?.trim() || (group === "all" ? groups[0] : group) || groups[0] || ""
+    );
   };
 
   const detailOf = (row: { title: string; body: string }) => {
@@ -406,7 +412,9 @@ function CatalogPane({
           counts={Object.fromEntries(
             chips.map((chip) => [
               chip.id,
-              rows.filter((row) => rowInGroup(row, chip.id)).length,
+              chip.id === "all"
+                ? rows.length
+                : rows.filter((row) => rowInGroup(row, chip.id)).length,
             ])
           )}
           onSelect={(id) => {
@@ -419,7 +427,7 @@ function CatalogPane({
         <TextInput
           value={query}
           onChangeText={onQuery}
-          placeholder="Search this category"
+          placeholder={group === "all" ? "Search all cards" : "Search this category"}
           placeholderTextColor="rgba(244,244,246,0.35)"
           style={field}
         />
@@ -430,7 +438,7 @@ function CatalogPane({
               setDraftId(null);
               setTitle("");
               setBody("");
-              setEditGroup(group || groups[0] || "");
+              setEditGroup(group === "all" ? groups[0] || "" : group || groups[0] || "");
             }}
             style={{
               marginTop: 10,
