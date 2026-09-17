@@ -675,6 +675,8 @@ type AppContextValue = {
   }) => Promise<void>;
   respondSpicyDare: (id: string, status: "accepted" | "declined") => Promise<void>;
   completeSpicyDare: (id: string) => Promise<void>;
+  markSpicyDareRead: (id: string) => Promise<void>;
+  pokeSpicyDare: (id: string) => Promise<void>;
   sendChickenDare: (input: {
     dareId: string | null;
     text: string;
@@ -4256,6 +4258,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: nowIso(),
         answeredAt: null,
         completedAt: null,
+        readAt: null,
+        pokedAt: null,
       };
       let talkDecks = db.talkDecks;
       if (catalog) {
@@ -4369,6 +4373,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
     },
     [partner, user]
+  );
+
+  const markSpicyDareRead = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      const existing = db.spicyDares.find((row) => row.id === id);
+      if (!existing || existing.toUserId !== user.id) return;
+      if (existing.status !== "offered" || existing.readAt) return;
+      db = {
+        ...db,
+        spicyDares: db.spicyDares.map((row) =>
+          row.id === id ? { ...row, readAt: nowIso() } : row
+        ),
+      };
+      await persist();
+    },
+    [user]
+  );
+
+  const pokeSpicyDare = useCallback(
+    async (id: string) => {
+      if (!user || !couple) {
+        throw new Error("Pair first, then poke.");
+      }
+      const existing = db.spicyDares.find((row) => row.id === id);
+      if (!existing || existing.fromUserId !== user.id) {
+        throw new Error("You can only poke a dare you sent.");
+      }
+      if (existing.status !== "offered") {
+        throw new Error("They already answered this one.");
+      }
+      if (!existing.readAt) {
+        throw new Error("Wait until they've opened it.");
+      }
+      const last = existing.pokedAt ? Date.parse(existing.pokedAt) : 0;
+      if (last && Date.now() - last < 15 * 60 * 1000) {
+        throw new Error("Give them a little longer before poking again.");
+      }
+      const stamp = nowIso();
+      db = {
+        ...db,
+        spicyDares: db.spicyDares.map((row) =>
+          row.id === id ? { ...row, pokedAt: stamp } : row
+        ),
+      };
+      await persist();
+      pingPartner(couple, user, partner, {
+        title: "Dare Me",
+        body: `${user.displayName} poked you about a dare.`,
+        url: "/hub/up-for-it",
+      });
+    },
+    [couple, partner, user]
   );
 
   const sendChickenDare = useCallback(
@@ -6349,6 +6406,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sendSpicyDare,
     respondSpicyDare,
     completeSpicyDare,
+    markSpicyDareRead,
+    pokeSpicyDare,
     sendChickenDare,
     respondChickenDare,
     completeChickenDare,

@@ -1,22 +1,11 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useHomeNotifications } from "@/components/home/useHomeNotifications";
 import {
-  buildHomeNotifications,
-  gameResumeHref,
-} from "@/lib/home-status";
-import {
-  defaultNotificationPrefs,
   dismissNotificationIds,
-  prefsShowStatusId,
-  readNotificationPrefs,
-  writeNotificationPrefs,
-  type NotificationPrefs,
 } from "@/lib/notification-prefs";
-import { useCalendarReminderItems } from "@/lib/useCalendarPrefs";
-import { useMiniApps } from "@/lib/mini-apps";
-import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter, type Href } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
 export function HomeNotificationsBell({
@@ -25,102 +14,13 @@ export function HomeNotificationsBell({
   onStartSpicy: () => void;
 }) {
   const router = useRouter();
-  const {
-    user,
-    partner,
-    game,
-    checkIns,
-    incomingCheckInRequest,
-    coupons,
-    jarNotes,
-    curiosityAnswers,
-    milestones,
-    bucketItems,
-    talkDraws,
-    listEntries,
-    spicyDares,
-    chickenPlays,
-    fantasyTonightAsks,
-    dateNightAsks,
-    positionInvites,
-  } = useApp();
-  const { data: mini } = useMiniApps();
-  const calendarReminders = useCalendarReminderItems();
-  const [prefs, setPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs());
+  const { rows, prefs, persist, goTo } = useHomeNotifications(onStartSpicy);
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<
     | { type: "one"; id: string; line: string }
     | { type: "all" }
     | null
   >(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      void readNotificationPrefs().then(setPrefs);
-    }, [])
-  );
-
-  const rows = useMemo(
-    () =>
-      buildHomeNotifications({
-        user,
-        partner,
-        game,
-        checkIns,
-        incomingCheckInRequest,
-        coupons,
-        jarNotes,
-        curiosityAnswers,
-        milestones,
-        bucketItems,
-        talkDraws,
-        listEntries,
-        spicyDares,
-        chickenPlays,
-        fantasyTonightAsks,
-        dateNightAsks,
-        positionInvites,
-        sexyVault: mini.sexyVault,
-        calendarReminders,
-      }).filter((item) => prefsShowStatusId(prefs, item.id)),
-    [
-      user,
-      partner,
-      game,
-      checkIns,
-      incomingCheckInRequest,
-      coupons,
-      jarNotes,
-      curiosityAnswers,
-      milestones,
-      bucketItems,
-      talkDraws,
-      listEntries,
-      spicyDares,
-      chickenPlays,
-      fantasyTonightAsks,
-      dateNightAsks,
-      positionInvites,
-      mini.sexyVault,
-      calendarReminders,
-      prefs,
-    ]
-  );
-
-  const persist = (next: NotificationPrefs) => {
-    setPrefs(next);
-    void writeNotificationPrefs(next);
-  };
-
-  const openGame = () => {
-    const href = gameResumeHref(game);
-    if (href) {
-      router.push(href);
-      return;
-    }
-    if (game?.status === "inviting") return;
-    onStartSpicy();
-  };
 
   const count = rows.length;
 
@@ -306,11 +206,7 @@ export function HomeNotificationsBell({
                     key={item.id}
                     onPress={() => {
                       setOpen(false);
-                      if (item.id === "game" || item.id.startsWith("game")) {
-                        openGame();
-                        return;
-                      }
-                      router.push(item.href as Href);
+                      goTo(item.id, item.href);
                     }}
                     style={{
                       flexDirection: "row",

@@ -1287,6 +1287,29 @@ export function directionLabel(direction: DareDirection | null | undefined): str
   return "No direction";
 }
 
+export const DARE_POKE_COOLDOWN_MS = 15 * 60 * 1000;
+
+export function darePokeReady(
+  play: { status: string; readAt?: string | null; pokedAt?: string | null },
+  now = Date.now()
+): { ready: boolean; label: string } {
+  if (play.status !== "offered") {
+    return { ready: false, label: "They already answered." };
+  }
+  if (!play.readAt) {
+    return { ready: false, label: "Not opened yet." };
+  }
+  const last = play.pokedAt ? Date.parse(play.pokedAt) : 0;
+  if (last && now - last < DARE_POKE_COOLDOWN_MS) {
+    const mins = Math.max(1, Math.ceil((DARE_POKE_COOLDOWN_MS - (now - last)) / 60000));
+    return {
+      ready: false,
+      label: mins === 1 ? "Poked just now." : `Poked · wait ${mins}m.`,
+    };
+  }
+  return { ready: true, label: "Poke them" };
+}
+
 export function darePeople(input: {
   youName?: string | null;
   themName?: string | null;

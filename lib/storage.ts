@@ -356,6 +356,8 @@ function hydrateSpicyDare(row: AppDB["spicyDares"][number]): AppDB["spicyDares"]
     dueAt: row.dueAt ?? null,
     answeredAt: row.answeredAt ?? null,
     completedAt: row.completedAt ?? null,
+    readAt: row.readAt ?? null,
+    pokedAt: row.pokedAt ?? null,
   };
 }
 

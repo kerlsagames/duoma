@@ -307,18 +307,23 @@ export function buildHomeNotifications(input: {
       const outgoing = play.fromUserId === myId;
       if (!incoming && !outgoing) return;
       const when = timeframeLabel(play.timeframe, play.customWhen);
+      const poked = Boolean(play.pokedAt) && play.status === "offered" && incoming;
       const line =
-        play.status === "offered" && incoming
-          ? "Up for it · dare for you"
-          : play.status === "offered"
-            ? `Up for it sent · ${when}`
-            : `Up for it on · ${when}`;
+        poked
+          ? "Dare Me · they poked you"
+          : play.status === "offered" && incoming
+            ? "Dare Me · a dare for you"
+            : play.status === "offered"
+              ? `Dare Me sent · ${when}`
+              : `Dare Me on · ${when}`;
       items.push({
-        id: `dare-${play.id}`,
+        id: poked
+          ? `dare-poke-${play.id}-${play.pokedAt}`
+          : `dare-${play.id}`,
         line,
-        when: recentWhen(play.answeredAt ?? play.createdAt),
+        when: recentWhen(play.pokedAt ?? play.answeredAt ?? play.createdAt),
         href: "/hub/up-for-it",
-        sortAt: Date.parse(play.answeredAt ?? play.createdAt) || now,
+        sortAt: Date.parse(play.pokedAt ?? play.answeredAt ?? play.createdAt) || now,
       });
     });
 

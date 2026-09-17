@@ -3,6 +3,7 @@ import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HomeConnectButton } from "@/components/home/HomeConnectButton";
 import { HomeDemoFlip } from "@/components/home/HomeDemoFlip";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
+import { HomeNotificationCards } from "@/components/home/HomeNotificationCards";
 import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
@@ -693,6 +694,9 @@ export default function HomeScreen() {
         </Pressable>
       </Modal>
     </Screen>
+    {!settingsOpen && !statsOpen ? (
+      <HomeNotificationCards onStartSpicy={() => void startSpicy()} />
+    ) : null}
     {settingsOpen ? (
       <HomeSettingsSheet
         layout={layout}
@@ -1150,7 +1154,7 @@ function HomeSettingsSheet({
           </View>
           <LinkRow
             label="Notifications"
-            hint="Lock-screen pings and what shows on the Home bell."
+            hint="Bell or home cards, then which apps ping you."
             onPress={() => {
               onClose();
               router.push("/hub/notification-settings" as Href);

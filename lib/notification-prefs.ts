@@ -15,10 +15,14 @@ export type NotificationSection =
 /** @deprecated use NotificationSection */
 export type NotificationKind = NotificationSection;
 
+export type NotificationInbox = "bell" | "cards";
+
 export type NotificationPrefs = {
   enabled: Record<NotificationSection, boolean>;
   apps: Record<string, boolean>;
   dismissed: string[];
+  /** bell = list behind the Home bell. cards = swipe deck on Home. */
+  inbox: NotificationInbox;
 };
 
 export const NOTIFICATION_SECTION_OPTIONS: {
@@ -119,7 +123,7 @@ export function defaultNotificationPrefs(): NotificationPrefs {
   }
   const apps: Record<string, boolean> = {};
   for (const id of allNotifiableAppIds()) apps[id] = true;
-  return { enabled, apps, dismissed: [] };
+  return { enabled, apps, dismissed: [], inbox: "bell" };
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -180,7 +184,10 @@ export function hydrateNotificationPrefs(raw: unknown): NotificationPrefs {
     ? incoming.dismissed.filter((id): id is string => typeof id === "string")
     : [];
 
-  return { enabled, apps, dismissed };
+  const inbox: NotificationInbox =
+    incoming.inbox === "cards" ? "cards" : "bell";
+
+  return { enabled, apps, dismissed, inbox };
 }
 
 export async function readNotificationPrefs(): Promise<NotificationPrefs> {
@@ -202,9 +209,24 @@ export async function writeNotificationPrefs(
   const raw = JSON.stringify(prefs);
   if (Platform.OS === "web" && typeof localStorage !== "undefined") {
     localStorage.setItem(NOTIFICATION_PREFS_KEY, raw);
-    return;
+  } else {
+    await AsyncStorage.setItem(NOTIFICATION_PREFS_KEY, raw);
   }
-  await AsyncStorage.setItem(NOTIFICATION_PREFS_KEY, raw);
+  emitNotificationPrefs(prefs);
+}
+
+type PrefsListener = (prefs: NotificationPrefs) => void;
+const prefsListeners = new Set<PrefsListener>();
+
+function emitNotificationPrefs(prefs: NotificationPrefs) {
+  for (const listener of prefsListeners) listener(prefs);
+}
+
+export function subscribeNotificationPrefs(listener: PrefsListener) {
+  prefsListeners.add(listener);
+  return () => {
+    prefsListeners.delete(listener);
+  };
 }
 
 export function dismissNotificationIds(
@@ -214,6 +236,13 @@ export function dismissNotificationIds(
   const next = new Set(prefs.dismissed);
   for (const id of ids) next.add(id);
   return { ...prefs, dismissed: [...next] };
+}
+
+export function setInboxStyle(
+  prefs: NotificationPrefs,
+  inbox: NotificationInbox
+): NotificationPrefs {
+  return { ...prefs, inbox };
 }
 
 export function setHubApps(
@@ -277,6 +306,22 @@ export function featureFromStatusId(id: string): string | null {
   if (id.startsWith("roleplay")) return "roleplays";
   if (id.startsWith("ping") || id.startsWith("thought")) return "thought-pings";
   return null;
+}
+
+export function notificationAppLabel(id: string): string {
+  const app = featureFromStatusId(id);
+  if (app === "check-in") return "Check-in";
+  if (app === "calendar") return "Calendar";
+  if (app === "notepad") return "Notepad";
+  for (const hub of HUBS) {
+    const feature = hub.features.find((row) => row.id === app);
+    if (feature) return feature.label;
+  }
+  return "that app";
+}
+
+export function notificationGoLabel(id: string): string {
+  return `Go to ${notificationAppLabel(id)}`;
 }
 
 /** Map a home-feed row id to a preference section. */

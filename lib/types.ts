@@ -525,6 +525,10 @@ export type SpicyDarePlay = {
   createdAt: string;
   answeredAt: string | null;
   completedAt: string | null;
+  /** Recipient opened the dare. Sender can poke after this. */
+  readAt: string | null;
+  /** Last nudge from the sender while it was still unanswered. */
+  pokedAt: string | null;
 };
 
 export type PositionInviteStatus =

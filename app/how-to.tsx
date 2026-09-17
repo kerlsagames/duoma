@@ -20,6 +20,11 @@ const STEPS = [
     body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. Saved countdowns can run as a ticker just above that bar.",
   },
   {
+    kicker: "Notifications",
+    title: "Bell, or a card on Home",
+    body: "With this many apps, mute whole hubs. Settings → Notifications: four closed drawers, open one, switch its apps, or all on / all off. Choose Bell (a list) or Home cards (a square over the homepage — swipe left to clear, tap through to act, come back and the next one is waiting). If they opened a dare and haven't answered, you can poke them from Sent dares.",
+  },
+  {
     kicker: "Shared world",
     title: "Optional. Off until you add it",
     body: "Home settings has a Shared world toggle. Leave it off if you just want Check-In, Calendar, and Notepad. Turn it on to pick Sanctuary, Pocket Ecosystem, Town, Odyssey, or Constellation. Activity you already do feeds whichever one you lock in.",

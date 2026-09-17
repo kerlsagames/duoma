@@ -30,7 +30,7 @@ export function HomeBackdrop({
   const paper = HOME_WALLPAPERS[wallpaperId ?? stored] ?? HOME_WALLPAPERS.black;
 
   return (
-    <View style={{ flex: 1, backgroundColor: paper.color }}>
+    <View style={{ flex: 1, backgroundColor: paper.color, position: "relative" }}>
       {paper.gradient ? (
         <LinearGradient
           colors={paper.gradient}
