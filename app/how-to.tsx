@@ -17,7 +17,7 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. The latest Thought of You ping tapes across just above that bar — bigger script, in the ping's colour, with when it was sent — and starred countdowns run underneath it.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. When they send a Thought of You ping, a little Click me sits top-left of Home — tap it to read what they sent. Starred countdowns still tape across just above the bar.",
   },
   {
     kicker: "Notifications",
@@ -57,7 +57,7 @@ const STEPS = [
   {
     kicker: "Get Spicy",
     title: "If you open that game",
-    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Setup has Detailed (all five stages, set the counts) or Keep it simple (one shared card, Foreplay then Step it up then Finish Off — flip as many as you want, then the big Go to Step it up or Go to Finish off; Skip, try another card swaps a card you don’t want). Daytime cards in Detailed stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand of M-cums cards only.",
+    body: "It deals three cards. Pick one. Shuffle if the hand is wrong. You cannot pass your own card — your partner can pass if they do not want to do it. Setup has Detailed (all five stages, set the counts) or Keep it simple (one shared card, Foreplay then Step it up then Finish Off then Afterglow — flip as many as you want, then the big Go to Step it up / Finish off / Afterglow; Skip, try another card swaps a card you don’t want). Daytime cards in Detailed stay private until you both tap that you are ready to move on. Finish Off is tagged F, M, or both. She generally cums first; an F-only card deals a second hand of M-cums cards only.",
   },
   {
     kicker: "Safety",

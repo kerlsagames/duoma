@@ -591,16 +591,30 @@ export default function PlayScreen() {
                 label={
                   game?.currentStage === "foreplay"
                     ? "Go to Step it up"
-                    : "Go to Finish off"
+                    : game?.currentStage === "step_it_up"
+                      ? "Go to Finish off"
+                      : game?.currentStage === "finish_off"
+                        ? "Go to Afterglow"
+                        : "End the night"
                 }
-                tone={game?.currentStage === "foreplay" ? "crimson" : "gold"}
+                tone={
+                  game?.currentStage === "afterglow"
+                    ? "gold"
+                    : game?.currentStage === "foreplay"
+                      ? "crimson"
+                      : "gold"
+                }
                 size="loud"
                 onPress={() => void onReadyToMoveOn()}
               />
               <Text className="mt-2 text-center text-[12px] leading-4 text-mist/55">
                 {game?.currentStage === "foreplay"
                   ? "Stay in Foreplay as long as you want. This is the jump to the next stage."
-                  : "Stay in Step it up as long as you want. This is the jump to Finish off."}
+                  : game?.currentStage === "step_it_up"
+                    ? "Stay in Step it up as long as you want. This is the jump to Finish off."
+                    : game?.currentStage === "finish_off"
+                      ? "Stay in Finish Off as long as you want. This is the jump to Afterglow."
+                      : "Stay in Afterglow as long as you want. This closes the night."}
               </Text>
             </View>
           ) : null}

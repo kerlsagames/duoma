@@ -41,7 +41,7 @@ const SETUP_RULES = [
   },
   {
     title: "Keep it simple",
-    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then tap the big Go to Step it up. Same for Finish off. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
+    body: "One card in the middle for both of you. Flip as many as you want in Foreplay, then tap the big Go to Step it up. Same for Finish Off, then Afterglow. Skip, try another card swaps a card you don’t want. No turns, no passes, no shuffles. Finish Off still tags F, M, or both.",
   },
   {
     title: "Finish Off",
@@ -333,8 +333,8 @@ export default function SetupScreen() {
           </>
         ) : (
           <Text className="mt-7 text-[14px] leading-5 text-mist/60">
-            Foreplay, then Step it up, then Finish Off. Flip cards in a stage until
-            you tap Ready to move on.
+            Foreplay, then Step it up, then Finish Off, then Afterglow. Flip
+            cards in a stage until you tap Ready to move on.
           </Text>
         )}
 

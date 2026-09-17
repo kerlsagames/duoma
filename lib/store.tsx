@@ -2466,7 +2466,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
       }
       const units = (row.finishUnitsDone ?? 0) + 1;
-      if (units < stageCounts.finish_off) {
+      if (row.pace === "simple" || units < stageCounts.finish_off) {
         return {
           currentStage: "finish_off",
           turnUserId:
@@ -2494,10 +2494,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return {
         currentStage: next,
-        turnUserId:
-          row.pace === "simple"
-            ? null
-            : exclusiveTurnForStage(row, next, passToUserId),
+        turnUserId: exclusiveTurnForStage(row, next, passToUserId),
         handCardIds: [],
         awaitingFinishReveal: false,
         finishAwaitingMale: false,
@@ -3392,13 +3389,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!from) return;
     const stageCounts = normalizeStageCounts(game.stageCounts);
     const next = nextActiveStage(stageCounts, from);
-    if (!next) {
-      throw new Error("Nothing left after this stage.");
-    }
     const deckRows = db.deck.filter((item) => item.gameId === game.id);
     const nextDeck = deckRows.map((item) =>
       item.status === "active" ? { ...item, status: "played" as const } : item
     );
+    const extra: Partial<GameSession> = next
+      ? {
+          currentStage: next,
+          turnUserId: null,
+          handCardIds: [],
+          activeCardId: null,
+          activePlayedBy: null,
+          awaitingPrivate: false,
+          awaitingFinishReveal: false,
+          finishPickerId: null,
+          afterglowPickerId: null,
+          finishAwaitingMale: false,
+          privateUnlocked: true,
+        }
+      : {
+          currentStage: from,
+          turnUserId: null,
+          handCardIds: [],
+          activeCardId: null,
+          activePlayedBy: null,
+          awaitingPrivate: false,
+          awaitingFinishReveal: false,
+          finishPickerId: null,
+          afterglowPickerId: null,
+          finishAwaitingMale: false,
+          privateUnlocked: true,
+          status: closeNight(game.id, true),
+        };
     db = {
       ...db,
       deck: [
@@ -3406,21 +3428,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...nextDeck,
       ],
       games: db.games.map((row) =>
-        row.id === game.id
-          ? sessionFields(row, {
-              currentStage: next,
-              turnUserId: null,
-              handCardIds: [],
-              activeCardId: null,
-              activePlayedBy: null,
-              awaitingPrivate: false,
-              awaitingFinishReveal: false,
-              finishPickerId: null,
-              afterglowPickerId: null,
-              finishAwaitingMale: false,
-              privateUnlocked: true,
-            })
-          : row
+        row.id === game.id ? sessionFields(row, extra) : row
       ),
     };
     await persist();

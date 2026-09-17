@@ -37,15 +37,16 @@ export const SIMPLE_STAGE_ORDER: CardStage[] = [
   "foreplay",
   "step_it_up",
   "finish_off",
+  "afterglow",
 ];
 
-/** Counts only mark a stage as in-play. Foreplay and Step it up stay open until Ready to move on. */
+/** Counts only mark a stage as in-play. Open stages stay until Ready to move on. */
 export const SIMPLE_STAGE_COUNTS: StageCounts = {
   pre_foreplay: 0,
   foreplay: 1,
   step_it_up: 1,
   finish_off: 1,
-  afterglow: 0,
+  afterglow: 1,
 };
 
 export function isSimpleOpenStage(
@@ -54,7 +55,10 @@ export function isSimpleOpenStage(
 ): boolean {
   return (
     pace === "simple" &&
-    (stage === "foreplay" || stage === "step_it_up")
+    (stage === "foreplay" ||
+      stage === "step_it_up" ||
+      stage === "finish_off" ||
+      stage === "afterglow")
   );
 }
 

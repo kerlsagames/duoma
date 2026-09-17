@@ -4,6 +4,7 @@ import { HomeConnectButton } from "@/components/home/HomeConnectButton";
 import { HomeDemoFlip } from "@/components/home/HomeDemoFlip";
 import { HomeNotificationsBell } from "@/components/home/HomeNotificationsBell";
 import { HomeNotificationCards } from "@/components/home/HomeNotificationCards";
+import { HomePingNudge } from "@/components/home/HomePingNudge";
 import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
@@ -219,6 +220,9 @@ export default function HomeScreen() {
             minHeight: 44,
           }}
         >
+          <View style={{ position: "absolute", left: 0, top: 2 }}>
+            <HomePingNudge />
+          </View>
           <DuomaLogo size={44} />
           <View style={{ position: "absolute", right: 0, top: 2 }}>
             <HomeNotificationsBell onStartSpicy={() => void startSpicy()} />
