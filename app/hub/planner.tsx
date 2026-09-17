@@ -355,6 +355,7 @@ export default function PlannerScreen() {
               accent={look.accent}
               askOn={askOn}
               onAskOn={setAskOn}
+              partnerName={partnerName}
               onSpin={() => {
                 setSavedFlash(false);
                 setPicked(pickRandomDateIdea(filters, picked?.id ?? null));
@@ -432,6 +433,7 @@ function IdeasTab({
   accent,
   askOn,
   onAskOn,
+  partnerName,
   onSpin,
   onToggleBrowse,
   onQuery,
@@ -450,6 +452,7 @@ function IdeasTab({
   accent: string;
   askOn: string;
   onAskOn: (value: string) => void;
+  partnerName: string;
   onSpin: () => void;
   onToggleBrowse: () => void;
   onQuery: (value: string) => void;
@@ -574,7 +577,7 @@ function IdeasTab({
           <View style={{ marginTop: 14, gap: 10 }}>
             <PrimaryButton label="Save to to-do" tone="ghost" onPress={onSave} />
             <PrimaryButton
-              label={`Ask them for ${formatLongDate(askOn)}`}
+              label={`Ask ${partnerName} for ${formatLongDate(askOn)}`}
               onPress={onAsk}
             />
           </View>
@@ -944,7 +947,7 @@ function TodoTab({
                     </>
                   ) : !ask ? (
                     <PrimaryButton
-                      label={`Ask them for ${formatLongDate(askOn)}`}
+                      label={`Ask ${partnerName} for ${formatLongDate(askOn)}`}
                       onPress={() => onAsk(item.id)}
                     />
                   ) : null}

@@ -1791,7 +1791,8 @@ export const DARE_POKE_COOLDOWN_MS = 15 * 60 * 1000;
 
 export function darePokeReady(
   play: { status: string; readAt?: string | null; pokedAt?: string | null },
-  now = Date.now()
+  now = Date.now(),
+  them = "them"
 ): { ready: boolean; label: string } {
   if (play.status !== "offered") {
     return { ready: false, label: "They already answered." };
@@ -1807,7 +1808,7 @@ export function darePokeReady(
       label: mins === 1 ? "Poked just now." : `Poked · wait ${mins}m.`,
     };
   }
-  return { ready: true, label: "Poke them" };
+  return { ready: true, label: `Poke ${them}` };
 }
 
 export function darePeople(input: {

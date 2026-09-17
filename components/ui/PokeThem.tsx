@@ -1,3 +1,4 @@
+import { themLabel } from "@/lib/names";
 import { pokeReady, latestPokeAt } from "@/lib/partner-poke";
 import { useApp } from "@/lib/store";
 import { useState } from "react";
@@ -12,7 +13,8 @@ export function PokeThem({
   targetId: string;
   color?: string;
 }) {
-  const { user, partnerPokes, pokePartner } = useApp();
+  const { user, partner, partnerPokes, pokePartner } = useApp();
+  const them = themLabel(partner);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastAt = user
@@ -22,7 +24,7 @@ export function PokeThem({
         targetId,
       })
     : null;
-  const state = pokeReady(lastAt);
+  const state = pokeReady(lastAt, Date.now(), them);
 
   const fill = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)
     ? `${color}22`

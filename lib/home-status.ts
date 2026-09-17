@@ -159,6 +159,8 @@ export function buildHomeNotifications(input: {
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
+  const them = input.partner?.displayName?.trim() || "them";
+  const they = input.partner?.displayName?.trim() || "They";
   const items: StatusItem[] = [];
   const now = Date.now();
 
@@ -171,7 +173,7 @@ export function buildHomeNotifications(input: {
       const meta = pokeAppMeta(poke.appId);
       items.push({
         id: pokeNoticeId(poke),
-        line: `${meta.label} · they poked you`,
+        line: `${meta.label} · ${they} poked you`,
         when: recentWhen(poke.createdAt),
         href: meta.href,
         sortAt: Date.parse(poke.createdAt) || now,
@@ -181,7 +183,7 @@ export function buildHomeNotifications(input: {
   if (input.incomingCheckInRequest && myId) {
     items.push({
       id: `checkin-request-${input.incomingCheckInRequest.id}`,
-      line: "They asked for a check-in",
+      line: `${they} asked for a check-in`,
       when: "Now",
       href: "/hub/check-in",
       sortAt: Date.parse(input.incomingCheckInRequest.createdAt) || now,
@@ -201,7 +203,7 @@ export function buildHomeNotifications(input: {
     }
     items.push({
       id: `checkin-${partnerCheckIn.id}`,
-      line: bits.length ? bits.join(" · ") : "They checked in",
+      line: bits.length ? bits.join(" · ") : `${they} checked in`,
       when: recentWhen(partnerCheckIn.createdAt),
       href: "/hub/check-in",
       sortAt: Date.parse(partnerCheckIn.createdAt) || now,
@@ -261,7 +263,7 @@ export function buildHomeNotifications(input: {
       id: `curiosity-${latest.id}`,
       line:
         waitingOnMe.length === 1
-          ? "Flirtatious findings · they answered a card"
+          ? `Flirtatious findings · ${them} answered a card`
           : `Flirtatious findings · ${waitingOnMe.length} cards waiting on you`,
       when: recentWhen(latest.createdAt),
       href: "/hub/discover",
@@ -281,7 +283,7 @@ export function buildHomeNotifications(input: {
     const latest = myToday.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     items.push({
       id: `curiosity-waiting-${latest.id}`,
-      line: "Flirtatious findings · waiting on them",
+      line: `Flirtatious findings · waiting on ${them}`,
       when: recentWhen(latest.createdAt),
       href: "/hub/discover",
       sortAt: Date.parse(latest.createdAt) || now,
@@ -305,7 +307,7 @@ export function buildHomeNotifications(input: {
       }
       items.push({
         id: `talk-${draw.id}`,
-        line: `They pulled ${name}`,
+        line: `${they} pulled ${name}`,
         when: recentWhen(draw.answeredAt ?? draw.createdAt),
         href: "/hub/talk",
         sortAt: Date.parse(draw.answeredAt ?? draw.createdAt) || now,
@@ -356,7 +358,7 @@ export function buildHomeNotifications(input: {
     .forEach((entry) => {
       items.push({
         id: `list-add-${entry.id}`,
-        line: `They added “${entry.title}” to Lists`,
+        line: `${they} added “${entry.title}” to Lists`,
         when: recentWhen(entry.createdAt),
         href: `/hub/list/${entry.listId}`,
         sortAt: Date.parse(entry.createdAt) || now,
@@ -480,8 +482,8 @@ export function buildHomeNotifications(input: {
         line: locked
           ? `Sexy Vault · hidden until ${sexyVaultUnlockLabel(item)}`
           : item.kind === "video"
-            ? "Sexy Vault · they left a clip"
-            : "Sexy Vault · they left a photo",
+            ? `Sexy Vault · ${them} left a clip`
+            : `Sexy Vault · ${them} left a photo`,
         when: locked ? "Later" : recentWhen(item.createdAt),
         href: "/hub/sexy-vault",
         sortAt: Date.parse(item.createdAt) || now,

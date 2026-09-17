@@ -483,7 +483,7 @@ function Shop({
           name={you}
           hits={myStats.correct}
           asked={myStats.asked || 0}
-          caption="you guessing them"
+          caption={`you guessing ${them}`}
           lead={myStats.correct >= theirStats.correct && myStats.asked > 0}
         />
         <View style={{ height: 1, backgroundColor: "rgba(246,238,216,0.08)", marginHorizontal: 14 }} />
@@ -492,7 +492,7 @@ function Shop({
           name={them}
           hits={theirStats.correct}
           asked={theirStats.asked || 0}
-          caption="them guessing you"
+          caption={`${them} guessing you`}
           lead={theirStats.correct > myStats.correct && theirStats.asked > 0}
         />
         <Text

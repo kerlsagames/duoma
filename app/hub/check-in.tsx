@@ -17,6 +17,7 @@ import {
   TODAY_NEEDS,
   todayNeedMeta,
 } from "@/lib/hub";
+import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type {
   CheckInMetricKey,
@@ -188,6 +189,7 @@ export default function CheckInScreen() {
     requestCheckIn,
     incomingCheckInRequest,
   } = useApp();
+  const them = themLabel(partner);
   const today = localDateKey();
   const myCheckIn = checkIns.find(
     (row) => row.userId === user?.id && row.date === today
@@ -487,7 +489,7 @@ export default function CheckInScreen() {
             </View>
           ) : (
             <Text className="mb-4 text-center text-[16px] leading-6 text-mist/70">
-              Nothing from them yet. Request an update if you need it.
+              Nothing from {them} yet. Request an update if you need it.
             </Text>
           )}
         </View>
@@ -640,7 +642,7 @@ export default function CheckInScreen() {
       ) : (
         <View>
           <Text className="mb-3 text-center text-[12px] text-mist/50">
-            Nudge them to share specific updates if you feel out of the loop.
+            Nudge {them} to share specific updates if you feel out of the loop.
           </Text>
           {CHECK_IN_METRIC_META.map((item) => {
             const on = requested.includes(item.key);

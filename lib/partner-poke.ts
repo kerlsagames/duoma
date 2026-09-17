@@ -32,7 +32,8 @@ export function pokeAppMeta(appId: string): PokeAppMeta {
 
 export function pokeReady(
   lastAt: string | null | undefined,
-  now = Date.now()
+  now = Date.now(),
+  them = "them"
 ): { ready: boolean; label: string } {
   const last = lastAt ? Date.parse(lastAt) : 0;
   if (last && now - last < POKE_COOLDOWN_MS) {
@@ -42,7 +43,7 @@ export function pokeReady(
       label: mins === 1 ? "Poked just now" : `Poked · wait ${mins}m`,
     };
   }
-  return { ready: true, label: "Poke them" };
+  return { ready: true, label: `Poke ${them}` };
 }
 
 export function latestPokeAt(
