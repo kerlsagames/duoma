@@ -8,7 +8,10 @@ import { ActivityIndicator, Text, TextInput, View } from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ email?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    email?: string | string[];
+    reauth?: string | string[];
+  }>();
   const {
     ready,
     user,
@@ -19,6 +22,8 @@ export default function LoginScreen() {
     verifyEmailCode,
   } = useApp();
   const paramEmail = Array.isArray(params.email) ? params.email[0] : params.email;
+  const reauthFlag = Array.isArray(params.reauth) ? params.reauth[0] : params.reauth;
+  const fromHomeApps = Boolean(user) || reauthFlag === "1";
   const [email, setEmail] = useState(paramEmail ?? "");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -135,7 +140,7 @@ export default function LoginScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
-        {forgot ? (
+        {forgot && !fromHomeApps ? (
           <TextInput
             value={code}
             onChangeText={(value) => setCode(value.replace(/[^\d]/g, "").slice(0, 8))}
@@ -161,25 +166,25 @@ export default function LoginScreen() {
             disabled={!filledEmail || !password}
             onPress={() => void open()}
           />
-          {forgot ? (
+          {!fromHomeApps && forgot ? (
             <PrimaryButton
               label="Use reset code"
               loading={loading}
               disabled={code.length < 6}
               onPress={() => void confirmReset()}
             />
-          ) : (
+          ) : !fromHomeApps ? (
             <PrimaryButton
               label="I forgot my password"
               tone="ghost"
               disabled={!filledEmail}
               onPress={() => void sendReset()}
             />
-          )}
+          ) : null}
           <PrimaryButton
             label="Back"
             tone="ghost"
-            onPress={() => router.replace("/welcome")}
+            onPress={() => router.replace(fromHomeApps ? "/" : "/welcome")}
           />
         </View>
       </View>

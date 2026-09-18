@@ -241,7 +241,7 @@ export default function HomeScreen() {
         <HomeConnectButton />
         {usingCloud && user && !cloudLive && !demoMode ? (
           <Pressable
-            onPress={() => router.push("/login")}
+            onPress={() => router.push("/login?reauth=1")}
             style={{
               marginBottom: 12,
               borderRadius: 14,

@@ -7,7 +7,7 @@ const STEPS = [
   {
     kicker: "Pair once",
     title: "One code, then you stay linked",
-    body: "Email plus a password is the account. Create or Join sets the password, then you land in the app — no Gmail code. On Home, Connect sends them the six-character pair code, that button leaves when they join. Sign in with that password on the login screen. Forgot password still emails a 6-digit code if you need it. Sign out does not unpair you, and it does not delete your photos or lists. Do not make a new pair just to come back. Terms and privacy say you are responsible if someone else opens your email, password, or codes.",
+    body: "Email plus a password is the account. Create or Join sets the password, then you land in the app — no Gmail code. On Home, Connect sends them the six-character pair code, that button leaves when they join. Sign in with that password on the login screen. I forgot my password only lives on that pre-login screen, not on Home with the hubs. Sign out does not unpair you, and it does not delete your photos or lists. Do not make a new pair just to come back. Terms and privacy say you are responsible if someone else opens your email, password, or codes.",
   },
   {
     kicker: "Two phones",
