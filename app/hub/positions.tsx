@@ -38,11 +38,26 @@ import {
 } from "@/lib/play-prefs";
 import type { PositionInvite, PositionSave } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const T = POSITIONS_TONE;
-type Tab = "pick" | "todo" | "done";
+type Tab = "pick" | "todo" | "done" | "requests" | "asked";
+
+function tabFromParam(value?: string | string[]): Tab | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (
+    raw === "pick" ||
+    raw === "todo" ||
+    raw === "done" ||
+    raw === "requests" ||
+    raw === "asked"
+  ) {
+    return raw;
+  }
+  return null;
+}
 
 export default function PositionsScreen() {
   const {
@@ -58,11 +73,14 @@ export default function PositionsScreen() {
     unsavePosition,
     markPositionSaveDone,
     ratePlayItem,
+    refreshPair,
   } = useApp();
+  const params = useLocalSearchParams<{ tab?: string | string[] }>();
+  const openedTab = tabFromParam(params.tab);
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const look = useAppLook("positions", T.accent, {});
   const partnerName = themLabel(partner);
-  const [tab, setTab] = useState<Tab>("pick");
+  const [tab, setTab] = useState<Tab>(openedTab ?? "pick");
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [enabled, setEnabled] = useState<PositionCategoryId[]>(
@@ -98,9 +116,19 @@ export default function PositionsScreen() {
         (row) =>
           Boolean(user) &&
           row.fromUserId === user!.id &&
-          (row.status === "offered" || row.status === "accepted")
+          (row.status === "offered" ||
+            row.status === "accepted" ||
+            row.status === "declined")
       ),
     [positionInvites, user]
+  );
+  const freshYes = useMemo(
+    () =>
+      outgoing.filter((row) => {
+        if (row.status !== "accepted" || !row.answeredAt) return false;
+        return Date.now() - Date.parse(row.answeredAt) < 36 * 60 * 60 * 1000;
+      }),
+    [outgoing]
   );
 
   const openSaves = useMemo(
@@ -141,6 +169,19 @@ export default function PositionsScreen() {
     if (next) setCurrent(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- first paint only
   }, []);
+
+  useEffect(() => {
+    if (openedTab) setTab(openedTab);
+  }, [openedTab]);
+
+  useEffect(() => {
+    void refreshPair();
+    if (openedTab !== "requests" && openedTab !== "asked") return;
+    const timers = [800, 2000, 4000].map((ms) =>
+      setTimeout(() => void refreshPair(), ms)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [openedTab, refreshPair]);
 
   const skip = () => {
     setSentFlash(false);
@@ -276,7 +317,71 @@ export default function PositionsScreen() {
           </View>
         ) : (
           <>
-            <View style={{ marginTop: 20 }}>
+            <View style={{ marginTop: 20, flexDirection: "row", gap: 8 }}>
+              <Pressable
+                onPress={() => setTab("requests")}
+                style={{
+                  flex: 1,
+                  minHeight: 48,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor:
+                    tab === "requests" || incoming.some((row) => row.status === "offered")
+                      ? T.accent
+                      : "rgba(255,255,255,0.14)",
+                  backgroundColor:
+                    tab === "requests" ? T.accentSoft : T.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: T.ink,
+                    fontWeight: "800",
+                    fontSize: 13,
+                    textAlign: "center",
+                  }}
+                >
+                  {incoming.length
+                    ? `Requests · ${incoming.length}`
+                    : "Requests"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setTab("asked")}
+                style={{
+                  flex: 1,
+                  minHeight: 48,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor:
+                    tab === "asked" || freshYes.length
+                      ? T.accent
+                      : "rgba(255,255,255,0.14)",
+                  backgroundColor: tab === "asked" ? T.accentSoft : T.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: T.ink,
+                    fontWeight: "800",
+                    fontSize: 13,
+                    textAlign: "center",
+                  }}
+                >
+                  {outgoing.length
+                    ? `Asked ${partnerName} · ${outgoing.length}`
+                    : `Asked ${partnerName}`}
+                </Text>
+              </Pressable>
+            </View>
+
+            <View style={{ marginTop: 12 }}>
               <PlayTabs
                 tabs={[
                   { id: "pick" as const, label: "Pick" },
@@ -292,6 +397,106 @@ export default function PositionsScreen() {
                 ink={T.ink}
               />
             </View>
+
+            {tab === "requests" ? (
+              incoming.length ? (
+                <InviteSection
+                  title={`From ${partnerName}`}
+                  rows={incoming}
+                  partnerName={partnerName}
+                  outgoing={false}
+                  onRespond={(id, status) => void respondPositionInvite(id, status)}
+                  onDone={(id) => void completePositionInvite(id)}
+                />
+              ) : (
+                <Text
+                  style={{
+                    marginTop: 18,
+                    fontFamily: SERIF,
+                    fontSize: 16,
+                    lineHeight: 24,
+                    color: T.muted,
+                  }}
+                >
+                  Nothing waiting. When {partnerName} asks you to try a pose, it
+                  lands here.
+                </Text>
+              )
+            ) : null}
+
+            {tab === "asked" ? (
+              <>
+                {freshYes.length ? (
+                  <View
+                    style={{
+                      marginTop: 8,
+                      marginBottom: 8,
+                      padding: 18,
+                      borderRadius: 24,
+                      backgroundColor: T.accentSoft,
+                      borderWidth: 2,
+                      borderColor: T.accent,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "SpaceMono",
+                        fontSize: 12,
+                        letterSpacing: 2,
+                        textTransform: "uppercase",
+                        color: T.accent,
+                        fontWeight: "800",
+                        textAlign: "center",
+                      }}
+                    >
+                      {partnerName} is in
+                    </Text>
+                    {freshYes.map((row) => {
+                      const pose = positionById(row.positionId);
+                      return (
+                        <Text
+                          key={row.id}
+                          style={{
+                            marginTop: 8,
+                            fontFamily: SERIF,
+                            fontSize: 22,
+                            lineHeight: 28,
+                            color: T.ink,
+                            textAlign: "center",
+                          }}
+                        >
+                          {pose?.name ?? "That pose"} ·{" "}
+                          {row.whenLabel ?? nightAskLabel(row.dateKey)}
+                        </Text>
+                      );
+                    })}
+                  </View>
+                ) : null}
+                {outgoing.length ? (
+                  <InviteSection
+                    title={`Asked ${partnerName}`}
+                    rows={outgoing}
+                    partnerName={partnerName}
+                    outgoing
+                    onRespond={() => undefined}
+                    onDone={(id) => void completePositionInvite(id)}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      marginTop: 18,
+                      fontFamily: SERIF,
+                      fontSize: 16,
+                      lineHeight: 24,
+                      color: T.muted,
+                    }}
+                  >
+                    Ask {partnerName} a pose from Pick. Their yes or no comes
+                    back here.
+                  </Text>
+                )}
+              </>
+            ) : null}
 
             {tab === "pick" ? (
               <>
@@ -645,28 +850,6 @@ export default function PositionsScreen() {
             )}
           </View>
         ) : null}
-
-        {incoming.length ? (
-          <InviteSection
-            title={`From ${partnerName}`}
-            rows={incoming}
-            partnerName={partnerName}
-            outgoing={false}
-            onRespond={(id, status) => void respondPositionInvite(id, status)}
-            onDone={(id) => void completePositionInvite(id)}
-          />
-        ) : null}
-
-        {outgoing.length ? (
-          <InviteSection
-            title={`Asked ${partnerName}`}
-            rows={outgoing}
-            partnerName={partnerName}
-            outgoing
-            onRespond={() => undefined}
-            onDone={(id) => void completePositionInvite(id)}
-          />
-        ) : null}
               </>
             ) : null}
 
@@ -772,7 +955,9 @@ function InviteSection({
                       : `${partnerName} asked · ${row.whenLabel ?? nightAskLabel(row.dateKey)}?`
                     : row.status === "accepted"
                       ? `${row.whenLabel ?? nightAskLabel(row.dateKey)} is on`
-                      : row.status}
+                      : row.status === "declined"
+                        ? `${partnerName} said no · ${row.whenLabel ?? nightAskLabel(row.dateKey)}`
+                        : row.status}
               </Text>
               <Text
                 style={{

@@ -4,6 +4,7 @@ import {
 } from "@/lib/home-status";
 import {
   defaultNotificationPrefs,
+  dismissNotificationIds,
   prefsShowStatusId,
   readNotificationPrefs,
   subscribeNotificationPrefs,
@@ -119,6 +120,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
   };
 
   const goTo = (id: string, href: Href) => {
+    persist(dismissNotificationIds(prefs, [id]));
     if (id === "game" || id.startsWith("game")) {
       openGame();
       return;

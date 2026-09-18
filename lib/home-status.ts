@@ -360,7 +360,7 @@ export function buildHomeNotifications(input: {
         id: `list-add-${entry.id}`,
         line: `${they} added “${entry.title}” to Lists`,
         when: recentWhen(entry.createdAt),
-        href: `/hub/list/${entry.listId}`,
+        href: `/hub/list/${entry.listId}` as Href,
         sortAt: Date.parse(entry.createdAt) || now,
       });
     });
@@ -454,8 +454,36 @@ export function buildHomeNotifications(input: {
         id: `position-ask-${row.id}`,
         line: `Try this ${when}? · ${title}`,
         when: recentWhen(row.createdAt),
-        href: "/hub/positions",
+        href: "/hub/positions?tab=requests",
         sortAt: Date.parse(row.createdAt) || now,
+      });
+    });
+
+  (input.positionInvites ?? [])
+    .filter((row) => row.fromUserId === myId && row.status === "accepted" && row.answeredAt)
+    .forEach((row) => {
+      const when = row.whenLabel ?? nightAskLabel(row.dateKey);
+      const title = positionById(row.positionId)?.name ?? "that pose";
+      items.push({
+        id: `position-yes-${row.id}`,
+        line: `${them} is in · ${title} · ${when}`,
+        when: recentWhen(row.answeredAt ?? row.createdAt),
+        href: "/hub/positions?tab=asked",
+        sortAt: Date.parse(row.answeredAt ?? row.createdAt) || now,
+      });
+    });
+
+  (input.positionInvites ?? [])
+    .filter((row) => row.fromUserId === myId && row.status === "declined")
+    .forEach((row) => {
+      const when = row.whenLabel ?? nightAskLabel(row.dateKey);
+      const title = positionById(row.positionId)?.name ?? "that pose";
+      items.push({
+        id: `position-no-${row.id}`,
+        line: `${them} said no · ${title} · ${when}`,
+        when: recentWhen(row.answeredAt ?? row.createdAt),
+        href: "/hub/positions?tab=asked",
+        sortAt: Date.parse(row.answeredAt ?? row.createdAt) || now,
       });
     });
 

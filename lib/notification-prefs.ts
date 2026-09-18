@@ -325,8 +325,8 @@ export function notificationAppLabel(id: string): string {
   return "that app";
 }
 
-export function notificationGoLabel(id: string): string {
-  return `Go to ${notificationAppLabel(id)}`;
+export function notificationGoLabel(_id: string): string {
+  return "Take me there";
 }
 
 /** Map a home-feed row id to a preference section. */

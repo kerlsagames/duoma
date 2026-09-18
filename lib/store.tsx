@@ -636,7 +636,10 @@ function pingPartner(
       .filter((row) => row.userId === user.id)
       .map((row) => row.endpoint)
   );
-  void notifyUser(target, db.pushSubscriptions, payload, senderEndpoints);
+  void (async () => {
+    await flushCoupleBackup();
+    await notifyUser(target, db.pushSubscriptions, payload, senderEndpoints);
+  })();
 }
 
 function pairGenders(couple: Couple | null | undefined) {
@@ -685,8 +688,8 @@ function shareHub(
       | CalendarCustomEvent;
   }[]
 ) {
-  if (!couple || sessionIsDemo() || items.length === 0) return;
-  void pushHubItems(couple.id, items);
+  if (!couple || sessionIsDemo() || items.length === 0) return Promise.resolve();
+  return pushHubItems(couple.id, items);
 }
 
 type CreateAccountInput = {
@@ -4276,7 +4279,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ritualChecks: upsertRitual(couple.id, user.id, "check-in", today),
       };
       await persist();
-      shareHub(couple, [{ kind: "check_in", payload: row }]);
+      await shareHub(couple, [{ kind: "check_in", payload: row }]);
       const answeredRequests = db.checkInRequests.filter(
         (item) =>
           item.coupleId === couple.id &&
@@ -4285,7 +4288,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           item.answeredAt
       );
       if (answeredRequests.length) {
-        shareHub(
+        await shareHub(
           couple,
           answeredRequests.map((item) => ({
             kind: "check_in_request" as const,
@@ -4334,7 +4337,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ],
       };
       await persist();
-      shareHub(couple, [{ kind: "check_in_request", payload: row }]);
+      await shareHub(couple, [{ kind: "check_in_request", payload: row }]);
       pingPartner(couple, user, partner, {
         title: "Check-in request",
         body: "They want a few updates from you.",
@@ -5205,12 +5208,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         positionInvites: [...db.positionInvites, row],
       };
       await persist();
-      shareHub(couple, [{ kind: "position_invite", payload: row }]);
+      await shareHub(couple, [{ kind: "position_invite", payload: row }]);
       const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
         title: `Try this ${whenBit}?`,
         body: `${user.displayName} wants to try a position ${whenBit}. Confirm it first.`,
-        url: "/hub/positions",
+        url: "/hub/positions?tab=requests",
       });
     },
     [couple, partner, user]
@@ -5252,7 +5255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : db.calendarEvents,
       };
       await persist();
-      shareHub(couple, [
+      await shareHub(couple, [
         {
           kind: "position_invite",
           payload: { ...existing, status, answeredAt: stamp },
@@ -5263,12 +5266,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]);
       const whenBit = existing.whenLabel ?? "tonight";
       pingPartner(couple, user, partner, {
-        title: status === "accepted" ? `${whenBit} is on` : "Not this time",
+        title:
+          status === "accepted" ? `${user.displayName} is in` : "Not this time",
         body:
           status === "accepted"
-            ? `${user.displayName} said yes — that pose is on ${whenBit}.`
-            : `${user.displayName} said not ${whenBit} for that pose.`,
-        url: "/hub/positions",
+            ? `${user.displayName} said YES — ${pose?.name ?? "that pose"} is on ${whenBit}.`
+            : `${user.displayName} said no to ${pose?.name ?? "that pose"} ${whenBit}.`,
+        url: "/hub/positions?tab=asked",
       });
     },
     [couple, partner, user]
@@ -5584,7 +5588,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         roleplayInvites: [...db.roleplayInvites, row],
       };
       await persist();
-      shareHub(couple, [{ kind: "roleplay_invite", payload: row }]);
+      await shareHub(couple, [{ kind: "roleplay_invite", payload: row }]);
       const whenBit = when?.label ?? "tonight";
       pingPartner(couple, user, partner, {
         title: `Try this ${whenBit}?`,
@@ -5631,7 +5635,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : db.calendarEvents,
       };
       await persist();
-      shareHub(couple, [
+      await shareHub(couple, [
         {
           kind: "roleplay_invite",
           payload: { ...existing, status, answeredAt: stamp },
@@ -6759,8 +6763,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       db = { ...db, listEntries: [...db.listEntries, row] };
       await persist();
+      pingPartner(couple, user, partner, {
+        title: list.title,
+        body: `${user.displayName} added “${title}”.`,
+        url: `/hub/list/${list.id}`,
+      });
     },
-    [couple, user]
+    [couple, partner, user]
   );
 
   const completeListEntry = useCallback(

@@ -8,7 +8,7 @@ export function PlayTabs<T extends string>({
   ink = "#F4F4F6",
 }: {
   tabs: { id: T; label: string }[];
-  current: T;
+  current: T | string;
   onChange: (id: T) => void;
   accent: string;
   ink?: string;

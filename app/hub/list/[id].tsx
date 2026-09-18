@@ -216,6 +216,7 @@ export default function ListDetailScreen() {
     completeListEntry,
     rateListEntry,
     reopenListEntry,
+    refreshPair,
   } = useApp();
   const them = themLabel(partner);
   const themTitle = themLabelTitle(partner);
@@ -229,6 +230,14 @@ export default function ListDetailScreen() {
   useEffect(() => {
     void ensureStarterLists();
   }, [ensureStarterLists]);
+
+  useEffect(() => {
+    void refreshPair();
+    const timers = [800, 2000, 4000].map((ms) =>
+      setTimeout(() => void refreshPair(), ms)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [id, refreshPair]);
 
   const list = coupleLists.find((row) => row.id === id) ?? null;
 
