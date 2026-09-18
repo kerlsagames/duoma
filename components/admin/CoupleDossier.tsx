@@ -210,7 +210,7 @@ function PersonLink({
         Signed up {formatWhen(profile.createdAt)}
       </Text>
       <Text style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>
-        Last login {formatWhen(profile.lastSeenAt)}
+        Last used {formatWhen(profile.lastSeenAt)}
       </Text>
     </Pressable>
   );

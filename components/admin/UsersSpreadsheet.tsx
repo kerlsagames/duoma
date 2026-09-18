@@ -202,7 +202,7 @@ export function UsersSpreadsheet() {
             <Cell width={COL.a} children="USER A" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.b} children="USER B" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.signed} children="SIGNED UP" bold color="rgba(244,244,246,0.45)" />
-            <Cell width={COL.last} children="LAST LOGIN" bold color="rgba(244,244,246,0.45)" />
+            <Cell width={COL.last} children="LAST USED" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.loc} children="LOCATION" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.time} children="IN APP" bold color="rgba(244,244,246,0.45)" />
             <Cell width={COL.status} children="STATUS" bold color="rgba(244,244,246,0.45)" />

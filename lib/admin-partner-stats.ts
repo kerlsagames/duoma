@@ -1191,7 +1191,7 @@ export function buildPartnerDossier(input: {
     profileId: input.profile.id,
     facts: [
       fact("joined", "Date signed up", formatWhen(input.profile.createdAt)),
-      fact("login", "Last login", formatWhen(input.profile.lastSeenAt)),
+      fact("login", "Last used", formatWhen(input.profile.lastSeenAt)),
       fact("time", "Time in the app", formatActiveTime(input.profile.activeSeconds)),
       fact("zone", "Timezone", input.profile.timezone || "—"),
       fact("pair", "Days as a pair", pairAgeDays(input.couple)),
