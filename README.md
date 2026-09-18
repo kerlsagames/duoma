@@ -85,7 +85,9 @@ Web push does **not** run inside a regular Safari tab. Both of you:
 3. Launch Duoma from that icon.
 4. Open **Settings**, tap **Enable notifications**, and allow the prompt.
 
-Android Chrome can subscribe from the browser tab; Home Screen install still feels like an app.
+Home and Welcome show those Share steps until Duoma is open from the icon. That copy cannot be dismissed while you are still in Safari. How-to keeps the same steps.
+
+Android Chrome can install with **Add to Home Screen** on Home when the browser offers it, or from Chrome’s menu. Android can also subscribe from the browser tab; Home Screen still feels like an app.
 
 ## Deploy for free (HTTPS is required)
 

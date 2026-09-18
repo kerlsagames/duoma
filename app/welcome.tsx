@@ -1,4 +1,5 @@
 import { DuomaLogo } from "@/components/DuomaLogo";
+import { InstallHomeScreenCard } from "@/components/InstallHomeScreenCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
@@ -93,7 +94,11 @@ export default function WelcomeScreen() {
           ))}
         </View>
 
-        <View className="mt-8 gap-3">
+        <View className="mt-6">
+          <InstallHomeScreenCard />
+        </View>
+
+        <View className="mt-2 gap-3">
           {savedPair && !savedPair.user.bannedAt ? (
             <>
               <Text className="text-center text-[14px] leading-5 text-mist/60">

@@ -9,6 +9,7 @@ import { HomeStatsSheet } from "@/components/home/HomeStatsSheet";
 import { HubGlyph } from "@/components/hub/HubGlyph";
 import { FeedbackSheet } from "@/components/FeedbackSheet";
 import { DuomaLogo } from "@/components/DuomaLogo";
+import { InstallHomeScreenCard } from "@/components/InstallHomeScreenCard";
 import { PartnerConnectionBanner } from "@/components/PartnerConnectionBanner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { GenderPicker } from "@/components/ui/GenderPicker";
@@ -235,6 +236,7 @@ export default function HomeScreen() {
           </Text>
         ) : null}
 
+        <InstallHomeScreenCard compact />
         <HomeConnectButton />
         {usingCloud && user && !cloudLive && !demoMode ? (
           <Pressable
@@ -1210,7 +1212,7 @@ function HomeSettingsSheet({
           />
           <LinkRow
             label="How it works"
-            hint="Pairing, the four hubs, calendar, and Get Spicy."
+            hint="Pairing, Home Screen Share steps, the four hubs, calendar, and Get Spicy."
             onPress={() => {
               onClose();
               router.push("/how-to" as Href);

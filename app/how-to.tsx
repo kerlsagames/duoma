@@ -72,7 +72,12 @@ const STEPS = [
   {
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
-    body: "Safari Share → Add to Home Screen, then open the icon, not the Safari tab. Notifications only work from that icon on iOS 16.4+.",
+    body: "Stay in Safari (Chrome on iPhone cannot do this). Tap Share — the square with the arrow — then Add to Home Screen, then Add. Open Duoma from the new icon, not the Safari tab. Lock-screen pings only work from that icon on iOS 16.4+. The Home Screen card on Home and Welcome hides by itself once that icon is open. It does not disappear if you are still in Safari.",
+  },
+  {
+    kicker: "Android",
+    title: "Add to Home Screen with one tap",
+    body: "Chrome can install Duoma from the Add to Home Screen button on Home. If that button is missing, open Chrome’s menu and tap Add to Home Screen, then launch the icon.",
   },
 ];
 

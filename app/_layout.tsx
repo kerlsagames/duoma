@@ -8,6 +8,7 @@ import { CatalogProvider } from "@/lib/catalog-overlay";
 import { SafetyWatch } from "@/components/SafetyWatch";
 import { isCreatorEmail } from "@/lib/creator";
 import { setDwellPath } from "@/lib/app-dwell";
+import { captureInstallPrompt } from "@/lib/pwa-install";
 import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
@@ -73,6 +74,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       document.title = "Duoma";
+      captureInstallPrompt();
     }
   }, []);
 

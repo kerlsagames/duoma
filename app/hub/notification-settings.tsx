@@ -1,3 +1,4 @@
+import { InstallHomeScreenCard } from "@/components/InstallHomeScreenCard";
 import { PushSetupCard } from "@/components/PushSetupCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
@@ -50,6 +51,7 @@ export default function NotificationSettingsScreen() {
         </Text>
 
         <View className="mt-6">
+          <InstallHomeScreenCard />
           <PushSetupCard />
         </View>
 

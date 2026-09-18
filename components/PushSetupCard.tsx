@@ -80,25 +80,19 @@ export function PushSetupCard() {
         Lock-screen notes for this phone. HTTPS only.
       </Text>
 
-      {ios ? (
+      {ios && !standalone ? (
         <View className="mt-4 rounded-2xl border border-neon/25 bg-neon/10 p-4">
           <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-neon">
             iPhone · iOS 16.4+
           </Text>
           <Text className="mt-2 text-[14px] leading-6 text-mist/75">
-            Safari tab cannot receive push. Share → Add to Home Screen, open Duoma
-            from that icon, then grant notifications. Native apps and paid
-            hosting are not required.
+            Safari tab cannot receive push. Share → Add to Home Screen, open
+            Duoma from that icon, then grant notifications. This copy stays
+            until the Home Screen icon is open. How-to keeps the Share steps.
           </Text>
-          {!standalone ? (
-            <Text className="mt-2 text-[13px] leading-5 text-crimson">
-              You are still in Safari. Add Duoma to the Home Screen first.
-            </Text>
-          ) : (
-            <Text className="mt-2 text-[13px] leading-5 text-mist/70">
-              Home Screen app is open. You can grant permission now.
-            </Text>
-          )}
+          <Text className="mt-2 text-[13px] leading-5 text-crimson">
+            You are still in Safari. Add Duoma to the Home Screen first.
+          </Text>
         </View>
       ) : null}
 
