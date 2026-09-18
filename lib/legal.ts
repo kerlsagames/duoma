@@ -6,7 +6,7 @@ export const PRIVACY_CONSENT_LABEL =
 export const AGE_PRIVACY_CONSENT_LABEL =
   "I am 18 or older and I agree to the Terms of Use and Privacy Policy.";
 
-export const LEGAL_EFFECTIVE = "17 September 2026";
+export const LEGAL_EFFECTIVE = "18 September 2026";
 export const LEGAL_OPERATOR = "Kerlsagames";
 export const LEGAL_CONTACT = "kerlsagameshq@gmail.com";
 
@@ -20,6 +20,8 @@ Duoma is for adults only. You must be 18 years of age or older. You must not all
 
 2. The service
 Duoma is a private couples application. Two people form a pair with a code. Features include games, lists, check-ins, calendar items, and optional media you keep on your own device (including Sexy Vault and Photo Memory).
+
+Duoma is free to use at launch. We may later lock some hubs or features so they require a paired partner, a share invitation, or a paid plan. We do not promise that every feature will stay free, unlocked, or available forever. If we introduce a charge or a lock, we will update these Terms and the copy in the app. Use during a free period does not create a right to keep those features free.
 
 3. Account and sign-in
 Your account is tied to the email address you provide. Duoma does not use a password you create. Sign-in is completed with a link or a six-digit code sent to that email. Anyone who can open that inbox, or a device on which you are already signed in, can use Duoma as you.
@@ -46,7 +48,7 @@ You must not:
 
 You may report account or conduct issues in the app (Home settings → Report). Because we do not receive vault or Photo Memory files, a report does not send us those photos or videos.
 
-We may suspend or close an account if we reasonably believe these Terms have been broken. Duoma is free unless we later state otherwise. Closing an account does not create a refund.
+We may suspend or close an account if we reasonably believe these Terms have been broken. Closing an account does not create a refund unless Australian Consumer Law requires one.
 
 6. Unpair and deletion
 Unpair / break up in Home settings ends the pair and wipes shared couple data on the devices in that pair. Delete account in settings (or an email to ${LEGAL_CONTACT}) asks us to close the account records we hold.
@@ -55,7 +57,7 @@ Unpair / break up in Home settings ends the pair and wipes shared couple data on
 You retain whatever rights you already have in content you add. For account data, lists, games, check-ins, and other information that is stored to operate Duoma, you grant us a limited licence to host and process that information solely to provide the service. That licence does not cover Sexy Vault, Photo Memory, or voice recordings, which we do not host.
 
 8. Availability
-Duoma is provided on an “as is” and “as available” basis. The service may be interrupted, changed, or discontinued. Local data on a phone can be lost if the app is cleared, the device is reset, or a file is not downloaded before you change phones. Email delivery of sign-in codes depends on your inbox. Codes and links expire.
+Duoma is provided on an “as is” and “as available” basis. The service may be interrupted, changed, or discontinued. Hubs and features may be added, removed, or locked (including behind pairing or payment). Local data on a phone can be lost if the app is cleared, the device is reset, or a file is not downloaded before you change phones. Email delivery of sign-in codes depends on your inbox. Codes and links expire.
 
 9. Liability
 To the maximum extent permitted by law, we are not liable for:

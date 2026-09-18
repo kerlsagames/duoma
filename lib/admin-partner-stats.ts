@@ -498,9 +498,7 @@ function collectPositions(ctx: Ctx): Bucket {
 }
 
 function collectFantasy(ctx: Ctx): Bucket {
-  const swipes = ctx.db.fantasySwipes.filter(
-    (row) => involved(row.coupleId, ctx.coupleIds) && row.userId === ctx.profile.id
-  );
+  const swipes = ctx.db.fantasySwipes.filter((row) => row.userId === ctx.profile.id);
   const done = ctx.db.fantasyCompletions.filter(
     (row) => involved(row.coupleId, ctx.coupleIds)
   );
@@ -1185,6 +1183,9 @@ export function buildPartnerDossier(input: {
       .map((row) => row.id)
   );
   if (input.couple) coupleIds.add(input.couple.id);
+  for (const row of input.db.fantasySwipes) {
+    if (row.userId === input.profile.id && row.coupleId) coupleIds.add(row.coupleId);
+  }
   const names = new Map<string, string>();
   for (const row of input.db.profiles) names.set(row.id, row.displayName);
   const ctx: Ctx = {

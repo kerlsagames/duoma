@@ -108,6 +108,42 @@ export function rewriteCoupleIds(db: AppDB, fromIds: string[], toId: string): Ap
   return next;
 }
 
+function memberOwnsRow(row: object, members: Set<string>): boolean {
+  const record = row as Record<string, unknown>;
+  return ["userId", "fromUserId", "toUserId", "createdBy", "completedBy"].some(
+    (key) => typeof record[key] === "string" && members.has(record[key] as string)
+  );
+}
+
+function coupleMembers(db: AppDB, coupleId: string): Set<string> {
+  const members = new Set<string>();
+  for (const id of aliasCoupleIds(db, coupleId)) {
+    const row = db.couples.find((item) => item.id === id);
+    if (row?.partnerA) members.add(row.partnerA);
+    if (row?.partnerB) members.add(row.partnerB);
+  }
+  return members;
+}
+
+/** Move this person's hub rows onto the cloud pair, even if they were tagged with a local id. */
+export function adoptMemberRows(db: AppDB, userId: string, toId: string): AppDB {
+  if (!userId || !toId) return db;
+  const members = new Set<string>([userId, ...coupleMembers(db, toId)]);
+  const next: AppDB = { ...db };
+  for (const key of COUPLE_ROW_KEYS) {
+    const rows = db[key] as { coupleId?: string }[];
+    (next as unknown as Record<string, unknown>)[key] = rows.map((row) => {
+      if (row.coupleId === toId) return row;
+      if (!memberOwnsRow(row, members)) return row;
+      if (row.coupleId && isCoupleUuid(row.coupleId) && !aliasCoupleIds(db, toId).has(row.coupleId)) {
+        return row;
+      }
+      return { ...row, coupleId: toId };
+    });
+  }
+  return next;
+}
+
 function stampOf(row: Record<string, unknown>): string {
   const keys = ["updatedAt", "completedAt", "answeredAt", "openedAt", "createdAt"];
   for (const key of keys) {
@@ -144,14 +180,17 @@ function gameIdsForCouple(db: AppDB, coupleId: string): Set<string> {
 
 export function sliceCoupleDb(db: AppDB, coupleId: string): CoupleSlice {
   const aliases = aliasCoupleIds(db, coupleId);
-  const games = db.games
-    .filter((row) => aliases.has(row.coupleId))
-    .map((row) => ({ ...row, coupleId }));
+  const members = coupleMembers(db, coupleId);
+  const keep = (row: unknown) => {
+    if (!hasCoupleId(row)) return false;
+    if (aliases.has(row.coupleId)) return true;
+    if (!isCoupleUuid(row.coupleId) && memberOwnsRow(row, members)) return true;
+    return false;
+  };
+  const games = db.games.filter(keep).map((row) => ({ ...row, coupleId }));
   const gameIds = new Set(games.map((row) => row.id));
   const byCouple = <T>(rows: T[]) =>
-    rows
-      .filter((row) => hasCoupleId(row) && aliases.has(row.coupleId))
-      .map((row) => ({ ...row, coupleId }));
+    rows.filter((row) => keep(row)).map((row) => ({ ...row, coupleId }));
   return {
     cards: byCouple(db.cards),
     games,

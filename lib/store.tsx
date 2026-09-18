@@ -29,8 +29,10 @@ import {
 } from "@/lib/hub-sync";
 import {
   absorbCoupleState,
+  adoptMemberRows,
   isCoupleUuid,
   mergeCoupleDb,
+  remapCoupleSlice,
   rewriteCoupleIds,
   scheduleCoupleBackup,
 } from "@/lib/couple-backup";
@@ -289,6 +291,7 @@ async function persist(opts?: { skipDwell?: boolean }) {
         })
         .map((row) => row.id);
       if (staleIds.length) db = rewriteCoupleIds(db, staleIds, couple.id);
+      db = adoptMemberRows(db, sessionUserId, couple.id);
       scheduleCoupleBackup(couple.id, db);
     }
   }
@@ -6249,18 +6252,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) {
         throw new Error("Pair up before swiping fantasies.");
       }
+      const liveCouple = coupleForUser(user.id) ?? couple;
       const stamp = nowIso();
       const withoutMine = db.fantasySwipes.filter(
-        (row) =>
-          !(
-            row.coupleId === couple.id &&
-            row.userId === user.id &&
-            row.fantasyId === fantasyId
-          )
+        (row) => !(row.userId === user.id && row.fantasyId === fantasyId)
       );
       const mine: FantasySwipe = {
         id: createId(),
-        coupleId: couple.id,
+        coupleId: liveCouple.id,
         userId: user.id,
         fantasyId,
         liked,
@@ -6275,7 +6274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           next
             .filter(
               (row) =>
-                row.coupleId === couple.id && row.userId === partner.id
+                row.coupleId === liveCouple.id && row.userId === partner.id
             )
             .map((row) => row.fantasyId)
         );
@@ -6286,7 +6285,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...next,
             ...missing.map((idea) => ({
               id: createId(),
-              coupleId: couple.id,
+              coupleId: liveCouple.id,
               userId: partner.id,
               fantasyId: idea.id,
               liked: likedIds.has(idea.id),
@@ -6296,11 +6295,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const partnerId = otherUserId(couple, user.id);
+      const partnerId = otherUserId(liveCouple, user.id);
       const partnerLike = partnerId
         ? next.find(
             (row) =>
-              row.coupleId === couple.id &&
+              row.coupleId === liveCouple.id &&
               row.userId === partnerId &&
               row.fantasyId === fantasyId &&
               row.liked
@@ -7028,7 +7027,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     allCouples,
     allCards,
     adminDb: Object.entries(inboxSlices).reduce(
-      (next, [id, slice]) => mergeCoupleDb(next, id, slice),
+      (next, [id, slice]) => mergeCoupleDb(next, id, remapCoupleSlice(slice, id)),
       { ...db, profiles: allProfiles, couples: allCouples }
     ),
     adminMinis: inboxMinis,
