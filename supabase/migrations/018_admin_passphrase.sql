@@ -202,27 +202,30 @@ security definer
 set search_path = public
 as $$
 declare
-  rec public.content_reports;
+  reported uuid;
   next_status text;
 begin
   if not public.admin_key_ok(p_key) then
     raise exception 'Admin only';
   end if;
+  if to_regclass('public.content_reports') is null then
+    raise exception 'content_reports is missing — run SQL 010 first';
+  end if;
   if p_action not in ('dismiss', 'action_taken') then
     raise exception 'Unknown action';
   end if;
-  select * into rec from public.content_reports where id = p_report_id;
-  if rec.id is null then
+  select reported_user_id into reported from public.content_reports where id = p_report_id;
+  if not found then
     raise exception 'Report not found';
   end if;
   next_status := case when p_action = 'dismiss' then 'dismissed' else 'action_taken' end;
   update public.content_reports set status = next_status where id = p_report_id;
-  if p_action = 'action_taken' and rec.reported_user_id is not null then
+  if p_action = 'action_taken' and reported is not null then
     update public.profiles
     set banned_at = now(), banned_reason = 'Removed after a safety report'
-    where id = rec.reported_user_id;
+    where id = reported;
     delete from public.couples
-    where partner_a = rec.reported_user_id or partner_b = rec.reported_user_id;
+    where partner_a = reported or partner_b = reported;
   end if;
 end;
 $$;
