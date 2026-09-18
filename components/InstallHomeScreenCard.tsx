@@ -130,11 +130,23 @@ export function InstallHomeScreenCard({ compact = false }: { compact?: boolean }
 
 function Step({ n, text }: { n: string; text: string }) {
   return (
-    <View className="flex-row items-start">
-      <View className="mr-2 mt-px h-5 w-5 items-center justify-center rounded-full bg-neon/25">
-        <Text className="text-[11px] font-bold text-neon">{n}</Text>
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
+      <View
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          backgroundColor: "rgba(255,0,127,0.22)",
+          alignItems: "center",
+          justifyContent: "center",
+          marginTop: 1,
+        }}
+      >
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#FF007F" }}>{n}</Text>
       </View>
-      <Text className="flex-1 text-[14px] leading-5 text-mist/80">{text}</Text>
+      <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: "rgba(244,244,246,0.8)" }}>
+        {text}
+      </Text>
     </View>
   );
 }
