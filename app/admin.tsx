@@ -20,6 +20,7 @@ import { FeedbackPane } from "@/components/admin/FeedbackPane";
 import { DemoPane } from "@/components/admin/DemoPane";
 import { ReportsPane } from "@/components/admin/ReportsPane";
 import { UsersSpreadsheet } from "@/components/admin/UsersSpreadsheet";
+import { StatsPane } from "@/components/admin/StatsPane";
 import { WrittenPane } from "@/components/admin/WrittenPane";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/lib/store";
@@ -34,12 +35,13 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type Tab = "setup" | "users" | "reports" | "feedback" | "written" | "demo" | CatalogKey | "spicyLive";
+type Tab = "setup" | "users" | "stats" | "reports" | "feedback" | "written" | "demo" | CatalogKey | "spicyLive";
 
 const NAV: { id: Tab; label: string }[] = [
   { id: "setup", label: "Setup" },
   { id: "demo", label: "Demo" },
   { id: "users", label: "Users" },
+  { id: "stats", label: "Stats" },
   { id: "reports", label: "Reports" },
   { id: "feedback", label: "Feedback" },
   { id: "written", label: "Written" },
@@ -215,6 +217,8 @@ export default function AdminScreen() {
           <SetupPane />
         ) : tab === "users" ? (
           <UsersSpreadsheet />
+        ) : tab === "stats" ? (
+          <StatsPane />
         ) : tab === "reports" ? (
           <ReportsPane />
         ) : tab === "feedback" ? (
