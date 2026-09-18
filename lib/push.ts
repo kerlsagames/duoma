@@ -21,6 +21,16 @@ export function isIosDevice() {
   return /iPad|iPhone|iPod/.test(ua) || iPadOs;
 }
 
+/** Chrome / Edge / Firefox on iOS — WebKit, but not Safari Share. */
+export function isIosChrome() {
+  if (!isIosDevice()) return false;
+  return /CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/i.test(window.navigator.userAgent);
+}
+
+export function isIosSafari() {
+  return isIosDevice() && !isIosChrome();
+}
+
 export function isStandalonePwa() {
   if (!isWebPushRuntime()) return false;
   const media = window.matchMedia?.("(display-mode: standalone)").matches;

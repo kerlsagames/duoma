@@ -1,5 +1,6 @@
 import "react-native-gesture-handler";
 import "@/lib/nativewind-boot";
+import { DesirePinGate } from "@/components/DesirePinGate";
 import { GameInvitationModal } from "@/components/GameInvitationModal";
 import { HomeBar } from "@/components/HomeBar";
 import { PhoneShell } from "@/components/PhoneShell";
@@ -135,6 +136,7 @@ function RootChrome() {
       <SafetyWatch />
       <View style={{ flex: 1, backgroundColor: "#0B0B0E", overflow: "hidden" }}>
         <View style={{ flex: 1, overflow: "hidden" }}>
+          <DesirePinGate>
           <Stack
             screenOptions={{
               headerShown: false,
@@ -158,6 +160,7 @@ function RootChrome() {
             <Stack.Screen name="admin" />
             <Stack.Screen name="banned" />
           </Stack>
+          </DesirePinGate>
         </View>
         {admin ||
         pathname === "/banned" ||

@@ -1,4 +1,4 @@
-import { isIosDevice, isStandalonePwa, isWebPushRuntime } from "@/lib/push";
+import { isIosChrome, isIosDevice, isStandalonePwa, isWebPushRuntime } from "@/lib/push";
 import { useEffect, useState } from "react";
 
 export type BeforeInstallPromptEvent = Event & {
@@ -60,6 +60,7 @@ export function usePwaInstallState() {
     Boolean(deferredInstallPrompt())
   );
   const [ios] = useState(isIosDevice);
+  const [iosChrome] = useState(isIosChrome);
 
   useEffect(() => {
     if (!isWebPushRuntime()) return;
@@ -80,5 +81,5 @@ export function usePwaInstallState() {
     };
   }, []);
 
-  return { standalone, canPrompt, ios };
+  return { standalone, canPrompt, ios, iosChrome };
 }

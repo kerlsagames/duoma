@@ -64,6 +64,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -782,6 +783,8 @@ function HomeSettingsSheet({
     deleteOwnAccount,
     submitContentReport,
     setProfileGender,
+    usingCloud,
+    cloudLive,
   } = useApp();
   const [danger, setDanger] = useState<"unpair" | "delete" | "report" | null>(null);
   const [safetyError, setSafetyError] = useState<string | null>(null);
@@ -1166,6 +1169,7 @@ function HomeSettingsSheet({
             COUPLE
           </Text>
           <PartnerConnectionBanner />
+          {usingCloud ? <AccountPasswordBlock live={cloudLive} /> : null}
           <View
             style={{
               marginBottom: 8,
@@ -1212,7 +1216,7 @@ function HomeSettingsSheet({
           />
           <LinkRow
             label="How it works"
-            hint="Pairing, Home Screen Share steps, the four hubs, calendar, and Get Spicy."
+            hint="Pairing, password, Home Screen Share steps, Desire pin, the four hubs, calendar, and Get Spicy."
             onPress={() => {
               onClose();
               router.push("/how-to" as Href);
@@ -1409,6 +1413,98 @@ function HomeSettingsSheet({
   );
 }
 
+function AccountPasswordBlock({ live }: { live: boolean }) {
+  const { setAccountPassword } = useApp();
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState<string | null>(null);
+
+  const save = async () => {
+    setFlash(null);
+    if (password.length < 8) {
+      setFlash("Password needs at least 8 characters.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await setAccountPassword(password);
+      setPassword("");
+      setFlash("Password saved. Use it on the Home Screen icon, not a Gmail code.");
+    } catch (err) {
+      setFlash(
+        err instanceof Error
+          ? err.message
+          : "Could not save the password. Sign in first if the cloud is signed out."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <View
+      style={{
+        marginBottom: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 14,
+        backgroundColor: "#1A1A22",
+      }}
+    >
+      <Text style={{ color: "#F4F4F6", fontSize: 15, fontWeight: "700" }}>
+        Account password
+      </Text>
+      <Text
+        style={{
+          marginTop: 4,
+          marginBottom: 10,
+          color: "rgba(244,244,246,0.5)",
+          fontSize: 12,
+          lineHeight: 18,
+        }}
+      >
+        {live
+          ? "This is how you open Duoma on a new browser or the Home Screen icon. No email code."
+          : "Cloud is signed out. Sign in once, then you can set a password here."}
+      </Text>
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="New password (8+ characters)"
+        placeholderTextColor="rgba(244,244,246,0.35)"
+        autoCapitalize="none"
+        autoCorrect={false}
+        secureTextEntry
+        editable={live && !busy}
+        style={{
+          height: 44,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.12)",
+          backgroundColor: "rgba(255,255,255,0.04)",
+          color: "#F4F4F6",
+          paddingHorizontal: 12,
+          fontSize: 15,
+        }}
+      />
+      <Pressable
+        onPress={() => void save()}
+        disabled={!live || busy}
+        style={{ marginTop: 10, paddingVertical: 10, opacity: live ? 1 : 0.45 }}
+      >
+        <Text style={{ color: "#FF007F", fontSize: 14, fontWeight: "700" }}>
+          {busy ? "Saving…" : "Save password"}
+        </Text>
+      </Pressable>
+      {flash ? (
+        <Text style={{ marginTop: 4, color: "rgba(244,244,246,0.7)", fontSize: 12 }}>
+          {flash}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 function VaultPinResetBlock() {
   const { user, partner } = useApp();
   const { data, patch } = useMiniApps();
@@ -1416,11 +1512,12 @@ function VaultPinResetBlock() {
 
   const emergencyOn = Boolean(data.vaultPin);
   const sexyOn = Boolean(data.sexyVaultPin);
-  if (!emergencyOn && !sexyOn) return null;
+  const desireOn = Boolean(data.desirePin);
+  if (!emergencyOn && !sexyOn && !desireOn) return null;
 
   const them = partner?.displayName || "your partner";
 
-  const tapReset = async (kind: "vault" | "sexy") => {
+  const tapReset = async (kind: "vault" | "sexy" | "desire") => {
     if (!user?.id) {
       setFlash("Sign in first.");
       return;
@@ -1429,7 +1526,12 @@ function VaultPinResetBlock() {
       setFlash("Need your partner on the other phone too.");
       return;
     }
-    const current = kind === "vault" ? data.vaultPinResetVotes : data.sexyVaultPinResetVotes;
+    const current =
+      kind === "vault"
+        ? data.vaultPinResetVotes
+        : kind === "sexy"
+          ? data.sexyVaultPinResetVotes
+          : data.desirePinResetVotes;
     const result = votePinReset({
       votes: current,
       userId: user.id,
@@ -1440,7 +1542,14 @@ function VaultPinResetBlock() {
       await patch((state) =>
         kind === "vault"
           ? { ...state, vaultPin: "", vaultPinResetVotes: [] }
-          : { ...state, sexyVaultPin: "", sexyVaultPinResetVotes: [] }
+          : kind === "sexy"
+            ? { ...state, sexyVaultPin: "", sexyVaultPinResetVotes: [] }
+            : {
+                ...state,
+                desirePin: "",
+                desirePinOn: false,
+                desirePinResetVotes: [],
+              }
       );
       setFlash(
         partner.isDemo
@@ -1452,13 +1561,15 @@ function VaultPinResetBlock() {
     await patch((state) =>
       kind === "vault"
         ? { ...state, vaultPinResetVotes: result.votes }
-        : { ...state, sexyVaultPinResetVotes: result.votes }
+        : kind === "sexy"
+          ? { ...state, sexyVaultPinResetVotes: result.votes }
+          : { ...state, desirePinResetVotes: result.votes }
     );
     setFlash(`Waiting for ${them} to tap Reset too.`);
   };
 
   const row = (
-    kind: "vault" | "sexy",
+    kind: "vault" | "sexy" | "desire",
     label: string,
     votes: string[]
   ) => {
@@ -1524,6 +1635,7 @@ function VaultPinResetBlock() {
       </Text>
       {emergencyOn ? row("vault", "Emergency vault", data.vaultPinResetVotes) : null}
       {sexyOn ? row("sexy", "Sexy vault", data.sexyVaultPinResetVotes) : null}
+      {desireOn ? row("desire", "Desire hub", data.desirePinResetVotes) : null}
       {flash ? (
         <Text style={{ marginBottom: 8, color: "#FF007F", fontSize: 12 }}>{flash}</Text>
       ) : null}

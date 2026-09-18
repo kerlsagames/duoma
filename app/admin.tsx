@@ -277,10 +277,11 @@ function SetupPane() {
         which cards they played. Catalog edits you make in Backstage write to a single
         overlay row so every couple gets them. Phones keep a cache. You keep this /admin.
       </Text>
-      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Email + code</Text>
+      <Text style={{ color: "#F4F4F6", fontWeight: "800", marginTop: 16 }}>Email + password</Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 6, lineHeight: 20 }}>
-        Keep the six-character code — that is how two people become a pair. Add email as
-        the account (magic link, no password to forget). New phone? Same email. Ban? You
+        Keep the six-character code — that is how two people become a pair. Email plus a
+        password is the account. They sign in from the Home Screen with those, no Gmail
+        code unless they forgot the password. New phone? Same email and password. Ban? You
         shut the email, not a random device id.
       </Text>
       <Text style={{ color: "#FF007F", fontFamily: "SpaceMono", marginTop: 22, fontSize: 12 }}>

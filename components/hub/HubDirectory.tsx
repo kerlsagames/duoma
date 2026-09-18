@@ -1,5 +1,6 @@
 import { HomeBackdrop } from "@/components/home/HomeBackdrop";
 import { HubGlyph } from "@/components/hub/HubGlyph";
+import { DesirePinSettings } from "@/components/DesirePinGate";
 import { BackButton } from "@/components/ui/BackButton";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
@@ -335,6 +336,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
               style={{ flexGrow: 0 }}
               contentContainerStyle={{ paddingBottom: 8 }}
             >
+              {hubId === "desire" ? <DesirePinSettings /> : null}
               <SectionLabel>View</SectionLabel>
               <View
                 style={{

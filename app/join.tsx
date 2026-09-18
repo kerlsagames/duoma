@@ -3,6 +3,7 @@ import { ConsentChecks } from "@/components/ConsentChecks";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
+import { passwordHint } from "@/lib/cloud-pair";
 import { normalizeInviteCode } from "@/lib/invite";
 import { useApp } from "@/lib/store";
 import type { Gender } from "@/lib/types";
@@ -26,6 +27,7 @@ export default function JoinScreen() {
   const { joinWithCode, usingCloud } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [code, setCode] = useState(() =>
     normalizeInviteCode(params.code) || normalizeInviteCode(params.invite) || codeFromWindow()
@@ -53,6 +55,13 @@ export default function JoinScreen() {
       setError("That email does not look right.");
       return;
     }
+    if (usingCloud) {
+      const hint = passwordHint(password);
+      if (hint && password.length < 8) {
+        setError(hint);
+        return;
+      }
+    }
     if (!agreed) {
       setError("Tick that you are 18+ and agree to the Terms and Privacy Policy.");
       return;
@@ -65,8 +74,9 @@ export default function JoinScreen() {
         gender,
         code,
         email: trimmedEmail || undefined,
+        password: usingCloud ? password : undefined,
       });
-      router.replace(usingCloud ? "/check-email" : "/(tabs)");
+      router.replace(usingCloud ? "/" : "/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join");
     } finally {
@@ -83,8 +93,8 @@ export default function JoinScreen() {
         <Text className="mt-3 text-[34px] font-bold text-mist">Enter the code</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
           {code.length === 6
-            ? `Code ${code} is already in the box from their invite. Add your name and email, then the 6-digit email code.`
-            : "Two of you. One code. Email is the account on this phone and the next one. The code is still how you become a pair."}
+            ? `Code ${code} is already in the box from their invite. Add your name, email, and a password. You land in the app — no Gmail code.`
+            : "Two of you. One code. Email plus a password is the account on this phone and the next one. The code is still how you become a pair."}
         </Text>
 
         <TextInput
@@ -106,6 +116,20 @@ export default function JoinScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
+        {usingCloud ? (
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password (8+ characters)"
+            placeholderTextColor="rgba(244,244,246,0.35)"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry
+            textContentType="newPassword"
+            className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+          />
+        ) : null}
+
         <View className="mt-4">
           <GenderPicker value={gender} onChange={setGender} label="I am" />
         </View>
@@ -126,14 +150,14 @@ export default function JoinScreen() {
 
         <View className="mt-8 gap-3">
           <PrimaryButton
-            label={usingCloud ? "Email me the link" : "Link us"}
+            label={usingCloud ? "Join this pair" : "Link us"}
             loading={loading}
             disabled={
               !name.trim() ||
               !gender ||
               !agreed ||
               code.trim().length !== 6 ||
-              (usingCloud && !email.trim())
+              (usingCloud && (!email.trim() || password.length < 8))
             }
             onPress={() => void submit()}
           />

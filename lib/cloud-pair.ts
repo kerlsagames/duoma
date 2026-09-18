@@ -388,3 +388,129 @@ async function loadDirectoryAsSignedIn(): Promise<{
 export function cloudAccountsOn(): boolean {
   return isSupabaseConfigured;
 }
+
+const MIN_PASSWORD = 8;
+
+export function passwordHint(value = ""): string | null {
+  if (!value) return "At least 8 characters. You use this on the Home Screen, not an email code.";
+  if (value.length < MIN_PASSWORD) return "Password needs at least 8 characters.";
+  return null;
+}
+
+function authApiUrl() {
+  if (typeof window === "undefined") return "/api/auth/password";
+  const host = window.location.hostname;
+  const port = window.location.port;
+  if (host === "localhost" || host === "127.0.0.1") {
+    const push = process.env.EXPO_PUBLIC_PUSH_API?.replace(/\/$/, "");
+    return `${push || "http://127.0.0.1:43128"}/api/auth/password`;
+  }
+  if (port === "43127") {
+    return "http://127.0.0.1:43128/api/auth/password";
+  }
+  return `${window.location.origin}/api/auth/password`;
+}
+
+async function ensurePasswordUser(input: {
+  email: string;
+  password: string;
+  displayName: string;
+  gender: Gender | null;
+  code?: string;
+}): Promise<"created" | "exists"> {
+  const email = input.email.trim().toLowerCase();
+  try {
+    const res = await fetch(authApiUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password: input.password,
+        displayName: input.displayName,
+        gender: input.gender,
+        code: input.code ?? "",
+      }),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as { exists?: boolean };
+      return json.exists ? "exists" : "created";
+    }
+  } catch {
+    // Local Expo without the auth route falls through to signUp.
+  }
+  if (!supabase) throw new Error("Cloud accounts are not connected yet.");
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: input.password,
+    options: {
+      data: {
+        display_name: input.displayName,
+        gender: input.gender ?? "",
+        invite_code: input.code ?? "",
+      },
+    },
+  });
+  if (error) {
+    if (/already|registered|exists/i.test(error.message)) return "exists";
+    throw error;
+  }
+  if (data.user && !data.session) {
+    throw new Error(
+      "This project still asks for an email click. Use the password after you confirm, or add SUPABASE_SERVICE_ROLE_KEY so sign-up skips the inbox."
+    );
+  }
+  return "created";
+}
+
+export async function signInWithPasswordAccount(email: string, password: string): Promise<void> {
+  if (!supabase) throw new Error("Cloud accounts are not connected yet.");
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  });
+  if (error) {
+    if (/invalid login|invalid credentials|wrong/i.test(error.message)) {
+      throw new Error(
+        "Wrong email or password. If you have never set a password, use Forgot password once, then set one in Home settings."
+      );
+    }
+    if (/not confirmed|confirm/i.test(error.message)) {
+      throw new Error(
+        "This account still needs the old email code once. Use Forgot password, then set a password in Home settings."
+      );
+    }
+    throw error;
+  }
+}
+
+export async function registerPasswordPair(
+  pending: PendingPair,
+  email: string,
+  password: string
+): Promise<void> {
+  const trimmed = email.trim().toLowerCase();
+  const problem = passwordHint(password);
+  if (problem && password.length < MIN_PASSWORD) throw new Error(problem);
+  savePendingPair({ ...pending, email: trimmed });
+  const created = await ensurePasswordUser({
+    email: trimmed,
+    password,
+    displayName: pending.displayName,
+    gender: pending.gender,
+    code: pending.code,
+  });
+  try {
+    await signInWithPasswordAccount(trimmed, password);
+  } catch (err) {
+    if (created === "exists") throw err;
+    throw err;
+  }
+}
+
+export async function updateAccountPassword(password: string): Promise<void> {
+  if (!supabase) throw new Error("Cloud accounts are not connected yet.");
+  const problem = passwordHint(password);
+  if (problem && password.length < MIN_PASSWORD) throw new Error(problem);
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}

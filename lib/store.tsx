@@ -208,8 +208,10 @@ import {
   cloudAccountsOn,
   loadCloudDirectory,
   readPendingPair,
+  registerPasswordPair,
   sendLoginOtp,
-  sendPairMagicLink,
+  signInWithPasswordAccount,
+  updateAccountPassword,
   verifyPairOtp,
 } from "@/lib/cloud-pair";
 import { loadAdminInbox } from "@/lib/admin-inbox";
@@ -685,8 +687,19 @@ function shareHub(
   void pushHubItems(couple.id, items);
 }
 
-type CreateAccountInput = { displayName: string; gender: Gender; email?: string };
-type JoinInput = { displayName: string; gender: Gender; code: string; email?: string };
+type CreateAccountInput = {
+  displayName: string;
+  gender: Gender;
+  email?: string;
+  password?: string;
+};
+type JoinInput = {
+  displayName: string;
+  gender: Gender;
+  code: string;
+  email?: string;
+  password?: string;
+};
 
 export type BestCard = {
   card: Card;
@@ -784,6 +797,8 @@ type AppContextValue = {
   refreshCloudAccounts: () => Promise<void>;
   requestEmailCode: (email: string) => Promise<void>;
   verifyEmailCode: (token: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  setAccountPassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   unpairAndWipe: () => Promise<void>;
   deleteOwnAccount: () => Promise<void>;
@@ -1749,20 +1764,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await writeLastUserId(userId);
   };
 
-  const createAccount = useCallback(async ({ displayName, gender, email }: CreateAccountInput) => {
+  const createAccount = useCallback(async ({ displayName, gender, email, password }: CreateAccountInput) => {
     const trimmedEmail = email?.trim().toLowerCase() || "";
     if (cloudAccountsOn()) {
       if (!trimmedEmail) {
         throw new Error("Email is required so you can open this pair on a new phone.");
       }
+      if (!password) {
+        throw new Error("Set a password so you can open Duoma from the Home Screen without waiting on Gmail.");
+      }
       setPairError(null);
       sessionUserId = null;
       await writeSessionUserId(null);
       emit();
-      await sendPairMagicLink(
+      await registerPasswordPair(
         { intent: "create", displayName: displayName.trim() || "You", gender },
-        trimmedEmail
+        trimmedEmail,
+        password
       );
+      const absorbed = await absorbCloudSession();
+      if (!absorbed) {
+        throw new Error("Signed in, but the pair is not ready yet.");
+      }
+      const profile = pardonCreator(absorbed.profile);
+      mergeCloudPair({ ...absorbed, profile });
+      liveUserId = profile.id;
+      await writeLiveUserId(profile.id);
+      await rememberUser(profile.id);
+      await absorbHubForCouple(absorbed.couple.id);
+      await persist();
       return;
     }
     const profile: Profile = {
@@ -1797,26 +1827,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await persist();
   }, []);
 
-  const joinWithCode = useCallback(async ({ displayName, gender, code, email }: JoinInput) => {
+  const joinWithCode = useCallback(async ({ displayName, gender, code, email, password }: JoinInput) => {
     const normalized = code.trim().toUpperCase();
     const trimmedEmail = email?.trim().toLowerCase() || "";
     if (cloudAccountsOn()) {
       if (!trimmedEmail) {
         throw new Error("Email is required so you can open this pair on a new phone.");
       }
+      if (!password) {
+        throw new Error("Set a password so you can open Duoma from the Home Screen without waiting on Gmail.");
+      }
       setPairError(null);
       sessionUserId = null;
       await writeSessionUserId(null);
       emit();
-      await sendPairMagicLink(
+      await registerPasswordPair(
         {
           intent: "join",
           displayName: displayName.trim() || "You",
           gender,
           code: normalized,
         },
-        trimmedEmail
+        trimmedEmail,
+        password
       );
+      const absorbed = await absorbCloudSession();
+      if (!absorbed) {
+        throw new Error("Signed in, but the pair is not ready yet.");
+      }
+      const profile = pardonCreator(absorbed.profile);
+      mergeCloudPair({ ...absorbed, profile });
+      liveUserId = profile.id;
+      await writeLiveUserId(profile.id);
+      await rememberUser(profile.id);
+      await absorbHubForCouple(absorbed.couple.id);
+      await persist();
       return;
     }
     const match = db.couples.find((row) => row.inviteCode === normalized);
@@ -1880,20 +1925,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (saved?.bannedAt && !isCreatorEmail(saved.email)) {
         throw new Error(saved.bannedReason || "This account is banned.");
       }
-      if (saved?.email && (saved.gender === "male" || saved.gender === "female")) {
-        const savedCouple = coupleForUser(saved.id);
-        await sendPairMagicLink(
-          {
-            intent: savedCouple?.partnerB ? "join" : "create",
-            displayName: saved.displayName,
-            gender: saved.gender,
-            code: savedCouple?.inviteCode,
-          },
-          saved.email
-        );
-        throw new Error("CHECK_EMAIL");
+      if (saved?.email) {
+        throw new Error("SIGN_IN");
       }
-      throw new Error("Open the email link, or create the pair again with your email.");
+      throw new Error("Sign in with your password, or create the pair again with your email.");
     }
     if (!lastUserId) return;
     const saved = db.profiles.find((profile) => profile.id === lastUserId);
@@ -2027,6 +2062,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await rememberUser(profile.id);
     await absorbHubForCouple(absorbed.couple.id);
     await persist();
+  }, []);
+
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    setPairError(null);
+    await signInWithPasswordAccount(email, password);
+    const absorbed = await absorbCloudSession();
+    if (!absorbed) {
+      throw new Error("Signed in, but the pair is not ready yet.");
+    }
+    const profile = pardonCreator(absorbed.profile);
+    if (profile.bannedAt && !isCreatorEmail(profile.email)) {
+      throw new Error(profile.bannedReason || "This account is banned.");
+    }
+    mergeCloudPair({ ...absorbed, profile });
+    liveUserId = profile.id;
+    await writeLiveUserId(profile.id);
+    await rememberUser(profile.id);
+    await absorbHubForCouple(absorbed.couple.id);
+    await persist();
+  }, []);
+
+  const setAccountPassword = useCallback(async (password: string) => {
+    await updateAccountPassword(password);
   }, []);
 
   const banAccount = useCallback(async (profileId: string, reason: string) => {
@@ -7087,6 +7145,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshCloudAccounts,
     requestEmailCode,
     verifyEmailCode,
+    signInWithPassword,
+    setAccountPassword,
     signOut,
     unpairAndWipe,
     deleteOwnAccount,

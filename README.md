@@ -44,10 +44,10 @@ On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow *
 
 ### Pairing on web
 
-1. **Create your pair** — name, email, Male/Female. We email a 6-digit code. Type it in the app (do not tap the link — inboxes often burn it).
+1. **Create your pair** — name, email, Male/Female, password (8+ characters). You land in the app. No Gmail code.
 2. Home shows **Connect** until they join. Send them the invite — it includes the 6-character pair code and a link to `https://duoma.vercel.app/join?code=XXXXXX` so Join opens with the code already in the box.
-3. Their phone: open the link (or **I have a code**) — their name, their email, the pair code, then their 6-digit email code.
-4. **Sign in** on the login screen if a link expired. Same inbox, new 6-digit code. Forgot password is only there — not on Home.
+3. Their phone: open the link (or **I have a code**) — their name, their email, a password, the pair code.
+4. **Sign in** on the login screen with email and password. Forgot password still emails a 6-digit code. Same inbox, then set a new password in Home settings.
 
 Email is the account (new phone, bans). The pair code is still how two people become a pair.
 
@@ -85,7 +85,7 @@ Web push does **not** run inside a regular Safari tab. Both of you:
 3. Launch Duoma from that icon.
 4. Open **Settings**, tap **Enable notifications**, and allow the prompt.
 
-Home and Welcome show those Share steps until Duoma is open from the icon. That copy cannot be dismissed while you are still in Safari. How-to keeps the same steps.
+Home and Welcome show those Share steps until Duoma is open from the icon. That copy cannot be dismissed while you are still in the browser. Chrome on iPhone has no Add to Home Screen button — copy the link, open Safari, paste, then Share. How-to keeps the same steps. Sign in on the icon with your password.
 
 Android Chrome can install with **Add to Home Screen** on Home when the browser offers it, or from Chrome’s menu. Android can also subscribe from the browser tab; Home Screen still feels like an app.
 

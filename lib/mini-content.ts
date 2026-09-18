@@ -490,6 +490,9 @@ export type MiniState = {
   sexyVault: SexyVaultItem[];
   sexyVaultPin: string;
   sexyVaultPinResetVotes: string[];
+  desirePin: string;
+  desirePinOn: boolean;
+  desirePinResetVotes: string[];
   whoLast: WhoLast[];
   whoTasks: { id: string; label: string }[];
   cheers: Cheer[];
@@ -884,6 +887,9 @@ export function emptyMiniState(): MiniState {
     sexyVault: emptySexyVault(),
     sexyVaultPin: "",
     sexyVaultPinResetVotes: [],
+    desirePin: "",
+    desirePinOn: false,
+    desirePinResetVotes: [],
     whoLast: [],
     whoTasks: DEFAULT_WHO_TASKS.map((row) => ({ ...row })),
     cheers: [],
@@ -1004,6 +1010,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
     sexyVault: hydrateSexyVault(row.sexyVault),
     sexyVaultPin: typeof row.sexyVaultPin === "string" ? row.sexyVaultPin : "",
     sexyVaultPinResetVotes: hydrateVoteIds(row.sexyVaultPinResetVotes),
+    desirePin: typeof row.desirePin === "string" ? row.desirePin : "",
+    desirePinOn: row.desirePinOn === true,
+    desirePinResetVotes: hydrateVoteIds(row.desirePinResetVotes),
     whoLast: asArray(row.whoLast, base.whoLast),
     whoTasks: asArray(row.whoTasks, base.whoTasks).filter(keepFairShareItem),
     cheers: asArray(row.cheers, base.cheers),

@@ -7,7 +7,7 @@ const STEPS = [
   {
     kicker: "Pair once",
     title: "One code, then you stay linked",
-    body: "Email yourself a 6-digit code to open the app. On Home, Connect sends them the six-character pair code, that button leaves when they join. Sign in / Forgot password is on the login screen, not Home. Sign out does not unpair you, and it does not delete your photos or lists. Do not make a new pair just to come back. Terms and privacy say you are responsible if someone else opens your email or codes.",
+    body: "Email plus a password is the account. Create or Join sets the password, then you land in the app — no Gmail code. On Home, Connect sends them the six-character pair code, that button leaves when they join. Sign in with that password on the login screen. Forgot password still emails a 6-digit code if you need it. Sign out does not unpair you, and it does not delete your photos or lists. Do not make a new pair just to come back. Terms and privacy say you are responsible if someone else opens your email, password, or codes.",
   },
   {
     kicker: "Two phones",
@@ -72,12 +72,17 @@ const STEPS = [
   {
     kicker: "iPhone",
     title: "Add Duoma to the Home Screen",
-    body: "Stay in Safari (Chrome on iPhone cannot do this). Tap Share — the square with the arrow — then Add to Home Screen, then Add. Open Duoma from the new icon, not the Safari tab. Lock-screen pings only work from that icon on iOS 16.4+. The Home Screen card on Home and Welcome hides by itself once that icon is open. It does not disappear if you are still in Safari.",
+    body: "Stay in Safari (Chrome on iPhone cannot add the Home Screen app). If you are in Chrome, there is no download-to-screen button — copy the Duoma link, open Safari, paste it, then tap Share, Add to Home Screen, Add. Open Duoma from the new icon, not the browser tab. Lock-screen pings only work from that icon on iOS 16.4+. Sign in on that icon with your password. The Home Screen card hides once that icon is open.",
   },
   {
     kicker: "Android",
     title: "Add to Home Screen with one tap",
     body: "Chrome can install Duoma from the Add to Home Screen button on Home. If that button is missing, open Chrome’s menu and tap Add to Home Screen, then launch the icon.",
+  },
+  {
+    kicker: "Desire pin",
+    title: "Optional lock on the whole hub",
+    body: "Desire settings has Lock Desire with a pin. When it is on, tapping Desire opens a combination screen like the Sexy Vault. Shared four or six digits. Apps inside Desire stay behind that pin until you unlock. Both of you can reset it from Home settings if you forget.",
   },
 ];
 

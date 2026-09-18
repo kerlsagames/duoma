@@ -116,6 +116,13 @@ export default function WelcomeScreen() {
                         router.replace("/check-email");
                         return;
                       }
+                      if (err instanceof Error && err.message === "SIGN_IN") {
+                        const savedEmail = savedPair?.user.email
+                          ? `?email=${encodeURIComponent(savedPair.user.email)}`
+                          : "";
+                        router.replace(`/login${savedEmail}` as Href);
+                        return;
+                      }
                       router.replace("/banned");
                     });
                 }}

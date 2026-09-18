@@ -24,10 +24,10 @@ Duoma is a private couples application. Two people form a pair with a code. Feat
 Duoma is free to use at launch. We may later lock some hubs or features so they require a paired partner, a share invitation, or a paid plan. We do not promise that every feature will stay free, unlocked, or available forever. If we introduce a charge or a lock, we will update these Terms and the copy in the app. Use during a free period does not create a right to keep those features free.
 
 3. Account and sign-in
-Your account is tied to the email address you provide. Duoma does not use a password you create. Sign-in is completed with a link or a six-digit code sent to that email. Anyone who can open that inbox, or a device on which you are already signed in, can use Duoma as you.
+Your account is tied to the email address you provide. You set a password and use that password to sign in from the Home Screen app or another browser. We may still send a six-digit code to that email if you forget the password. Anyone who knows your password, can open that inbox, or uses a device on which you are already signed in, can use Duoma as you.
 
 You are responsible for:
-• keeping your email account, phone, and sign-in codes under your control;
+• keeping your password, email account, phone, and sign-in codes under your control;
 • sharing a pair code only with the partner you intend to link; and
 • using Forgot password only from a device you trust.
 
@@ -109,7 +109,7 @@ You are responsible for what you store on your device and for any file you downl
 We collect the information needed to run your account and the pair:
 • Account: display name, email address, Male/Female, pair code, the time you confirmed you are 18 or older and accepted these policies, last sign-in, device timezone (not GPS), and time spent in the app
 • Pair activity stored to operate the service: lists, games, check-ins, calendar items, pose and roleplay asks, and similar hub data
-• Device details required to send a sign-in email, and, if you enable notifications, to deliver a lock-screen ping
+• Device details required to send a sign-in email if you forget your password, and, if you enable notifications, to deliver a lock-screen ping
 
 We do not sell personal information. We do not build advertising profiles.
 
@@ -118,7 +118,7 @@ We use this information to:
 • create and maintain your account and pair;
 • sign you in;
 • sync pair activity (not photos or videos) so both phones and a new phone can see lists, games, and check-ins;
-• send sign-in codes and optional notifications;
+• send optional password-reset codes and optional notifications;
 • investigate reports of account or conduct issues; and
 • enforce the Terms of Use, including bans.
 
@@ -128,7 +128,7 @@ Your partner sees what you share in the pair. People who operate Duoma may see a
 Hosting providers (for example the companies that host the website and the account database) process account and pair data under contract. They do not receive your vault photos or videos.
 
 6. Storage and security
-Account and pair data are stored with our hosting providers. Sign-in codes are sent to your email; we cannot see your email password. Protect that inbox. Media in Sexy Vault and Photo Memory is stored on the device, not in our cloud.
+Account and pair data are stored with our hosting providers. Your account password is stored by that provider in hashed form; we cannot see it. Password-reset codes are sent to your email. Protect that inbox and that password. Media in Sexy Vault and Photo Memory is stored on the device, not in our cloud.
 
 7. How long we keep it
 We keep account records while the pair exists and for a short period after you unpair or delete the account, unless we must retain a record of a ban or a legal request. Unpair wipes shared couple data on the devices in that pair. Delete account in settings, or email ${LEGAL_CONTACT}, to ask us to close the account records we hold. Deleting the app or changing phones does not, by itself, delete records we hold in the account database.

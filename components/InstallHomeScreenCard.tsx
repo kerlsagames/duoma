@@ -4,6 +4,7 @@ import {
   usePwaInstallState,
 } from "@/lib/pwa-install";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
@@ -13,14 +14,40 @@ import { Platform, Pressable, Text, View } from "react-native";
  * Hides only when Duoma is open as a standalone Home Screen app.
  * iPhone copy cannot be dismissed while still in Safari — lock-screen
  * pings never work from that tab, and How-to is easy to miss.
+ * Chrome on iPhone has no install button; copy the link and finish in Safari.
  */
 export function InstallHomeScreenCard({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
-  const { standalone, canPrompt, ios } = usePwaInstallState();
+  const { standalone, canPrompt, ios, iosChrome } = usePwaInstallState();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   if (Platform.OS !== "web" || standalone) return null;
+
+  const pageUrl = typeof window !== "undefined" ? window.location.href : "https://duoma.vercel.app";
+
+  const copyLink = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await Clipboard.setStringAsync(pageUrl);
+      setStatus("Link copied. Open Safari, paste in the address bar, then Share → Add to Home Screen.");
+    } catch {
+      setStatus(pageUrl);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openSafari = () => {
+    if (typeof window === "undefined") return;
+    const href = window.location.href;
+    const safari = href.startsWith("https:")
+      ? href.replace(/^https:/, "x-safari-https:")
+      : href.replace(/^http:/, "x-safari-http:");
+    window.location.href = safari;
+    setStatus("If Safari did not open, copy the link and paste it there yourself.");
+  };
 
   const install = async () => {
     setBusy(true);
@@ -57,10 +84,36 @@ export function InstallHomeScreenCard({ compact = false }: { compact?: boolean }
         className="mt-1 font-semibold text-mist"
         style={{ fontSize: compact ? 15 : 16 }}
       >
-        {ios ? "Add Duoma from Safari" : "Add Duoma to this phone"}
+        {iosChrome
+          ? "Chrome on iPhone cannot add the icon"
+          : ios
+            ? "Add Duoma from Safari"
+            : "Add Duoma to this phone"}
       </Text>
 
-      {ios ? (
+      {iosChrome ? (
+        <>
+          <Text className="mt-2 text-[14px] leading-5 text-mist/75">
+            {compact
+              ? "There is no Add to Home Screen button in iPhone Chrome. Copy this link, open Safari, paste it, then Share → Add to Home Screen."
+              : "Apple only lets Safari create the Home Screen app that can get lock-screen pings. Chrome on iPhone has no download-to-screen button for Duoma. Copy the link, switch to Safari, paste it, then Share → Add to Home Screen."}
+          </Text>
+          <View className="mt-3 gap-2">
+            <PrimaryButton
+              label="Copy Duoma link"
+              loading={busy}
+              size="compact"
+              onPress={() => void copyLink()}
+            />
+            <PrimaryButton
+              label="Try opening Safari"
+              tone="ghost"
+              size="compact"
+              onPress={openSafari}
+            />
+          </View>
+        </>
+      ) : ios ? (
         compact ? (
           <Text className="mt-1.5 text-[13px] leading-5 text-mist/75">
             Share → Add to Home Screen → open that icon, not this tab. Pings
@@ -98,8 +151,8 @@ export function InstallHomeScreenCard({ compact = false }: { compact?: boolean }
         </>
       ) : (
         <Text className="mt-2 text-[14px] leading-5 text-mist/75">
-          Chrome menu → Add to Home Screen, then open the icon. iPhone has to
-          use Safari Share instead — Chrome on iOS cannot do this.
+          Chrome menu → Add to Home Screen, then open the icon. iPhone Chrome
+          cannot do this — copy the link and finish in Safari.
         </Text>
       )}
 

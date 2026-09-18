@@ -3,6 +3,7 @@ import { ConsentChecks } from "@/components/ConsentChecks";
 import { GenderPicker } from "@/components/ui/GenderPicker";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
+import { passwordHint } from "@/lib/cloud-pair";
 import { useApp } from "@/lib/store";
 import type { Gender } from "@/lib/types";
 import { useRouter } from "expo-router";
@@ -14,6 +15,7 @@ export default function CreateAccountScreen() {
   const { createAccount, usingCloud } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,13 @@ export default function CreateAccountScreen() {
       setError("That email does not look right.");
       return;
     }
+    if (usingCloud) {
+      const hint = passwordHint(password);
+      if (hint && password.length < 8) {
+        setError(hint);
+        return;
+      }
+    }
     if (!agreed) {
       setError("Tick that you are 18+ and agree to the Terms and Privacy Policy.");
       return;
@@ -41,8 +50,9 @@ export default function CreateAccountScreen() {
         displayName: name,
         gender,
         email: trimmedEmail || undefined,
+        password: usingCloud ? password : undefined,
       });
-      router.replace(usingCloud ? "/check-email" : "/waiting");
+      router.replace(usingCloud ? "/" : "/waiting");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create account");
     } finally {
@@ -59,8 +69,9 @@ export default function CreateAccountScreen() {
         <Text className="mt-3 text-[34px] font-bold text-mist">Your name</Text>
         <Text className="mt-2 text-[16px] leading-6 text-mist/65">
           Your name, plus Male or Female so spicy cards, positions, and
-          roleplays speak to the right body. Email is the account — a link, no
-          password. The six-character code is still how you link the two of you.
+          roleplays speak to the right body. Email plus a password is the
+          account — you sign in from the Home Screen with those, no Gmail code.
+          The six-character code is still how you link the two of you.
         </Text>
 
         <TextInput
@@ -83,6 +94,20 @@ export default function CreateAccountScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
+        {usingCloud ? (
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password (8+ characters)"
+            placeholderTextColor="rgba(244,244,246,0.35)"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry
+            textContentType="newPassword"
+            className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+          />
+        ) : null}
+
         <View className="mt-4">
           <GenderPicker value={gender} onChange={setGender} label="I am" />
         </View>
@@ -93,9 +118,14 @@ export default function CreateAccountScreen() {
 
         <View className="mt-8 gap-3">
           <PrimaryButton
-            label={usingCloud ? "Email me the link" : "Generate my code"}
+            label={usingCloud ? "Create pair" : "Generate my code"}
             loading={loading}
-            disabled={!name.trim() || !gender || !agreed || (usingCloud && !email.trim())}
+            disabled={
+              !name.trim() ||
+              !gender ||
+              !agreed ||
+              (usingCloud && (!email.trim() || password.length < 8))
+            }
             onPress={() => void submit()}
           />
           <PrimaryButton label="Back" tone="ghost" onPress={() => router.back()} />

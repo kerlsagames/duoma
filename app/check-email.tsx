@@ -80,8 +80,8 @@ export default function CheckEmailScreen() {
         <Text className="mt-3 text-[34px] font-bold text-mist">Check your email</Text>
         <Text className="mt-3 text-[16px] leading-6 text-mist/65">
           Do not tap the link — Gmail often burns it. Type the 6-digit code from
-          the email. Then you land in the app. Connect on Home sends them the
-          pair code.
+          the email. Then set a password in Home settings so the next sign-in
+          does not need Gmail.
         </Text>
 
         <TextInput

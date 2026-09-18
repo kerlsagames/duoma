@@ -22,6 +22,7 @@ if (existsSync(envPath)) {
 
 const send = require("../api/push/send.js");
 const daily = require("../api/push/daily.js");
+const passwordAuth = require("../api/auth/password.js");
 const PORT = Number(process.env.PUSH_PORT || 43128);
 
 function wrap(res) {
@@ -65,6 +66,10 @@ const server = createServer(async (req, res) => {
   }
   if (url.pathname === "/api/push/daily") {
     await daily(req, res);
+    return;
+  }
+  if (url.pathname === "/api/auth/password") {
+    await passwordAuth(req, res);
     return;
   }
   res.status(404).json({ error: "Not found" });
