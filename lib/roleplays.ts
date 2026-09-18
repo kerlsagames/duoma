@@ -863,20 +863,29 @@ export function roleplayCastNames(
   const people = [you, partner].filter(Boolean) as CastPerson[];
   const female = people.find((p) => p.gender === "female");
   const male = people.find((p) => p.gender === "male");
+  const youName = you?.displayName?.trim() || "";
+  const partnerName = partner?.displayName?.trim() || "";
 
-  const f =
+  let f =
     female?.displayName?.trim() ||
     people.find((p) => p.gender !== "male")?.displayName?.trim() ||
-    partner?.displayName?.trim() ||
-    you?.displayName?.trim() ||
-    "Her";
+    partnerName ||
+    youName ||
+    "her";
 
-  const m =
+  let m =
     male?.displayName?.trim() ||
     people.find((p) => p.displayName?.trim() !== f)?.displayName?.trim() ||
-    you?.displayName?.trim() ||
-    partner?.displayName?.trim() ||
-    "Him";
+    youName ||
+    partnerName ||
+    "him";
+
+  // Waiting / unpaired: don't print one name in both F and M slots.
+  if (f.toLowerCase() === m.toLowerCase()) {
+    if (female && !male) m = partnerName && partnerName !== f ? partnerName : "him";
+    else if (male && !female) f = partnerName && partnerName !== m ? partnerName : "her";
+    else m = partnerName && partnerName !== f ? partnerName : "them";
+  }
 
   return { f, m };
 }
@@ -886,9 +895,13 @@ export function personalizeRoleplayText(
   text: string,
   cast: { f: string; m: string }
 ): string {
-  return text
+  const next = text
     .replace(/\bF's\b/g, `${cast.f}'s`)
     .replace(/\bM's\b/g, `${cast.m}'s`)
     .replace(/\bF\b/g, cast.f)
     .replace(/\bM\b/g, cast.m);
+  if (/^[FM]\b/.test(text) && next[0] && next[0] === next[0].toLowerCase()) {
+    return next.charAt(0).toUpperCase() + next.slice(1);
+  }
+  return next;
 }

@@ -650,11 +650,15 @@ export function personalizeFantasyTitle(
   title: string,
   cast: { f: string; m: string }
 ): string {
-  return title
+  const next = title
     .replace(/\bF's\b/g, `${cast.f}'s`)
     .replace(/\bM's\b/g, `${cast.m}'s`)
     .replace(/\bF\b/g, cast.f)
     .replace(/\bM\b/g, cast.m);
+  if (/^[FM]\b/.test(title) && next[0] && next[0] === next[0].toLowerCase()) {
+    return next.charAt(0).toUpperCase() + next.slice(1);
+  }
+  return next;
 }
 
 export function groupFantasiesByCategory(ideas: FantasyIdea[]): {
