@@ -267,8 +267,14 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
   }, 400);
 }
 
+function isCoupleUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
-  if (!supabase || !coupleId || restoring) return;
+  if (!supabase || !coupleId || restoring || !isCoupleUuid(coupleId)) return;
   try {
     const { loadMiniState } = await import("@/lib/mini-apps");
     const mini = sanitizeMiniForCloud(await loadMiniState());
@@ -279,11 +285,18 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
       savedAt: new Date().toISOString(),
     };
     lastPushedAt = payload.savedAt;
-    await supabase.from("couple_state").upsert({
+    const row = {
       couple_id: coupleId,
       payload,
       updated_at: payload.savedAt,
-    });
+    };
+    const { error } = await supabase.from("couple_state").upsert(row);
+    if (error) {
+      await supabase.rpc("save_couple_state", {
+        p_couple_id: coupleId,
+        p_payload: payload,
+      });
+    }
   } catch {
     // Table missing or offline — local play still works.
   }

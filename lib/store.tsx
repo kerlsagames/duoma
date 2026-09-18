@@ -1218,12 +1218,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready || !user?.id) return;
-    const pulse = async () => {
+    const pulse = async (seconds = 30) => {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       const current = db.profiles.find((row) => row.id === user.id);
       if (!current) return;
-      const nextSeconds = (current.activeSeconds ?? 0) + 30;
-      const appSeconds = bumpAppSeconds(current.appSeconds, currentDwellApp(), 30);
+      const nextSeconds = (current.activeSeconds ?? 0) + seconds;
+      const appSeconds = bumpAppSeconds(current.appSeconds, currentDwellApp(), seconds);
       const seen = nowIso();
       const zone = deviceTimezone();
       db = {
@@ -1242,21 +1242,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       await persist();
       if (supabase && !sessionIsDemo()) {
-        void supabase
-          .from("profiles")
-          .update({
-            active_seconds: nextSeconds,
-            last_seen_at: seen,
-            timezone: zone,
-          })
-          .eq("id", user.id);
-        void supabase
-          .from("profiles")
-          .update({ app_seconds: appSeconds })
-          .eq("id", user.id);
+        try {
+          const { error } = await supabase
+            .from("profiles")
+            .update({
+              active_seconds: nextSeconds,
+              last_seen_at: seen,
+              timezone: zone,
+              app_seconds: appSeconds,
+            })
+            .eq("id", user.id);
+          if (error) {
+            await supabase.rpc("touch_profile_usage", {
+              p_active_seconds: nextSeconds,
+              p_app_seconds: appSeconds,
+              p_timezone: zone ?? "",
+            });
+          }
+        } catch {
+          // Usage pulse is best-effort until SQL 019 is live.
+        }
       }
     };
-    const timer = setInterval(() => void pulse(), 30_000);
+    void pulse(15);
+    const timer = setInterval(() => void pulse(30), 30_000);
     return () => clearInterval(timer);
   }, [ready, user?.id]);
 

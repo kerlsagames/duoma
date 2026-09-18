@@ -79,6 +79,56 @@ async function parseState(raw: string | null): Promise<MiniState | null> {
   }
 }
 
+const PLAY_KEYS = [
+  "birthdays",
+  "trips",
+  "intimacy",
+  "predictions",
+  "pings",
+  "flashes",
+  "triviaQuestions",
+  "triviaAttempts",
+  "knowMeSheets",
+  "knowMeGuesses",
+  "twoTruths",
+  "photos",
+  "capsules",
+  "fairSpins",
+  "maintenance",
+  "whoLast",
+  "cheers",
+  "giftPeople",
+  "giftItems",
+  "padNotes",
+  "crossword",
+  "audioNotes",
+] as const;
+
+export function miniHasPlay(state: MiniState | null | undefined): state is MiniState {
+  if (!state) return false;
+  return PLAY_KEYS.some((key) => {
+    const value = state[key];
+    return Array.isArray(value) && value.length > 0;
+  });
+}
+
+async function readOrphanMini(): Promise<MiniState | null> {
+  const local = await parseState(await readKey(storageKey(null)));
+  if (miniHasPlay(local)) return local;
+  const legacy = await parseState(await readKey(MINI_APPS_LEGACY_KEY));
+  if (miniHasPlay(legacy)) return resetJobLastDone(legacy);
+  return null;
+}
+
+async function adoptOrphanMini(coupleId: string): Promise<MiniState | null> {
+  const orphan = await readOrphanMini();
+  if (!orphan) return null;
+  await writeKey(storageKey(coupleId), JSON.stringify(orphan));
+  await removeKey(storageKey(null));
+  await removeKey(MINI_APPS_LEGACY_KEY);
+  return orphan;
+}
+
 export async function loadMiniState(): Promise<MiniState> {
   if (cache) return cache;
   if (activeCoupleId === undefined) {
@@ -88,19 +138,20 @@ export async function loadMiniState(): Promise<MiniState> {
   const key = storageKey(activeCoupleId);
   try {
     const scoped = await parseState(await readKey(key));
-    if (scoped) {
+    if (miniHasPlay(scoped)) {
       cache = scoped;
       return cache;
     }
     if (activeCoupleId) {
-      const legacy = await parseState(await readKey(MINI_APPS_LEGACY_KEY));
-      if (legacy) {
-        const migrated = resetJobLastDone(legacy);
-        cache = migrated;
-        await writeKey(key, JSON.stringify(migrated));
-        await removeKey(MINI_APPS_LEGACY_KEY);
+      const adopted = await adoptOrphanMini(activeCoupleId);
+      if (adopted) {
+        cache = adopted;
         return cache;
       }
+    }
+    if (scoped) {
+      cache = scoped;
+      return cache;
     }
     cache = emptyMiniState();
   } catch {
@@ -115,6 +166,9 @@ export async function peekMiniForCouple(coupleId: string): Promise<MiniState | n
   try {
     if (activeCoupleId === coupleId && cache) return cache;
     const scoped = await parseState(await readKey(storageKey(coupleId)));
+    if (miniHasPlay(scoped)) return scoped;
+    const orphan = await readOrphanMini();
+    if (orphan) return orphan;
     if (scoped) return scoped;
     if (activeCoupleId === coupleId) return await loadMiniState();
     return null;
@@ -129,6 +183,9 @@ export async function bindMiniAppsCouple(coupleId: string | null): Promise<MiniS
   cache = null;
   const next = await loadMiniState();
   emit(next);
+  if (coupleId && miniHasPlay(next)) {
+    void import("@/lib/couple-backup").then((mod) => mod.scheduleFromMini(coupleId));
+  }
   return next;
 }
 

@@ -194,6 +194,13 @@ export function CoupleDossier({
                 .join(", ")}`
             : "No birthdays yet"}
         </Text>
+        {!demo && !statsMini.birthdays.length && !pulling ? (
+          <Text style={{ color: DIM, marginTop: 8, fontSize: 11, lineHeight: 16 }}>
+            This pair’s hubs have not reached the cloud. Open Duoma signed in as{" "}
+            {a?.displayName || "them"} (the real app, not this admin page), stay on a
+            hub for a few seconds, then refresh Users.
+          </Text>
+        ) : null}
         {demo ? (
           <Text style={{ color: DIM, marginTop: 6, fontSize: 11, lineHeight: 15 }}>
             Riley sandbox on this browser. Seeded lists and anything you did in Demo are stored
