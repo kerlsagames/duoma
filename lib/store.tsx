@@ -2770,7 +2770,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               }
               if (/row-level|rls|jwt|not authenticated|sign in/i.test(message)) {
                 throw new Error(
-                  "This phone is signed out of the cloud. Open Login, send a new email code, then send the note again — or paste SQL 020 so it can upload without that login."
+                  "This phone is signed out of the cloud. Open Login, sign in with your password, then send the note again — or paste SQL 020 so it can upload without that login."
                 );
               }
               throw new Error(

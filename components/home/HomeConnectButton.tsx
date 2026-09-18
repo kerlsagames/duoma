@@ -94,7 +94,7 @@ export function HomeConnectButton() {
         }}
       >
         Send the link. It opens Join with this code already in the box. They
-        still type the 6-digit email code after that.
+        set a password there and land in the app.
       </Text>
       <Text
         style={{

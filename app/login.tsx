@@ -9,12 +9,23 @@ import { ActivityIndicator, Text, TextInput, View } from "react-native";
 export default function LoginScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string | string[] }>();
-  const { ready, user, usingCloud, signInWithPassword, requestEmailCode } = useApp();
+  const {
+    ready,
+    user,
+    usingCloud,
+    cloudLive,
+    signInWithPassword,
+    requestEmailCode,
+    verifyEmailCode,
+  } = useApp();
   const paramEmail = Array.isArray(params.email) ? params.email[0] : params.email;
   const [email, setEmail] = useState(paramEmail ?? "");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [forgot, setForgot] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
 
   if (!ready) {
     return (
@@ -23,16 +34,17 @@ export default function LoginScreen() {
       </View>
     );
   }
-  if (user) return <Redirect href="/" />;
+  if (user && (!usingCloud || cloudLive)) return <Redirect href="/" />;
+
+  const filledEmail = email.trim() || user?.email?.trim() || "";
 
   const open = async () => {
-    const trimmed = email.trim();
-    if (!looksLikeEmail(trimmed)) {
+    if (!looksLikeEmail(filledEmail)) {
       setError("That email does not look right.");
       return;
     }
     if (!password) {
-      setError("Enter the password you set for this pair.");
+      setError("Enter your password.");
       return;
     }
     if (!usingCloud) {
@@ -42,7 +54,7 @@ export default function LoginScreen() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithPassword(trimmed, password);
+      await signInWithPassword(filledEmail, password);
       router.replace("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
@@ -51,19 +63,32 @@ export default function LoginScreen() {
     }
   };
 
-  const forgot = async () => {
-    const trimmed = email.trim();
-    if (!looksLikeEmail(trimmed)) {
+  const sendReset = async () => {
+    if (!looksLikeEmail(filledEmail)) {
       setError("Enter the email on your pair first.");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      await requestEmailCode(trimmed);
-      router.replace("/check-email");
+      await requestEmailCode(filledEmail);
+      setForgot(true);
+      setNote("Reset code sent. Type it below, then set a password in Home settings.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send the email.");
+      setError(err instanceof Error ? err.message : "Could not send a reset code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmReset = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await verifyEmailCode(code);
+      router.replace("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not confirm that code.");
     } finally {
       setLoading(false);
     }
@@ -77,12 +102,12 @@ export default function LoginScreen() {
         </Text>
         <Text className="mt-3 text-[34px] font-bold text-mist">Your password</Text>
         <Text className="mt-3 text-[16px] leading-6 text-mist/65">
-          Email and the password you chose. No Gmail code unless you forgot it.
-          On iPhone, add Duoma from Safari first, then sign in from that icon.
+          Email and password. That is how you open Duoma from the Home Screen
+          icon.
         </Text>
 
         <TextInput
-          value={email}
+          value={email || user?.email || ""}
           onChangeText={(value) => {
             setEmail(value);
             setError(null);
@@ -110,6 +135,21 @@ export default function LoginScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
+        {forgot ? (
+          <TextInput
+            value={code}
+            onChangeText={(value) => setCode(value.replace(/[^\d]/g, "").slice(0, 8))}
+            placeholder="Reset code"
+            placeholderTextColor="rgba(244,244,246,0.35)"
+            keyboardType="number-pad"
+            maxLength={8}
+            className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+          />
+        ) : null}
+
+        {note ? (
+          <Text className="mt-3 text-[14px] leading-5 text-mist/70">{note}</Text>
+        ) : null}
         {error ? (
           <Text className="mt-3 text-[14px] leading-5 text-crimson">{error}</Text>
         ) : null}
@@ -117,16 +157,25 @@ export default function LoginScreen() {
         <View className="mt-8 gap-3">
           <PrimaryButton
             label="Open the app"
-            loading={loading}
-            disabled={!email.trim() || !password}
+            loading={loading && !forgot}
+            disabled={!filledEmail || !password}
             onPress={() => void open()}
           />
-          <PrimaryButton
-            label="Forgot password — email a code"
-            tone="ghost"
-            disabled={!email.trim()}
-            onPress={() => void forgot()}
-          />
+          {forgot ? (
+            <PrimaryButton
+              label="Use reset code"
+              loading={loading}
+              disabled={code.length < 6}
+              onPress={() => void confirmReset()}
+            />
+          ) : (
+            <PrimaryButton
+              label="I forgot my password"
+              tone="ghost"
+              disabled={!filledEmail}
+              onPress={() => void sendReset()}
+            />
+          )}
           <PrimaryButton
             label="Back"
             tone="ghost"

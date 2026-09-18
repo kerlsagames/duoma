@@ -40,7 +40,7 @@ npm run web
 
 `npm run web` starts Expo on port **43127** and a local push sender on **43128**. Open the site over that port.
 
-On a phone against a deployed HTTPS URL: open in Safari or Chrome, then follow **Settings → Enable notifications**.
+On a phone against a deployed HTTPS URL: add Duoma to the Home Screen from Chrome, open the icon, then follow **Settings → Enable notifications**.
 
 ### Pairing on web
 
@@ -69,25 +69,16 @@ Creator inbox `craigmkerlin@gmail.com` cannot be closed by a ban. That account a
 
 Plain English for the launch checklist:
 
-1. **HTTPS + Home Screen** — Put the site on Vercel or Netlify (https). Generate new VAPID keys for that live site. Leave `EXPO_PUBLIC_PUSH_API` blank there. iPhone will not ping a normal Safari tab. Both of you: Share → Add to Home Screen, open that icon, then Enable notifications.
+1. **HTTPS + Home Screen** — Put the site on Vercel or Netlify (https). Generate new VAPID keys for that live site. Leave `EXPO_PUBLIC_PUSH_API` blank there. Both of you: Chrome → Add to Home Screen, open that icon, then Enable notifications.
 2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `020`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database. 015 lists every pair from the passphrase. 016 fills Written. 018 fills Feedback, birthdays, reports, and in-app time from the passphrase. 019 is the pair backup so hubs leave the phone. 020 lets a signed-out phone still upload.
 3. **Admin passphrase** — Set `EXPO_PUBLIC_DUOMA_ADMIN_KEY` to a secret you choose. `/admin` is only hidden, not locked down. Do not ship the default.
 4. **Mark yourselves admin** — After you sign in once, in SQL: `update public.profiles set is_admin = true where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
-5. **Walk it on two real phones** — Create → type the 6-digit email code (do not tap the inbox link) → they join with the 6-character pair code → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.
+5. **Walk it on two real phones** — Create with email + password → they join with the 6-character pair code and their own password → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.
 6. **Who you invite, and reports** — Photos and videos stay on the phone, so there is nothing for you to scan or moderate in the vault. Report in the app is for account and conduct. Keep the invite list small.
 
-## iPhone (iOS 16.4+)
+## Home Screen
 
-Web push does **not** run inside a regular Safari tab. Both of you:
-
-1. Open the HTTPS site in Safari.
-2. Share → **Add to Home Screen**.
-3. Launch Duoma from that icon.
-4. Open **Settings**, tap **Enable notifications**, and allow the prompt.
-
-Home and Welcome show those Share steps until Duoma is open from the icon. That copy cannot be dismissed while you are still in the browser. Chrome on iPhone has no Add to Home Screen button — copy the link, open Safari, paste, then Share. How-to keeps the same steps. Sign in on the icon with your password.
-
-Android Chrome can install with **Add to Home Screen** on Home when the browser offers it, or from Chrome’s menu. Android can also subscribe from the browser tab; Home Screen still feels like an app.
+Web push on iPhone needs the Home Screen icon, not a browser tab. Chrome → Add to Home Screen, then open that icon and Enable notifications. Sign in with your password.
 
 ## Deploy for free (HTTPS is required)
 
@@ -107,7 +98,7 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
 
 ## Accounts & scale
 
-100 and 1,000 users both belong in Supabase Postgres (not in a phone’s localStorage). Keep the 6-character pair code. Email is the account — magic link, new phone, bans. Creator tools at `/admin` → Setup.
+100 and 1,000 users both belong in Supabase Postgres (not in a phone’s localStorage). Keep the 6-character pair code. Email plus a password is the account — new phone, Home Screen icon, bans. Creator tools at `/admin` → Setup.
 
 Vercel serverless functions live in `api/push/`. Netlify functions live in `netlify/functions/`.
 

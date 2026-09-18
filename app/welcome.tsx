@@ -112,11 +112,10 @@ export default function WelcomeScreen() {
                   void continueAsSaved()
                     .then(() => router.replace("/"))
                     .catch((err: unknown) => {
-                      if (err instanceof Error && err.message === "CHECK_EMAIL") {
-                        router.replace("/check-email");
-                        return;
-                      }
-                      if (err instanceof Error && err.message === "SIGN_IN") {
+                      if (
+                        err instanceof Error &&
+                        (err.message === "SIGN_IN" || err.message === "CHECK_EMAIL")
+                      ) {
                         const savedEmail = savedPair?.user.email
                           ? `?email=${encodeURIComponent(savedPair.user.email)}`
                           : "";

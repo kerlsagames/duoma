@@ -34,8 +34,8 @@ export function PushSetupCard() {
         </Text>
         <Text className="mt-2 text-[14px] leading-5 text-mist/60">
           Duoma sends lock-screen pings with free web push. On a phone, open the
-          hosted site in Safari or Chrome, add it to the Home Screen, then
-          enable notifications from that icon. No Apple Developer fee.
+          hosted site in Chrome, add it to the Home Screen, then enable
+          notifications from that icon. No Apple Developer fee.
         </Text>
       </View>
     );
@@ -83,23 +83,19 @@ export function PushSetupCard() {
       {ios && !standalone ? (
         <View className="mt-4 rounded-2xl border border-neon/25 bg-neon/10 p-4">
           <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-neon">
-            iPhone · iOS 16.4+
+            Home Screen
           </Text>
           <Text className="mt-2 text-[14px] leading-6 text-mist/75">
-            Safari tab cannot receive push. Share → Add to Home Screen, open
-            Duoma from that icon, then grant notifications. This copy stays
-            until the Home Screen icon is open. How-to keeps the Share steps.
-          </Text>
-          <Text className="mt-2 text-[13px] leading-5 text-crimson">
-            You are still in Safari. Add Duoma to the Home Screen first.
+            Open Duoma from the Home Screen icon, then grant notifications. A
+            normal browser tab on iPhone cannot get lock-screen pings.
           </Text>
         </View>
       ) : null}
 
       {!supported ? (
         <Text className="mt-3 text-[14px] leading-5 text-mist/60">
-          This browser does not support web push. Use Safari (Home Screen) on
-          iOS, or Chrome / Edge / Firefox on desktop.
+          This browser does not support web push from this tab. Open the Home
+          Screen icon on a phone, or use Chrome / Edge / Firefox on desktop.
         </Text>
       ) : null}
 

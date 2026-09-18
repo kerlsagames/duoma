@@ -70,14 +70,9 @@ const STEPS = [
     body: "Create and Join stay locked until you tick that you are 18+ and agree to the Terms. Home settings has Report content / abuse, Unpair / break up, and Delete account. Photos and videos stay on the phone and are not uploaded, so Duoma cannot review those files.",
   },
   {
-    kicker: "iPhone",
-    title: "Add Duoma to the Home Screen",
-    body: "Stay in Safari (Chrome on iPhone cannot add the Home Screen app). If you are in Chrome, there is no download-to-screen button — copy the Duoma link, open Safari, paste it, then tap Share, Add to Home Screen, Add. Open Duoma from the new icon, not the browser tab. Lock-screen pings only work from that icon on iOS 16.4+. Sign in on that icon with your password. The Home Screen card hides once that icon is open.",
-  },
-  {
-    kicker: "Android",
-    title: "Add to Home Screen with one tap",
-    body: "Chrome can install Duoma from the Add to Home Screen button on Home. If that button is missing, open Chrome’s menu and tap Add to Home Screen, then launch the icon.",
+    kicker: "Home Screen",
+    title: "Open the icon, not the browser tab",
+    body: "Add Duoma to the Home Screen from Chrome (menu or the button if you see one), then open that icon. Lock-screen pings need the icon on iPhone. Sign in there with your password.",
   },
   {
     kicker: "Desire pin",

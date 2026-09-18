@@ -1,5 +1,4 @@
 import { useApp } from "@/lib/store";
-import { readAuthRedirectError } from "@/lib/cloud-pair";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
@@ -14,8 +13,6 @@ export default function WaitingScreen() {
     );
   }
 
-  if (readAuthRedirectError() || !user) {
-    return <Redirect href="/check-email" />;
-  }
+  if (!user) return <Redirect href="/login" />;
   return <Redirect href="/(tabs)" />;
 }

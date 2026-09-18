@@ -48,7 +48,7 @@ export function FeedbackPane() {
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 24 }}>
           Nothing sent yet. Last used stuck on an old date means the phone is
           signed out of the cloud — the note stayed on that device. Open Duoma →
-          Login → send a new email code, send the note once more, then refresh.
+          Login → sign in with the password, send the note once more, then refresh.
           If that still fails, paste SQL 020.
         </Text>
       ) : (

@@ -290,7 +290,7 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. If Last used is stuck and Feedback is empty, the phone is signed out — send a new email code. SQL 020 lets that phone upload without a fresh login. 018 reads. 019 is the backup table."
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. If Last used is stuck and Feedback is empty, the phone is signed out — they sign in with their password. SQL 020 lets that phone upload without a fresh login. 018 reads. 019 is the backup table."
           : "Create a project at supabase.com. In the SQL editor run 001 through 020. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel."}
       </Text>
     </ScrollView>

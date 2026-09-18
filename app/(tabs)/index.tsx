@@ -263,8 +263,8 @@ export default function HomeScreen() {
                 marginTop: 4,
               }}
             >
-              This phone still works, but Admin cannot see Feedback or hubs until
-              you send a new email code. Tap here → Login.
+              This phone still works, but the cloud is signed out. Tap here and
+              sign in with your password.
             </Text>
           </Pressable>
         ) : null}
@@ -1216,7 +1216,7 @@ function HomeSettingsSheet({
           />
           <LinkRow
             label="How it works"
-            hint="Pairing, password, Home Screen Share steps, Desire pin, the four hubs, calendar, and Get Spicy."
+            hint="Pairing, password, Home Screen, Desire pin, the four hubs, calendar, and Get Spicy."
             onPress={() => {
               onClose();
               router.push("/how-to" as Href);

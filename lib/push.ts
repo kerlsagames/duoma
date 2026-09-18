@@ -78,10 +78,11 @@ export function urlBase64ToUint8Array(base64String: string) {
 }
 
 export async function registerDuomaWorker() {
-  if (!isWebPushRuntime()) return null;
+  if (!isWebPushRuntime() || !("serviceWorker" in navigator)) return null;
   ensurePwaHead();
-  if (!pushSupported()) return null;
-  return navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  return navigator.serviceWorker.register("/sw.js?v=password-20260918", {
+    scope: "/",
+  });
 }
 
 function ensurePwaHead() {

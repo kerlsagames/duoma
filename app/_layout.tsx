@@ -10,6 +10,7 @@ import { SafetyWatch } from "@/components/SafetyWatch";
 import { isCreatorEmail } from "@/lib/creator";
 import { setDwellPath } from "@/lib/app-dwell";
 import { captureInstallPrompt } from "@/lib/pwa-install";
+import { registerDuomaWorker } from "@/lib/push";
 import { AppProvider, useApp } from "@/lib/store";
 import { HubThemeProvider } from "@/lib/hub-theme";
 import { colorScheme } from "nativewind";
@@ -76,6 +77,7 @@ export default function RootLayout() {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       document.title = "Duoma";
       captureInstallPrompt();
+      void registerDuomaWorker();
     }
   }, []);
 
@@ -103,7 +105,7 @@ export default function RootLayout() {
 function RootChrome() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, ready } = useApp();
+  const { user, ready, usingCloud, cloudLive } = useApp();
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
   const banned = Boolean(user?.bannedAt) && !isCreatorEmail(user?.email);
 
@@ -115,6 +117,8 @@ function RootChrome() {
     pathname === "/login" ||
     pathname === "/create" ||
     pathname === "/join";
+  const stayOnPasswordLogin =
+    pathname === "/login" && usingCloud && !cloudLive;
 
   useEffect(() => {
     if (!ready || admin) return;
@@ -126,10 +130,10 @@ function RootChrome() {
       router.replace("/");
       return;
     }
-    if (user && authGate) {
+    if (user && authGate && !stayOnPasswordLogin) {
       router.replace("/");
     }
-  }, [ready, banned, admin, pathname, router, user, authGate]);
+  }, [ready, banned, admin, pathname, router, user, authGate, stayOnPasswordLogin]);
 
   return (
     <PhoneShell>

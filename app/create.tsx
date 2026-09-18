@@ -94,19 +94,17 @@ export default function CreateAccountScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
-        {usingCloud ? (
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password (8+ characters)"
-            placeholderTextColor="rgba(244,244,246,0.35)"
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            textContentType="newPassword"
-            className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
-          />
-        ) : null}
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Password (8+ characters)"
+          placeholderTextColor="rgba(244,244,246,0.35)"
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+          textContentType="newPassword"
+          className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+        />
 
         <View className="mt-4">
           <GenderPicker value={gender} onChange={setGender} label="I am" />
