@@ -221,7 +221,7 @@ export function buildHomeNotifications(input: {
             ? `Coupon · ${coupon.title}`
             : `Redeem ${coupon.title}`,
         when: recentWhen(coupon.acceptedAt ?? coupon.createdAt),
-        href: "/hub/coupons",
+        href: "/hub/coupons?tab=received",
         sortAt: Date.parse(coupon.acceptedAt ?? coupon.createdAt) || now,
       });
     });

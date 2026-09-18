@@ -35,6 +35,8 @@ import {
   remapCoupleSlice,
   rewriteCoupleIds,
   scheduleCoupleBackup,
+  flushCoupleBackup,
+  subscribeCoupleState,
 } from "@/lib/couple-backup";
 import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
@@ -795,6 +797,7 @@ type AppContextValue = {
   banAccount: (profileId: string, reason: string) => Promise<void>;
   unbanAccount: (profileId: string) => Promise<void>;
   refreshCloudAccounts: () => Promise<void>;
+  refreshPair: () => Promise<void>;
   requestEmailCode: (email: string) => Promise<void>;
   verifyEmailCode: (token: string) => Promise<void>;
   signInWithPassword: (email: string, password: string) => Promise<void>;
@@ -1281,6 +1284,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
           db = mergeHubBundle(db, couple.id, bundle);
           void persist();
         });
+    const stopState = sessionIsDemo()
+      ? () => undefined
+      : subscribeCoupleState(couple.id, () => {
+          void absorbCoupleState(couple.id, db).then((next) => {
+            db = next;
+            void persist();
+          });
+        });
+    const onVis = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
+      if (!sessionIsDemo()) {
+        void absorbHubForCouple(couple.id).then(() => persist());
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVis);
+    }
     if (!sessionIsDemo()) {
       void absorbHubForCouple(couple.id).then(() => persist());
     }
@@ -1289,6 +1311,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       void client.removeChannel(channel);
       stopHub();
+      stopState();
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVis);
+      }
       if (timer) clearInterval(timer);
     };
   }, [ready, couple?.id, couple?.partnerB]);
@@ -1945,6 +1971,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     await persist();
   }, []);
+
+  const refreshPair = useCallback(async () => {
+    if (!couple?.id || sessionIsDemo()) return;
+    await absorbHubForCouple(couple.id);
+    await persist();
+  }, [couple?.id]);
 
   const refreshCloudAccounts = useCallback(async () => {
     const snapshot = await loadAdminSnapshot();
@@ -6559,10 +6591,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       db = { ...db, coupons: [...db.coupons, row] };
       await persist();
+      await flushCoupleBackup();
       pingPartner(couple, user, partner, {
         title: "Favor coupon",
         body: `${user.displayName} sent you “${title}”.`,
-        url: "/hub/coupons",
+        url: "/hub/coupons?tab=received",
       });
     },
     [couple, partner, user]
@@ -7143,6 +7176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     banAccount,
     unbanAccount,
     refreshCloudAccounts,
+    refreshPair,
     requestEmailCode,
     verifyEmailCode,
     signInWithPassword,

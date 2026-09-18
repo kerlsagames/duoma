@@ -404,6 +404,40 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
   }, 400);
 }
 
+/** Push the queued backup now so a lock-screen ping is not faster than the coupon. */
+export async function flushCoupleBackup(): Promise<void> {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  const job = queued;
+  queued = null;
+  if (job) await pushCoupleState(job.coupleId, job.db);
+}
+
+export function subscribeCoupleState(
+  coupleId: string,
+  onChange: () => void
+): () => void {
+  if (!supabase || !coupleId) return () => undefined;
+  const channel = supabase
+    .channel(`duoma-state-${coupleId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "couple_state",
+        filter: `couple_id=eq.${coupleId}`,
+      },
+      () => onChange()
+    )
+    .subscribe();
+  return () => {
+    void supabase?.removeChannel(channel);
+  };
+}
+
 export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
   if (!supabase || !coupleId || restoring || !isCoupleUuid(coupleId)) return;
   try {

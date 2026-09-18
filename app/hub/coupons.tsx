@@ -23,6 +23,7 @@ import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type { Coupon } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -339,12 +340,21 @@ function PageTabs({
   );
 }
 
+function tabFromParam(value?: string | string[]): Tab | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "received" || raw === "past" || raw === "give") return raw;
+  return null;
+}
+
 export default function CouponsScreen() {
-  const { coupons, user, partner, createCoupon, acceptCoupon, redeemCoupon } =
+  const { coupons, user, partner, createCoupon, acceptCoupon, redeemCoupon, refreshPair } =
     useApp();
+  const params = useLocalSearchParams<{ tab?: string | string[] }>();
+  const openedTab = tabFromParam(params.tab);
   const partnerName = themLabel(partner);
 
-  const [tab, setTab] = useState<Tab>("give");
+  const [tab, setTab] = useState<Tab>(openedTab ?? "give");
+  const [pulling, setPulling] = useState(openedTab === "received");
   const [categoryId, setCategoryId] = useState<CouponCategoryId | null>(null);
   const [idea, setIdea] = useState<CouponIdea | null>(null);
   const [writingOwn, setWritingOwn] = useState(false);
@@ -364,6 +374,35 @@ export default function CouponsScreen() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [tab, categoryId, idea, writingOwn]);
+
+  useEffect(() => {
+    if (openedTab) setTab(openedTab);
+  }, [openedTab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      setPulling(true);
+      try {
+        await refreshPair();
+      } finally {
+        if (!cancelled) setPulling(false);
+      }
+    };
+    void pull();
+    if (openedTab !== "received") return () => {
+      cancelled = true;
+    };
+    const timers = [800, 2000, 4000].map((ms) =>
+      setTimeout(() => {
+        if (!cancelled) void refreshPair();
+      }, ms)
+    );
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [openedTab, refreshPair]);
 
   const received = useMemo(
     () =>
@@ -1083,8 +1122,9 @@ export default function CouponsScreen() {
                 <Text
                   style={{ fontFamily: SERIF, fontSize: 16, color: T.muted }}
                 >
-                  Empty pages for now. When they tear one off for you, it lands
-                  here.
+                  {pulling
+                    ? "Their coupon is on the way…"
+                    : "Empty pages for now. When they tear one off for you, it lands here."}
                 </Text>
               ) : (
                 received.map((coupon) => (
