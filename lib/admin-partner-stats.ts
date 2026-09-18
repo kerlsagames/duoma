@@ -1079,8 +1079,13 @@ function packApp(
   const { first, last } = stamps(events);
   const seconds = ctx.profile.appSeconds?.[feature.id] ?? 0;
   const actionCount = events.length;
+  const timeLabel = seconds
+    ? formatActiveTime(seconds)
+    : actionCount
+      ? "used"
+      : "—";
   const facts = [
-    fact("time", "Time in this app", seconds ? formatActiveTime(seconds) : "not tracked yet"),
+    fact("time", "Time in this app", timeLabel),
     fact("last", "Last activity", last ? formatWhen(last) : "—"),
     fact("first", "First activity", first ? formatWhen(first) : "—"),
     fact("rows", "Logged events", actionCount),

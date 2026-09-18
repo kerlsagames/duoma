@@ -243,7 +243,30 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-async function persist() {
+async function persist(opts?: { skipDwell?: boolean }) {
+  if (!opts?.skipDwell && !sessionIsDemo() && sessionUserId) {
+    const appId = currentDwellApp();
+    if (appId) {
+      const current = db.profiles.find((row) => row.id === sessionUserId);
+      if (current) {
+        const nextSeconds = (current.activeSeconds ?? 0) + 15;
+        const appSeconds = bumpAppSeconds(current.appSeconds, appId, 15);
+        db = {
+          ...db,
+          profiles: db.profiles.map((row) =>
+            row.id === sessionUserId
+              ? {
+                  ...row,
+                  activeSeconds: nextSeconds,
+                  appSeconds,
+                  lastSeenAt: nowIso(),
+                }
+              : row
+          ),
+        };
+      }
+    }
+  }
   await writeDb(db);
   emit();
   if (typeof BroadcastChannel !== "undefined") {
@@ -1251,7 +1274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : row
         ),
       };
-      await persist();
+      await persist({ skipDwell: true });
       if (supabase && !sessionIsDemo()) {
         try {
           const { error } = await supabase

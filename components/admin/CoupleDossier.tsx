@@ -352,7 +352,8 @@ function HubHome({ hub, onApp }: { hub: HubInsight; onApp: (id: string) => void 
     <View style={{ marginTop: 12 }}>
       <Text style={{ color: INK, fontSize: 14, fontWeight: "700" }}>{hub.label}</Text>
       <Text style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>
-        {hub.usedApps}/{hub.totalApps} used · {hub.eventCount} events · {formatActiveTime(hub.seconds)}
+        {hub.usedApps}/{hub.totalApps} used · {hub.eventCount} events
+        {hub.seconds ? ` · ${formatActiveTime(hub.seconds)}` : ""}
       </Text>
       <View style={{ marginTop: 8 }}>
         {hub.apps.map((app) => (
