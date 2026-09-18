@@ -511,20 +511,46 @@ function collectFantasy(ctx: Ctx): Bucket {
   );
   const titleOf = (id: string) => fantasyById(id)?.title ?? id;
   const liked = swipes.filter((row) => row.liked);
+  const passed = swipes.filter((row) => !row.liked);
+  const partnerId = ctx.couple
+    ? ctx.couple.partnerA === ctx.profile.id
+      ? ctx.couple.partnerB
+      : ctx.couple.partnerA
+    : null;
+  const theirLikes = new Set(
+    ctx.db.fantasySwipes
+      .filter(
+        (row) =>
+          involved(row.coupleId, ctx.coupleIds) &&
+          Boolean(partnerId) &&
+          row.userId === partnerId &&
+          row.liked
+      )
+      .map((row) => row.fantasyId)
+  );
+  const matches = liked.filter((row) => theirLikes.has(row.fantasyId));
   return {
     facts: [
       fact("swipes", "Swipes", swipes.length),
       fact("liked", "Liked", liked.length),
-      fact("passed", "Passed", swipes.filter((row) => !row.liked).length),
+      fact("passed", "Passed", passed.length),
+      fact("match", "Matched", matches.length),
       fact("done", "Marked done on the pair", done.length),
       fact("tonight", "Tonight asks", asks.length),
     ],
     events: [
+      ...swipes.map((row) =>
+        event(
+          row.id,
+          row.createdAt,
+          titleOf(row.fantasyId),
+          row.liked ? (theirLikes.has(row.fantasyId) ? "liked · matched" : "liked") : "passed"
+        )
+      ),
       ...asks.map((row) =>
         event(row.id, row.createdAt, titleOf(row.fantasyId), `${whoLine(ctx, row.fromUserId, row.toUserId)}`)
       ),
       ...done.map((row) => event(row.id, row.doneAt, titleOf(row.fantasyId), `completed by ${nameOf(ctx, row.completedBy)}`)),
-      ...liked.map((row) => event(row.id, row.createdAt, titleOf(row.fantasyId), "liked")),
     ],
   };
 }

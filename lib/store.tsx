@@ -27,7 +27,13 @@ import {
   subscribeCoupleHub,
   type HubKind,
 } from "@/lib/hub-sync";
-import { absorbCoupleState, mergeCoupleDb, scheduleCoupleBackup } from "@/lib/couple-backup";
+import {
+  absorbCoupleState,
+  isCoupleUuid,
+  mergeCoupleDb,
+  rewriteCoupleIds,
+  scheduleCoupleBackup,
+} from "@/lib/couple-backup";
 import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
@@ -273,10 +279,18 @@ async function persist(opts?: { skipDwell?: boolean }) {
     new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now() });
   }
   if (!sessionIsDemo() && sessionUserId) {
-    const couple = db.couples.find(
-      (row) => row.partnerA === sessionUserId || row.partnerB === sessionUserId
-    );
-    if (couple?.id) scheduleCoupleBackup(couple.id, db);
+    const couple = coupleForUser(sessionUserId);
+    if (couple?.id) {
+      const staleIds = db.couples
+        .filter((row) => {
+          if (row.id === couple.id) return false;
+          if (couple.inviteCode && row.inviteCode === couple.inviteCode) return true;
+          return row.partnerA === sessionUserId || row.partnerB === sessionUserId;
+        })
+        .map((row) => row.id);
+      if (staleIds.length) db = rewriteCoupleIds(db, staleIds, couple.id);
+      scheduleCoupleBackup(couple.id, db);
+    }
   }
 }
 
@@ -302,6 +316,18 @@ function mergeCloudPair(input: {
     cards = [...cards, ...cloneDefaultDeck(input.couple.id, input.profile.id)];
   }
   db = { ...db, profiles, couples, cards };
+  const staleIds = couples
+    .filter((row) => {
+      if (row.id === input.couple.id) return false;
+      if (input.couple.inviteCode && row.inviteCode === input.couple.inviteCode) return true;
+      return (
+        row.partnerA === input.profile.id ||
+        row.partnerB === input.profile.id ||
+        (input.partner && (row.partnerA === input.partner.id || row.partnerB === input.partner.id))
+      );
+    })
+    .map((row) => row.id);
+  if (staleIds.length) db = rewriteCoupleIds(db, staleIds, input.couple.id);
 }
 
 async function absorbHubForCouple(coupleId: string | null | undefined) {
@@ -486,11 +512,10 @@ function syncDefaultCards(): boolean {
 
 function coupleForUser(userId: string | null): Couple | null {
   if (!userId) return null;
-  return (
-    db.couples.find(
-      (couple) => couple.partnerA === userId || couple.partnerB === userId
-    ) ?? null
+  const hits = db.couples.filter(
+    (couple) => couple.partnerA === userId || couple.partnerB === userId
   );
+  return hits.find((row) => isCoupleUuid(row.id)) ?? hits[0] ?? null;
 }
 
 function otherUserId(couple: Couple, userId: string): string | null {

@@ -6,7 +6,8 @@ import {
   type StatFact,
 } from "@/lib/admin-partner-stats";
 import { isDemoPair, isExampleAccount } from "@/lib/admin-example";
-import { mergeCoupleDb, mergeMiniStates, pullCoupleState } from "@/lib/couple-backup";
+import { peekAdminSnapshot } from "@/lib/admin-snapshot";
+import { mergeCoupleDb, mergeMiniStates, pullCoupleState, remapCoupleSlice } from "@/lib/couple-backup";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { emptyMiniState, type MiniState } from "@/lib/mini-content";
 import { peekMiniForCouple } from "@/lib/mini-apps";
@@ -48,11 +49,11 @@ export function CoupleDossier({
   onBan: (id: string) => void;
   onUnban: (id: string) => void;
 }) {
-  const { couple: sessionCouple, adminDb, adminMinis } = useApp();
+  const { couple: sessionCouple, adminDb, adminMinis, refreshCloudAccounts } = useApp();
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [hubId, setHubId] = useState<string | null>(null);
   const [appId, setAppId] = useState<string | null>(null);
-  const [remoteSlice, setRemoteSlice] = useState<Partial<AppDB> | null>(null);
+  const [remoteSlices, setRemoteSlices] = useState<Partial<AppDB>[]>([]);
   const [remoteMini, setRemoteMini] = useState<MiniState | null>(null);
   const [localMini, setLocalMini] = useState<MiniState | null>(null);
   const [flags, setFlags] = useState<WhiteFlag[]>([]);
@@ -62,53 +63,73 @@ export function CoupleDossier({
     setPartnerId(null);
     setHubId(null);
     setAppId(null);
-    setRemoteSlice(null);
+  }, [couple.id]);
+
+  useEffect(() => {
+    setRemoteSlices([]);
     setRemoteMini(null);
     setLocalMini(null);
     let alive = true;
     setPulling(true);
-    const twinIds = [
-      couple.id,
-      ...adminDb.couples
-        .filter((row) => row.inviteCode === couple.inviteCode)
-        .map((row) => row.id),
-    ].filter((id, index, all) => all.indexOf(id) === index);
-    void Promise.all([
-      Promise.all(twinIds.map((id) => pullCoupleState(id).catch(() => null))),
-      Promise.all(twinIds.map((id) => peekMiniForCouple(id).catch(() => null))),
-      listWhiteFlags().catch(() => [] as WhiteFlag[]),
-    ]).then(([remotes, peeked, rows]) => {
-      if (!alive) return;
-      const remote = remotes.reduce<(typeof remotes)[number]>((acc, row) => {
-        if (!row) return acc;
-        if (!acc) return row;
-        return {
-          db: { ...acc.db, ...row.db },
-          mini: mergeMiniStates(acc.mini, row.mini),
-          media: row.media ?? acc.media,
-          savedAt: row.savedAt > acc.savedAt ? row.savedAt : acc.savedAt,
-        };
-      }, null);
-      if (remote) {
-        setRemoteSlice(remote.db);
-        setRemoteMini(remote.mini);
-      }
-      const peekedMini = peeked.reduce<MiniState | null>((acc, row) => {
-        if (!row) return acc;
-        return acc ? mergeMiniStates(acc, row) : row;
-      }, null);
-      if (peekedMini) setLocalMini(peekedMini);
-      setFlags(rows ?? []);
-      setPulling(false);
-    });
+    void refreshCloudAccounts()
+      .catch(() => undefined)
+      .then(() => {
+        const snap = peekAdminSnapshot();
+        const twinIds = [
+          couple.id,
+          ...(snap?.couples ?? [])
+            .filter((row) => row.inviteCode === couple.inviteCode)
+            .map((row) => row.id),
+          ...Object.keys(snap?.states ?? {}),
+        ].filter((id, index, all) => all.indexOf(id) === index)
+          .filter((id) => {
+            if (id === couple.id) return true;
+            const row = snap?.couples.find((item) => item.id === id);
+            return Boolean(row && row.inviteCode === couple.inviteCode);
+          });
+        return Promise.all([
+          Promise.all(twinIds.map((id) => pullCoupleState(id).catch(() => null))),
+          Promise.all(twinIds.map((id) => peekMiniForCouple(id).catch(() => null))),
+          listWhiteFlags().catch(() => [] as WhiteFlag[]),
+        ]);
+      })
+      .then((result) => {
+        if (!alive || !result) return;
+        const [remotes, peeked, rows] = result;
+        setRemoteSlices(
+          remotes
+            .filter((row): row is NonNullable<typeof row> => Boolean(row))
+            .map((row) => remapCoupleSlice(row.db, couple.id))
+        );
+        const remoteMinis = remotes
+          .map((row) => row?.mini)
+          .filter((row): row is MiniState => Boolean(row));
+        if (remoteMinis.length) {
+          setRemoteMini(remoteMinis.reduce((acc, row) => mergeMiniStates(acc, row)));
+        }
+        const peekedMini = peeked.reduce<MiniState | null>((acc, row) => {
+          if (!row) return acc;
+          return acc ? mergeMiniStates(acc, row) : row;
+        }, null);
+        if (peekedMini) setLocalMini(peekedMini);
+        setFlags(rows ?? []);
+        if (alive) setPulling(false);
+      })
+      .catch(() => {
+        if (alive) setPulling(false);
+      });
     return () => {
       alive = false;
     };
-  }, [adminDb.couples, couple.id, couple.inviteCode]);
+  }, [couple.id, couple.inviteCode, refreshCloudAccounts]);
 
   const statsDb = useMemo(
-    () => (remoteSlice ? mergeCoupleDb(db, couple.id, remoteSlice) : db),
-    [couple.id, db, remoteSlice]
+    () =>
+      remoteSlices.reduce<AppDB>(
+        (next, slice) => mergeCoupleDb(next, couple.id, slice),
+        db
+      ),
+    [couple.id, db, remoteSlices]
   );
   const sameCouple =
     sessionCouple?.id === couple.id || sessionCouple?.inviteCode === couple.inviteCode;

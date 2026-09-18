@@ -15,6 +15,99 @@ export type CloudState = {
   savedAt: string;
 };
 
+const COUPLE_ROW_KEYS = [
+  "cards",
+  "games",
+  "ratings",
+  "checkIns",
+  "checkInRequests",
+  "curiosityAnswers",
+  "curiositySkips",
+  "milestones",
+  "desireToggles",
+  "fantasySwipes",
+  "fantasyTonightAsks",
+  "fantasyCompletions",
+  "coupons",
+  "scratches",
+  "coupleLists",
+  "listEntries",
+  "listEntryRatings",
+  "jarNotes",
+  "jarOpenVotes",
+  "bucketItems",
+  "ritualChecks",
+  "dateNightAsks",
+  "positionSaves",
+  "playItemRatings",
+  "talkDecks",
+  "talkDraws",
+  "talkVault",
+  "spicyDares",
+  "partnerPokes",
+  "chickenPlays",
+  "positionInvites",
+  "roleplayInvites",
+  "roleplaySaves",
+  "dareSaves",
+  "calendarEvents",
+  "errandItems",
+  "mealRounds",
+  "mealWants",
+  "customMeals",
+  "hiddenMeals",
+  "contentReports",
+  "feedbackNotes",
+] as const;
+
+export function isCoupleUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+export function aliasCoupleIds(db: AppDB, coupleId: string): Set<string> {
+  const ids = new Set<string>([coupleId]);
+  const couple = db.couples.find((row) => row.id === coupleId);
+  if (!couple) return ids;
+  for (const row of db.couples) {
+    if (row.id === coupleId) continue;
+    if (couple.inviteCode && row.inviteCode === couple.inviteCode) ids.add(row.id);
+    if (row.partnerA === couple.partnerA || (couple.partnerB && row.partnerB === couple.partnerB)) {
+      ids.add(row.id);
+    }
+    if (row.partnerA === couple.partnerB || row.partnerB === couple.partnerA) ids.add(row.id);
+  }
+  return ids;
+}
+
+export function remapCoupleSlice(slice: Partial<AppDB>, toId: string): Partial<AppDB> {
+  const next: Partial<AppDB> = { ...slice };
+  for (const key of COUPLE_ROW_KEYS) {
+    const rows = slice[key];
+    if (!Array.isArray(rows)) continue;
+    (next as Record<string, unknown>)[key] = rows.map((row) =>
+      row && typeof row === "object" && "coupleId" in row
+        ? { ...row, coupleId: toId }
+        : row
+    );
+  }
+  return next;
+}
+
+export function rewriteCoupleIds(db: AppDB, fromIds: string[], toId: string): AppDB {
+  const from = new Set(fromIds.filter((id) => id && id !== toId));
+  if (!from.size) return db;
+  const next: AppDB = { ...db };
+  for (const key of COUPLE_ROW_KEYS) {
+    const rows = db[key] as { coupleId?: string }[];
+    (next as unknown as Record<string, unknown>)[key] = rows.map((row) =>
+      row.coupleId && from.has(row.coupleId) ? { ...row, coupleId: toId } : row
+    );
+  }
+  return next;
+}
+
 function stampOf(row: Record<string, unknown>): string {
   const keys = ["updatedAt", "completedAt", "answeredAt", "openedAt", "createdAt"];
   for (const key of keys) {
@@ -50,10 +143,15 @@ function gameIdsForCouple(db: AppDB, coupleId: string): Set<string> {
 }
 
 export function sliceCoupleDb(db: AppDB, coupleId: string): CoupleSlice {
-  const games = db.games.filter((row) => row.coupleId === coupleId);
+  const aliases = aliasCoupleIds(db, coupleId);
+  const games = db.games
+    .filter((row) => aliases.has(row.coupleId))
+    .map((row) => ({ ...row, coupleId }));
   const gameIds = new Set(games.map((row) => row.id));
   const byCouple = <T>(rows: T[]) =>
-    rows.filter((row) => hasCoupleId(row) && row.coupleId === coupleId);
+    rows
+      .filter((row) => hasCoupleId(row) && aliases.has(row.coupleId))
+      .map((row) => ({ ...row, coupleId }));
   return {
     cards: byCouple(db.cards),
     games,
@@ -265,12 +363,6 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
     timer = null;
     if (job) void pushCoupleState(job.coupleId, job.db);
   }, 400);
-}
-
-function isCoupleUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    value
-  );
 }
 
 export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
