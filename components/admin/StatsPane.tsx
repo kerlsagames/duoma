@@ -66,7 +66,7 @@ export function StatsPane() {
           ? app.detail
           : hub
             ? hub.tagline
-            : "Every live pair. Open a hub, then an app. Rankings show what people actually save, play, and rate."}
+            : "Every live pair. Open a hub, then an app. Rankings show what people save, play, rate — and skip."}
       </Text>
 
       {!hub ? (
@@ -157,17 +157,40 @@ function AppView({ app }: { app: GlobalAppStats }) {
       {app.facts.map((row) => (
         <Fact key={row.id} label={row.label} value={row.value} />
       ))}
-      <Text style={{ color: DIM, fontSize: 11, marginTop: 18, marginBottom: 6 }}>
-        {app.rankedLabel}
-      </Text>
-      {app.ranked.length === 0 ? (
-        <Text style={{ color: DIM, fontSize: 12, lineHeight: 18 }}>
-          {app.eventCount
+      <RankBlock
+        label={app.rankedLabel}
+        rows={app.ranked}
+        empty={
+          app.eventCount
             ? "Use is counted, but this app has no ranked cards yet."
-            : "Nobody has used this yet."}
-        </Text>
+            : "Nobody has used this yet."
+        }
+      />
+      {app.skipped.length > 0 ? (
+        <RankBlock label={app.skippedLabel} rows={app.skipped} empty="" />
+      ) : null}
+    </View>
+  );
+}
+
+function RankBlock({
+  label,
+  rows,
+  empty,
+}: {
+  label: string;
+  rows: GlobalAppStats["ranked"];
+  empty: string;
+}) {
+  return (
+    <View>
+      <Text style={{ color: DIM, fontSize: 11, marginTop: 18, marginBottom: 6 }}>{label}</Text>
+      {rows.length === 0 ? (
+        empty ? (
+          <Text style={{ color: DIM, fontSize: 12, lineHeight: 18 }}>{empty}</Text>
+        ) : null
       ) : (
-        app.ranked.map((row, index) => (
+        rows.map((row, index) => (
           <View
             key={row.id}
             style={{
