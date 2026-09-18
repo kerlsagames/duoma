@@ -158,7 +158,7 @@ export function DesirePinSettings() {
   const [draft, setDraft] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const on = Boolean(data.desirePinOn && data.desirePin);
+  const on = Boolean(data.desirePinOn);
   const needsSetup = data.desirePinOn && !data.desirePin;
 
   const savePin = async () => {
