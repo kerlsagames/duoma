@@ -84,9 +84,21 @@ export function buildFeedbackNote(input: {
 
 export function hydrateFeedbackNote(raw: unknown): FeedbackNote | null {
   if (!raw || typeof raw !== "object") return null;
-  const row = raw as Partial<FeedbackNote> & { source?: unknown };
+  const row = raw as Partial<FeedbackNote> & {
+    source?: unknown;
+    user_id?: unknown;
+    display_name?: unknown;
+    couple_id?: unknown;
+    created_at?: unknown;
+  };
+  const userId =
+    typeof row.userId === "string" && row.userId
+      ? row.userId
+      : typeof row.user_id === "string"
+        ? row.user_id
+        : "";
   if (typeof row.id !== "string" || !row.id) return null;
-  if (typeof row.userId !== "string" || !row.userId) return null;
+  if (!userId) return null;
   const rawBody = typeof row.body === "string" ? row.body.trim() : "";
   if (!rawBody) return null;
   const split = splitPrefixedBody(rawBody);
@@ -96,18 +108,33 @@ export function hydrateFeedbackNote(raw: unknown): FeedbackNote | null {
       : split.source;
   const body = split.source ? split.body.trim() : rawBody;
   if (!body) return null;
+  const displayName =
+    typeof row.displayName === "string" && row.displayName.trim()
+      ? row.displayName.trim()
+      : typeof row.display_name === "string" && row.display_name.trim()
+        ? row.display_name.trim()
+        : "Someone";
+  const coupleId =
+    typeof row.coupleId === "string"
+      ? row.coupleId
+      : typeof row.couple_id === "string"
+        ? row.couple_id
+        : null;
+  const createdAt =
+    typeof row.createdAt === "string" && row.createdAt
+      ? row.createdAt
+      : typeof row.created_at === "string" && row.created_at
+        ? row.created_at
+        : nowIso();
   return {
     id: row.id,
-    userId: row.userId,
-    displayName:
-      typeof row.displayName === "string" && row.displayName.trim()
-        ? row.displayName.trim()
-        : "Someone",
+    userId,
+    displayName,
     email: typeof row.email === "string" && row.email.trim() ? row.email.trim() : null,
-    coupleId: typeof row.coupleId === "string" ? row.coupleId : null,
+    coupleId,
     body,
     source,
-    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
+    createdAt,
   };
 }
 

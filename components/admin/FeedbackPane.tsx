@@ -46,9 +46,10 @@ export function FeedbackPane() {
         </Text>
       ) : feedbackNotes.length === 0 ? (
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 24 }}>
-          Nothing sent yet. If you just sent one on the live app, paste SQL 018 in
-          the Supabase SQL editor and Run it so the passphrase can read Help →
-          Feedback. A note that never reached the cloud will still be empty here.
+          Nothing sent yet. Last used stuck on an old date means the phone is
+          signed out of the cloud — the note stayed on that device. Open Duoma →
+          Login → send a new email code, send the note once more, then refresh.
+          If that still fails, paste SQL 020.
         </Text>
       ) : (
         <View style={{ marginTop: 16, gap: 12 }}>

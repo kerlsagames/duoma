@@ -68,7 +68,8 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { game, partner, sendSpicyInvite } = useApp();
+  const { game, partner, sendSpicyInvite, usingCloud, user, cloudLive, demoMode } =
+    useApp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
@@ -235,6 +236,35 @@ export default function HomeScreen() {
         ) : null}
 
         <HomeConnectButton />
+        {usingCloud && user && !cloudLive && !demoMode ? (
+          <Pressable
+            onPress={() => router.push("/login")}
+            style={{
+              marginBottom: 12,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: "rgba(255,0,127,0.35)",
+              backgroundColor: "rgba(255,0,127,0.1)",
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+            }}
+          >
+            <Text style={{ color: "#FF007F", fontSize: 13, fontWeight: "700" }}>
+              Cloud is signed out
+            </Text>
+            <Text
+              style={{
+                color: "rgba(244,244,246,0.7)",
+                fontSize: 12,
+                lineHeight: 17,
+                marginTop: 4,
+              }}
+            >
+              This phone still works, but Admin cannot see Feedback or hubs until
+              you send a new email code. Tap here → Login.
+            </Text>
+          </Pressable>
+        ) : null}
 
         <Text
           style={{

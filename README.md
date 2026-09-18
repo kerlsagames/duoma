@@ -57,7 +57,7 @@ Pairing was never the same as “everything is in the cloud.” Your **account**
 
 Sexy Vault photos and videos do **not** go to the cloud. On the vault, **Download to phone** saves a copy on that device. Restore puts it back. Voice notes and Photo Memory shots stay on-device the same way.
 
-You still have to run SQL once in the Supabase SQL editor: `012` through `019`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 018 lets the passphrase read Feedback, birthdays, reports, bans, and in-app time without a second email sign-in. 019 creates the pair backup table so hubs actually leave the phone.
+You still have to run SQL once in the Supabase SQL editor: `012` through `020`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 018 lets the passphrase read Feedback, birthdays, reports, bans, and in-app time without a second email sign-in. 019 creates the pair backup table so hubs actually leave the phone. 020 lets a phone upload after the email login expires.
 
 Sign out does not wipe. **Unpair** is the only burn-it-down button.
 

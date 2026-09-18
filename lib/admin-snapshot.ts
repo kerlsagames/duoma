@@ -79,6 +79,7 @@ function parseSnapshot(raw: unknown): AdminSnapshot | null {
     : [];
   const minis: Record<string, MiniState> = {};
   const states: Record<string, CloudState> = {};
+  const extraNotes: FeedbackNote[] = [];
   if (Array.isArray(row.states)) {
     for (const item of row.states) {
       if (!item || typeof item !== "object") continue;
@@ -104,9 +105,23 @@ function parseSnapshot(raw: unknown): AdminSnapshot | null {
       if (!payload) continue;
       states[id] = payload;
       minis[id] = payload.mini;
+      const rawNotes = (payload.db as { feedbackNotes?: unknown } | undefined)?.feedbackNotes;
+      if (Array.isArray(rawNotes)) {
+        for (const note of rawNotes) {
+          const parsed = hydrateFeedbackNote(note);
+          if (parsed) extraNotes.push(parsed);
+        }
+      }
     }
   }
-  return { profiles, couples, feedback, reports, minis, states };
+  const notes = [...feedback];
+  const seen = new Set(notes.map((item) => item.id));
+  for (const note of extraNotes) {
+    if (seen.has(note.id)) continue;
+    seen.add(note.id);
+    notes.push(note);
+  }
+  return { profiles, couples, feedback: notes, reports, minis, states };
 }
 
 export async function loadAdminSnapshot(): Promise<AdminSnapshot | null> {
@@ -170,6 +185,66 @@ export async function adminResolveReport(
     p_key: expectedAdminKey(),
     p_report_id: id,
     p_action: action,
+  });
+  return !error;
+}
+
+function isUuid(value: string | null | undefined): value is string {
+  return Boolean(
+    value &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  );
+}
+
+export async function adminSubmitFeedback(input: {
+  id: string;
+  userId: string;
+  displayName: string;
+  email?: string | null;
+  coupleId?: string | null;
+  body: string;
+  createdAt: string;
+}): Promise<boolean> {
+  if (!supabase || !isUuid(input.id) || !isUuid(input.userId)) return false;
+  const { error } = await supabase.rpc("admin_submit_feedback", {
+    p_key: expectedAdminKey(),
+    p_id: input.id,
+    p_user_id: input.userId,
+    p_display_name: input.displayName,
+    p_email: input.email ?? "",
+    p_couple_id: isUuid(input.coupleId) ? input.coupleId : null,
+    p_body: input.body,
+    p_created_at: input.createdAt,
+  });
+  return !error;
+}
+
+export async function adminSaveCoupleState(
+  coupleId: string,
+  payload: unknown
+): Promise<boolean> {
+  if (!supabase || !isUuid(coupleId)) return false;
+  const { error } = await supabase.rpc("admin_save_couple_state", {
+    p_key: expectedAdminKey(),
+    p_couple_id: coupleId,
+    p_payload: payload,
+  });
+  return !error;
+}
+
+export async function adminTouchUsage(input: {
+  userId: string;
+  activeSeconds: number;
+  appSeconds: Record<string, number>;
+  timezone?: string | null;
+}): Promise<boolean> {
+  if (!supabase || !isUuid(input.userId)) return false;
+  const { error } = await supabase.rpc("admin_touch_usage", {
+    p_key: expectedAdminKey(),
+    p_user_id: input.userId,
+    p_active_seconds: input.activeSeconds,
+    p_app_seconds: input.appSeconds,
+    p_timezone: input.timezone ?? "",
   });
   return !error;
 }

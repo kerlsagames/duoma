@@ -27,7 +27,7 @@ import {
   subscribeCoupleHub,
   type HubKind,
 } from "@/lib/hub-sync";
-import { absorbCoupleState, scheduleCoupleBackup } from "@/lib/couple-backup";
+import { absorbCoupleState, mergeCoupleDb, scheduleCoupleBackup } from "@/lib/couple-backup";
 import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
@@ -208,6 +208,8 @@ import { loadAdminInbox } from "@/lib/admin-inbox";
 import {
   adminBan,
   adminResolveReport,
+  adminSubmitFeedback,
+  adminTouchUsage,
   adminUnban,
   loadAdminSnapshot,
 } from "@/lib/admin-snapshot";
@@ -234,6 +236,7 @@ let directoryProfiles: Profile[] = [];
 let directoryCouples: Couple[] = [];
 let inboxFeedback: FeedbackNote[] = [];
 let inboxMinis: Record<string, MiniState> = {};
+let inboxSlices: Record<string, Partial<AppDB>> = {};
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -643,6 +646,7 @@ export type BestCard = {
 type AppContextValue = {
   ready: boolean;
   usingCloud: boolean;
+  cloudLive: boolean;
   user: Profile | null;
   partner: Profile | null;
   couple: Couple | null;
@@ -990,6 +994,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [version, setVersion] = useState(0);
   const [pairError, setPairError] = useState<string | null>(null);
+  const [cloudLive, setCloudLive] = useState(false);
 
   const bump = useCallback(() => setVersion((value) => value + 1), []);
 
@@ -1077,6 +1082,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
       const absorbed = await applyCloudSession();
+      if (supabase) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        setCloudLive(Boolean(sessionData.session?.user));
+      }
       if (syncDefaultCards() || absorbed || clearedBan) {
         await persist();
       } else {
@@ -1088,11 +1097,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (supabase) {
       const { data } = supabase.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
+          setCloudLive(true);
           void applyCloudSession().then((changed) => {
             if (changed) void persist();
           });
         }
         if (event === "SIGNED_OUT") {
+          setCloudLive(false);
           sessionUserId = null;
           void writeSessionUserId(null);
           emit();
@@ -1253,14 +1264,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
             })
             .eq("id", user.id);
           if (error) {
-            await supabase.rpc("touch_profile_usage", {
+            const signed = await supabase.rpc("touch_profile_usage", {
               p_active_seconds: nextSeconds,
               p_app_seconds: appSeconds,
               p_timezone: zone ?? "",
             });
+            if (signed.error) {
+              await adminTouchUsage({
+                userId: user.id,
+                activeSeconds: nextSeconds,
+                appSeconds,
+                timezone: zone,
+              });
+            }
           }
         } catch {
-          // Usage pulse is best-effort until SQL 019 is live.
+          await adminTouchUsage({
+            userId: user.id,
+            activeSeconds: nextSeconds,
+            appSeconds,
+            timezone: zone,
+          });
         }
       }
     };
@@ -1843,6 +1867,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       directoryCouples = snapshot.couples;
       inboxFeedback = snapshot.feedback;
       inboxMinis = snapshot.minis;
+      inboxSlices = Object.fromEntries(
+        Object.entries(snapshot.states).map(([id, state]) => [id, state.db])
+      );
     } else {
       const directory = await loadCloudDirectory();
       if (directory) {
@@ -2615,6 +2642,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
               .from("feedback_notes")
               .insert({ ...payload, couple_id: null }));
           }
+          if (error) {
+            const viaKey = await adminSubmitFeedback({
+              id: row.id,
+              userId,
+              displayName: row.displayName,
+              email: row.email,
+              coupleId,
+              body: prefixFeedbackBody(row.body, row.source),
+              createdAt: row.createdAt,
+            });
+            if (!viaKey) {
+              const message = error.message || "";
+              if (/does not exist|schema cache|018/i.test(message)) {
+                throw new Error(
+                  "Feedback never left this phone. Paste SQL 018 in the Supabase SQL editor."
+                );
+              }
+              if (/row-level|rls|jwt|not authenticated|sign in/i.test(message)) {
+                throw new Error(
+                  "This phone is signed out of the cloud. Open Login, send a new email code, then send the note again — or paste SQL 020 so it can upload without that login."
+                );
+              }
+              throw new Error(
+                "Admin did not get that note. Paste SQL 020 in Supabase, or send a new email login code and try once more."
+              );
+            }
+            error = null;
+          }
           if (!error && userId !== row.userId) {
             db = {
               ...db,
@@ -2625,8 +2680,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             await writeLocalFeedback(db.feedbackNotes);
             await persist();
           }
-        } catch {
-          // Local copy is enough if the cloud table is not live yet.
+        } catch (err) {
+          if (err instanceof Error && /SQL|Login|Admin did not|never left/i.test(err.message)) {
+            throw err;
+          }
+          throw new Error(
+            "Admin did not get that note. Send a new email login code, or paste SQL 020 in Supabase."
+          );
         }
       }
     },
@@ -6899,6 +6959,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value: AppContextValue = {
     ready,
     usingCloud: cloudAccountsOn(),
+    cloudLive,
     pairError,
     user,
     partner,
@@ -6918,11 +6979,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     allProfiles,
     allCouples,
     allCards,
-    adminDb: {
-      ...db,
-      profiles: allProfiles,
-      couples: allCouples,
-    },
+    adminDb: Object.entries(inboxSlices).reduce(
+      (next, [id, slice]) => mergeCoupleDb(next, id, slice),
+      { ...db, profiles: allProfiles, couples: allCouples }
+    ),
     adminMinis: inboxMinis,
     calendarEvents,
     errandItems,

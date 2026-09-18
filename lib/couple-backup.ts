@@ -292,10 +292,14 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     };
     const { error } = await supabase.from("couple_state").upsert(row);
     if (error) {
-      await supabase.rpc("save_couple_state", {
+      const signed = await supabase.rpc("save_couple_state", {
         p_couple_id: coupleId,
         p_payload: payload,
       });
+      if (signed.error) {
+        const { adminSaveCoupleState } = await import("@/lib/admin-snapshot");
+        await adminSaveCoupleState(coupleId, payload);
+      }
     }
   } catch {
     // Table missing or offline — local play still works.

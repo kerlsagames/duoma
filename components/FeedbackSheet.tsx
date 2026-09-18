@@ -40,7 +40,7 @@ export function FeedbackSheet({
     try {
       await sendFeedback(body, source);
       setBody("");
-      setFlash("Sent. Duoma Admin will see it.");
+      setFlash("Sent. If Admin is still empty, this phone needs a fresh email login.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send.");
     } finally {
