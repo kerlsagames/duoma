@@ -221,7 +221,7 @@ function sanitizeMiniForCloud(mini: MiniState): MiniState {
   });
 }
 
-function mergeMini(local: MiniState, remote: MiniState): MiniState {
+export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState {
   const next = hydrateMiniState({ ...local, ...remote });
   const arrayKeys = Object.keys(local).filter((key) => Array.isArray((local as unknown as Record<string, unknown>)[key]));
   const keepOnPhone = new Set(["sexyVault", "audioNotes", "photos"]);
@@ -264,7 +264,7 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
     queued = null;
     timer = null;
     if (job) void pushCoupleState(job.coupleId, job.db);
-  }, 1600);
+  }, 400);
 }
 
 export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
@@ -319,7 +319,7 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
     const merged = mergeCoupleDb(db, coupleId, remote.db);
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
     const localMini = await loadMiniState();
-    const nextMini = mergeMini(localMini, sanitizeMiniForCloud(remote.mini));
+    const nextMini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
     await patchMini(() => nextMini);
     return merged;
   } catch {

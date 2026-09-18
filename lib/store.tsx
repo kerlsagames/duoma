@@ -204,7 +204,9 @@ import {
   sendPairMagicLink,
   verifyPairOtp,
 } from "@/lib/cloud-pair";
+import { loadAdminInbox } from "@/lib/admin-inbox";
 import { supabase } from "@/lib/supabase";
+import type { MiniState } from "@/lib/mini-content";
 import {
   createContext,
   useCallback,
@@ -224,6 +226,8 @@ let liveUserId: string | null = null;
 let demoUserId: string | null = null;
 let directoryProfiles: Profile[] = [];
 let directoryCouples: Couple[] = [];
+let inboxFeedback: FeedbackNote[] = [];
+let inboxMinis: Record<string, MiniState> = {};
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -676,6 +680,7 @@ type AppContextValue = {
   allCouples: Couple[];
   allCards: Card[];
   adminDb: AppDB;
+  adminMinis: Record<string, MiniState>;
   pairError: string | null;
   createAccount: (input: CreateAccountInput) => Promise<void>;
   joinWithCode: (input: JoinInput) => Promise<void>;
@@ -1400,10 +1405,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [version]
   );
   const feedbackNotes = useMemo(
-    () =>
-      [...(db.feedbackNotes ?? [])].sort((a, b) =>
-        b.createdAt.localeCompare(a.createdAt)
-      ),
+    () => {
+      const map = new Map<string, FeedbackNote>();
+      for (const row of db.feedbackNotes ?? []) map.set(row.id, row);
+      for (const row of inboxFeedback) map.set(row.id, row);
+      return [...map.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1793,6 +1800,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (directory) {
       directoryProfiles = directory.profiles;
       directoryCouples = directory.couples;
+    }
+    const inbox = await loadAdminInbox();
+    if (inbox) {
+      inboxFeedback = inbox.feedback;
+      inboxMinis = inbox.minis;
     }
     let touchedDb = false;
     if (cloudAccountsOn() && supabase) {
@@ -2513,15 +2525,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await persist();
       if (cloudAccountsOn() && supabase) {
         try {
-          await supabase.from("feedback_notes").insert({
+          const { data: auth } = await supabase.auth.getUser();
+          const userId = auth.user?.id || row.userId;
+          const { error } = await supabase.from("feedback_notes").insert({
             id: row.id,
-            user_id: row.userId,
+            user_id: userId,
             display_name: row.displayName,
             email: row.email,
             couple_id: row.coupleId,
             body: prefixFeedbackBody(row.body, row.source),
             created_at: row.createdAt,
           });
+          if (!error && userId !== row.userId) {
+            db = {
+              ...db,
+              feedbackNotes: (db.feedbackNotes ?? []).map((item) =>
+                item.id === row.id ? { ...item, userId } : item
+              ),
+            };
+            await writeLocalFeedback(db.feedbackNotes);
+            await persist();
+          }
         } catch {
           // Local copy is enough if the cloud table is not live yet.
         }
@@ -6820,6 +6844,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       profiles: allProfiles,
       couples: allCouples,
     },
+    adminMinis: inboxMinis,
     calendarEvents,
     errandItems,
     mealRounds,

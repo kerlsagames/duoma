@@ -6,7 +6,7 @@ import {
   type StatFact,
 } from "@/lib/admin-partner-stats";
 import { isDemoPair, isExampleAccount } from "@/lib/admin-example";
-import { mergeCoupleDb, pullCoupleState } from "@/lib/couple-backup";
+import { mergeCoupleDb, mergeMiniStates, pullCoupleState } from "@/lib/couple-backup";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { emptyMiniState, type MiniState } from "@/lib/mini-content";
 import { peekMiniForCouple } from "@/lib/mini-apps";
@@ -48,7 +48,7 @@ export function CoupleDossier({
   onBan: (id: string) => void;
   onUnban: (id: string) => void;
 }) {
-  const { couple: sessionCouple } = useApp();
+  const { couple: sessionCouple, adminDb, adminMinis } = useApp();
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [hubId, setHubId] = useState<string | null>(null);
   const [appId, setAppId] = useState<string | null>(null);
@@ -67,9 +67,15 @@ export function CoupleDossier({
     setLocalMini(null);
     let alive = true;
     setPulling(true);
+    const twinIds = [
+      couple.id,
+      ...adminDb.couples
+        .filter((row) => row.inviteCode === couple.inviteCode)
+        .map((row) => row.id),
+    ].filter((id, index, all) => all.indexOf(id) === index);
     void Promise.all([
       pullCoupleState(couple.id).catch(() => null),
-      peekMiniForCouple(couple.id).catch(() => null),
+      Promise.all(twinIds.map((id) => peekMiniForCouple(id).catch(() => null))),
       listWhiteFlags().catch(() => [] as WhiteFlag[]),
     ]).then(([remote, peeked, rows]) => {
       if (!alive) return;
@@ -77,21 +83,35 @@ export function CoupleDossier({
         setRemoteSlice(remote.db);
         setRemoteMini(remote.mini);
       }
-      if (peeked) setLocalMini(peeked);
+      const peekedMini = peeked.reduce<MiniState | null>((acc, row) => {
+        if (!row) return acc;
+        return acc ? mergeMiniStates(acc, row) : row;
+      }, null);
+      if (peekedMini) setLocalMini(peekedMini);
       setFlags(rows ?? []);
       setPulling(false);
     });
     return () => {
       alive = false;
     };
-  }, [couple.id]);
+  }, [adminDb.couples, couple.id, couple.inviteCode]);
 
   const statsDb = useMemo(
     () => (remoteSlice ? mergeCoupleDb(db, couple.id, remoteSlice) : db),
     [couple.id, db, remoteSlice]
   );
-  const sameCouple = sessionCouple?.id === couple.id;
-  const statsMini = sameCouple ? mini : localMini ?? remoteMini ?? emptyMiniState();
+  const sameCouple =
+    sessionCouple?.id === couple.id || sessionCouple?.inviteCode === couple.inviteCode;
+  const statsMini = useMemo(() => {
+    const layers = [
+      adminMinis[couple.id],
+      remoteMini,
+      localMini,
+      sameCouple ? mini : null,
+    ].filter((row): row is MiniState => Boolean(row));
+    if (!layers.length) return emptyMiniState();
+    return layers.reduce((acc, row) => mergeMiniStates(acc, row));
+  }, [adminMinis, couple.id, localMini, mini, remoteMini, sameCouple]);
 
   const partner = partnerId === a?.id ? a : partnerId === b?.id ? b : null;
   const dossier = useMemo(() => {
@@ -149,6 +169,14 @@ export function CoupleDossier({
         <Text style={{ color: DIM, marginTop: 2, fontSize: 12 }}>
           {a?.displayName ?? "—"} / {b?.displayName ?? "waiting"} · {formatWhen(couple.pairedAt)}
           {pulling ? " · loading" : ""}
+        </Text>
+        <Text style={{ color: MUTED, marginTop: 6, fontSize: 12 }}>
+          {statsMini.birthdays.length
+            ? `${statsMini.birthdays.length} birthday${statsMini.birthdays.length === 1 ? "" : "s"} · ${statsMini.birthdays
+                .map((row) => row.name)
+                .slice(0, 6)
+                .join(", ")}`
+            : "No birthdays yet"}
         </Text>
         {demo ? (
           <Text style={{ color: DIM, marginTop: 6, fontSize: 11, lineHeight: 15 }}>
