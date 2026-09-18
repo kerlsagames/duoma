@@ -21,6 +21,9 @@ Duoma is built to run against a Supabase project. Until `EXPO_PUBLIC_SUPABASE_UR
    - `supabase/migrations/013_couple_state.sql` (lists, games, check-ins for a new phone — not Sexy Vault clips)
    - `supabase/migrations/014_admin_insights.sql` (admin can read couple backups and per-app time)
    - `supabase/migrations/015_admin_directory.sql` (Backstage passphrase lists every pair; no second email sign-in)
+   - `supabase/migrations/016_admin_written.sql` (Written homemade cards, dares, bets)
+   - `supabase/migrations/017_admin_inbox.sql` (Feedback + pair-backup minis)
+   - `supabase/migrations/018_admin_passphrase.sql` (passphrase sees Feedback, birthdays, reports, bans, in-app time)
    - `supabase/seed.sql` (named-card Get Spicy decks across 5 stages)
 3. Enable Authentication → Email (magic link). Pairing still uses the 6-character invite code.
 4. After you sign in once, run:

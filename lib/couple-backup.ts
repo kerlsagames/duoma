@@ -5,7 +5,7 @@ import type { AppDB } from "@/lib/types";
 
 type CoupleSlice = Omit<AppDB, "profiles" | "couples" | "pushSubscriptions">;
 
-type CloudState = {
+export type CloudState = {
   db: Partial<AppDB>;
   mini: MiniState;
   media: {
@@ -290,7 +290,20 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
 }
 
 export async function pullCoupleState(coupleId: string): Promise<CloudState | null> {
-  if (!supabase || !coupleId) return null;
+  if (!coupleId) return null;
+  try {
+    const { isAdminUnlocked } = await import("@/lib/admin-gate");
+    if (isAdminUnlocked()) {
+      const snap = await import("@/lib/admin-snapshot");
+      const hit = snap.peekAdminCoupleState(coupleId);
+      if (hit) return hit;
+      const loaded = await snap.loadAdminSnapshot();
+      if (loaded?.states[coupleId]) return loaded.states[coupleId] ?? null;
+    }
+  } catch {
+    // Passphrase snapshot is optional until SQL 018 is run.
+  }
+  if (!supabase) return null;
   try {
     const { data, error } = await supabase
       .from("couple_state")

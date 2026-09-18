@@ -280,7 +280,11 @@ function fromCloudBlob(blob: CloudWritten | null | undefined): WrittenItem[] {
   return out;
 }
 
-function fromLocalDb(db: AppDB): WrittenItem[] {
+function fromLocalDb(db: {
+  cards?: AppDB["cards"];
+  spicyDares?: AppDB["spicyDares"];
+  chickenPlays?: AppDB["chickenPlays"];
+}): WrittenItem[] {
   const out: WrittenItem[] = [];
   for (const card of db.cards ?? []) {
     if (card.isDefault !== false) continue;
@@ -331,6 +335,29 @@ function parseCloudWritten(raw: unknown): CloudWritten | null {
 
 async function loadCloudWritten(): Promise<WrittenItem[]> {
   if (!isAdminUnlocked()) return [];
+  try {
+    const { peekAdminSnapshot, loadAdminSnapshot } = await import("@/lib/admin-snapshot");
+    const snap = peekAdminSnapshot() ?? (await loadAdminSnapshot());
+    if (snap) {
+      const hold: WrittenItem[] = [];
+      for (const [coupleId, state] of Object.entries(snap.states)) {
+        const fromDb = fromLocalDb({
+          cards: state.db.cards ?? [],
+          spicyDares: state.db.spicyDares ?? [],
+          chickenPlays: state.db.chickenPlays ?? [],
+        });
+        for (const item of fromDb) hold.push(item);
+        for (const bet of state.mini.predictions ?? []) {
+          const one: WrittenItem[] = [];
+          pushBet(one, coupleId, bet);
+          hold.push(...one);
+        }
+      }
+      if (hold.length) return hold;
+    }
+  } catch {
+    // SQL 018 not run yet.
+  }
   const key = expectedAdminKey();
   try {
     const origin =

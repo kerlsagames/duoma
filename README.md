@@ -57,7 +57,7 @@ Pairing was never the same as “everything is in the cloud.” Your **account**
 
 Sexy Vault photos and videos do **not** go to the cloud. On the vault, **Download to phone** saves a copy on that device. Restore puts it back. Voice notes and Photo Memory shots stay on-device the same way.
 
-You still have to run SQL once in the Supabase SQL editor: `012` through `017`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 017 lets Feedback and birthdays show after a refresh.
+You still have to run SQL once in the Supabase SQL editor: `012` through `018`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 018 lets the passphrase read Feedback, birthdays, reports, bans, and in-app time without a second email sign-in.
 
 Sign out does not wipe. **Unpair** is the only burn-it-down button.
 
@@ -70,7 +70,7 @@ Creator inbox `craigmkerlin@gmail.com` cannot be closed by a ban. That account a
 Plain English for the launch checklist:
 
 1. **HTTPS + Home Screen** — Put the site on Vercel or Netlify (https). Generate new VAPID keys for that live site. Leave `EXPO_PUBLIC_PUSH_API` blank there. iPhone will not ping a normal Safari tab. Both of you: Share → Add to Home Screen, open that icon, then Enable notifications.
-2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `017`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database. 015 lists every pair from the passphrase. 016 fills Written. 017 fills Feedback and pair backups (birthdays).
+2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `018`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database. 015 lists every pair from the passphrase. 016 fills Written. 018 fills Feedback, birthdays, reports, and in-app time from the passphrase.
 3. **Admin passphrase** — Set `EXPO_PUBLIC_DUOMA_ADMIN_KEY` to a secret you choose. `/admin` is only hidden, not locked down. Do not ship the default.
 4. **Mark yourselves admin** — After you sign in once, in SQL: `update public.profiles set is_admin = true where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
 5. **Walk it on two real phones** — Create → type the 6-digit email code (do not tap the inbox link) → they join with the 6-character pair code → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.
@@ -101,7 +101,7 @@ Repo: [github.com/kerlsagames/duoma](https://github.com/kerlsagames/duoma)
    - Leave `EXPO_PUBLIC_PUSH_API` **empty** in production (the app posts to `/api/push/send` on the same origin).
    - `EXPO_PUBLIC_DUOMA_ADMIN_KEY` — passphrase for the hidden creator tools. Set this before a public deploy.
 3. Generate production keys with `npx web-push generate-vapid-keys`. Do not reuse a sample key on a public site.
-4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `001` through `017` in the SQL editor (do not stop at 007 — Help → admin Feedback needs `011`, two-phone check-ins and pose asks need `012`, a new phone needs `013`, admin couple drill-down needs `014`, the passphrase directory needs `015`, Written homemade cards/dares/bets need `016`, Feedback and birthdays after refresh need `017`), then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
+4. Optional, two real phones: create a free [Supabase](https://supabase.com) project, run `001` through `018` in the SQL editor (do not stop at 007 — Help → admin Feedback needs `011`, two-phone check-ins and pose asks need `012`, a new phone needs `013`, admin couple drill-down needs `014`, the passphrase directory needs `015`, Written homemade cards/dares/bets need `016`, the passphrase seeing Feedback / birthdays / in-app time needs `018`), then set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY`. After you sign in once, mark your profile admin with `update public.profiles set is_admin = true where lower(email) = 'you@email';`. The Vercel cron `0 18 * * *` hits `/api/push/daily` so both lock screens get the curiosity question while the app is closed.
 
 ## Accounts & scale
 

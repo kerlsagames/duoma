@@ -74,11 +74,21 @@ export function CoupleDossier({
         .map((row) => row.id),
     ].filter((id, index, all) => all.indexOf(id) === index);
     void Promise.all([
-      pullCoupleState(couple.id).catch(() => null),
+      Promise.all(twinIds.map((id) => pullCoupleState(id).catch(() => null))),
       Promise.all(twinIds.map((id) => peekMiniForCouple(id).catch(() => null))),
       listWhiteFlags().catch(() => [] as WhiteFlag[]),
-    ]).then(([remote, peeked, rows]) => {
+    ]).then(([remotes, peeked, rows]) => {
       if (!alive) return;
+      const remote = remotes.reduce<(typeof remotes)[number]>((acc, row) => {
+        if (!row) return acc;
+        if (!acc) return row;
+        return {
+          db: { ...acc.db, ...row.db },
+          mini: mergeMiniStates(acc.mini, row.mini),
+          media: row.media ?? acc.media,
+          savedAt: row.savedAt > acc.savedAt ? row.savedAt : acc.savedAt,
+        };
+      }, null);
       if (remote) {
         setRemoteSlice(remote.db);
         setRemoteMini(remote.mini);
@@ -103,15 +113,21 @@ export function CoupleDossier({
   const sameCouple =
     sessionCouple?.id === couple.id || sessionCouple?.inviteCode === couple.inviteCode;
   const statsMini = useMemo(() => {
+    const twinIds = [
+      couple.id,
+      ...adminDb.couples
+        .filter((row) => row.inviteCode === couple.inviteCode)
+        .map((row) => row.id),
+    ];
     const layers = [
-      adminMinis[couple.id],
+      ...twinIds.map((id) => adminMinis[id]),
       remoteMini,
       localMini,
       sameCouple ? mini : null,
     ].filter((row): row is MiniState => Boolean(row));
     if (!layers.length) return emptyMiniState();
     return layers.reduce((acc, row) => mergeMiniStates(acc, row));
-  }, [adminMinis, couple.id, localMini, mini, remoteMini, sameCouple]);
+  }, [adminDb.couples, adminMinis, couple.id, couple.inviteCode, localMini, mini, remoteMini, sameCouple]);
 
   const partner = partnerId === a?.id ? a : partnerId === b?.id ? b : null;
   const dossier = useMemo(() => {

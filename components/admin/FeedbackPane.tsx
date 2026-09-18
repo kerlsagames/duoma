@@ -46,8 +46,9 @@ export function FeedbackPane() {
         </Text>
       ) : feedbackNotes.length === 0 ? (
         <Text style={{ color: "rgba(244,244,246,0.45)", marginTop: 24 }}>
-          Nothing sent yet. If you just sent one on the live app, run SQL 017 in the
-          Supabase SQL editor so the passphrase can read Help → Feedback.
+          Nothing sent yet. If you just sent one on the live app, paste SQL 018 in
+          the Supabase SQL editor and Run it so the passphrase can read Help →
+          Feedback. A note that never reached the cloud will still be empty here.
         </Text>
       ) : (
         <View style={{ marginTop: 16, gap: 12 }}>

@@ -131,7 +131,7 @@ export async function verifyPairOtp(email: string, token: string): Promise<void>
   }
 }
 
-function asCouple(row: {
+export function asCouple(row: {
   id: string;
   invite_code: string;
   partner_a: string;
@@ -149,7 +149,7 @@ function asCouple(row: {
   };
 }
 
-function asProfile(row: {
+export function asProfile(row: {
   id: string;
   display_name?: string | null;
   gender?: string | null;
@@ -165,29 +165,41 @@ function asProfile(row: {
   app_seconds?: Record<string, number> | null;
   created_at?: string | null;
 }): Profile {
+  const raw = row as Record<string, unknown>;
+  const secondsOf = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+      return Number(value);
+    }
+    return 0;
+  };
+  const rawApps = raw.app_seconds ?? raw.appSeconds;
   const appSeconds =
-    row.app_seconds && typeof row.app_seconds === "object" && !Array.isArray(row.app_seconds)
+    rawApps && typeof rawApps === "object" && !Array.isArray(rawApps)
       ? Object.fromEntries(
-          Object.entries(row.app_seconds).filter(
-            (entry): entry is [string, number] => typeof entry[1] === "number"
-          )
+          Object.entries(rawApps)
+            .map(([key, value]) => [key, secondsOf(value)] as const)
+            .filter((entry) => entry[1] > 0)
         )
       : {};
+  const active = secondsOf(raw.active_seconds ?? raw.activeSeconds);
+  const appTotal = Object.values(appSeconds).reduce((sum, value) => sum + value, 0);
   return {
     id: row.id,
-    displayName: row.display_name?.trim() || "Player",
+    displayName: String(raw.display_name ?? raw.displayName ?? "").trim() || "Player",
     gender: row.gender === "male" || row.gender === "female" ? row.gender : null,
-    email: row.email ?? null,
-    bannedAt: row.banned_at ?? null,
-    bannedReason: row.banned_reason ?? null,
-    lastSeenAt: row.last_seen_at ?? null,
-    over18At: row.over18_at ?? null,
-    privacyConsentAt: row.privacy_consent_at ?? null,
-    moderationConsentAt: row.moderation_consent_at ?? null,
-    timezone: row.timezone ?? null,
-    activeSeconds: typeof row.active_seconds === "number" ? row.active_seconds : 0,
+    email: (typeof raw.email === "string" ? raw.email : null) ?? null,
+    bannedAt: (raw.banned_at ?? raw.bannedAt ?? null) as string | null,
+    bannedReason: (raw.banned_reason ?? raw.bannedReason ?? null) as string | null,
+    lastSeenAt: (raw.last_seen_at ?? raw.lastSeenAt ?? null) as string | null,
+    over18At: (raw.over18_at ?? raw.over18At ?? null) as string | null,
+    privacyConsentAt: (raw.privacy_consent_at ?? raw.privacyConsentAt ?? null) as string | null,
+    moderationConsentAt:
+      (raw.moderation_consent_at ?? raw.moderationConsentAt ?? null) as string | null,
+    timezone: (typeof raw.timezone === "string" ? raw.timezone : null) ?? null,
+    activeSeconds: Math.max(active, appTotal),
     appSeconds,
-    createdAt: row.created_at || new Date().toISOString(),
+    createdAt: String(raw.created_at ?? raw.createdAt ?? new Date().toISOString()),
   };
 }
 

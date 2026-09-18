@@ -285,8 +285,8 @@ function SetupPane() {
       </Text>
       <Text style={{ color: "rgba(244,244,246,0.6)", marginTop: 8, lineHeight: 20 }}>
         {cloud
-          ? "URL and anon key are in the env. Pairing uses email + the six-character code. Run SQL 001 through 017. 015 lets the Backstage passphrase list every pair — you do not sign in a second time. 016 lets Written show homemade cards, dares, and bets from every pair’s backup. 017 lets Feedback and birthdays in a pair’s backup show after a refresh. 011 is Help → Feedback. 012 is two-phone check-ins and pose asks. 013 is lists and games for a new phone — not vault clips. 014 is couple backups and per-app time."
-          : "Create a project at supabase.com. In the SQL editor run 001 through 017. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel."}
+          ? "URL and anon key are in the env. Pairing uses email + the six-character code. If Feedback is empty or In app is 0m after a refresh, paste SQL 018 in the Supabase SQL editor and Run it. That is the passphrase — you do not sign in a second time. 015 lists every pair. 016 is Written homemade cards. 018 reads Feedback, birthdays in a pair’s backup, reports, bans, and catalog writes. 011 is Help → Feedback. 012 is two-phone check-ins. 013 is lists and games for a new phone. In-app minutes only move after someone keeps the live app open."
+          : "Create a project at supabase.com. In the SQL editor run 001 through 018. Turn on Auth → Email. Put EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY on Vercel."}
       </Text>
     </ScrollView>
   );

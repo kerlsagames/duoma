@@ -31,6 +31,13 @@ function parseInbox(raw: unknown): AdminInbox | null {
 
 export async function loadAdminInbox(): Promise<AdminInbox | null> {
   if (!isAdminUnlocked()) return null;
+  try {
+    const { loadAdminSnapshot } = await import("@/lib/admin-snapshot");
+    const snap = await loadAdminSnapshot();
+    if (snap) return { feedback: snap.feedback, minis: snap.minis };
+  } catch {
+    // SQL 018 not run yet.
+  }
   const key = expectedAdminKey();
   try {
     const origin =

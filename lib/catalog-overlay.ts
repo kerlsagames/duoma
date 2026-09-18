@@ -222,13 +222,22 @@ async function persistCatalog(next: CatalogOverlay): Promise<void> {
   }
   if (supabase) {
     try {
-      await supabase.from("catalog_overlay").upsert({
+      const { error } = await supabase.from("catalog_overlay").upsert({
         id: "v1",
         payload: next,
         updated_at: new Date().toISOString(),
       });
+      if (error) {
+        const { adminWriteCatalog } = await import("@/lib/admin-snapshot");
+        await adminWriteCatalog(next);
+      }
     } catch {
-      // Local write still holds until admin grants land.
+      try {
+        const { adminWriteCatalog } = await import("@/lib/admin-snapshot");
+        await adminWriteCatalog(next);
+      } catch {
+        // Local write still holds until admin grants land.
+      }
     }
   }
   if (typeof BroadcastChannel !== "undefined") {

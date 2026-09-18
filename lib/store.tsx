@@ -205,6 +205,12 @@ import {
   verifyPairOtp,
 } from "@/lib/cloud-pair";
 import { loadAdminInbox } from "@/lib/admin-inbox";
+import {
+  adminBan,
+  adminResolveReport,
+  adminUnban,
+  loadAdminSnapshot,
+} from "@/lib/admin-snapshot";
 import { supabase } from "@/lib/supabase";
 import type { MiniState } from "@/lib/mini-content";
 import {
@@ -284,6 +290,32 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
   for (const row of local) map.set(row.id, row);
   for (const row of remote) {
     map.set(row.id, { ...(map.get(row.id) as T | undefined), ...row });
+  }
+  return [...map.values()];
+}
+
+function laterStamp(a?: string | null, b?: string | null): string | null {
+  if (!a) return b ?? null;
+  if (!b) return a;
+  return a >= b ? a : b;
+}
+
+function mergeProfiles(local: Profile[], remote: Profile[]): Profile[] {
+  const map = new Map<string, Profile>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    if (!prev) {
+      map.set(row.id, row);
+      continue;
+    }
+    map.set(row.id, {
+      ...prev,
+      ...row,
+      activeSeconds: Math.max(prev.activeSeconds ?? 0, row.activeSeconds ?? 0),
+      appSeconds: { ...prev.appSeconds, ...row.appSeconds },
+      lastSeenAt: laterStamp(prev.lastSeenAt, row.lastSeenAt),
+    });
   }
   return [...map.values()];
 }
@@ -1229,7 +1261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [ready, user?.id]);
 
   const allProfiles = useMemo(
-    () => mergeById(db.profiles, directoryProfiles),
+    () => mergeProfiles(db.profiles, directoryProfiles),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -1796,15 +1828,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshCloudAccounts = useCallback(async () => {
-    const directory = await loadCloudDirectory();
-    if (directory) {
-      directoryProfiles = directory.profiles;
-      directoryCouples = directory.couples;
-    }
-    const inbox = await loadAdminInbox();
-    if (inbox) {
-      inboxFeedback = inbox.feedback;
-      inboxMinis = inbox.minis;
+    const snapshot = await loadAdminSnapshot();
+    if (snapshot) {
+      directoryProfiles = snapshot.profiles;
+      directoryCouples = snapshot.couples;
+      inboxFeedback = snapshot.feedback;
+      inboxMinis = snapshot.minis;
+    } else {
+      const directory = await loadCloudDirectory();
+      if (directory) {
+        directoryProfiles = directory.profiles;
+        directoryCouples = directory.couples;
+      }
+      const inbox = await loadAdminInbox();
+      if (inbox) {
+        inboxFeedback = inbox.feedback;
+        inboxMinis = inbox.minis;
+      }
     }
     let touchedDb = false;
     if (cloudAccountsOn() && supabase) {
@@ -1834,6 +1874,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const extra = (db.contentReports ?? []).filter((row) => !seen.has(row.id));
         db = { ...db, contentReports: [...remote, ...extra] };
         touchedDb = true;
+      }
+      if (snapshot?.reports.length) {
+        const seen = new Set((db.contentReports ?? []).map((row) => row.id));
+        const extra = snapshot.reports.filter((row) => !seen.has(row.id));
+        if (extra.length) {
+          db = { ...db, contentReports: [...(db.contentReports ?? []), ...extra] };
+          touchedDb = true;
+        }
       }
       try {
         const { data: feedbackRows } = await supabase
@@ -1900,16 +1948,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw new Error("Creator accounts cannot be banned.");
     }
     if (cloudAccountsOn() && supabase) {
-      const { error } = await supabase.rpc("ban_user", {
-        p_user_id: profileId,
-        p_reason: reason.trim() || "Banned",
-      });
-      if (error) {
-        throw new Error(
-          /admin only/i.test(error.message)
-            ? "Bans need your creator email signed in with is_admin. Run the SQL in Setup."
-            : error.message
-        );
+      const viaPass = await adminBan(profileId, reason.trim() || "Banned");
+      if (!viaPass) {
+        const { error } = await supabase.rpc("ban_user", {
+          p_user_id: profileId,
+          p_reason: reason.trim() || "Banned",
+        });
+        if (error) {
+          throw new Error(
+            /admin only/i.test(error.message)
+              ? "Bans need SQL 018 so the passphrase can ban. Paste it in the Supabase SQL editor."
+              : error.message
+          );
+        }
       }
     }
     db = {
@@ -1933,13 +1984,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const unbanAccount = useCallback(async (profileId: string) => {
     if (cloudAccountsOn() && supabase) {
-      const { error } = await supabase.rpc("unban_user", { p_user_id: profileId });
-      if (error) {
-        throw new Error(
-          /admin only/i.test(error.message)
-            ? "Unban needs your creator email signed in with is_admin. Run the SQL in Setup."
-            : error.message
-        );
+      const viaPass = await adminUnban(profileId);
+      if (!viaPass) {
+        const { error } = await supabase.rpc("unban_user", { p_user_id: profileId });
+        if (error) {
+          throw new Error(
+            /admin only/i.test(error.message)
+              ? "Unban needs SQL 018 so the passphrase can unban. Paste it in the Supabase SQL editor."
+              : error.message
+          );
+        }
       }
     }
     db = {
@@ -2474,12 +2528,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const status = action === "dismiss" ? "dismissed" : "action_taken";
       const existing = (db.contentReports ?? []).find((row) => row.id === id);
       if (cloudAccountsOn() && supabase) {
-        const { error } = await supabase.rpc("resolve_report", {
-          p_report_id: id,
-          p_action: action,
-        });
-        if (error) {
-          throw new Error(error.message || "Could not resolve that report.");
+        const viaPass = await adminResolveReport(id, action);
+        if (!viaPass) {
+          const { error } = await supabase.rpc("resolve_report", {
+            p_report_id: id,
+            p_action: action,
+          });
+          if (error) {
+            throw new Error(error.message || "Could not resolve that report.");
+          }
         }
       }
       db = {
@@ -2527,15 +2584,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
         try {
           const { data: auth } = await supabase.auth.getUser();
           const userId = auth.user?.id || row.userId;
-          const { error } = await supabase.from("feedback_notes").insert({
+          const coupleId =
+            row.coupleId &&
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              row.coupleId
+            )
+              ? row.coupleId
+              : null;
+          const payload = {
             id: row.id,
             user_id: userId,
             display_name: row.displayName,
             email: row.email,
-            couple_id: row.coupleId,
+            couple_id: coupleId,
             body: prefixFeedbackBody(row.body, row.source),
             created_at: row.createdAt,
-          });
+          };
+          let { error } = await supabase.from("feedback_notes").insert(payload);
+          if (error && coupleId) {
+            ({ error } = await supabase
+              .from("feedback_notes")
+              .insert({ ...payload, couple_id: null }));
+          }
           if (!error && userId !== row.userId) {
             db = {
               ...db,
