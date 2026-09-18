@@ -57,7 +57,7 @@ Pairing was never the same as “everything is in the cloud.” Your **account**
 
 Sexy Vault photos and videos do **not** go to the cloud. On the vault, **Download to phone** saves a copy on that device. Restore puts it back. Voice notes and Photo Memory shots stay on-device the same way.
 
-You still have to run SQL once in the Supabase SQL editor: `012` through `020`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 018 lets the passphrase read Feedback, birthdays, reports, bans, and in-app time without a second email sign-in. 019 creates the pair backup table so hubs actually leave the phone. 020 lets a phone upload after the email login expires.
+You still have to run SQL once in the Supabase SQL editor: `012` through `021`. The app already has your Supabase URL. It cannot create those tables by itself. Until you paste 012 and 013, a second phone can pair but will not see the asks or the backup. 014 lets `/admin` open a couple’s hubs and apps. 015 lets the Backstage passphrase list every pair. 016 lets Written show homemade cards, dares, and bets. 018 lets the passphrase read Feedback, birthdays, reports, bans, and in-app time without a second email sign-in. 019 creates the pair backup table so hubs actually leave the phone. 020 lets a phone upload after the email login expires. 021 lets the Backstage passphrase set a password for someone who never chose one.
 
 Sign out does not wipe. **Unpair** is the only burn-it-down button.
 
@@ -70,7 +70,7 @@ Creator inbox `craigmkerlin@gmail.com` cannot be closed by a ban. That account a
 Plain English for the launch checklist:
 
 1. **HTTPS + Home Screen** — Put the site on Vercel or Netlify (https). Generate new VAPID keys for that live site. Leave `EXPO_PUBLIC_PUSH_API` blank there. Both of you: Chrome → Add to Home Screen, open that icon, then Enable notifications.
-2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `020`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database. 015 lists every pair from the passphrase. 016 fills Written. 018 fills Feedback, birthdays, reports, and in-app time from the passphrase. 019 is the pair backup so hubs leave the phone. 020 lets a signed-out phone still upload.
+2. **Run every SQL file** — In the Supabase SQL editor, run `001` through `021`. Stopping at `007` means Feedback and two-phone check-ins/poses will not exist in the database. 015 lists every pair from the passphrase. 016 fills Written. 018 fills Feedback, birthdays, reports, and in-app time from the passphrase. 019 is the pair backup so hubs leave the phone. 020 lets a signed-out phone still upload. 021 lets you set a password from Backstage.
 3. **Admin passphrase** — Set `EXPO_PUBLIC_DUOMA_ADMIN_KEY` to a secret you choose. `/admin` is only hidden, not locked down. Do not ship the default.
 4. **Mark yourselves admin** — After you sign in once, in SQL: `update public.profiles set is_admin = true where lower(email) in ('craigmkerlin@gmail.com', 'kerlsagameshq@gmail.com');`
 5. **Walk it on two real phones** — Create with email + password → they join with the 6-character pair code and their own password → Home Screen → notifications. Sign out. Confirm photos are still there. Unpair is the only wipe.

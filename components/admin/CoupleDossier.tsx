@@ -6,7 +6,7 @@ import {
   type StatFact,
 } from "@/lib/admin-partner-stats";
 import { isDemoPair, isExampleAccount } from "@/lib/admin-example";
-import { peekAdminSnapshot } from "@/lib/admin-snapshot";
+import { adminSetPassword, peekAdminSnapshot } from "@/lib/admin-snapshot";
 import { mergeCoupleDb, mergeMiniStates, pullCoupleState, remapCoupleSlice } from "@/lib/couple-backup";
 import { formatActiveTime, formatWhen } from "@/lib/legal";
 import { emptyMiniState, type MiniState } from "@/lib/mini-content";
@@ -337,6 +337,7 @@ function PartnerHome({
           onPress={() => onHub(hub.id)}
         />
       ))}
+      <SetPasswordBlock email={profile.email} />
       {locked ? (
         <Text style={{ color: DIM, marginTop: 14, fontSize: 12 }}>Demo pair — cannot ban.</Text>
       ) : banned ? (
@@ -364,6 +365,62 @@ function PartnerHome({
           </Pressable>
         </View>
       )}
+    </View>
+  );
+}
+
+function SetPasswordBlock({ email }: { email?: string | null }) {
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState<string | null>(null);
+  if (!email) return null;
+
+  const save = async () => {
+    setFlash(null);
+    setBusy(true);
+    try {
+      await adminSetPassword(email, password);
+      setPassword("");
+      setFlash("Password saved. They sign in with this email and that password.");
+    } catch (err) {
+      setFlash(err instanceof Error ? err.message : "Could not save that password.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <View style={{ marginTop: 14 }}>
+      <Text style={{ color: DIM, fontSize: 11, marginBottom: 4 }}>Account password</Text>
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Set a password (8+)"
+        placeholderTextColor={DIM}
+        autoCapitalize="none"
+        autoCorrect={false}
+        secureTextEntry
+        style={{
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.12)",
+          borderRadius: 4,
+          padding: 6,
+          color: INK,
+          fontSize: 12,
+        }}
+      />
+      <Pressable
+        onPress={() => void save()}
+        disabled={busy || password.length < 8}
+        style={{ marginTop: 6, opacity: busy || password.length < 8 ? 0.45 : 1 }}
+      >
+        <Text style={{ color: PINK, fontSize: 12 }}>
+          {busy ? "Saving…" : "Set password"}
+        </Text>
+      </Pressable>
+      {flash ? (
+        <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>{flash}</Text>
+      ) : null}
     </View>
   );
 }

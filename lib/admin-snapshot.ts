@@ -257,3 +257,21 @@ export async function adminWriteCatalog(payload: unknown): Promise<boolean> {
   });
   return !error;
 }
+
+export async function adminSetPassword(email: string, password: string): Promise<void> {
+  if (!supabase) throw new Error("Cloud accounts are not connected yet.");
+  if (!isAdminUnlocked()) throw new Error("Unlock Backstage first.");
+  if (password.length < 8) throw new Error("Password needs at least 8 characters.");
+  const { data, error } = await supabase.rpc("admin_set_password", {
+    p_key: expectedAdminKey(),
+    p_email: email.trim().toLowerCase(),
+    p_password: password,
+  });
+  if (error) {
+    if (/schema cache|could not find the function/i.test(error.message)) {
+      throw new Error("Paste SQL 021 in Supabase, then try again.");
+    }
+    throw new Error(error.message);
+  }
+  if (!data) throw new Error("Could not save that password.");
+}
