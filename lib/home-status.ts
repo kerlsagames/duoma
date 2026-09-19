@@ -24,6 +24,7 @@ import type {
   ScratchReveal,
   SpicyDarePlay,
   TalkDraw,
+  FantasySwipe,
   FantasyTonightAsk,
   DateNightAsk,
   PositionInvite,
@@ -158,6 +159,7 @@ export function buildHomeNotifications(input: {
   spicyDares?: SpicyDarePlay[];
   partnerPokes?: PartnerPoke[];
   chickenPlays?: ChickenPlay[];
+  fantasySwipes?: FantasySwipe[];
   fantasyTonightAsks?: FantasyTonightAsk[];
   dateNightAsks?: DateNightAsk[];
   positionInvites?: PositionInvite[];
@@ -411,6 +413,32 @@ export function buildHomeNotifications(input: {
         sortAt: midday(item.date),
       });
     });
+
+  const myFantasyLikes = (input.fantasySwipes ?? []).filter(
+    (row) => row.userId === myId && row.liked
+  );
+  const theirFantasyLikes = new Map(
+    (input.fantasySwipes ?? [])
+      .filter((row) => row.userId === input.partner?.id && row.liked)
+      .map((row) => [row.fantasyId, row])
+  );
+  myFantasyLikes.forEach((mine) => {
+    const theirs = theirFantasyLikes.get(mine.fantasyId);
+    if (!theirs) return;
+    // Only the first yes gets a card. The second person already saw Match.
+    if ((mine.createdAt || "") > (theirs.createdAt || "")) return;
+    const title = fantasyById(mine.fantasyId)?.title ?? "a fantasy";
+    const whenAt = theirs.createdAt || mine.createdAt;
+    const matchedAt = Date.parse(whenAt) || 0;
+    if (matchedAt && now - matchedAt > 36 * 60 * 60 * 1000) return;
+    items.push({
+      id: `fantasy-match-${mine.fantasyId}`,
+      line: `It's a match · ${title}`,
+      when: recentWhen(whenAt),
+      href: "/hub/fantasy-matcher",
+      sortAt: Date.parse(whenAt) || now,
+    });
+  });
 
   (input.fantasyTonightAsks ?? []).forEach((ask) => {
     if (ask.nightKey !== today) return;

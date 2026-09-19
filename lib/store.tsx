@@ -209,6 +209,7 @@ import {
   fantasyById,
   fantasyIdeas,
   removeLocalFantasySeen,
+  visibleFantasySwipes,
 } from "@/lib/fantasy-matcher";
 import { subscribeCatalog } from "@/lib/catalog-overlay";
 import { isCreatorEmail, pardonCreator } from "@/lib/creator";
@@ -1848,7 +1849,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [version]
   );
   const fantasySwipes = useMemo(
-    () => db.fantasySwipes.filter((row) => row.coupleId === couple?.id),
+    () =>
+      visibleFantasySwipes(
+        db.fantasySwipes.filter((row) => row.coupleId === couple?.id),
+        user?.id
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -6534,10 +6539,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       db = { ...db, fantasySwipes: next };
       await persist();
 
-      if (matched) {
+      if (matched && partnerLike) {
+        const idea = fantasyById(fantasyId);
         pingPartner(couple, user, partner, {
-          title: "Fantasy match",
-          body: `${user.displayName} matched with you on a fantasy.`,
+          title: "It's a match",
+          body: `${user.displayName} said yes too${
+            idea ? ` · ${idea.title}` : ""
+          }.`,
           url: "/hub/fantasy-matcher",
         });
       }
