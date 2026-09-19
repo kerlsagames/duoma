@@ -2875,13 +2875,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const existing = activeGameForCouple(couple.id);
     if (existing && !["completed", "declined", "cancelled"].includes(existing.status)) {
-      throw new Error("You already have a live session.");
+      if (existing.status === "inviting") {
+        db = {
+          ...db,
+          games: db.games.map((row) =>
+            row.id === existing.id ? sessionFields(row, { status: "setup" }) : row
+          ),
+        };
+        emit();
+        await persist();
+      }
+      return;
     }
     const gameRow: GameSession = {
       id: createId(),
       coupleId: couple.id,
       gameKey: "get-spicy",
-      status: partner?.isDemo ? "setup" : "inviting",
+      status: "setup",
       initiatorId: user.id,
       mode: null,
       blockLimit: 1,
@@ -2907,11 +2917,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updatedAt: nowIso(),
     };
     db = { ...db, games: [...db.games, gameRow] };
+    emit();
     await persist();
     pingPartner(couple, user, partner, {
       title: "Get Spicy",
       body: `${user.displayName} wants to play tonight.`,
-      url: "/",
+      url: "/game/setup",
     });
   }, [couple, partner, user]);
 

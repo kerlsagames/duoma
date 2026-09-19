@@ -16,7 +16,6 @@ import {
   summarizeFlavorSelection,
 } from "@/games/get-spicy/flavor-tags";
 import { useAppLook } from "@/lib/app-prefs";
-import { themLabel } from "@/lib/names";
 import { personalizeCard, resolveCardGenders, resolveCardNames } from "@/lib/personalize";
 import { useApp } from "@/lib/store";
 import type { CardStage, SpicyPace, StageCounts } from "@/lib/types";
@@ -24,7 +23,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
-import { PokeThem } from "@/components/ui/PokeThem";
 
 const SETUP_RULES = [
   {
@@ -102,13 +100,10 @@ export default function SetupScreen() {
     configureGame,
     endGame,
     sendSpicyInvite,
-    acceptInvite,
-    declineInvite,
     bestCards,
     user,
     partner,
   } = useApp();
-  const partnerName = themLabel(partner);
   const [passLimit, setPassLimit] = useState(1);
   const [shuffleLimit, setShuffleLimit] = useState(3);
   const [counts, setCounts] = useState<StageCounts>({ ...DEFAULT_STAGE_COUNTS });
@@ -137,18 +132,14 @@ export default function SetupScreen() {
   }, [game, router]);
 
   useEffect(() => {
-    if (game || bootStarted.current) return;
+    if (bootStarted.current) return;
+    if (game && game.status !== "inviting") return;
     bootStarted.current = true;
-    setLoading(true);
     setBootError(null);
-    void sendSpicyInvite()
-      .catch((err) => {
-        setBootError(err instanceof Error ? err.message : "Could not start");
-        bootStarted.current = false;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    void sendSpicyInvite().catch((err) => {
+      setBootError(err instanceof Error ? err.message : "Could not start");
+      bootStarted.current = false;
+    });
   }, [game, sendSpicyInvite]);
 
   useEffect(() => {
@@ -341,77 +332,10 @@ export default function SetupScreen() {
           </LookPanel>
         ) : null}
 
-        {game?.status === "inviting" || !game || bootError ? (
-          <View className="mt-8">
-            <Text className="text-[22px] font-bold text-mist">
-              {bootError
-                ? "Couldn’t start"
-                : !game
-                  ? "Get Spicy"
-                  : game.initiatorId === user?.id
-                    ? `Waiting on ${partnerName}`
-                    : `${partnerName} wants to play`}
-            </Text>
-            <Text className="mt-3 text-[15px] leading-6 text-mist/70">
-              {bootError
-                ? bootError
-                : !game
-                  ? "Lighting the deck…"
-                  : game.initiatorId === user?.id
-                    ? `${partnerName} has the invite. When they say yes, you both pick the night here.`
-                    : "Accept and you’ll pick a mode together. Decline and nothing starts."}
-            </Text>
-            <View className="mt-6 gap-3">
-              {game?.status === "inviting" && game.initiatorId !== user?.id ? (
-                <>
-                  <PrimaryButton
-                    label="Accept"
-                    onPress={() => void acceptInvite()}
-                  />
-                  <PrimaryButton
-                    label="Not tonight"
-                    tone="ghost"
-                    onPress={() => {
-                      void declineInvite();
-                      router.replace("/(tabs)" as Href);
-                    }}
-                  />
-                </>
-              ) : null}
-              {game?.status === "inviting" && game.initiatorId === user?.id ? (
-                <>
-                  <PokeThem appId="spicy" targetId={game.id} color="#FF007F" />
-                  <PrimaryButton
-                    label="Cancel"
-                    tone="ghost"
-                    onPress={() => {
-                      void endGame();
-                      router.replace("/(tabs)" as Href);
-                    }}
-                  />
-                </>
-              ) : null}
-              {bootError ? (
-                <PrimaryButton
-                  label="Try again"
-                  onPress={() => {
-                    bootStarted.current = false;
-                    setBootError(null);
-                    setLoading(true);
-                    void sendSpicyInvite()
-                      .catch((err) => {
-                        setBootError(
-                          err instanceof Error ? err.message : "Could not start"
-                        );
-                      })
-                      .finally(() => setLoading(false));
-                  }}
-                />
-              ) : null}
-            </View>
-          </View>
-        ) : (
-          <>
+        {bootError ? (
+          <Text className="mt-4 text-[14px] text-crimson">{bootError}</Text>
+        ) : null}
+
         <View className="mt-6 flex-row gap-2">
           {(
             [
@@ -627,7 +551,7 @@ export default function SetupScreen() {
           <PrimaryButton
             label="Start session"
             loading={loading}
-            disabled={flavorTags.length === 0}
+            disabled={flavorTags.length === 0 || !game}
             onPress={() => void start()}
           />
           <PrimaryButton
@@ -639,8 +563,6 @@ export default function SetupScreen() {
             }}
           />
         </View>
-          </>
-        )}
       </View>
 
       <Modal
