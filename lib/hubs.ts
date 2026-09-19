@@ -81,6 +81,14 @@ export const HOME_HEADER_WIDGETS = [
   },
 ] as const;
 
+export const HOME_SCREEN_FEATURE: HubFeature = {
+  id: "home",
+  label: "Home screen",
+  detail: "Time on the home dashboard",
+  icon: "home",
+  href: "/",
+};
+
 export const HUBS: HubDef[] = [
   {
     id: "connect",

@@ -662,18 +662,17 @@ export function removeLocalFantasySeen(userId: string, fantasyId: string): strin
   return next;
 }
 
-/** Partner yeses stay hidden until you both liked the same card. Passes stay. */
+/** Partner swipes stay hidden except mutual yeses. Your own passes stay. */
 export function visibleFantasySwipes<
   T extends { userId: string; fantasyId: string; liked: boolean },
 >(rows: T[], myId: string | null | undefined): T[] {
-  if (!myId) return rows.filter((row) => !row.liked);
+  if (!myId) return [];
   const myLikes = new Set(
     rows.filter((row) => row.userId === myId && row.liked).map((row) => row.fantasyId)
   );
   return rows.filter((row) => {
     if (row.userId === myId) return true;
-    if (!row.liked) return true;
-    return myLikes.has(row.fantasyId);
+    return row.liked && myLikes.has(row.fantasyId);
   });
 }
 

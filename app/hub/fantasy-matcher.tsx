@@ -76,7 +76,6 @@ export default function FantasyMatcherScreen() {
     jumbo: false,
     hidePassed: false,
   });
-  const [passedWho, setPassedWho] = useState<"you" | "partner">("you");
   const [heldOut, setHeldOut] = useState<string[]>([]);
   const clears = useInboxClears(user?.id);
 
@@ -155,13 +154,7 @@ export default function FantasyMatcherScreen() {
       (idea) => ids.has(idea.id) && !clears.hidden(idea.id)
     );
   }, [clears, mySwipes]);
-  const partnerPasses = useMemo(() => {
-    const ids = new Set(
-      partnerSwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
-    );
-    return fantasyIdeas().filter((idea) => ids.has(idea.id));
-  }, [partnerSwipes]);
-  const passedList = passedWho === "you" ? myPasses : partnerPasses;
+  const passedList = myPasses;
   const passedGroups = useMemo(
     () => groupFantasiesByCategory(passedList),
     [passedList]
@@ -743,182 +736,116 @@ export default function FantasyMatcherScreen() {
           </View>
         ) : tab === "passed" ? (
           <View style={{ marginTop: 18, gap: 12 }}>
-            {!partner ? (
-              <Text style={{ color: T.muted, fontFamily: SERIF, fontSize: 15 }}>
-                Pair up to compare passes.
-              </Text>
-            ) : (
-              <>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    borderRadius: 14,
-                    backgroundColor: T.surface,
-                    padding: 4,
-                    borderWidth: 1,
-                    borderColor: T.border,
-                  }}
-                >
-                  {(
-                    [
-                      { id: "you" as const, label: "You" },
-                      {
-                        id: "partner" as const,
-                        label: partnerLabel,
-                      },
-                    ] as const
-                  ).map((item) => {
-                    const on = passedWho === item.id;
-                    return (
-                      <Pressable
-                        key={item.id}
-                        onPress={() => setPassedWho(item.id)}
-                        style={{
-                          flex: 1,
-                          borderRadius: 10,
-                          paddingVertical: 10,
-                          alignItems: "center",
-                          backgroundColor: on ? T.accent : "transparent",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "700",
-                            color: on ? "#1A0508" : T.muted,
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+            <Text
+              style={{
+                fontFamily: SERIF,
+                fontSize: 14,
+                lineHeight: 20,
+                color: T.muted,
+              }}
+            >
+              Fantasies you swiped left on. Their passes stay private.
+            </Text>
+            {passedList.length === 0 ? (
+              <View
+                style={{
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: T.border,
+                  backgroundColor: T.surface,
+                  padding: 20,
+                }}
+              >
                 <Text
                   style={{
                     fontFamily: SERIF,
-                    fontSize: 14,
+                    fontSize: 20,
+                    color: T.ink,
+                  }}
+                >
+                  No passes yet
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontFamily: SERIF,
+                    fontSize: 15,
                     lineHeight: 20,
                     color: T.muted,
                   }}
                 >
-                  {passedWho === "you"
-                    ? "Fantasies you swiped left on."
-                    : `Fantasies ${partnerLabel} swiped left on.`}
+                  When you swipe left, those cards land here.
                 </Text>
-                {passedList.length === 0 ? (
-                  <View
-                    style={{
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: T.border,
-                      backgroundColor: T.surface,
-                      padding: 20,
-                    }}
-                  >
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                <ClearAllBar
+                  count={passedList.length}
+                  ink={T.ink}
+                  muted={T.muted}
+                  onClear={() =>
+                    clears.hideAll(passedList.map((idea) => idea.id))
+                  }
+                />
+                {passedGroups.map(({ category, items }) => (
+                  <View key={category.id} style={{ gap: 8 }}>
                     <Text
                       style={{
-                        fontFamily: SERIF,
-                        fontSize: 20,
-                        color: T.ink,
+                        fontFamily: "SpaceMono",
+                        fontSize: 11,
+                        letterSpacing: 1.6,
+                        textTransform: "uppercase",
+                        color: category.tint,
                       }}
                     >
-                      No passes yet
+                      {category.label} · {items.length}
                     </Text>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontFamily: SERIF,
-                        fontSize: 15,
-                        lineHeight: 22,
-                        color: T.muted,
-                      }}
-                    >
-                      {passedWho === "you"
-                        ? "When you swipe left, those cards land here."
-                        : `When ${partnerLabel} passes, their nos show up here.`}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={{ gap: 12 }}>
-                    {passedWho === "you" ? (
-                      <ClearAllBar
-                        count={passedList.length}
+                    {items.map((idea) => (
+                      <SwipeClearRow
+                        key={idea.id}
+                        onClear={() => clears.hide(idea.id)}
                         ink={T.ink}
-                        muted={T.muted}
-                        onClear={() =>
-                          clears.hideAll(passedList.map((idea) => idea.id))
-                        }
-                      />
-                    ) : null}
-                    {passedGroups.map(({ category, items }) => (
-                      <View key={category.id} style={{ gap: 8 }}>
-                        <Text
+                      >
+                        <View
                           style={{
-                            fontFamily: "SpaceMono",
-                            fontSize: 11,
-                            letterSpacing: 1.6,
-                            textTransform: "uppercase",
-                            color: category.tint,
+                            borderRadius: 18,
+                            borderWidth: 1,
+                            borderColor: T.border,
+                            backgroundColor: T.surface,
+                            padding: 16,
                           }}
                         >
-                          {category.label} · {items.length}
-                        </Text>
-                        {items.map((idea) => {
-                          const card = (
-                            <View
-                              style={{
-                                borderRadius: 18,
-                                borderWidth: 1,
-                                borderColor: T.border,
-                                backgroundColor: T.surface,
-                                padding: 16,
+                          <Text
+                            style={{
+                              fontFamily: SERIF,
+                              fontSize: 20,
+                              color: T.ink,
+                            }}
+                          >
+                            {nameTitle(idea)}
+                          </Text>
+                          <View style={{ marginTop: 12, gap: 8 }}>
+                            <PrimaryButton
+                              label="Yes — change my mind"
+                              onPress={() => void swipeFantasy(idea.id, true)}
+                            />
+                            <PrimaryButton
+                              label="Put back in the deck"
+                              tone="ghost"
+                              onPress={() => {
+                                setHeldOut((prev) =>
+                                  prev.filter((id) => id !== idea.id)
+                                );
+                                void forgetFantasySwipe(idea.id);
                               }}
-                            >
-                              <Text
-                                style={{
-                                  fontFamily: SERIF,
-                                  fontSize: 20,
-                                  color: T.ink,
-                                }}
-                              >
-                                {nameTitle(idea)}
-                              </Text>
-                              {passedWho === "you" ? (
-                                <View style={{ marginTop: 12, gap: 8 }}>
-                                  <PrimaryButton
-                                    label="Yes — change my mind"
-                                    onPress={() => void swipeFantasy(idea.id, true)}
-                                  />
-                                  <PrimaryButton
-                                    label="Put back in the deck"
-                                    tone="ghost"
-                                    onPress={() => {
-                                      setHeldOut((prev) => prev.filter((id) => id !== idea.id));
-                                      void forgetFantasySwipe(idea.id);
-                                    }}
-                                  />
-                                </View>
-                              ) : null}
-                            </View>
-                          );
-                          return passedWho === "you" ? (
-                            <SwipeClearRow
-                              key={idea.id}
-                              onClear={() => clears.hide(idea.id)}
-                              ink={T.ink}
-                            >
-                              {card}
-                            </SwipeClearRow>
-                          ) : (
-                            <View key={idea.id}>{card}</View>
-                          );
-                        })}
-                      </View>
+                            />
+                          </View>
+                        </View>
+                      </SwipeClearRow>
                     ))}
                   </View>
-                )}
-              </>
+                ))}
+              </View>
             )}
           </View>
         ) : (

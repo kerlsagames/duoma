@@ -4,6 +4,7 @@ import { fantasyById } from "@/lib/fantasy-matcher";
 import { knowMePackById } from "@/lib/know-me";
 import {
   HOME_HEADER_WIDGETS,
+  HOME_SCREEN_FEATURE,
   HUBS,
   type HubDef,
   type HubFeature,
@@ -1144,7 +1145,19 @@ function packHub(
     features: HubFeature[] | typeof HOME_HEADER_WIDGETS;
   }
 ): HubInsight {
-  const apps = hub.features
+  const browse =
+    "href" in hub && hub.href && !hub.features.some((feature) => feature.id === hub.id)
+      ? [
+          {
+            id: hub.id,
+            label: `${hub.label} list`,
+            detail: "Time on this hub’s app list",
+            icon: hub.icon,
+            href: hub.href,
+          },
+        ]
+      : [];
+  const apps = [...browse, ...hub.features]
     .filter((feature) => !HIDDEN_ADMIN_APPS.has(feature.id))
     .map((feature) => packApp(ctx, hub.id, feature));
   const seconds = apps.reduce((sum, app) => sum + app.seconds, 0);
@@ -1204,13 +1217,16 @@ export function buildPartnerDossier(input: {
     tile: "#2A2A33",
     tileInk: "#F4F4F6",
     icon: "home",
-    features: HOME_HEADER_WIDGETS.map((row) => ({
-      id: row.id,
-      label: row.label,
-      detail: row.detail,
-      icon: row.icon,
-      href: row.href,
-    })),
+    features: [
+      HOME_SCREEN_FEATURE,
+      ...HOME_HEADER_WIDGETS.map((row) => ({
+        id: row.id,
+        label: row.label,
+        detail: row.detail,
+        icon: row.icon,
+        href: row.href,
+      })),
+    ],
   });
   const hubs = HUBS.map((hub) => packHub(ctx, hub));
   const usedApps = [home, ...hubs].reduce((sum, hub) => sum + hub.usedApps, 0);

@@ -4,6 +4,7 @@ import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { fantasyById } from "@/lib/fantasy-matcher";
 import {
   HOME_HEADER_WIDGETS,
+  HOME_SCREEN_FEATURE,
   HUBS,
   type HubDef,
   type HubFeature,
@@ -201,7 +202,19 @@ function packFeatures(
     features: HubFeature[] | typeof HOME_HEADER_WIDGETS;
   }
 ): { id: string; label: string; detail: string; icon: IconName; mark?: HubMark }[] {
-  return hub.features
+  const browse =
+    "href" in hub && hub.href && !hub.features.some((row) => row.id === hub.id)
+      ? [
+          {
+            id: hub.id,
+            label: `${hub.label} list`,
+            detail: "Time on this hub’s app list",
+            icon: hub.icon,
+            href: hub.href,
+          },
+        ]
+      : [];
+  return [...browse, ...hub.features]
     .filter((row) => !HIDDEN.has(row.id))
     .map((row) => ({
       id: row.id,
@@ -938,13 +951,16 @@ export function buildGlobalStats(input: {
     tile: "#2A2A33",
     tileInk: "#F4F4F6",
     icon: "home",
-    features: HOME_HEADER_WIDGETS.map((row) => ({
-      id: row.id,
-      label: row.label,
-      detail: row.detail,
-      icon: row.icon,
-      href: row.href,
-    })),
+    features: [
+      HOME_SCREEN_FEATURE,
+      ...HOME_HEADER_WIDGETS.map((row) => ({
+        id: row.id,
+        label: row.label,
+        detail: row.detail,
+        icon: row.icon,
+        href: row.href,
+      })),
+    ],
   });
   const hubs = HUBS.map((hub) => packHub(ctx, hub));
   const lastAt = [home, ...hubs].reduce<string | null>((stamp, hub) => later(stamp, hub.lastAt), null);

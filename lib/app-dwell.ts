@@ -25,6 +25,7 @@ const EXTRA: [string, string][] = [
 function rules(): [string, string][] {
   const rows: [string, string][] = [
     ...HUBS.flatMap((hub) => hub.features.map((app) => [app.href, app.id] as [string, string])),
+    ...HUBS.map((hub) => [hub.href, hub.id] as [string, string]),
     ...HOME_HEADER_WIDGETS.map((row) => [row.href, row.id] as [string, string]),
     ...EXTRA,
   ];
@@ -34,8 +35,9 @@ function rules(): [string, string][] {
 const RULES = rules();
 
 export function dwellAppFromPath(pathname: string | null | undefined): string | null {
-  if (!pathname) return null;
+  if (!pathname) return "home";
   const path = pathname.split("?")[0] || pathname;
+  if (!path) return "home";
   if (SKIP.has(path) || path.startsWith("/admin")) return null;
   for (const [prefix, id] of RULES) {
     if (path === prefix || path.startsWith(`${prefix}/`)) return id;
@@ -44,14 +46,18 @@ export function dwellAppFromPath(pathname: string | null | undefined): string | 
   return "home";
 }
 
-let currentAppId: string | null = null;
+let currentAppId: string | null = "home";
+let dwellSkipped = false;
 
 export function setDwellPath(pathname: string | null | undefined) {
-  currentAppId = dwellAppFromPath(pathname);
+  const id = dwellAppFromPath(pathname);
+  dwellSkipped = id === null;
+  currentAppId = id ?? "home";
 }
 
 export function currentDwellApp(): string | null {
-  return currentAppId;
+  if (dwellSkipped) return null;
+  return currentAppId ?? "home";
 }
 
 export function bumpAppSeconds(
@@ -62,5 +68,19 @@ export function bumpAppSeconds(
   const next = { ...(current ?? {}) };
   if (!appId) return next;
   next[appId] = (next[appId] ?? 0) + seconds;
+  return next;
+}
+
+export function mergeAppSeconds(
+  ...parts: Array<Record<string, number> | null | undefined>
+): Record<string, number> {
+  const next: Record<string, number> = {};
+  for (const part of parts) {
+    if (!part) continue;
+    for (const [key, value] of Object.entries(part)) {
+      if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) continue;
+      next[key] = Math.max(next[key] ?? 0, value);
+    }
+  }
   return next;
 }

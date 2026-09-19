@@ -40,7 +40,7 @@ import {
   subscribeCoupleState,
 } from "@/lib/couple-backup";
 import { isLiveSpicyGame, spicyGameStampMs } from "@/lib/spicy-session";
-import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
+import { bumpAppSeconds, currentDwellApp, mergeAppSeconds } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
@@ -389,7 +389,7 @@ function mergeProfiles(local: Profile[], remote: Profile[]): Profile[] {
       ...prev,
       ...row,
       activeSeconds: Math.max(prev.activeSeconds ?? 0, row.activeSeconds ?? 0),
-      appSeconds: { ...prev.appSeconds, ...row.appSeconds },
+      appSeconds: mergeAppSeconds(prev.appSeconds, row.appSeconds),
       lastSeenAt: laterStamp(prev.lastSeenAt, row.lastSeenAt),
     });
   }
@@ -1444,10 +1444,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!ready || !user?.id) return;
     const pulse = async (seconds = 30) => {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const appId = currentDwellApp();
+      if (!appId) return;
       const current = db.profiles.find((row) => row.id === user.id);
       if (!current) return;
       const nextSeconds = (current.activeSeconds ?? 0) + seconds;
-      const appSeconds = bumpAppSeconds(current.appSeconds, currentDwellApp(), seconds);
+      const appSeconds = bumpAppSeconds(current.appSeconds, appId, seconds);
       const seen = nowIso();
       const zone = deviceTimezone();
       db = {
