@@ -443,6 +443,7 @@ export type MaintTask = {
   everyDays: number;
   lastDone: string | null;
   gone?: boolean;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
 };

@@ -45,20 +45,22 @@ export function useCalendarPrefs() {
 }
 
 export function useCalendarReminderItems() {
-  const { calendarEvents } = useApp();
+  const { calendarEvents, user } = useApp();
   const { data } = useMiniApps();
   const { prefs, ready } = useCalendarPrefs();
   return useMemo(() => {
     if (!ready) return [];
+    const viewerId = user?.id;
     return buildCalendarReminders({
       birthdays: data.birthdays,
       trips: data.trips,
       jobs: data.maintenance,
       events: calendarEvents,
       prefs,
-    });
+    }).filter((row) => !viewerId || !row.createdBy || row.createdBy !== viewerId);
   }, [
     ready,
+    user?.id,
     data.birthdays,
     data.trips,
     data.maintenance,

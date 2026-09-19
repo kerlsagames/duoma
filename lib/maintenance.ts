@@ -6,6 +6,7 @@ type Task = {
   everyDays: number;
   lastDone: string | null;
   gone?: boolean;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -90,6 +91,7 @@ export function hydrateMaintTask(raw: unknown): Task | null {
     everyDays,
     lastDone,
     gone: row.gone === true,
+    createdBy: typeof row.createdBy === "string" ? row.createdBy : "",
     createdAt,
     updatedAt,
   };

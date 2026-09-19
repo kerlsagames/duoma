@@ -154,6 +154,7 @@ export type CalendarReminder = {
   fireAt: number;
   eventAt: number;
   dateKey: string;
+  createdBy: string;
 };
 
 function pushReminder(
@@ -167,6 +168,7 @@ function pushReminder(
     title: string;
     href: Href;
     allDay: boolean;
+    createdBy?: string;
   }
 ) {
   for (const lead of input.leads) {
@@ -188,6 +190,7 @@ function pushReminder(
       fireAt: fire.getTime(),
       eventAt: input.eventAt.getTime(),
       dateKey: input.dateKey,
+      createdBy: input.createdBy ?? "",
     });
   }
 }
@@ -266,6 +269,7 @@ export function buildCalendarReminders(input: {
       title: row.title,
       href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
       allDay,
+      createdBy: row.createdBy,
     });
   }
 
@@ -297,6 +301,7 @@ export function buildCalendarReminders(input: {
       title: row.label,
       href: `/hub/calendar-item?kind=job&id=${encodeURIComponent(row.id)}`,
       allDay: true,
+      createdBy: row.createdBy,
     });
   }
 
@@ -306,11 +311,13 @@ export function buildCalendarReminders(input: {
 /** Due for the home bell: fired, and the day has not passed. */
 export function dueCalendarReminders(
   reminders: CalendarReminder[],
-  now = new Date()
+  now = new Date(),
+  viewerId?: string | null
 ): CalendarReminder[] {
   const stamp = now.getTime();
   const today = localDateKey(now);
   return reminders.filter((row) => {
+    if (viewerId && row.createdBy && row.createdBy === viewerId) return false;
     if (row.fireAt > stamp) return false;
     if (row.dateKey < today) return false;
     return stamp <= endOfLocalDay(row.dateKey).getTime();

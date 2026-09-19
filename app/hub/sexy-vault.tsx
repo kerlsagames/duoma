@@ -91,6 +91,7 @@ export default function SexyVaultScreen() {
   const [copyBusy, setCopyBusy] = useState(false);
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const them = themLabel(partner);
+  const justSetPin = useRef(false);
 
   useEffect(() => {
     const tick = setInterval(() => setNow(Date.now()), 15000);
@@ -98,7 +99,18 @@ export default function SexyVaultScreen() {
   }, []);
 
   useEffect(() => {
-    if (ready) setOpen(!data.sexyVaultPin);
+    if (!ready) return;
+    if (!data.sexyVaultPin) {
+      setOpen(true);
+      setChangingPin(false);
+      return;
+    }
+    if (justSetPin.current) {
+      justSetPin.current = false;
+      setOpen(true);
+      return;
+    }
+    setOpen(false);
   }, [data.sexyVaultPin, ready]);
 
   const items = useMemo(
@@ -118,6 +130,7 @@ export default function SexyVaultScreen() {
       return false;
     }
     setError(null);
+    justSetPin.current = true;
     await patch((state) => ({ ...state, sexyVaultPin: next }));
     setPinDraft("");
     setPinConfirm("");

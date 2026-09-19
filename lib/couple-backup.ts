@@ -355,7 +355,6 @@ function sanitizeMiniForCloud(mini: MiniState): MiniState {
   return hydrateMiniState({
     ...mini,
     sexyVault: [],
-    sexyVaultPin: "",
     audioNotes: [],
     photos: [],
   });
@@ -392,7 +391,7 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
   kept.doodle = mergeDoodleBoards(local.doodle, remote.doodle);
   kept.photoWeek = mergePhotoWeeks(local.photoWeek, remote.photoWeek);
   kept.sexyVault = local.sexyVault;
-  kept.sexyVaultPin = local.sexyVaultPin;
+  kept.sexyVaultPin = local.sexyVaultPin || remote.sexyVaultPin;
   kept.audioNotes = local.audioNotes;
   kept.photos = local.photos;
   return kept;
@@ -492,11 +491,12 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
   pushing = true;
   try {
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
+    const localMini = await loadMiniState();
     const remote = await pullLiveCoupleState(coupleId);
-    let mini = sanitizeMiniForCloud(await loadMiniState());
+    let mini = localMini;
     let working = db;
     if (remote) {
-      mini = mergeMiniStates(mini, sanitizeMiniForCloud(remote.mini));
+      mini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
       working = mergeCoupleDb(db, coupleId, remote.db);
       restoring = true;
       try {
@@ -507,7 +507,7 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     }
     const payload: CloudState = {
       db: sliceCoupleDb(working, coupleId),
-      mini,
+      mini: sanitizeMiniForCloud(mini),
       media: { vault: {}, voice: {} },
       savedAt: new Date().toISOString(),
     };

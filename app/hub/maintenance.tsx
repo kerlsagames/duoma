@@ -32,7 +32,7 @@ const PAPER = "#F3E2C0";
 const INK = "#2A1C10";
 
 export default function MaintenanceScreen() {
-  const { refreshPair } = useApp();
+  const { user, refreshPair } = useApp();
   const { data, ready, patch } = useMiniApps();
   const look = useAppLook("maintenance", fallbackPeg(), {});
   const tint = look.accent;
@@ -94,6 +94,7 @@ export default function MaintenanceScreen() {
             label: name,
             everyDays: onceOff ? 0 : everyDays,
             lastDone: null,
+            createdBy: user?.id ?? "",
             createdAt: stamp,
             updatedAt: stamp,
           },

@@ -398,7 +398,7 @@ export function buildHomeNotifications(input: {
     });
 
   input.milestones
-    .filter((item) => daysUntil(item.date) >= 0)
+    .filter((item) => daysUntil(item.date) >= 0 && item.createdBy !== myId)
     .forEach((item) => {
       items.push({
         id: `milestone-${item.id}`,
@@ -538,7 +538,11 @@ export function buildHomeNotifications(input: {
 
   (input.bucketItems ?? [])
     .filter(
-      (item) => item.scheduledOn && !item.doneAt && daysUntil(item.scheduledOn) >= 0
+      (item) =>
+        item.scheduledOn &&
+        !item.doneAt &&
+        daysUntil(item.scheduledOn) >= 0 &&
+        item.createdBy !== myId
     )
     .forEach((item) => {
       items.push({
@@ -550,7 +554,7 @@ export function buildHomeNotifications(input: {
       });
     });
 
-  dueCalendarReminders(input.calendarReminders ?? []).forEach((row) => {
+  dueCalendarReminders(input.calendarReminders ?? [], new Date(), myId).forEach((row) => {
     items.push({
       id: row.id,
       line: row.body,
