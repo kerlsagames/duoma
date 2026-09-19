@@ -62,6 +62,15 @@ export const HOME_HEADER_WIDGETS = [
     accent: "#E8B86D",
   },
   {
+    id: "to-do",
+    label: "To Do",
+    shortLabel: "To Do",
+    detail: "Requests you got, and accepted things still open",
+    icon: "checkbox" as IconName,
+    href: "/hub/to-do",
+    accent: "#FF7A9A",
+  },
+  {
     id: "world",
     label: "Shared World",
     shortLabel: "World",

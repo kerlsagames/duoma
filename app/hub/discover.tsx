@@ -2,6 +2,8 @@ import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Screen } from "@/components/ui/Screen";
+import { ClearAllBar, SwipeClearRow } from "@/components/ui/SwipeClearRow";
+import { useInboxClears } from "@/lib/inbox-clears";
 import { DISCOVER_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { dateKeyFromIso, formatLongDate } from "@/lib/dates";
@@ -66,6 +68,7 @@ export default function DiscoverScreen() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<DeckMove[]>([]);
   const [restored, setRestored] = useState<DiscoverQuestion | null>(null);
+  const clears = useInboxClears(user?.id);
 
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -116,9 +119,10 @@ export default function DiscoverScreen() {
         .map((row) => row.questionId)
     );
     return discoverQuestions().filter(
-      (row) => ids.has(row.id) && !talkedIds.has(row.id)
+      (row) =>
+        ids.has(row.id) && !talkedIds.has(row.id) && !clears.hidden(row.id)
     );
-  }, [curiositySkips, talkedIds, user?.id]);
+  }, [clears, curiositySkips, talkedIds, user?.id]);
 
   const resetCard = () => pan.setValue({ x: 0, y: 0 });
 
@@ -724,56 +728,75 @@ export default function DiscoverScreen() {
                 No skipped cards. Left-swipe when a question isn’t for tonight.
               </Text>
             ) : (
-              mySkips.map((row) => (
-                <View
-                  key={row.id}
-                  style={{
-                    backgroundColor: T.surface,
-                    borderRadius: 18,
-                    padding: 14,
-                    borderWidth: 1,
-                    borderColor: T.border,
-                    flexDirection: "row",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: "700",
-                        color: T.muted,
-                      }}
-                    >
-                      {discoverCategoryMeta(row.category).label}
-                    </Text>
-                    <Text
-                      style={{
-                        marginTop: 4,
-                        color: T.ink,
-                        fontSize: 15,
-                        lineHeight: 21,
-                      }}
-                    >
-                      {row.prompt}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => void restoreDiscoverSkip(row.id)}
-                    style={{
-                      paddingHorizontal: 10,
-                      paddingVertical: 8,
-                      borderRadius: 999,
-                      backgroundColor: T.accentSoft,
-                    }}
+              <>
+                <ClearAllBar
+                  count={mySkips.length}
+                  ink={T.ink}
+                  muted={T.muted}
+                  onClear={() => clears.hideAll(mySkips.map((row) => row.id))}
+                />
+                {mySkips.map((row) => (
+                  <SwipeClearRow
+                    key={row.id}
+                    onClear={() => clears.hide(row.id)}
+                    ink={T.ink}
                   >
-                    <Text style={{ color: T.ink, fontWeight: "700", fontSize: 12 }}>
-                      Restore
-                    </Text>
-                  </Pressable>
-                </View>
-              ))
+                    <View
+                      style={{
+                        backgroundColor: T.surface,
+                        borderRadius: 18,
+                        padding: 14,
+                        borderWidth: 1,
+                        borderColor: T.border,
+                        flexDirection: "row",
+                        gap: 10,
+                        alignItems: "center",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: "700",
+                            color: T.muted,
+                          }}
+                        >
+                          {discoverCategoryMeta(row.category).label}
+                        </Text>
+                        <Text
+                          style={{
+                            marginTop: 4,
+                            color: T.ink,
+                            fontSize: 15,
+                            lineHeight: 21,
+                          }}
+                        >
+                          {row.prompt}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => void restoreDiscoverSkip(row.id)}
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 8,
+                          borderRadius: 999,
+                          backgroundColor: T.accentSoft,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: T.ink,
+                            fontWeight: "700",
+                            fontSize: 12,
+                          }}
+                        >
+                          Restore
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </SwipeClearRow>
+                ))}
+              </>
             )}
           </View>
         ) : null}

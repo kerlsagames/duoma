@@ -2,7 +2,9 @@ import { LookPanel, SettingsDock } from "@/components/hub/AppSettings";
 import { PlayTabs } from "@/components/hub/PlayTabs";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
+import { ClearAllBar, SwipeClearRow } from "@/components/ui/SwipeClearRow";
 import { Screen } from "@/components/ui/Screen";
+import { useInboxClears } from "@/lib/inbox-clears";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import {
@@ -73,6 +75,7 @@ export default function FantasyMatcherScreen() {
     hidePassed: false,
   });
   const [passedWho, setPassedWho] = useState<"you" | "partner">("you");
+  const clears = useInboxClears(user?.id);
 
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -141,8 +144,10 @@ export default function FantasyMatcherScreen() {
     const ids = new Set(
       mySwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
     );
-    return fantasyIdeas().filter((idea) => ids.has(idea.id));
-  }, [mySwipes]);
+    return fantasyIdeas().filter(
+      (idea) => ids.has(idea.id) && !clears.hidden(idea.id)
+    );
+  }, [clears, mySwipes]);
   const partnerPasses = useMemo(() => {
     const ids = new Set(
       partnerSwipes.filter((row) => !row.liked).map((row) => row.fantasyId)
@@ -822,6 +827,16 @@ export default function FantasyMatcherScreen() {
                   </View>
                 ) : (
                   <View style={{ gap: 12 }}>
+                    {passedWho === "you" ? (
+                      <ClearAllBar
+                        count={passedList.length}
+                        ink={T.ink}
+                        muted={T.muted}
+                        onClear={() =>
+                          clears.hideAll(passedList.map((idea) => idea.id))
+                        }
+                      />
+                    ) : null}
                     {passedGroups.map(({ category, items }) => (
                       <View key={category.id} style={{ gap: 8 }}>
                         <Text
@@ -835,41 +850,53 @@ export default function FantasyMatcherScreen() {
                         >
                           {category.label} · {items.length}
                         </Text>
-                        {items.map((idea) => (
-                          <View
-                            key={idea.id}
-                            style={{
-                              borderRadius: 18,
-                              borderWidth: 1,
-                              borderColor: T.border,
-                              backgroundColor: T.surface,
-                              padding: 16,
-                            }}
-                          >
-                            <Text
+                        {items.map((idea) => {
+                          const card = (
+                            <View
                               style={{
-                                fontFamily: SERIF,
-                                fontSize: 20,
-                                color: T.ink,
+                                borderRadius: 18,
+                                borderWidth: 1,
+                                borderColor: T.border,
+                                backgroundColor: T.surface,
+                                padding: 16,
                               }}
                             >
-                              {nameTitle(idea)}
-                            </Text>
-                            {passedWho === "you" ? (
-                              <View style={{ marginTop: 12, gap: 8 }}>
-                                <PrimaryButton
-                                  label="Yes — change my mind"
-                                  onPress={() => void swipeFantasy(idea.id, true)}
-                                />
-                                <PrimaryButton
-                                  label="Put back in the deck"
-                                  tone="ghost"
-                                  onPress={() => void forgetFantasySwipe(idea.id)}
-                                />
-                              </View>
-                            ) : null}
-                          </View>
-                        ))}
+                              <Text
+                                style={{
+                                  fontFamily: SERIF,
+                                  fontSize: 20,
+                                  color: T.ink,
+                                }}
+                              >
+                                {nameTitle(idea)}
+                              </Text>
+                              {passedWho === "you" ? (
+                                <View style={{ marginTop: 12, gap: 8 }}>
+                                  <PrimaryButton
+                                    label="Yes — change my mind"
+                                    onPress={() => void swipeFantasy(idea.id, true)}
+                                  />
+                                  <PrimaryButton
+                                    label="Put back in the deck"
+                                    tone="ghost"
+                                    onPress={() => void forgetFantasySwipe(idea.id)}
+                                  />
+                                </View>
+                              ) : null}
+                            </View>
+                          );
+                          return passedWho === "you" ? (
+                            <SwipeClearRow
+                              key={idea.id}
+                              onClear={() => clears.hide(idea.id)}
+                              ink={T.ink}
+                            >
+                              {card}
+                            </SwipeClearRow>
+                          ) : (
+                            <View key={idea.id}>{card}</View>
+                          );
+                        })}
                       </View>
                     ))}
                   </View>

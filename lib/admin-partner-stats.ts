@@ -1200,7 +1200,7 @@ export function buildPartnerDossier(input: {
   const home = packHub(ctx, {
     id: "home",
     label: "Home screen",
-    tagline: "Check-in, calendar, notepad",
+    tagline: "Check-in, calendar, notepad, to do",
     tile: "#2A2A33",
     tileInk: "#F4F4F6",
     icon: "home",

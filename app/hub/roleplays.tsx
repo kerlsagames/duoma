@@ -5,7 +5,9 @@ import { RoleplayArt } from "@/components/hub/RoleplayArt";
 import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
+import { ClearAllBar, SwipeClearRow } from "@/components/ui/SwipeClearRow";
 import { Screen } from "@/components/ui/Screen";
+import { useInboxClears } from "@/lib/inbox-clears";
 import { ROLEPLAYS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { roleplayAskForScene, tonightAskCopy, openRoleplaySave, nightAskLabel, nightWindowCopy } from "@/lib/play-items";
@@ -25,13 +27,28 @@ import { themLabel } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import type { RoleplayInvite, RoleplaySave } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const T = ROLEPLAYS_TONE;
 const ALL_IDS = ROLEPLAY_CATEGORIES.map((row) => row.id);
 
-type Tab = "spin" | "todo" | "done";
+type Tab = "spin" | "todo" | "done" | "requests" | "asked";
+
+function tabFromParam(value?: string | string[]): Tab | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (
+    raw === "spin" ||
+    raw === "todo" ||
+    raw === "done" ||
+    raw === "requests" ||
+    raw === "asked"
+  ) {
+    return raw;
+  }
+  return null;
+}
 
 export default function RoleplaysScreen() {
   const {
@@ -48,12 +65,15 @@ export default function RoleplaysScreen() {
   } = useApp();
 
   const partnerName = themLabel(partner);
+  const clears = useInboxClears(user?.id);
+  const params = useLocalSearchParams<{ tab?: string | string[] }>();
+  const openedTab = tabFromParam(params.tab);
   const cast = useMemo(
     () => roleplayCastNames(user, partner),
     [partner, user]
   );
 
-  const [tab, setTab] = useState<Tab>("spin");
+  const [tab, setTab] = useState<Tab>(openedTab ?? "spin");
   const [enabled, setEnabled] = useState<RoleplayCategoryId[]>(ALL_IDS);
   const [current, setCurrent] = useState<Roleplay | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +91,10 @@ export default function RoleplaysScreen() {
     if (!look.prefs.autoSpin) return;
     setCurrent((current) => current ?? pickRandomRoleplay(enabled));
   }, [enabled, look.prefs.autoSpin]);
+
+  useEffect(() => {
+    if (openedTab) setTab(openedTab);
+  }, [openedTab]);
 
   const poolSize = useMemo(
     () => roleplaysInCategories(enabled).length,
@@ -92,13 +116,17 @@ export default function RoleplaysScreen() {
 
   const outgoing = useMemo(
     () =>
-      roleplayInvites.filter(
-        (row) =>
-          Boolean(user) &&
-          row.fromUserId === user!.id &&
-          (row.status === "offered" || row.status === "accepted")
+      clears.visible(
+        roleplayInvites.filter(
+          (row) =>
+            Boolean(user) &&
+            row.fromUserId === user!.id &&
+            (row.status === "offered" ||
+              row.status === "accepted" ||
+              row.status === "declined")
+        )
       ),
-    [roleplayInvites, user]
+    [clears, roleplayInvites, user]
   );
 
   const openSaves = useMemo(
@@ -272,7 +300,65 @@ export default function RoleplaysScreen() {
           Try a roleplay scene by spinning the random button or searching through
         </Text>
 
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginTop: 20, flexDirection: "row", gap: 8 }}>
+          <Pressable
+            onPress={() => setTab("requests")}
+            style={{
+              flex: 1,
+              minHeight: 48,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor:
+                tab === "requests" || incoming.some((row) => row.status === "offered")
+                  ? T.accent
+                  : "rgba(255,255,255,0.14)",
+              backgroundColor: tab === "requests" ? T.accentSoft : T.surface,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: T.ink,
+                fontWeight: "800",
+                fontSize: 13,
+                textAlign: "center",
+              }}
+            >
+              {incoming.length ? `Requests · ${incoming.length}` : "Requests"}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setTab("asked")}
+            style={{
+              flex: 1,
+              minHeight: 48,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: tab === "asked" ? T.accent : "rgba(255,255,255,0.14)",
+              backgroundColor: tab === "asked" ? T.accentSoft : T.surface,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: T.ink,
+                fontWeight: "800",
+                fontSize: 13,
+                textAlign: "center",
+              }}
+            >
+              {outgoing.length
+                ? `Asked ${partnerName} · ${outgoing.length}`
+                : `Asked ${partnerName}`}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={{ marginTop: 12 }}>
           <PlayTabs
             tabs={[
               { id: "spin" as const, label: "Spin" },
@@ -288,6 +374,69 @@ export default function RoleplaysScreen() {
             ink={T.ink}
           />
         </View>
+
+        {tab === "requests" ? (
+          incoming.length ? (
+            <InviteSection
+              title={`From ${partnerName}`}
+              rows={incoming}
+              partnerName={partnerName}
+              cast={cast}
+              outgoing={false}
+              onRespond={(id, status) => void respondRoleplayInvite(id, status)}
+              onDone={(id) => void completeRoleplayInvite(id)}
+            />
+          ) : (
+            <Text
+              style={{
+                marginTop: 18,
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 24,
+                color: T.muted,
+              }}
+            >
+              Nothing waiting. When {partnerName} asks you to try a scene, it
+              lands here.
+            </Text>
+          )
+        ) : null}
+
+        {tab === "asked" ? (
+          outgoing.length ? (
+            <>
+              <ClearAllBar
+                count={outgoing.length}
+                ink={T.ink}
+                muted={T.muted}
+                onClear={() => clears.hideAll(outgoing.map((row) => row.id))}
+              />
+              <InviteSection
+                title={`Asked ${partnerName}`}
+                rows={outgoing}
+                partnerName={partnerName}
+                cast={cast}
+                outgoing
+                onRespond={() => undefined}
+                onDone={(id) => void completeRoleplayInvite(id)}
+                onClear={(id) => clears.hide(id)}
+              />
+            </>
+          ) : (
+            <Text
+              style={{
+                marginTop: 18,
+                fontFamily: SERIF,
+                fontSize: 16,
+                lineHeight: 24,
+                color: T.muted,
+              }}
+            >
+              Ask {partnerName} a scene from Spin. Their yes or no comes back
+              here.
+            </Text>
+          )
+        ) : null}
 
         {tab === "spin" ? (
           <>
@@ -549,31 +698,6 @@ export default function RoleplaysScreen() {
               })}
             </View>
 
-            {incoming.length ? (
-              <InviteSection
-                title={`From ${partnerName}`}
-                rows={incoming}
-                partnerName={partnerName}
-                cast={cast}
-                outgoing={false}
-                onRespond={(id, status) =>
-                  void respondRoleplayInvite(id, status)
-                }
-                onDone={(id) => void completeRoleplayInvite(id)}
-              />
-            ) : null}
-
-            {outgoing.length ? (
-              <InviteSection
-                title={`Sent to ${partnerName}`}
-                rows={outgoing}
-                partnerName={partnerName}
-                cast={cast}
-                outgoing
-                onRespond={() => undefined}
-                onDone={(id) => void completeRoleplayInvite(id)}
-              />
-            ) : null}
           </>
         ) : null}
 
@@ -621,6 +745,7 @@ function InviteSection({
   outgoing,
   onRespond,
   onDone,
+  onClear,
 }: {
   title: string;
   rows: RoleplayInvite[];
@@ -629,6 +754,7 @@ function InviteSection({
   outgoing: boolean;
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onDone: (id: string) => void;
+  onClear?: (id: string) => void;
 }) {
   return (
     <View style={{ marginTop: 28 }}>
@@ -647,9 +773,8 @@ function InviteSection({
         {rows.map((row) => {
           const roleplay = roleplayById(row.roleplayId);
           if (!roleplay) return null;
-          return (
+          const card = (
             <View
-              key={row.id}
               style={{
                 padding: 14,
                 borderRadius: 20,
@@ -677,7 +802,9 @@ function InviteSection({
                     : `${partnerName} asked · ${row.whenLabel ?? nightAskLabel(row.dateKey)}?`
                   : row.status === "accepted"
                     ? `${row.whenLabel ?? nightAskLabel(row.dateKey)} is on`
-                    : row.status}
+                    : row.status === "declined"
+                      ? `${partnerName} said no · ${row.whenLabel ?? nightAskLabel(row.dateKey)}`
+                      : row.status}
               </Text>
               <Text
                 style={{
@@ -723,6 +850,13 @@ function InviteSection({
                 </View>
               ) : null}
             </View>
+          );
+          return onClear ? (
+            <SwipeClearRow key={row.id} onClear={() => onClear(row.id)} ink={T.ink}>
+              {card}
+            </SwipeClearRow>
+          ) : (
+            <View key={row.id}>{card}</View>
           );
         })}
       </View>

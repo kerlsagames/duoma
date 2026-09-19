@@ -3,6 +3,8 @@ import { SheetOverlay } from "@/components/hub/SheetOverlay";
 import { Stage } from "@/components/hub/Stage";
 import { Screen } from "@/components/ui/Screen";
 import { PokeThem } from "@/components/ui/PokeThem";
+import { ClearAllBar, SwipeClearRow } from "@/components/ui/SwipeClearRow";
+import { useInboxClears } from "@/lib/inbox-clears";
 import {
   CHICKEN_DISPLAY as DISPLAY,
   CHICKEN_TONE as T,
@@ -44,6 +46,7 @@ export default function ChickenScreen() {
   } = useApp();
   const you = youLabel(user);
   const them = themLabelTitle(partner);
+  const clears = useInboxClears(user?.id);
   const [tab, setTab] = useState<Tab>("coop");
   const [yardId, setYardId] = useState<ChickenYardId | null>(null);
   const [packId, setPackId] = useState<ChickenPackId | null>(null);
@@ -65,10 +68,12 @@ export default function ChickenScreen() {
   );
   const outgoing = useMemo(
     () =>
-      chickenPlays
-        .filter((row) => row.fromUserId === user?.id)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [chickenPlays, user?.id]
+      clears.visible(
+        chickenPlays
+          .filter((row) => row.fromUserId === user?.id)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      ),
+    [chickenPlays, clears, user?.id]
   );
   const liveIncoming = incoming.filter(
     (row) => row.status === "offered" || row.status === "accepted"
@@ -269,6 +274,14 @@ export default function ChickenScreen() {
               onIn={(id) => void respondChickenDare(id, "accepted")}
               onCluck={(id) => void respondChickenDare(id, "declined")}
               onDone={(id) => void completeChickenDare(id)}
+              onClear={(id) => clears.hide(id)}
+              onClearAll={() =>
+                clears.hideAll(
+                  (liveOutgoing.length ? liveOutgoing : outgoing.slice(0, 6)).map(
+                    (row) => row.id
+                  )
+                )
+              }
             />
           </View>
         ) : null}
@@ -715,6 +728,8 @@ function CoopSection({
   onIn,
   onCluck,
   onDone,
+  onClear,
+  onClearAll,
 }: {
   kicker: string;
   empty: string;
@@ -726,6 +741,8 @@ function CoopSection({
   onIn: (id: string) => void;
   onCluck: (id: string) => void;
   onDone: (id: string) => void;
+  onClear?: (id: string) => void;
+  onClearAll?: () => void;
 }) {
   return (
     <View>
@@ -754,13 +771,20 @@ function CoopSection({
         </View>
       ) : (
         <View style={{ marginTop: 8, gap: 8 }}>
+          {outgoing && onClearAll ? (
+            <ClearAllBar
+              count={rows.length}
+              ink={T.cream}
+              muted={T.muted}
+              onClear={onClearAll}
+            />
+          ) : null}
           {rows.map((row) => {
             const catalog = chickenDareById(row.dareId);
             const recipient = row.toUserId === userId;
             const waitingOnThem = Boolean(outgoing) && row.status === "offered";
-            return (
+            const card = (
               <View
-                key={row.id}
                 style={{
                   borderRadius: 16,
                   backgroundColor: T.cream,
@@ -868,6 +892,17 @@ function CoopSection({
                   </Text>
                 ) : null}
               </View>
+            );
+            return outgoing && onClear ? (
+              <SwipeClearRow
+                key={row.id}
+                onClear={() => onClear(row.id)}
+                ink={T.creamInk}
+              >
+                {card}
+              </SwipeClearRow>
+            ) : (
+              <View key={row.id}>{card}</View>
             );
           })}
         </View>

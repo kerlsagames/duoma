@@ -22,7 +22,7 @@ const STEPS = [
   {
     kicker: "Home",
     title: "Four hubs, not one game",
-    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is three circles: Check-in, Calendar, and Notepad, larger with the default four favorite pins, smaller if you add more. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. When they send a Thought of You ping, a little Click me sits top-left of Home, tap it to read what they sent. Starred countdowns still tape across just above the bar.",
+    body: "Home is the front door. Connect, Desire, Fun, and Home Base each open as two columns of apps. The cog on each hub lets you hide apps, reorder them, or switch to a list. Daily rhythm is four circles: Check-in, Calendar, Notepad, and To Do, larger with the default four favorite pins, smaller if you add more. To Do is requests they sent you and the yeses still open. Couple settings is the cog on the bottom bar. The bar chart on the right is Stats and Badges. When they send a Thought of You ping, a little Click me sits top-left of Home, tap it to read what they sent. Starred countdowns still tape across just above the bar.",
   },
   {
     kicker: "Notifications",
@@ -32,7 +32,7 @@ const STEPS = [
   {
     kicker: "Shared world",
     title: "Coming later",
-    body: "Home settings still lists Shared world, but you cannot turn it on yet. Check-in, Calendar, and Notepad stay on Daily rhythm without it.",
+    body: "Home settings still lists Shared world, but you cannot turn it on yet. Check-in, Calendar, Notepad, and To Do stay on Daily rhythm without it.",
   },
   {
     kicker: "Connect",

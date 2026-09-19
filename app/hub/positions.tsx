@@ -6,7 +6,9 @@ import { BackButton } from "@/components/ui/BackButton";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { PokeThem } from "@/components/ui/PokeThem";
 import { FavoriteHeart, favoriteHeartCorner } from "@/components/ui/FavoriteHeart";
+import { ClearAllBar, SwipeClearRow } from "@/components/ui/SwipeClearRow";
 import { Screen } from "@/components/ui/Screen";
+import { useInboxClears } from "@/lib/inbox-clears";
 import { POSITIONS_TONE, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
 import { localDateKey } from "@/lib/dates";
@@ -80,6 +82,7 @@ export default function PositionsScreen() {
   const { prefs, save: savePrefs } = usePlayRatingsPrefs(POSITIONS_PREFS_KEY);
   const look = useAppLook("positions", T.accent, {});
   const partnerName = themLabel(partner);
+  const clears = useInboxClears(user?.id);
   const [tab, setTab] = useState<Tab>(openedTab ?? "pick");
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -112,15 +115,17 @@ export default function PositionsScreen() {
 
   const outgoing = useMemo(
     () =>
-      positionInvites.filter(
-        (row) =>
-          Boolean(user) &&
-          row.fromUserId === user!.id &&
-          (row.status === "offered" ||
-            row.status === "accepted" ||
-            row.status === "declined")
+      clears.visible(
+        positionInvites.filter(
+          (row) =>
+            Boolean(user) &&
+            row.fromUserId === user!.id &&
+            (row.status === "offered" ||
+              row.status === "accepted" ||
+              row.status === "declined")
+        )
       ),
-    [positionInvites, user]
+    [clears, positionInvites, user]
   );
   const freshYes = useMemo(
     () =>
@@ -473,14 +478,23 @@ export default function PositionsScreen() {
                   </View>
                 ) : null}
                 {outgoing.length ? (
-                  <InviteSection
-                    title={`Asked ${partnerName}`}
-                    rows={outgoing}
-                    partnerName={partnerName}
-                    outgoing
-                    onRespond={() => undefined}
-                    onDone={(id) => void completePositionInvite(id)}
-                  />
+                  <>
+                    <ClearAllBar
+                      count={outgoing.length}
+                      ink={T.ink}
+                      muted={T.muted}
+                      onClear={() => clears.hideAll(outgoing.map((row) => row.id))}
+                    />
+                    <InviteSection
+                      title={`Asked ${partnerName}`}
+                      rows={outgoing}
+                      partnerName={partnerName}
+                      outgoing
+                      onRespond={() => undefined}
+                      onDone={(id) => void completePositionInvite(id)}
+                      onClear={(id) => clears.hide(id)}
+                    />
+                  </>
                 ) : (
                   <Text
                     style={{
@@ -894,6 +908,7 @@ function InviteSection({
   outgoing,
   onRespond,
   onDone,
+  onClear,
 }: {
   title: string;
   rows: PositionInvite[];
@@ -901,6 +916,7 @@ function InviteSection({
   outgoing: boolean;
   onRespond: (id: string, status: "accepted" | "declined") => void;
   onDone: (id: string) => void;
+  onClear?: (id: string) => void;
 }) {
   return (
     <View style={{ marginTop: 28 }}>
@@ -919,9 +935,8 @@ function InviteSection({
         {rows.map((row) => {
           const position = positionById(row.positionId);
           if (!position) return null;
-          return (
+          const card = (
             <View
-              key={row.id}
               style={{
                 padding: 14,
                 borderRadius: 20,
@@ -1003,6 +1018,13 @@ function InviteSection({
                 </View>
               ) : null}
             </View>
+          );
+          return onClear ? (
+            <SwipeClearRow key={row.id} onClear={() => onClear(row.id)} ink={T.ink}>
+              {card}
+            </SwipeClearRow>
+          ) : (
+            <View key={row.id}>{card}</View>
           );
         })}
       </View>
