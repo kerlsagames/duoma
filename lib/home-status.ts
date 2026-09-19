@@ -45,10 +45,15 @@ export type StatusItem = {
 
 export function gameResumeHref(game: GameSession | null): Href | null {
   if (!game) return null;
-  if (game.status === "setup") return "/game/setup";
+  if (game.status === "inviting" || game.status === "setup") return "/game/setup";
   if (game.status === "selecting") return "/game/play";
   if (game.status === "playing" || game.status === "rating") return "/game/play";
   return null;
+}
+
+/** Tile tap: resume a live night, or open setup to start one. */
+export function spicyOpenHref(game: GameSession | null): Href {
+  return gameResumeHref(game) ?? "/game/setup";
 }
 
 function whoseTurn(

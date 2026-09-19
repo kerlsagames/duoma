@@ -16,7 +16,7 @@ import { GenderPicker } from "@/components/ui/GenderPicker";
 import { ReportSheet } from "@/components/ReportSheet";
 import { Screen } from "@/components/ui/Screen";
 import { SERIF } from "@/lib/app-themes";
-import { gameResumeHref } from "@/lib/home-status";
+import { spicyOpenHref } from "@/lib/home-status";
 import {
   allHubApps,
   emptyFavoriteSlots,
@@ -70,10 +70,8 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { game, partner, sendSpicyInvite, usingCloud, user, cloudLive, demoMode } =
+  const { game, usingCloud, user, cloudLive, demoMode } =
     useApp();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
     emptyFavoriteSlots()
   );
@@ -162,23 +160,8 @@ export default function HomeScreen() {
     await saveHomeFavorites(sized, layout.favoriteSlots);
   };
 
-  const startSpicy = async () => {
-    setError(null);
-    const resume = gameResumeHref(game);
-    if (resume) {
-      router.push(resume);
-      return;
-    }
-    if (game?.status === "inviting") return;
-    setLoading(true);
-    try {
-      await sendSpicyInvite();
-      if (partner?.isDemo) router.push("/game/setup");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start");
-    } finally {
-      setLoading(false);
-    }
+  const startSpicy = () => {
+    router.push(spicyOpenHref(game));
   };
 
   const chooseFavorite = async (app: HubAppOption) => {
@@ -222,20 +205,9 @@ export default function HomeScreen() {
         >
           <DuomaLogo size={44} />
           <View style={{ position: "absolute", right: 0, top: 2 }}>
-            <HomeNotificationsBell onStartSpicy={() => void startSpicy()} />
+            <HomeNotificationsBell onStartSpicy={startSpicy} />
           </View>
         </View>
-
-        {loading ? (
-          <Text className="mb-2 text-center text-[12px] text-neon">
-            Lighting it up…
-          </Text>
-        ) : null}
-        {error ? (
-          <Text className="mb-2 text-center text-[12px] text-crimson">
-            {error}
-          </Text>
-        ) : null}
 
         <InstallHomeScreenCard compact />
         <HomeConnectButton />
@@ -737,7 +709,7 @@ export default function HomeScreen() {
     </Screen>
     <HomePingNudge />
     {!settingsOpen && !statsOpen ? (
-      <HomeNotificationCards onStartSpicy={() => void startSpicy()} />
+      <HomeNotificationCards onStartSpicy={startSpicy} />
     ) : null}
     {settingsOpen ? (
       <HomeSettingsSheet

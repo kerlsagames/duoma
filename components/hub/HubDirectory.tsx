@@ -14,7 +14,7 @@ import {
   type HubView,
 } from "@/lib/hub-layout";
 import type { HubFeature, HubId } from "@/lib/hubs";
-import { gameResumeHref } from "@/lib/home-status";
+import { spicyOpenHref } from "@/lib/home-status";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -25,9 +25,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 export function HubDirectory({ hubId }: { hubId: HubId }) {
   const { hub, layout, visible, apps, save } = useHubLayout(hubId);
   const router = useRouter();
-  const { game, partner, sendSpicyInvite } = useApp();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { game } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (!hub) {
@@ -40,24 +38,9 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
     );
   }
 
-  const openFeature = async (featureId: string, href: string) => {
-    setError(null);
+  const openFeature = (featureId: string, href: string) => {
     if (featureId === "spicy") {
-      const resume = gameResumeHref(game);
-      if (resume) {
-        router.push(resume);
-        return;
-      }
-      if (game?.status === "inviting") return;
-      setLoading(true);
-      try {
-        await sendSpicyInvite();
-        if (partner?.isDemo) router.push("/game/setup");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not start");
-      } finally {
-        setLoading(false);
-      }
+      router.push(spicyOpenHref(game));
       return;
     }
     router.push(href as Href);
@@ -145,31 +128,6 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
             </Text>
           </View>
 
-          {loading ? (
-            <Text
-              style={{
-                marginBottom: 10,
-                textAlign: "center",
-                color: hub.accent,
-                fontSize: 12,
-              }}
-            >
-              Lighting it up…
-            </Text>
-          ) : null}
-          {error ? (
-            <Text
-              style={{
-                marginBottom: 10,
-                textAlign: "center",
-                color: "#FF6B7A",
-                fontSize: 12,
-              }}
-            >
-              {error}
-            </Text>
-          ) : null}
-
           {visible.length === 0 ? (
             <View
               style={{
@@ -231,7 +189,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                   accent={hub.accent}
                   accentSoft={hub.accentSoft}
                   showDetails={showDetails}
-                  onPress={() => void openFeature(feature.id, feature.href)}
+                  onPress={() => openFeature(feature.id, feature.href)}
                 />
               ))}
             </View>
@@ -245,7 +203,7 @@ export function HubDirectory({ hubId }: { hubId: HubId }) {
                   accentSoft={hub.accentSoft}
                   compact={layout.view === "compact"}
                   showDetails={showDetails}
-                  onPress={() => void openFeature(feature.id, feature.href)}
+                  onPress={() => openFeature(feature.id, feature.href)}
                 />
               ))}
             </View>
