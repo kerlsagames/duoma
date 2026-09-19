@@ -5,6 +5,9 @@ type Task = {
   label: string;
   everyDays: number;
   lastDone: string | null;
+  gone?: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type MaintView = "list" | "pegboard";
@@ -57,15 +60,48 @@ export function hydrateMaintPrefs(raw: unknown): MaintPrefs {
   };
 }
 
-/** First ping for a job nobody has ticked yet — so a new pair is not flooded. */
-export const DEFAULT_FIRST_DUE_DAYS = 90;
+export function isOnceOff(everyDays: number): boolean {
+  return !Number.isFinite(everyDays) || everyDays < 1;
+}
+
+export function isActiveMaintTask(row: Pick<Task, "everyDays" | "lastDone" | "gone">): boolean {
+  if (row.gone) return false;
+  if (isOnceOff(row.everyDays) && row.lastDone) return false;
+  return true;
+}
+
+export function hydrateMaintTask(raw: unknown): Task | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Partial<Task> & { once?: boolean };
+  const label = typeof row.label === "string" ? row.label.trim() : "";
+  if (!label) return null;
+  const once = row.once === true || isOnceOff(Number(row.everyDays));
+  const everyDays = once ? 0 : Math.max(1, Math.round(Number(row.everyDays) || 30));
+  const createdAt =
+    typeof row.createdAt === "string" && row.createdAt ? row.createdAt : "";
+  const lastDone = typeof row.lastDone === "string" ? row.lastDone : null;
+  const updatedAt =
+    typeof row.updatedAt === "string" && row.updatedAt
+      ? row.updatedAt
+      : lastDone || createdAt;
+  return {
+    id: typeof row.id === "string" && row.id ? row.id : `job:${label.toLowerCase()}`,
+    label,
+    everyDays,
+    lastDone,
+    gone: row.gone === true,
+    createdAt,
+    updatedAt,
+  };
+}
 
 export function dueOn(
   lastDone: string | null,
   everyDays: number,
   today = localDateKey()
 ): string {
-  if (!lastDone) return addDaysToDateKey(today, DEFAULT_FIRST_DUE_DAYS);
+  if (isOnceOff(everyDays)) return lastDone ?? today;
+  if (!lastDone) return today;
   return addDaysToDateKey(lastDone, everyDays);
 }
 
@@ -81,6 +117,9 @@ export function isOverdue(lastDone: string | null, everyDays: number, today = lo
 }
 
 export function dueLabel(lastDone: string | null, everyDays: number, today = localDateKey()): string {
+  if (isOnceOff(everyDays)) {
+    return lastDone ? "Done · once" : "Once · do it";
+  }
   const n = daysUntilDue(lastDone, everyDays, today);
   if (n < 0) return n === -1 ? "Due yesterday" : `Due ${Math.abs(n)} days ago`;
   if (n === 0) return "Due today";
@@ -104,6 +143,8 @@ export function sortMaintTasks(rows: Task[], sort: MaintSort, today = localDateK
 }
 
 export function unusedSuggestions(existing: Task[]): { label: string; everyDays: number }[] {
-  const have = new Set(existing.map((row) => row.label.toLowerCase()));
+  const have = new Set(
+    existing.filter(isActiveMaintTask).map((row) => row.label.toLowerCase())
+  );
   return MAINT_SUGGESTIONS.filter((row) => !have.has(row.label.toLowerCase()));
 }

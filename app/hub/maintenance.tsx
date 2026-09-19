@@ -8,18 +8,22 @@ import { hexAlpha, inkOnAccent } from "@/lib/color-paint";
 import { sectionAccent } from "@/lib/hub-theme";
 import { localDateKey } from "@/lib/dates";
 import { createId } from "@/lib/ids";
+import { nowIso } from "@/lib/ids";
 import {
   dueLabel,
   dueOn,
+  isActiveMaintTask,
+  isOnceOff,
   isOverdue,
   sortMaintTasks,
   unusedSuggestions,
 } from "@/lib/maintenance";
 import { useMiniApps } from "@/lib/mini-apps";
+import { useApp } from "@/lib/store";
 import type { MaintTask } from "@/lib/mini-content";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 const BG = "#2A2418";
@@ -28,6 +32,7 @@ const PAPER = "#F3E2C0";
 const INK = "#2A1C10";
 
 export default function MaintenanceScreen() {
+  const { refreshPair } = useApp();
   const { data, ready, patch } = useMiniApps();
   const look = useAppLook("maintenance", fallbackPeg(), {});
   const tint = look.accent;
@@ -35,11 +40,16 @@ export default function MaintenanceScreen() {
   const wash = (alpha: number) => hexAlpha(tint, alpha);
   const [label, setLabel] = useState("");
   const [days, setDays] = useState("30");
+  const [once, setOnce] = useState(false);
   const [removeId, setRemoveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void refreshPair();
+  }, [refreshPair]);
   const today = localDateKey();
   const prefs = data.maintPrefs;
   const sorted = useMemo(
-    () => sortMaintTasks(data.maintenance, prefs.sort, today),
+    () => sortMaintTasks(data.maintenance.filter(isActiveMaintTask), prefs.sort, today),
     [data.maintenance, prefs.sort, today]
   );
   const ideas = useMemo(() => unusedSuggestions(data.maintenance), [data.maintenance]);
@@ -48,24 +58,42 @@ export default function MaintenanceScreen() {
   const markDone = (id: string) => {
     void patch((state) => ({
       ...state,
-      maintenance: state.maintenance.map((item) =>
-        item.id === id ? { ...item, lastDone: today } : item
-      ),
+      maintenance: state.maintenance.map((item) => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          lastDone: today,
+          updatedAt: nowIso(),
+        };
+      }),
     }));
   };
 
   const addTask = (nextLabel: string, everyDays: number) => {
     const name = nextLabel.trim();
-    if (!name || everyDays < 1) return;
+    const onceOff = isOnceOff(everyDays);
+    if (!name || (!onceOff && everyDays < 1)) return;
     void patch((state) => {
-      if (state.maintenance.some((row) => row.label.toLowerCase() === name.toLowerCase())) {
+      if (
+        state.maintenance.some(
+          (row) => isActiveMaintTask(row) && row.label.toLowerCase() === name.toLowerCase()
+        )
+      ) {
         return state;
       }
+      const stamp = nowIso();
       return {
         ...state,
         maintenance: [
           ...state.maintenance,
-          { id: createId(), label: name, everyDays, lastDone: null },
+          {
+            id: createId(),
+            label: name,
+            everyDays: onceOff ? 0 : everyDays,
+            lastDone: null,
+            createdAt: stamp,
+            updatedAt: stamp,
+          },
         ],
       };
     });
@@ -74,7 +102,9 @@ export default function MaintenanceScreen() {
   const removeTask = (id: string) => {
     void patch((state) => ({
       ...state,
-      maintenance: state.maintenance.filter((item) => item.id !== id),
+      maintenance: state.maintenance.map((item) =>
+        item.id === id ? { ...item, gone: true, updatedAt: nowIso() } : item
+      ),
     }));
     setRemoveId(null);
   };
@@ -277,22 +307,30 @@ export default function MaintenanceScreen() {
                 paddingVertical: 6,
               }}
             />
-            <TextInput
-              value={days}
-              onChangeText={setDays}
-              keyboardType="numeric"
-              accessibilityLabel="Repeat every days"
-              style={{
-                width: 56,
-                color: tint,
-                borderBottomWidth: 1,
-                borderBottomColor: tint,
-                paddingVertical: 6,
-                textAlign: "center",
-              }}
-            />
+            {once ? null : (
+              <TextInput
+                value={days}
+                onChangeText={setDays}
+                keyboardType="numeric"
+                accessibilityLabel="Repeat every days"
+                style={{
+                  width: 56,
+                  color: tint,
+                  borderBottomWidth: 1,
+                  borderBottomColor: tint,
+                  paddingVertical: 6,
+                  textAlign: "center",
+                }}
+              />
+            )}
             <Pressable
               onPress={() => {
+                if (once) {
+                  if (!label.trim()) return;
+                  addTask(label, 0);
+                  setLabel("");
+                  return;
+                }
                 const n = Number(days);
                 if (!label.trim() || !Number.isFinite(n) || n < 1) return;
                 addTask(label, n);
@@ -309,8 +347,28 @@ export default function MaintenanceScreen() {
               </Text>
             </Pressable>
           </View>
+          <Pressable
+            onPress={() => setOnce((value) => !value)}
+            accessibilityRole="button"
+            accessibilityLabel={once ? "Switch to repeating job" : "Set as once-off"}
+            style={{
+              marginTop: 10,
+              alignSelf: "flex-start",
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderWidth: 1,
+              borderColor: once ? tint : wash(0.28),
+              backgroundColor: once ? wash(0.16) : "transparent",
+            }}
+          >
+            <Text style={{ color: once ? tint : muted, fontSize: 13, fontWeight: "700" }}>
+              {once ? "Once-off · on" : "Set as once-off"}
+            </Text>
+          </Pressable>
           <Text style={{ marginTop: 6, color: muted, fontSize: 12 }}>
-            Days between repeats
+            {once
+              ? "Does it once. Tick it and it leaves the board."
+              : "Days between repeats. Tick the empty box when it’s done."}
           </Text>
           <View style={{ height: 28 }} />
         </Stage>
@@ -350,6 +408,7 @@ function ListRow({
   onRemove: () => void;
 }) {
   const late = isOverdue(row.lastDone, row.everyDays, today);
+  const once = isOnceOff(row.everyDays);
   return (
     <View
       style={{
@@ -371,14 +430,11 @@ function ListRow({
           height: 28,
           borderWidth: 1.5,
           borderColor: late ? "#E8A0A0" : accent,
+          backgroundColor: "transparent",
           alignItems: "center",
           justifyContent: "center",
         }}
-      >
-        {late ? null : (
-          <Ionicons name="checkmark" size={16} color={accent} />
-        )}
-      </Pressable>
+      />
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: SERIF, fontSize: 16, color: late ? "#F6D6D0" : PAPER }}>
           {row.label}
@@ -391,7 +447,8 @@ function ListRow({
             color: late ? "#E8A0A0" : muted,
           }}
         >
-          {dueLabel(row.lastDone, row.everyDays, today)} · every {row.everyDays}d
+          {dueLabel(row.lastDone, row.everyDays, today)}
+          {once ? "" : ` · every ${row.everyDays}d`}
         </Text>
       </View>
       <Pressable onPress={onRemove} hitSlop={8} accessibilityLabel={`Remove ${row.label}`}>

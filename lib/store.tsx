@@ -259,7 +259,7 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-async function persist(opts?: { skipDwell?: boolean }) {
+async function persist(opts?: { skipDwell?: boolean; skipBackup?: boolean }) {
   if (!opts?.skipDwell && !sessionIsDemo() && sessionUserId) {
     const appId = currentDwellApp();
     if (appId) {
@@ -288,7 +288,7 @@ async function persist(opts?: { skipDwell?: boolean }) {
   if (typeof BroadcastChannel !== "undefined") {
     new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now() });
   }
-  if (!sessionIsDemo() && sessionUserId) {
+  if (!opts?.skipBackup && !sessionIsDemo() && sessionUserId) {
     const couple = coupleForUser(sessionUserId);
     if (couple?.id) {
       const staleIds = db.couples
@@ -1118,7 +1118,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!sessionIsDemo()) {
           sessionUserId = profile.id;
           await writeSessionUserId(profile.id);
-          await absorbHubForCouple(absorbed.couple.id);
         }
         setPairError(null);
         return true;
@@ -1129,64 +1128,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     (async () => {
-      db = await readDb();
-      const localReports = await readLocalReports();
-      if (localReports.length) {
-        const seen = new Set((db.contentReports ?? []).map((row) => row.id));
-        const extra = localReports.filter((row) => !seen.has(row.id));
-        if (extra.length) {
-          db = { ...db, contentReports: [...(db.contentReports ?? []), ...extra] };
+      let shouldPersist = false;
+      try {
+        db = await readDb();
+        const localReports = await readLocalReports();
+        if (localReports.length) {
+          const seen = new Set((db.contentReports ?? []).map((row) => row.id));
+          const extra = localReports.filter((row) => !seen.has(row.id));
+          if (extra.length) {
+            db = { ...db, contentReports: [...(db.contentReports ?? []), ...extra] };
+          }
         }
-      }
-      const localFeedback = await readLocalFeedback();
-      if (localFeedback.length) {
-        const seen = new Set((db.feedbackNotes ?? []).map((row) => row.id));
-        const extra = localFeedback.filter((row) => !seen.has(row.id));
-        if (extra.length) {
-          db = { ...db, feedbackNotes: [...(db.feedbackNotes ?? []), ...extra] };
+        const localFeedback = await readLocalFeedback();
+        if (localFeedback.length) {
+          const seen = new Set((db.feedbackNotes ?? []).map((row) => row.id));
+          const extra = localFeedback.filter((row) => !seen.has(row.id));
+          if (extra.length) {
+            db = { ...db, feedbackNotes: [...(db.feedbackNotes ?? []), ...extra] };
+          }
         }
-      }
-      const pardoned = db.profiles.map(pardonCreator);
-      const clearedBan = pardoned.some((profile, index) => profile !== db.profiles[index]);
-      if (clearedBan) db = { ...db, profiles: pardoned };
-      sessionUserId = await readSessionUserId();
-      lastUserId = await readLastUserId();
-      liveUserId = await readLiveUserId();
-      demoUserId = await readDemoUserId();
-      const known = (id: string | null) =>
-        Boolean(id && db.profiles.some((profile) => profile.id === id));
-      if (!known(sessionUserId) && known(liveUserId)) {
-        sessionUserId = liveUserId;
-        await writeSessionUserId(liveUserId);
-      }
-      if (!known(sessionUserId) && known(lastUserId) && lastUserId !== demoUserId) {
-        sessionUserId = lastUserId;
-        await writeSessionUserId(lastUserId);
-      }
-      if (!known(sessionUserId)) {
-        const resume =
-          (known(liveUserId) ? liveUserId : null) ??
-          db.profiles.find((profile) => isCreatorEmail(profile.email))?.id ??
-          db.profiles.find((profile) => !profile.isDemo)?.id ??
-          null;
-        if (resume) {
-          sessionUserId = resume;
-          lastUserId = resume;
-          await writeSessionUserId(resume);
-          await writeLastUserId(resume);
+        const pardoned = db.profiles.map(pardonCreator);
+        const clearedBan = pardoned.some((profile, index) => profile !== db.profiles[index]);
+        if (clearedBan) {
+          db = { ...db, profiles: pardoned };
+          shouldPersist = true;
         }
+        sessionUserId = await readSessionUserId();
+        lastUserId = await readLastUserId();
+        liveUserId = await readLiveUserId();
+        demoUserId = await readDemoUserId();
+        const known = (id: string | null) =>
+          Boolean(id && db.profiles.some((profile) => profile.id === id));
+        if (!known(sessionUserId) && known(liveUserId)) {
+          sessionUserId = liveUserId;
+          await writeSessionUserId(liveUserId);
+        }
+        if (!known(sessionUserId) && known(lastUserId) && lastUserId !== demoUserId) {
+          sessionUserId = lastUserId;
+          await writeSessionUserId(lastUserId);
+        }
+        if (!known(sessionUserId)) {
+          const resume =
+            (known(liveUserId) ? liveUserId : null) ??
+            db.profiles.find((profile) => isCreatorEmail(profile.email))?.id ??
+            db.profiles.find((profile) => !profile.isDemo)?.id ??
+            null;
+          if (resume) {
+            sessionUserId = resume;
+            lastUserId = resume;
+            await writeSessionUserId(resume);
+            await writeLastUserId(resume);
+          }
+        }
+        bump();
+      } catch {
+        // Open the door on whatever is already on the phone.
+      } finally {
+        setReady(true);
       }
-      const absorbed = await applyCloudSession();
-      if (supabase) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        setCloudLive(Boolean(sessionData.session?.user));
-      }
-      if (syncDefaultCards() || absorbed || clearedBan) {
-        await persist();
-      } else {
+      try {
+        const absorbed = await applyCloudSession();
+        if (supabase) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          setCloudLive(Boolean(sessionData.session?.user));
+        }
+        if (syncDefaultCards() || absorbed || shouldPersist) {
+          await persist({ skipBackup: Boolean(absorbed) });
+        }
+      } catch {
         bump();
       }
-      setReady(true);
     })();
 
     if (supabase) {
@@ -1287,7 +1298,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await writeLastUserId(profile.id);
           await absorbHubForCouple(absorbed.couple.id);
         }
-        await persist();
+        await persist({ skipBackup: true });
       } catch {
         // Waiting screen keeps polling.
       }
@@ -1306,14 +1317,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ? () => undefined
       : subscribeCoupleHub(couple.id, (bundle) => {
           db = mergeHubBundle(db, couple.id, bundle);
-          void persist();
+          void persist({ skipBackup: true });
         });
     const stopState = sessionIsDemo()
       ? () => undefined
       : subscribeCoupleState(couple.id, () => {
           void absorbCoupleState(couple.id, db).then((next) => {
             db = next;
-            void persist();
+            void persist({ skipBackup: true });
           });
         });
     const onVis = () => {
@@ -1321,14 +1332,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (!sessionIsDemo()) {
-        void absorbHubForCouple(couple.id).then(() => persist());
+        void absorbHubForCouple(couple.id).then(() => persist({ skipBackup: true }));
       }
     };
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", onVis);
     }
     if (!sessionIsDemo()) {
-      void absorbHubForCouple(couple.id).then(() => persist());
+      void absorbHubForCouple(couple.id).then(() => persist({ skipBackup: true }));
       void pullCouplePushSubscriptions(couple.id).then((remote) => {
         if (!remote.length) return;
         const seen = new Set(db.pushSubscriptions.map((row) => row.endpoint));
@@ -2010,7 +2021,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshPair = useCallback(async () => {
     if (!couple?.id || sessionIsDemo()) return;
     await absorbHubForCouple(couple.id);
-    await persist();
+    await persist({ skipBackup: true });
   }, [couple?.id]);
 
   const refreshCloudAccounts = useCallback(async () => {

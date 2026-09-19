@@ -360,15 +360,20 @@ function sanitizeMiniForCloud(mini: MiniState): MiniState {
 
 export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState {
   const next = hydrateMiniState({ ...local, ...remote });
-  const arrayKeys = Object.keys(local).filter((key) => Array.isArray((local as unknown as Record<string, unknown>)[key]));
+  const localRecord = local as unknown as Record<string, unknown>;
+  const remoteRecord = remote as unknown as Record<string, unknown>;
+  const arrayKeys = new Set([
+    ...Object.keys(local).filter((key) => Array.isArray(localRecord[key])),
+    ...Object.keys(remote).filter((key) => Array.isArray(remoteRecord[key])),
+  ]);
   const keepOnPhone = new Set(["sexyVault", "audioNotes", "photos"]);
   for (const key of arrayKeys) {
     if (keepOnPhone.has(key)) continue;
-    const localRows = (local as unknown as Record<string, unknown[]>)[key] ?? [];
-    const remoteRows = (remote as unknown as Record<string, unknown[]>)[key] ?? [];
-    if (localRows.every((row) => typeof row === "string")) {
+    const localRows = (localRecord[key] as unknown[]) ?? [];
+    const remoteRows = (remoteRecord[key] as unknown[]) ?? [];
+    if (localRows.every((row) => typeof row === "string") && remoteRows.every((row) => typeof row === "string")) {
       (next as unknown as Record<string, unknown>)[key] = [
-        ...new Set([...(localRows as unknown as string[]), ...(remoteRows as unknown as string[])]),
+        ...new Set([...(localRows as string[]), ...(remoteRows as string[])]),
       ];
       continue;
     }
@@ -388,6 +393,7 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
 }
 
 let restoring = false;
+let pushing = false;
 let lastPushedAt = "";
 let timer: ReturnType<typeof setTimeout> | null = null;
 let queued: { coupleId: string; db: AppDB } | null = null;
@@ -406,6 +412,7 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
 
 /** Push the queued backup now so a lock-screen ping is not faster than the coupon. */
 export async function flushCoupleBackup(): Promise<void> {
+  if (restoring || pushing) return;
   if (timer) {
     clearTimeout(timer);
     timer = null;
@@ -438,17 +445,67 @@ export function subscribeCoupleState(
   };
 }
 
-export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
-  if (!supabase || !coupleId || restoring || !isCoupleUuid(coupleId)) return;
+async function pullLiveCoupleState(coupleId: string): Promise<CloudState | null> {
+  if (!supabase || !coupleId) return null;
   try {
-    const { loadMiniState } = await import("@/lib/mini-apps");
-    const mini = sanitizeMiniForCloud(await loadMiniState());
+    const query = supabase
+      .from("couple_state")
+      .select("payload")
+      .eq("couple_id", coupleId)
+      .maybeSingle();
+    const raced = await Promise.race([
+      query,
+      new Promise<{ data: null; error: { message: string } }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 8000)
+      ),
+    ]);
+    if (raced.error || !raced.data?.payload) return null;
+    const raw = raced.data.payload as CloudState;
+    if (!raw || typeof raw !== "object") return null;
+    return {
+      db: raw.db ?? {},
+      mini: hydrateMiniState(raw.mini),
+      media: raw.media ?? { vault: {}, voice: {} },
+      savedAt: raw.savedAt || new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cloudPlayEqual(a: CloudState, b: CloudState): boolean {
+  try {
+    return JSON.stringify({ db: a.db, mini: a.mini }) === JSON.stringify({ db: b.db, mini: b.mini });
+  } catch {
+    return false;
+  }
+}
+
+export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
+  if (!supabase || !coupleId || restoring || pushing || !isCoupleUuid(coupleId)) return;
+  pushing = true;
+  try {
+    const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
+    const remote = await pullLiveCoupleState(coupleId);
+    let mini = sanitizeMiniForCloud(await loadMiniState());
+    let working = db;
+    if (remote) {
+      mini = mergeMiniStates(mini, sanitizeMiniForCloud(remote.mini));
+      working = mergeCoupleDb(db, coupleId, remote.db);
+      restoring = true;
+      try {
+        await patchMini(() => mini);
+      } finally {
+        restoring = false;
+      }
+    }
     const payload: CloudState = {
-      db: sliceCoupleDb(db, coupleId),
+      db: sliceCoupleDb(working, coupleId),
       mini,
       media: { vault: {}, voice: {} },
       savedAt: new Date().toISOString(),
     };
+    if (remote && cloudPlayEqual(payload, remote)) return;
     lastPushedAt = payload.savedAt;
     const row = {
       couple_id: coupleId,
@@ -468,42 +525,13 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     }
   } catch {
     // Table missing or offline — local play still works.
+  } finally {
+    pushing = false;
   }
 }
 
 export async function pullCoupleState(coupleId: string): Promise<CloudState | null> {
-  if (!coupleId) return null;
-  try {
-    const { isAdminUnlocked } = await import("@/lib/admin-gate");
-    if (isAdminUnlocked()) {
-      const snap = await import("@/lib/admin-snapshot");
-      const hit = snap.peekAdminCoupleState(coupleId);
-      if (hit) return hit;
-      const loaded = await snap.loadAdminSnapshot();
-      if (loaded?.states[coupleId]) return loaded.states[coupleId] ?? null;
-    }
-  } catch {
-    // Passphrase snapshot is optional until SQL 018 is run.
-  }
-  if (!supabase) return null;
-  try {
-    const { data, error } = await supabase
-      .from("couple_state")
-      .select("payload")
-      .eq("couple_id", coupleId)
-      .maybeSingle();
-    if (error || !data?.payload) return null;
-    const raw = data.payload as CloudState;
-    if (!raw || typeof raw !== "object") return null;
-    return {
-      db: raw.db ?? {},
-      mini: hydrateMiniState(raw.mini),
-      media: raw.media ?? { vault: {}, voice: {} },
-      savedAt: raw.savedAt || new Date().toISOString(),
-    };
-  } catch {
-    return null;
-  }
+  return pullLiveCoupleState(coupleId);
 }
 
 export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<AppDB> {
@@ -525,7 +553,7 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
 }
 
 export async function scheduleFromMini(coupleId: string | null) {
-  if (!coupleId || restoring) return;
+  if (!coupleId || restoring || pushing) return;
   const { readDb } = await import("@/lib/storage");
   const db = await readDb();
   scheduleCoupleBackup(coupleId, db);

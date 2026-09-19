@@ -183,9 +183,6 @@ export async function bindMiniAppsCouple(coupleId: string | null): Promise<MiniS
   cache = null;
   const next = await loadMiniState();
   emit(next);
-  if (coupleId && miniHasPlay(next)) {
-    void import("@/lib/couple-backup").then((mod) => mod.scheduleFromMini(coupleId));
-  }
   return next;
 }
 
@@ -200,9 +197,9 @@ export async function patchMini(
     await writeKey(storageKey(activeCoupleId), JSON.stringify(next));
     const coupleId = activeCoupleId;
     if (coupleId) {
-      void import("@/lib/couple-backup").then((mod) =>
-        mod.scheduleFromMini(coupleId)
-      );
+      const backup = await import("@/lib/couple-backup");
+      await backup.scheduleFromMini(coupleId);
+      await backup.flushCoupleBackup();
     }
   } catch {
     // Keep the in-memory update even if disk fails.

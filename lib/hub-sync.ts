@@ -290,12 +290,18 @@ export function mergeHubBundle(db: AppDB, coupleId: string, bundle: HubBundle): 
 export async function pullCoupleHub(coupleId: string): Promise<HubBundle | null> {
   if (!supabase) return null;
   try {
-    const { data, error } = await supabase
+    const query = supabase
       .from("hub_items")
       .select("id, couple_id, kind, payload, updated_at")
       .eq("couple_id", coupleId);
-    if (error || !data) return null;
-    return rowsToBundle(data as HubRow[]);
+    const raced = await Promise.race([
+      query,
+      new Promise<{ data: null; error: { message: string } }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 8000)
+      ),
+    ]);
+    if (raced.error || !raced.data) return null;
+    return rowsToBundle(raced.data as HubRow[]);
   } catch {
     return null;
   }

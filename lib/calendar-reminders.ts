@@ -9,7 +9,7 @@ import {
   formatLongDate,
   localDateKey,
 } from "@/lib/dates";
-import { dueOn } from "@/lib/maintenance";
+import { dueOn, isActiveMaintTask } from "@/lib/maintenance";
 import type { MaintTask, Trip } from "@/lib/mini-content";
 import type { CalendarCustomEvent } from "@/lib/types";
 import type { Href } from "expo-router";
@@ -285,7 +285,7 @@ export function buildCalendarReminders(input: {
   }
 
   for (const row of input.jobs) {
-    if (!row.lastDone) continue;
+    if (!isActiveMaintTask(row) || !row.lastDone) continue;
     const dateKey = jobDueDateKey(row.lastDone, row.everyDays);
     if (daysUntil(dateKey, now) < -1) continue;
     pushReminder(items, {

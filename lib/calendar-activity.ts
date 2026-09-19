@@ -7,7 +7,7 @@ import {
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { sexPositions } from "@/lib/sex-positions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
-import { dueOn } from "@/lib/maintenance";
+import { dueOn, isActiveMaintTask } from "@/lib/maintenance";
 import { holidaysAround } from "@/lib/holidays";
 import type { IntimacyLog, MaintTask, Trip } from "@/lib/mini-content";
 import { INTIMACY_KINDS, SIMPLE_INTIMACY_KINDS } from "@/lib/mini-content";
@@ -514,6 +514,7 @@ export function buildCalendarActivities(
   }
 
   for (const row of input.maintenance ?? []) {
+    if (!isActiveMaintTask(row)) continue;
     const dateKey = dueOn(row.lastDone, row.everyDays);
     items.push({
       id: `job:${row.id}`,
@@ -522,9 +523,13 @@ export function buildCalendarActivities(
       at: `${dateKey}T12:00:00.000Z`,
       title: row.label,
       subtitle:
-        dateKey <= localDateKey()
-          ? "Job due · overdue or today"
-          : `Job due · every ${row.everyDays} days`,
+        row.everyDays < 1
+          ? dateKey <= localDateKey()
+            ? "Once-off job · do it"
+            : "Once-off job"
+          : dateKey <= localDateKey()
+            ? "Job due · overdue or today"
+            : `Job due · every ${row.everyDays} days`,
       mark: "job",
       href: `/hub/calendar-item?kind=job&id=${encodeURIComponent(row.id)}`,
         allDay: true,

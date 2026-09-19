@@ -19,7 +19,12 @@ import {
   hydrateMealPlan,
   type MealPlanState,
 } from "@/lib/meal-plan";
-import { DEFAULT_MAINT_PREFS, hydrateMaintPrefs, type MaintPrefs } from "@/lib/maintenance";
+import {
+  DEFAULT_MAINT_PREFS,
+  hydrateMaintPrefs,
+  hydrateMaintTask,
+  type MaintPrefs,
+} from "@/lib/maintenance";
 import {
   defaultPhotoPrefs,
   hydratePhotoMemory,
@@ -433,6 +438,9 @@ export type MaintTask = {
   label: string;
   everyDays: number;
   lastDone: string | null;
+  gone?: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type VaultEntry = {
@@ -1002,7 +1010,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
       .map(hydrateMoneyGoal)
       .filter((item): item is MoneyGoal => Boolean(item)),
     budget: hydrateBudget(row.budget),
-    maintenance: asArray(row.maintenance, base.maintenance),
+    maintenance: asArray(row.maintenance, base.maintenance)
+      .map(hydrateMaintTask)
+      .filter((item): item is MaintTask => Boolean(item)),
     vault: asArray(row.vault, base.vault),
     vaultPin: typeof row.vaultPin === "string" ? row.vaultPin : "",
     vaultSkipPin: row.vaultSkipPin === true,
