@@ -121,18 +121,14 @@ export default function SetupScreen() {
   });
   const [pace, setPace] = useState<SpicyPace>("simple");
 
-  useEffect(() => {
-    if (
-      game?.status === "selecting" ||
-      game?.status === "playing" ||
-      game?.status === "rating"
-    ) {
-      router.replace("/game/play");
-    }
-  }, [game, router]);
+  const inProgress =
+    game?.status === "selecting" ||
+    game?.status === "playing" ||
+    game?.status === "rating";
 
   useEffect(() => {
     if (bootStarted.current) return;
+    if (inProgress) return;
     if (game && game.status !== "inviting") return;
     bootStarted.current = true;
     setBootError(null);
@@ -140,7 +136,7 @@ export default function SetupScreen() {
       setBootError(err instanceof Error ? err.message : "Could not start");
       bootStarted.current = false;
     });
-  }, [game, sendSpicyInvite]);
+  }, [game, inProgress, sendSpicyInvite]);
 
   useEffect(() => {
     if (!look.ready) return;
@@ -334,6 +330,27 @@ export default function SetupScreen() {
 
         {bootError ? (
           <Text className="mt-4 text-[14px] text-crimson">{bootError}</Text>
+        ) : null}
+
+        {inProgress ? (
+          <View className="mt-6 rounded-3xl border border-neon/40 bg-neon/10 px-4 py-4">
+            <Text className="text-[15px] font-semibold text-mist">
+              {game?.status === "rating"
+                ? "Tonight still needs ratings"
+                : "A night is already underway"}
+            </Text>
+            <Text className="mt-1 text-[13px] leading-5 text-mist/60">
+              {game?.status === "rating"
+                ? "Finish scoring last night, or start a new session below."
+                : "Resume if you were just playing. Start session below deals a fresh night."}
+            </Text>
+            <View className="mt-3">
+              <PrimaryButton
+                label={game?.status === "rating" ? "Finish ratings" : "Resume tonight"}
+                onPress={() => router.replace("/game/play")}
+              />
+            </View>
+          </View>
         ) : null}
 
         <View className="mt-6 flex-row gap-2">
@@ -549,7 +566,7 @@ export default function SetupScreen() {
 
         <View className="mt-8 gap-3">
           <PrimaryButton
-            label="Start session"
+            label={inProgress ? "Start a new night" : "Start session"}
             loading={loading}
             disabled={flavorTags.length === 0 || !game}
             onPress={() => void start()}

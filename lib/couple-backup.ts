@@ -9,7 +9,7 @@ import { mergeSparkStates } from "@/lib/spark";
 import { mergeWorldChoices } from "@/lib/worlds";
 import { hydrateMiniState, type MiniState, type WhoLast } from "@/lib/mini-content";
 import { hydrateDb } from "@/lib/storage";
-import type { AppDB } from "@/lib/types";
+import type { AppDB, GameSession } from "@/lib/types";
 
 type CoupleSlice = Omit<AppDB, "profiles" | "couples" | "pushSubscriptions">;
 
@@ -263,6 +263,30 @@ function mergeIdRows<T extends { id: string }>(local: T[], incoming: T[]): T[] {
   return mergeByKey(local, incoming, (row) => row.id, (row) => stampOf(row as unknown as Record<string, unknown>));
 }
 
+function gameIsDone(game: GameSession): boolean {
+  return ["cancelled", "declined", "completed"].includes(game.status);
+}
+
+function preferGame(local: GameSession, remote: GameSession): GameSession {
+  const localDone = gameIsDone(local);
+  const remoteDone = gameIsDone(remote);
+  if (localDone && !remoteDone) return local;
+  if (remoteDone && !localDone) return remote;
+  const localStamp = local.updatedAt || local.completedAt || local.createdAt || "";
+  const remoteStamp = remote.updatedAt || remote.completedAt || remote.createdAt || "";
+  return remoteStamp >= localStamp ? remote : local;
+}
+
+function mergeGames(local: GameSession[], remote: GameSession[]): GameSession[] {
+  const map = new Map<string, GameSession>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    map.set(row.id, prev ? preferGame(prev, row) : row);
+  }
+  return [...map.values()];
+}
+
 export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>): AppDB {
   const incoming = hydrateDb({
     ...db,
@@ -284,7 +308,7 @@ export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>
   ];
   next.games = [
     ...keepOther(db.games, coupleMine),
-    ...mergeIdRows(db.games.filter(coupleMine), incoming.games.filter(coupleMine)),
+    ...mergeGames(db.games.filter(coupleMine), incoming.games.filter(coupleMine)),
   ];
   next.gamePlayers = [
     ...db.gamePlayers.filter((row) => !allGameIds.has(row.gameId)),

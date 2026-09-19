@@ -39,6 +39,7 @@ import {
   flushCoupleBackup,
   subscribeCoupleState,
 } from "@/lib/couple-backup";
+import { isLiveSpicyGame, spicyGameStampMs } from "@/lib/spicy-session";
 import { bumpAppSeconds, currentDwellApp } from "@/lib/app-dwell";
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
@@ -203,9 +204,11 @@ import {
   personalizeDareText,
 } from "@/lib/spicy-dares";
 import {
+  addLocalFantasySeen,
   demoLikedFantasyIds,
   fantasyById,
   fantasyIdeas,
+  removeLocalFantasySeen,
 } from "@/lib/fantasy-matcher";
 import { subscribeCatalog } from "@/lib/catalog-overlay";
 import { isCreatorEmail, pardonCreator } from "@/lib/creator";
@@ -243,6 +246,7 @@ import {
 } from "react";
 
 const CHANNEL_NAME = "duoma-realtime";
+let persistToken = 0;
 
 let db: AppDB = emptyDb();
 let sessionUserId: string | null = null;
@@ -284,10 +288,11 @@ async function persist(opts?: { skipDwell?: boolean; skipBackup?: boolean }) {
       }
     }
   }
+  const token = ++persistToken;
   await writeDb(db);
   emit();
   if (typeof BroadcastChannel !== "undefined") {
-    new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now() });
+    new BroadcastChannel(CHANNEL_NAME).postMessage({ at: Date.now(), token });
   }
   if (!opts?.skipBackup && !sessionIsDemo() && sessionUserId) {
     const couple = coupleForUser(sessionUserId);
@@ -345,6 +350,7 @@ function mergeCloudPair(input: {
 
 function applyAbsorbedCouple(coupleId: string, absorbed: AppDB) {
   db = mergeCoupleDb(db, coupleId, sliceCoupleDb(absorbed, coupleId));
+  cancelAbandonedGames(coupleId);
 }
 
 async function absorbHubForCouple(coupleId: string | null | undefined) {
@@ -615,16 +621,26 @@ function upsertRitual(
   ];
 }
 
+function cancelAbandonedGames(coupleId: string) {
+  const now = Date.now();
+  const stamp = nowIso();
+  let changed = false;
+  const games = db.games.map((row) => {
+    if (row.coupleId !== coupleId) return row;
+    if (["cancelled", "declined", "completed"].includes(row.status)) return row;
+    if (isLiveSpicyGame(row, now)) return row;
+    changed = true;
+    return { ...row, status: "cancelled" as const, updatedAt: stamp };
+  });
+  if (changed) db = { ...db, games };
+}
+
 function activeGameForCouple(coupleId: string | null): GameSession | null {
   if (!coupleId) return null;
   return (
     [...db.games]
-      .reverse()
-      .find(
-        (game) =>
-          game.coupleId === coupleId &&
-          !["cancelled", "declined", "completed"].includes(game.status)
-      ) ?? null
+      .filter((game) => game.coupleId === coupleId && isLiveSpicyGame(game))
+      .sort((a, b) => spicyGameStampMs(b) - spicyGameStampMs(a))[0] ?? null
   );
 }
 
@@ -1253,7 +1269,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (typeof BroadcastChannel !== "undefined") {
       channel = new BroadcastChannel(CHANNEL_NAME);
       channel.onmessage = async (event) => {
-        const data = event?.data as { type?: string; coupleId?: string } | undefined;
+        const data = event?.data as
+          | { type?: string; coupleId?: string; token?: number }
+          | undefined;
         if (data?.type === "unpair" || data?.type === "delete-account") {
           if (data.type === "delete-account") {
             await wipeLocalMediaCaches();
@@ -1264,7 +1282,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             await wipeLocalMediaCaches();
             await wipeMiniApps();
           }
+          db = await readDb();
+          bump();
+          return;
         }
+        if (typeof data?.token === "number" && data.token === persistToken) return;
         db = await readDb();
         bump();
       };
@@ -2936,6 +2958,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user || !couple?.partnerB) {
       throw new Error("Pair with a partner before starting a game.");
     }
+    cancelAbandonedGames(couple.id);
     const existing = activeGameForCouple(couple.id);
     if (existing && !["completed", "declined", "cancelled"].includes(existing.status)) {
       if (existing.status === "inviting") {
@@ -6452,6 +6475,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) {
         throw new Error("Pair up before swiping fantasies.");
       }
+      addLocalFantasySeen(user.id, fantasyId);
       const liveCouple = coupleForUser(user.id) ?? couple;
       const stamp = nowIso();
       const withoutMine = db.fantasySwipes.filter(
@@ -6526,6 +6550,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const forgetFantasySwipe = useCallback(
     async (fantasyId: string) => {
       if (!user || !couple) return;
+      removeLocalFantasySeen(user.id, fantasyId);
       db = {
         ...db,
         fantasySwipes: db.fantasySwipes.filter(

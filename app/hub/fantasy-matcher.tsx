@@ -14,6 +14,8 @@ import {
   fantasyIdeas,
   groupFantasiesByCategory,
   leftoverFantasies,
+  addLocalFantasySeen,
+  loadLocalFantasySeen,
   incomingTonightAsks,
   personalizeFantasyTitle,
   tonightAskForFantasy,
@@ -92,7 +94,11 @@ export default function FantasyMatcherScreen() {
   const remaining = useMemo(
     () =>
       leftoverFantasies(
-        [...mySwipes.map((row) => row.fantasyId), ...heldOut],
+        [
+          ...mySwipes.map((row) => row.fantasyId),
+          ...heldOut,
+          ...loadLocalFantasySeen(user?.id),
+        ],
         `${couple?.id ?? "solo"}:${user?.id ?? "anon"}`
       ),
     [couple?.id, heldOut, mySwipes, user?.id]
@@ -236,6 +242,7 @@ export default function FantasyMatcherScreen() {
       useNativeDriver: true,
     }).start(() => {
       setHeldOut((prev) => (prev.includes(fantasyId) ? prev : [...prev, fantasyId]));
+      if (user?.id) addLocalFantasySeen(user.id, fantasyId);
       resetCard();
       void commitSwipe(fantasyId, liked);
     });
@@ -483,6 +490,7 @@ export default function FantasyMatcherScreen() {
 
               {current ? (
                 <Animated.View
+                  key={current.id}
                   {...panResponder.panHandlers}
                   style={{
                     width: "100%",

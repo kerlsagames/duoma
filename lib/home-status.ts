@@ -32,8 +32,11 @@ import type {
 import type { CalendarReminder } from "@/lib/calendar-reminders";
 import { dueCalendarReminders } from "@/lib/calendar-reminders";
 import { pokeAppMeta, pokeNoticeId } from "@/lib/partner-poke";
+import { isLiveSpicyGame } from "@/lib/spicy-session";
 import type { PartnerPoke } from "@/lib/types";
 import type { Href } from "expo-router";
+
+export { isLiveSpicyGame, spicyGameStampMs, spicyGameStarted } from "@/lib/spicy-session";
 
 export type StatusItem = {
   id: string;
@@ -44,16 +47,16 @@ export type StatusItem = {
 };
 
 export function gameResumeHref(game: GameSession | null): Href | null {
-  if (!game) return null;
+  if (!game || !isLiveSpicyGame(game)) return null;
   if (game.status === "inviting" || game.status === "setup") return "/game/setup";
   if (game.status === "selecting") return "/game/play";
   if (game.status === "playing" || game.status === "rating") return "/game/play";
   return null;
 }
 
-/** Tile tap: resume a live night, or open setup to start one. */
-export function spicyOpenHref(game: GameSession | null): Href {
-  return gameResumeHref(game) ?? "/game/setup";
+/** Tile tap always opens setup so a leftover night cannot dump them mid-card. */
+export function spicyOpenHref(_game: GameSession | null): Href {
+  return "/game/setup";
 }
 
 function whoseTurn(
@@ -97,7 +100,7 @@ function gameAlert(input: {
   partner: Profile | null;
 }): StatusItem | null {
   const { game } = input;
-  if (!game || ["completed", "cancelled", "declined"].includes(game.status)) {
+  if (!game || !isLiveSpicyGame(game)) {
     return null;
   }
 

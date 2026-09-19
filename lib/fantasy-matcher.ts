@@ -620,6 +620,48 @@ function shuffleInPlace<T>(items: T[], rand: () => number): T[] {
  * Rebuilding from leftovers with the same seed used to put the same category
  * first after every swipe (ten Toys in a row).
  */
+function fantasySeenKey(userId: string): string {
+  return `duoma:fantasy-seen:${userId}`;
+}
+
+export function loadLocalFantasySeen(userId: string | null | undefined): string[] {
+  if (!userId || typeof localStorage === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(fantasySeenKey(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addLocalFantasySeen(userId: string, fantasyId: string): string[] {
+  const next = [...new Set([...loadLocalFantasySeen(userId), fantasyId])].slice(-400);
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(fantasySeenKey(userId), JSON.stringify(next));
+    }
+  } catch {
+    // Private mode can block this. The live swipe still stays in memory.
+  }
+  return next;
+}
+
+export function removeLocalFantasySeen(userId: string, fantasyId: string): string[] {
+  const next = loadLocalFantasySeen(userId).filter((id) => id !== fantasyId);
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(fantasySeenKey(userId), JSON.stringify(next));
+    }
+  } catch {
+    // Ignore.
+  }
+  return next;
+}
+
 export function leftoverFantasies(
   seenIds: Iterable<string>,
   seed = "deck"
