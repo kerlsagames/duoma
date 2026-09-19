@@ -152,6 +152,18 @@ export function adoptMemberRows(db: AppDB, userId: string, toId: string): AppDB 
   return next;
 }
 
+function coupleRowKey(table: string, row: Record<string, unknown>): string {
+  if (
+    table === "fantasySwipes" &&
+    typeof row.userId === "string" &&
+    typeof row.fantasyId === "string"
+  ) {
+    return `${row.userId}:${row.fantasyId}`;
+  }
+  if (typeof row.id === "string" && row.id) return row.id;
+  return JSON.stringify(row);
+}
+
 function stampOf(row: Record<string, unknown>): string {
   const keys = ["updatedAt", "completedAt", "answeredAt", "openedAt", "createdAt"];
   for (const key of keys) {
@@ -347,7 +359,7 @@ export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>
       ...mergeByKey(
         localRows,
         remoteRows,
-        (row) => (typeof row.id === "string" ? row.id : JSON.stringify(row)),
+        (row) => coupleRowKey(key, row as Record<string, unknown>),
         (row) => stampOf(row as Record<string, unknown>)
       ),
     ];
@@ -537,7 +549,9 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     let working = db;
     if (remote) {
       mini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
-      working = mergeCoupleDb(db, coupleId, remote.db);
+      const disk = await readLatestDb(db);
+      working = mergeCoupleDb(disk, coupleId, remote.db);
+      working = mergeCoupleDb(working, coupleId, sliceCoupleDb(db, coupleId));
       restoring = true;
       try {
         if (!miniCloudEqual(localMini, mini)) {
@@ -585,12 +599,23 @@ export async function pullCoupleState(coupleId: string): Promise<CloudState | nu
   return pullLiveCoupleState(coupleId);
 }
 
+async function readLatestDb(fallback: AppDB): Promise<AppDB> {
+  try {
+    const { readDb } = await import("@/lib/storage");
+    return await readDb();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<AppDB> {
   const remote = await pullCoupleState(coupleId);
   if (!remote) return db;
   restoring = true;
   try {
-    const merged = mergeCoupleDb(db, coupleId, remote.db);
+    const disk = await readLatestDb(db);
+    const withRemote = mergeCoupleDb(disk, coupleId, remote.db);
+    const merged = mergeCoupleDb(withRemote, coupleId, sliceCoupleDb(db, coupleId));
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
     const localMini = await loadMiniState();
     const nextMini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));

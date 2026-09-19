@@ -75,6 +75,7 @@ export default function FantasyMatcherScreen() {
     hidePassed: false,
   });
   const [passedWho, setPassedWho] = useState<"you" | "partner">("you");
+  const [heldOut, setHeldOut] = useState<string[]>([]);
   const clears = useInboxClears(user?.id);
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -91,10 +92,10 @@ export default function FantasyMatcherScreen() {
   const remaining = useMemo(
     () =>
       leftoverFantasies(
-        mySwipes.map((row) => row.fantasyId),
+        [...mySwipes.map((row) => row.fantasyId), ...heldOut],
         `${couple?.id ?? "solo"}:${user?.id ?? "anon"}`
       ),
-    [couple?.id, mySwipes, user?.id]
+    [couple?.id, heldOut, mySwipes, user?.id]
   );
   const seenCount = mySwipes.length;
   const catalogCount = fantasyIdeas().length;
@@ -203,17 +204,19 @@ export default function FantasyMatcherScreen() {
     pan.setValue({ x: 0, y: 0 });
   };
 
-  const commitSwipe = async (liked: boolean) => {
-    if (!current || busy) return;
+  const commitSwipe = async (fantasyId: string, liked: boolean) => {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
-      const result = await swipeFantasy(current.id, liked);
+      const result = await swipeFantasy(fantasyId, liked);
       if (result.matched) {
-        setMatchFlash(current);
+        const idea = fantasyById(fantasyId);
+        if (idea) setMatchFlash(idea);
       }
       resetCard();
     } catch (err) {
+      setHeldOut((prev) => prev.filter((id) => id !== fantasyId));
       setError(err instanceof Error ? err.message : "Could not save swipe");
       Animated.spring(pan, {
         toValue: { x: 0, y: 0 },
@@ -226,12 +229,15 @@ export default function FantasyMatcherScreen() {
 
   const flyOff = (liked: boolean) => {
     if (!current || busy) return;
+    const fantasyId = current.id;
     Animated.timing(pan, {
       toValue: { x: liked ? SCREEN_W * 1.2 : -SCREEN_W * 1.2, y: 40 },
       duration: 220,
       useNativeDriver: true,
     }).start(() => {
-      void commitSwipe(liked);
+      setHeldOut((prev) => (prev.includes(fantasyId) ? prev : [...prev, fantasyId]));
+      resetCard();
+      void commitSwipe(fantasyId, liked);
     });
   };
 
@@ -879,7 +885,10 @@ export default function FantasyMatcherScreen() {
                                   <PrimaryButton
                                     label="Put back in the deck"
                                     tone="ghost"
-                                    onPress={() => void forgetFantasySwipe(idea.id)}
+                                    onPress={() => {
+                                      setHeldOut((prev) => prev.filter((id) => id !== idea.id));
+                                      void forgetFantasySwipe(idea.id);
+                                    }}
                                   />
                                 </View>
                               ) : null}

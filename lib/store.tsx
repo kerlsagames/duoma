@@ -34,6 +34,7 @@ import {
   mergeCoupleDb,
   remapCoupleSlice,
   rewriteCoupleIds,
+  sliceCoupleDb,
   scheduleCoupleBackup,
   flushCoupleBackup,
   subscribeCoupleState,
@@ -342,11 +343,15 @@ function mergeCloudPair(input: {
   if (staleIds.length) db = rewriteCoupleIds(db, staleIds, input.couple.id);
 }
 
+function applyAbsorbedCouple(coupleId: string, absorbed: AppDB) {
+  db = mergeCoupleDb(db, coupleId, sliceCoupleDb(absorbed, coupleId));
+}
+
 async function absorbHubForCouple(coupleId: string | null | undefined) {
   if (!coupleId || sessionIsDemo()) return;
   const bundle = await pullCoupleHub(coupleId);
   if (bundle) db = mergeHubBundle(db, coupleId, bundle);
-  db = await absorbCoupleState(coupleId, db);
+  applyAbsorbedCouple(coupleId, await absorbCoupleState(coupleId, db));
 }
 
 function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
@@ -1352,7 +1357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ? () => undefined
       : subscribeCoupleState(couple.id, () => {
           void absorbCoupleState(couple.id, db).then((next) => {
-            db = next;
+            applyAbsorbedCouple(couple.id, next);
             void persist({ skipBackup: true });
           });
         });
@@ -1395,7 +1400,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             return;
           }
           void absorbCoupleState(couple.id, db).then((next) => {
-            db = next;
+            applyAbsorbedCouple(couple.id, next);
             void persist({ skipBackup: true, skipDwell: true });
           });
         }, 2500);
