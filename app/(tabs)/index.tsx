@@ -1208,7 +1208,7 @@ function HomeSettingsSheet({
           </View>
           <LinkRow
             label="Notifications"
-            hint="Bell or home cards, then which apps ping you."
+            hint="Home cards by default, or switch to the bell list."
             onPress={() => {
               onClose();
               router.push("/hub/notification-settings" as Href);

@@ -41,19 +41,53 @@ export async function upsertCloudSubscription(row: PushSubscriptionRow) {
   }
 }
 
-export async function subscriptionsForUser(
-  userId: string,
-  local: PushSubscriptionRow[]
-) {
-  const mine = local.filter((row) => row.userId === userId);
-  if (mine.length || !supabase) return mine;
+function mergeByEndpoint(
+  ...lists: PushSubscriptionRow[][]
+): PushSubscriptionRow[] {
+  const map = new Map<string, PushSubscriptionRow>();
+  for (const list of lists) {
+    for (const row of list) map.set(row.endpoint, row);
+  }
+  return [...map.values()];
+}
+
+export async function pullCouplePushSubscriptions(
+  coupleId: string
+): Promise<PushSubscriptionRow[]> {
+  if (!supabase || !coupleId) return [];
   try {
     const { data, error } = await supabase
       .from("push_subscriptions")
       .select("*")
-      .eq("user_id", userId);
-    if (error || !data) return mine;
+      .eq("couple_id", coupleId);
+    if (error || !data) return [];
     return data.map(mapCloudRow);
+  } catch {
+    return [];
+  }
+}
+
+export async function subscriptionsForUser(
+  userId: string,
+  local: PushSubscriptionRow[],
+  coupleId?: string
+) {
+  const mine = local.filter((row) => row.userId === userId);
+  if (!supabase) return mine;
+  try {
+    let query = supabase.from("push_subscriptions").select("*").eq("user_id", userId);
+    if (coupleId) query = query.eq("couple_id", coupleId);
+    const { data, error } = await query;
+    if (error || !data) {
+      if (coupleId) {
+        const coupleRows = (await pullCouplePushSubscriptions(coupleId)).filter(
+          (row) => row.userId === userId
+        );
+        return mergeByEndpoint(mine, coupleRows);
+      }
+      return mine;
+    }
+    return mergeByEndpoint(mine, data.map(mapCloudRow));
   } catch {
     return mine;
   }
@@ -63,10 +97,11 @@ export async function notifyUser(
   userId: string | null | undefined,
   local: PushSubscriptionRow[],
   payload: PushPayload,
-  excludeEndpoints?: Set<string>
+  excludeEndpoints?: Set<string>,
+  coupleId?: string
 ) {
   if (!userId) return;
-  const rows = (await subscriptionsForUser(userId, local)).filter(
+  const rows = (await subscriptionsForUser(userId, local, coupleId)).filter(
     (row) => !excludeEndpoints?.has(row.endpoint)
   );
   if (!rows.length) return;

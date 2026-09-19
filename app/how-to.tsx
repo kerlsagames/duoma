@@ -27,7 +27,7 @@ const STEPS = [
   {
     kicker: "Notifications",
     title: "Bell, or a card on Home",
-    body: "With this many apps, mute whole hubs. Settings → Notifications: four closed drawers, open one, switch its apps, or all on / all off. Choose Bell (a list) or Home cards (a square over the homepage, swipe left to clear, tap through to act, come back and the next one is waiting). If you're waiting on them in any app, Draw It, Dare Me, Chicken, a bet, poke them from that waiting screen.",
+    body: "With this many apps, mute whole hubs. Settings → Notifications: four closed drawers, open one, switch its apps, or all on / all off. Home cards is the default — a square over the homepage, swipe left to clear, tap through to act, come back and the next one is waiting. Switch to Bell if you want a list behind the bell instead. If you're waiting on them in any app, Draw It, Dare Me, Chicken, a bet, poke them from that waiting screen.",
   },
   {
     kicker: "Shared world",

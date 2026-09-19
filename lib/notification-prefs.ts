@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 export const NOTIFICATION_PREFS_KEY = "duoma:notificationPrefs";
+const INBOX_CARDS_DEFAULT_KEY = "duoma:inbox-cards-default";
 
 export type NotificationSection =
   | "connect"
@@ -123,7 +124,7 @@ export function defaultNotificationPrefs(): NotificationPrefs {
   }
   const apps: Record<string, boolean> = {};
   for (const id of allNotifiableAppIds()) apps[id] = true;
-  return { enabled, apps, dismissed: [], inbox: "bell" };
+  return { enabled, apps, dismissed: [], inbox: "cards" };
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -185,7 +186,7 @@ export function hydrateNotificationPrefs(raw: unknown): NotificationPrefs {
     : [];
 
   const inbox: NotificationInbox =
-    incoming.inbox === "cards" ? "cards" : "bell";
+    incoming.inbox === "bell" ? "bell" : "cards";
 
   return { enabled, apps, dismissed, inbox };
 }
@@ -194,7 +195,16 @@ export async function readNotificationPrefs(): Promise<NotificationPrefs> {
   try {
     if (Platform.OS === "web" && typeof localStorage !== "undefined") {
       const raw = localStorage.getItem(NOTIFICATION_PREFS_KEY);
-      return hydrateNotificationPrefs(raw ? JSON.parse(raw) : null);
+      const prefs = hydrateNotificationPrefs(raw ? JSON.parse(raw) : null);
+      if (!localStorage.getItem(INBOX_CARDS_DEFAULT_KEY)) {
+        localStorage.setItem(INBOX_CARDS_DEFAULT_KEY, "1");
+        if (prefs.inbox !== "cards") {
+          const next = { ...prefs, inbox: "cards" as const };
+          localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(next));
+          return next;
+        }
+      }
+      return prefs;
     }
     const raw = await AsyncStorage.getItem(NOTIFICATION_PREFS_KEY);
     return hydrateNotificationPrefs(raw ? JSON.parse(raw) : null);

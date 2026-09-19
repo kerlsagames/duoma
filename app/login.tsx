@@ -16,14 +16,13 @@ export default function LoginScreen() {
     ready,
     user,
     usingCloud,
-    cloudLive,
     signInWithPassword,
     requestEmailCode,
     verifyEmailCode,
   } = useApp();
   const paramEmail = Array.isArray(params.email) ? params.email[0] : params.email;
   const reauthFlag = Array.isArray(params.reauth) ? params.reauth[0] : params.reauth;
-  const fromHomeApps = Boolean(user) || reauthFlag === "1";
+  const showForgot = !user && reauthFlag !== "1";
   const [email, setEmail] = useState(paramEmail ?? "");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -39,9 +38,10 @@ export default function LoginScreen() {
       </View>
     );
   }
-  if (user && (!usingCloud || cloudLive)) return <Redirect href="/" />;
+  const sessionEmail = user?.email?.trim() || "";
+  if (user) return <Redirect href="/" />;
 
-  const filledEmail = email.trim() || user?.email?.trim() || "";
+  const filledEmail = email.trim() || sessionEmail;
 
   const open = async () => {
     if (!looksLikeEmail(filledEmail)) {
@@ -112,7 +112,7 @@ export default function LoginScreen() {
         </Text>
 
         <TextInput
-          value={email || user?.email || ""}
+          value={email || sessionEmail}
           onChangeText={(value) => {
             setEmail(value);
             setError(null);
@@ -140,7 +140,7 @@ export default function LoginScreen() {
           className="mt-3 h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
         />
 
-        {forgot && !fromHomeApps ? (
+        {forgot && showForgot ? (
           <TextInput
             value={code}
             onChangeText={(value) => setCode(value.replace(/[^\d]/g, "").slice(0, 8))}
@@ -166,14 +166,14 @@ export default function LoginScreen() {
             disabled={!filledEmail || !password}
             onPress={() => void open()}
           />
-          {!fromHomeApps && forgot ? (
+          {showForgot && forgot ? (
             <PrimaryButton
               label="Use reset code"
               loading={loading}
               disabled={code.length < 6}
               onPress={() => void confirmReset()}
             />
-          ) : !fromHomeApps ? (
+          ) : showForgot ? (
             <PrimaryButton
               label="I forgot my password"
               tone="ghost"
@@ -184,7 +184,7 @@ export default function LoginScreen() {
           <PrimaryButton
             label="Back"
             tone="ghost"
-            onPress={() => router.replace(fromHomeApps ? "/" : "/welcome")}
+            onPress={() => router.replace("/welcome")}
           />
         </View>
       </View>

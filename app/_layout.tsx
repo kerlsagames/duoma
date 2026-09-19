@@ -105,7 +105,7 @@ export default function RootLayout() {
 function RootChrome() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, ready, usingCloud, cloudLive } = useApp();
+  const { user, ready } = useApp();
   const admin = pathname === "/admin" || pathname.startsWith("/admin/");
   const banned = Boolean(user?.bannedAt) && !isCreatorEmail(user?.email);
 
@@ -117,9 +117,6 @@ function RootChrome() {
     pathname === "/login" ||
     pathname === "/create" ||
     pathname === "/join";
-  const stayOnPasswordLogin =
-    pathname === "/login" && usingCloud && !cloudLive;
-
   useEffect(() => {
     if (!ready || admin) return;
     if (banned && pathname !== "/banned") {
@@ -130,10 +127,10 @@ function RootChrome() {
       router.replace("/");
       return;
     }
-    if (user && authGate && !stayOnPasswordLogin) {
+    if (user && authGate) {
       router.replace("/");
     }
-  }, [ready, banned, admin, pathname, router, user, authGate, stayOnPasswordLogin]);
+  }, [ready, banned, admin, pathname, router, user, authGate]);
 
   return (
     <PhoneShell>

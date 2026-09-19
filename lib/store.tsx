@@ -60,7 +60,11 @@ import {
   isCuriosityComplete,
 } from "@/lib/curiosity";
 import { discoverQuestionById } from "@/lib/discover-questions";
-import { notifyUser, upsertCloudSubscription } from "@/lib/notify";
+import {
+  notifyUser,
+  pullCouplePushSubscriptions,
+  upsertCloudSubscription,
+} from "@/lib/notify";
 import { positionById } from "@/lib/sex-positions";
 import { roleplayById } from "@/lib/roleplays";
 import { nightAskLabel } from "@/lib/play-items";
@@ -638,7 +642,26 @@ function pingPartner(
   );
   void (async () => {
     await flushCoupleBackup();
-    await notifyUser(target, db.pushSubscriptions, payload, senderEndpoints);
+    const remote = couple.id
+      ? await pullCouplePushSubscriptions(couple.id)
+      : [];
+    if (remote.length) {
+      const seen = new Set(db.pushSubscriptions.map((row) => row.endpoint));
+      const extra = remote.filter((row) => !seen.has(row.endpoint));
+      if (extra.length) {
+        db = {
+          ...db,
+          pushSubscriptions: [...db.pushSubscriptions, ...extra],
+        };
+      }
+    }
+    await notifyUser(
+      target,
+      db.pushSubscriptions,
+      payload,
+      senderEndpoints,
+      couple.id
+    );
   })();
 }
 
@@ -1176,8 +1199,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         if (event === "SIGNED_OUT") {
           setCloudLive(false);
-          sessionUserId = null;
-          void writeSessionUserId(null);
           emit();
         }
       });
@@ -1308,6 +1329,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (!sessionIsDemo()) {
       void absorbHubForCouple(couple.id).then(() => persist());
+      void pullCouplePushSubscriptions(couple.id).then((remote) => {
+        if (!remote.length) return;
+        const seen = new Set(db.pushSubscriptions.map((row) => row.endpoint));
+        const extra = remote.filter((row) => !seen.has(row.endpoint));
+        if (!extra.length) return;
+        db = {
+          ...db,
+          pushSubscriptions: [...db.pushSubscriptions, ...extra],
+        };
+        void persist();
+      });
     }
     const timer = couple.partnerB ? null : setInterval(() => void pull(), 4000);
     return () => {
@@ -7077,6 +7109,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     await persist();
     await upsertCloudSubscription(row);
+    const remote = await pullCouplePushSubscriptions(couple.id);
+    if (remote.length) {
+      const seen = new Set(db.pushSubscriptions.map((row) => row.endpoint));
+      const extra = remote.filter((item) => !seen.has(item.endpoint));
+      if (extra.length) {
+        db = {
+          ...db,
+          pushSubscriptions: [...db.pushSubscriptions, ...extra],
+        };
+        await persist();
+      }
+    }
   }, [couple, user]);
 
   const notifyPartner = useCallback(
