@@ -105,6 +105,45 @@ export const SYMPTOM_OPTIONS: { id: PeriodSymptom; label: string }[] = [
   { id: "nausea", label: "Nausea" },
 ];
 
+function mergeByKey<T>(
+  local: T[],
+  remote: T[],
+  keyOf: (row: T) => string,
+  prefer: (a: T, b: T) => T
+): T[] {
+  const map = new Map<string, T>();
+  for (const row of local) map.set(keyOf(row), row);
+  for (const row of remote) {
+    const key = keyOf(row);
+    const prev = map.get(key);
+    map.set(key, prev ? prefer(prev, row) : row);
+  }
+  return [...map.values()];
+}
+
+export function mergePeriodStates(local: PeriodState, remote: PeriodState): PeriodState {
+  return {
+    cycles: mergeByKey(
+      local.cycles,
+      remote.cycles,
+      (row) => row.id,
+      (a, b) => ((b.end || b.start) >= (a.end || a.start) ? b : a)
+    ),
+    logs: mergeByKey(
+      local.logs,
+      remote.logs,
+      (row) => row.date,
+      (a, b) => {
+        const aWeight = (a.note ? 2 : 0) + a.symptoms.length + (a.flow ? 1 : 0);
+        const bWeight = (b.note ? 2 : 0) + b.symptoms.length + (b.flow ? 1 : 0);
+        return bWeight >= aWeight ? b : a;
+      }
+    ),
+    settings:
+      local.cycles.length >= remote.cycles.length ? local.settings : remote.settings,
+  };
+}
+
 export function emptyPeriodState(): PeriodState {
   return {
     cycles: [],

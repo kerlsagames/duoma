@@ -102,6 +102,15 @@ export const WORLDS: WorldDef[] = [
   },
 ];
 
+export function mergeWorldChoices(local: WorldChoice, remote: WorldChoice): WorldChoice {
+  if (local.lockedAt && remote.lockedAt) {
+    return local.lockedAt <= remote.lockedAt ? local : remote;
+  }
+  if (local.lockedAt) return local;
+  if (remote.lockedAt) return remote;
+  return local.worldId ? local : remote;
+}
+
 export function emptyWorldChoice(): WorldChoice {
   return { worldId: null, lockedAt: null };
 }

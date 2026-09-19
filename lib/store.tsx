@@ -301,6 +301,7 @@ async function persist(opts?: { skipDwell?: boolean; skipBackup?: boolean }) {
       if (staleIds.length) db = rewriteCoupleIds(db, staleIds, couple.id);
       db = adoptMemberRows(db, sessionUserId, couple.id);
       scheduleCoupleBackup(couple.id, db);
+      if (!opts?.skipDwell) void flushCoupleBackup();
     }
   }
 }
@@ -1387,6 +1388,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     }
     const timer = couple.partnerB ? null : setInterval(() => void pull(), 4000);
+    const liveTick = sessionIsDemo()
+      ? null
+      : setInterval(() => {
+          if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+            return;
+          }
+          void absorbCoupleState(couple.id, db).then((next) => {
+            db = next;
+            void persist({ skipBackup: true, skipDwell: true });
+          });
+        }, 2500);
     return () => {
       cancelled = true;
       void client.removeChannel(channel);
@@ -1396,6 +1408,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         document.removeEventListener("visibilitychange", onVis);
       }
       if (timer) clearInterval(timer);
+      if (liveTick) clearInterval(liveTick);
     };
   }, [ready, couple?.id, couple?.partnerB]);
 
@@ -1423,7 +1436,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : row
         ),
       };
-      await persist({ skipDwell: true });
+      await persist({ skipDwell: true, skipBackup: true });
       if (supabase && !sessionIsDemo()) {
         try {
           const { error } = await supabase

@@ -149,6 +149,33 @@ export function locationLabel(location: SparkLocation) {
   return location === "from_afar" ? "From afar" : "At home";
 }
 
+function mergeByAsk(
+  local: SparkAsk[],
+  remote: SparkAsk[]
+): SparkAsk[] {
+  const map = new Map<string, SparkAsk>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    if (!prev) {
+      map.set(row.id, row);
+      continue;
+    }
+    const remoteStamp = row.answeredAt || row.createdAt || "";
+    const localStamp = prev.answeredAt || prev.createdAt || "";
+    map.set(row.id, remoteStamp >= localStamp ? row : prev);
+  }
+  return [...map.values()];
+}
+
+export function mergeSparkStates(local: SparkState, remote: SparkState): SparkState {
+  return {
+    favorites: [...new Set([...local.favorites, ...remote.favorites])],
+    doneIds: [...new Set([...local.doneIds, ...remote.doneIds])],
+    asks: mergeByAsk(local.asks, remote.asks),
+  };
+}
+
 export function hydrateSparkState(raw: unknown): SparkState {
   const base = emptySparkState();
   if (!raw || typeof raw !== "object") return base;
@@ -179,7 +206,7 @@ function hydrateAsk(raw: unknown): SparkAsk | null {
     cardId: row.cardId,
     fromUserId: row.fromUserId,
     toUserId: row.toUserId,
-    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
+    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : "",
     status,
     answeredAt: typeof row.answeredAt === "string" ? row.answeredAt : null,
   };

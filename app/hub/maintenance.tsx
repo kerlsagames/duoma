@@ -45,6 +45,8 @@ export default function MaintenanceScreen() {
 
   useEffect(() => {
     void refreshPair();
+    const tick = setInterval(() => void refreshPair(), 2500);
+    return () => clearInterval(tick);
   }, [refreshPair]);
   const today = localDateKey();
   const prefs = data.maintPrefs;

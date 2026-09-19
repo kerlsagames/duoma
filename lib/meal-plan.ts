@@ -138,7 +138,7 @@ export function noteTilt(index: number): number {
 
 export function createWeekNotes(weekIndex: number): MealPlanNote[] {
   return WEEKDAYS.map((_, weekday) => ({
-    id: createId(),
+    id: `meal:week:${weekIndex}:${weekday}`,
     weekday,
     weekIndex,
     title: "",
@@ -158,11 +158,44 @@ export function defaultIdeas(): MealPlanIdea[] {
 export function emptyMealPlan(): MealPlanState {
   return {
     notes: createWeekNotes(0),
-    regulars: DEFAULT_REGULARS.map((title) => ({ id: createId(), title })),
+    regulars: DEFAULT_REGULARS.map((title) => ({
+      id: `meal:regular:${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      title,
+    })),
     ideas: defaultIdeas(),
     view: "board",
     size: "m",
     palette: "mix",
+  };
+}
+
+function mergeById<T extends { id: string }>(local: T[], remote: T[], prefer: (a: T, b: T) => T): T[] {
+  const map = new Map<string, T>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    map.set(row.id, prev ? prefer(prev, row) : row);
+  }
+  return [...map.values()];
+}
+
+export function mergeMealPlans(local: MealPlanState, remote: MealPlanState): MealPlanState {
+  return {
+    notes: mergeById(local.notes, remote.notes, (a, b) => {
+      if (a.eaten !== b.eaten) return a.eaten ? a : b;
+      if (a.title.trim() && !b.title.trim()) return a;
+      if (b.title.trim() && !a.title.trim()) return b;
+      return a.title.length >= b.title.length ? a : b;
+    }),
+    regulars: mergeById(local.regulars, remote.regulars, (a, b) =>
+      a.title.length >= b.title.length ? a : b
+    ),
+    ideas: mergeById(local.ideas, remote.ideas, (a, b) =>
+      a.title.length >= b.title.length ? a : b
+    ),
+    view: local.view,
+    size: local.size,
+    palette: local.palette,
   };
 }
 
@@ -182,7 +215,10 @@ function hydrateNote(raw: unknown): MealPlanNote | null {
       ? row.source
       : null;
   return {
-    id: typeof row.id === "string" ? row.id : createId(),
+    id:
+      typeof row.id === "string" && row.id
+        ? row.id
+        : `meal:week:${weekIndex}:${weekday}`,
     weekday,
     weekIndex,
     title: typeof row.title === "string" ? row.title : "",
@@ -197,7 +233,10 @@ function hydrateRegular(raw: unknown): MealRegular | null {
   const title = typeof row.title === "string" ? row.title.trim() : "";
   if (!title) return null;
   return {
-    id: typeof row.id === "string" ? row.id : createId(),
+    id:
+      typeof row.id === "string" && row.id
+        ? row.id
+        : `meal:regular:${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     title,
   };
 }

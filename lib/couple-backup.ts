@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabase";
 import { mergeDoodleBoards } from "@/lib/doodle-game";
 import { mergeWordleStates } from "@/lib/daily-word";
 import { mergePhotoWeeks } from "@/lib/photo-challenge";
-import { hydrateMiniState, type MiniState } from "@/lib/mini-content";
+import { mergeMealPlans } from "@/lib/meal-plan";
+import { mergeBudgets } from "@/lib/money";
+import { mergePeriodStates } from "@/lib/period";
+import { mergeSparkStates } from "@/lib/spark";
+import { mergeWorldChoices } from "@/lib/worlds";
+import { hydrateMiniState, type MiniState, type WhoLast } from "@/lib/mini-content";
 import { hydrateDb } from "@/lib/storage";
 import type { AppDB } from "@/lib/types";
 
@@ -390,11 +395,28 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
   kept.wordle = mergeWordleStates(local.wordle, remote.wordle);
   kept.doodle = mergeDoodleBoards(local.doodle, remote.doodle);
   kept.photoWeek = mergePhotoWeeks(local.photoWeek, remote.photoWeek);
+  kept.spark = mergeSparkStates(local.spark, remote.spark);
+  kept.mealPlan = mergeMealPlans(local.mealPlan, remote.mealPlan);
+  kept.budget = mergeBudgets(local.budget, remote.budget);
+  kept.period = mergePeriodStates(local.period, remote.period);
+  kept.worldChoice = mergeWorldChoices(local.worldChoice, remote.worldChoice);
+  kept.whoLast = mergeWhoLast(local.whoLast, remote.whoLast);
   kept.sexyVault = local.sexyVault;
   kept.sexyVaultPin = local.sexyVaultPin || remote.sexyVaultPin;
   kept.audioNotes = local.audioNotes;
   kept.photos = local.photos;
+  kept.photoPrefs = local.photoPrefs;
+  kept.maintPrefs = local.maintPrefs;
   return kept;
+}
+
+function mergeWhoLast(local: WhoLast[], remote: WhoLast[]): WhoLast[] {
+  return mergeByKey(
+    local,
+    remote,
+    (row) => row.taskId || JSON.stringify(row),
+    (row) => row.at || ""
+  );
 }
 
 let restoring = false;
@@ -406,6 +428,7 @@ let queued: { coupleId: string; db: AppDB } | null = null;
 export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
   if (!coupleId || !supabase) return;
   queued = { coupleId, db };
+  if (pushing || restoring) return;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => {
     const job = queued;
@@ -417,14 +440,16 @@ export function scheduleCoupleBackup(coupleId: string, db: AppDB) {
 
 /** Push the queued backup now so a lock-screen ping is not faster than the coupon. */
 export async function flushCoupleBackup(): Promise<void> {
-  if (restoring || pushing) return;
+  if (restoring) return;
   if (timer) {
     clearTimeout(timer);
     timer = null;
   }
   const job = queued;
+  if (!job) return;
+  if (pushing) return;
   queued = null;
-  if (job) await pushCoupleState(job.coupleId, job.db);
+  await pushCoupleState(job.coupleId, job.db);
 }
 
 export function subscribeCoupleState(
@@ -486,8 +511,23 @@ function cloudPlayEqual(a: CloudState, b: CloudState): boolean {
   }
 }
 
+function miniCloudEqual(local: MiniState, remote: MiniState): boolean {
+  try {
+    return (
+      JSON.stringify(sanitizeMiniForCloud(local)) ===
+      JSON.stringify(sanitizeMiniForCloud(remote))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void> {
-  if (!supabase || !coupleId || restoring || pushing || !isCoupleUuid(coupleId)) return;
+  if (!supabase || !coupleId || !isCoupleUuid(coupleId)) return;
+  if (restoring || pushing) {
+    queued = { coupleId, db };
+    return;
+  }
   pushing = true;
   try {
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
@@ -500,7 +540,9 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
       working = mergeCoupleDb(db, coupleId, remote.db);
       restoring = true;
       try {
-        await patchMini(() => mini);
+        if (!miniCloudEqual(localMini, mini)) {
+          await patchMini(() => mini);
+        }
       } finally {
         restoring = false;
       }
@@ -533,6 +575,9 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     // Table missing or offline — local play still works.
   } finally {
     pushing = false;
+    const next = queued;
+    queued = null;
+    if (next && !restoring) void pushCoupleState(next.coupleId, next.db);
   }
 }
 
@@ -549,7 +594,9 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
     const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
     const localMini = await loadMiniState();
     const nextMini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
-    await patchMini(() => nextMini);
+    if (!miniCloudEqual(localMini, nextMini)) {
+      await patchMini(() => nextMini);
+    }
     return merged;
   } catch {
     return mergeCoupleDb(db, coupleId, remote.db);
@@ -559,7 +606,7 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
 }
 
 export async function scheduleFromMini(coupleId: string | null) {
-  if (!coupleId || restoring || pushing) return;
+  if (!coupleId || restoring) return;
   const { readDb } = await import("@/lib/storage");
   const db = await readDb();
   scheduleCoupleBackup(coupleId, db);

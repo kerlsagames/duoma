@@ -541,6 +541,36 @@ function hydrateSpend(raw: unknown): Spend | null {
   };
 }
 
+function mergeBudgetRows<T extends { id: string }>(
+  local: T[],
+  remote: T[],
+  stamp: (row: T) => string
+): T[] {
+  const map = new Map<string, T>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    if (!prev || stamp(row) >= stamp(prev)) map.set(row.id, row);
+  }
+  return [...map.values()];
+}
+
+export function mergeBudgets(local: BudgetState, remote: BudgetState): BudgetState {
+  const localWeight = local.pays.length + local.bills.length + local.spends.length;
+  const remoteWeight = remote.pays.length + remote.bills.length + remote.spends.length;
+  return {
+    cycle: localWeight >= remoteWeight ? local.cycle : remote.cycle,
+    periodStart: local.periodStart || remote.periodStart,
+    pays: mergeBudgetRows(local.pays, remote.pays, (row) => `${row.amount}:${row.cadence}`),
+    bills: mergeBudgetRows(
+      local.bills,
+      remote.bills,
+      (row) => `${row.paidPeriodStarts.length}:${row.amount}:${row.dueOn}`
+    ),
+    spends: mergeBudgetRows(local.spends, remote.spends, (row) => `${row.date}:${row.amount}`),
+  };
+}
+
 export function hydrateBudget(raw: unknown): BudgetState {
   const base = emptyBudget();
   if (!raw || typeof raw !== "object") return base;
