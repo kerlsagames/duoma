@@ -102,6 +102,7 @@ const PLAY_KEYS = [
   "padNotes",
   "crossword",
   "audioNotes",
+  "whiteFlags",
 ] as const;
 
 export function miniHasPlay(state: MiniState | null | undefined): state is MiniState {

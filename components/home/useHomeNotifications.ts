@@ -76,6 +76,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
         roleplayInvites,
         sexyVault: mini.sexyVault,
         calendarReminders,
+        whiteFlags: mini.whiteFlags,
       }).filter((item) => prefsShowStatusId(prefs, item.id)),
     [
       user,
@@ -98,6 +99,7 @@ export function useHomeNotifications(onStartSpicy: () => void) {
       positionInvites,
       roleplayInvites,
       mini.sexyVault,
+      mini.whiteFlags,
       mini.spark?.asks,
       calendarReminders,
       prefs,

@@ -3,8 +3,7 @@ import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import type { AudioNote, PhotoMemory, Prediction } from "@/lib/mini-content";
 import type { Coupon } from "@/lib/types";
-import { listWhiteFlags } from "@/lib/white-flag";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export type WorldExtras = {
   photos: PhotoMemory[];
@@ -34,17 +33,6 @@ export function useWorldProgress(): {
     coupons,
   } = useApp();
   const { data, ready } = useMiniApps();
-  const [flags, setFlags] = useState<{ createdAt: string }[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    listWhiteFlags().then((rows) => {
-      if (alive) setFlags(rows);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   const snapshot = useMemo(
     () =>
@@ -54,7 +42,7 @@ export function useWorldProgress(): {
         jarNotes,
         curiosityAnswers,
         talkDraws,
-        whiteFlags: flags,
+        whiteFlags: data.whiteFlags,
         checkIns,
         photos: data.photos,
         nights,
@@ -71,7 +59,7 @@ export function useWorldProgress(): {
       jarNotes,
       curiosityAnswers,
       talkDraws,
-      flags,
+      data.whiteFlags,
       checkIns,
       nights,
       spicyDares,

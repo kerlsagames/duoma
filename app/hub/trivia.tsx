@@ -102,12 +102,12 @@ export default function TriviaScreen() {
   );
 
   const myStats = useMemo(
-    () => tallyKnowMeGuesses(guesses, user?.id),
-    [guesses, user?.id]
+    () => tallyKnowMeGuesses(guesses, user?.id, partner?.id, sheets),
+    [guesses, partner?.id, sheets, user?.id]
   );
   const theirStats = useMemo(
-    () => tallyKnowMeGuesses(guesses, partner?.id),
-    [guesses, partner?.id]
+    () => tallyKnowMeGuesses(guesses, partner?.id, user?.id, sheets),
+    [guesses, partner?.id, sheets, user?.id]
   );
 
   const go = useCallback((next: ViewMode) => {

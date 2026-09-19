@@ -1585,9 +1585,41 @@ export function sheetFor<T extends { packId: string; userId: string }>(
 }
 
 export function tallyKnowMeGuesses(
-  guesses: { guesserId: string; score: number; guesses: number[] }[],
-  userId: string | null | undefined
+  guesses: {
+    packId?: string;
+    ownerId?: string;
+    guesserId: string;
+    score: number;
+    guesses: number[];
+  }[],
+  userId: string | null | undefined,
+  partnerId?: string | null,
+  sheets?: { packId: string; userId: string; answers: number[] }[]
 ): KnowMeStatLine {
+  if (userId && partnerId && sheets) {
+    let correct = 0;
+    let asked = 0;
+    let wins = 0;
+    let n = 0;
+    for (const pack of KNOW_ME_PACKS) {
+      const face = packFaceOff(
+        guesses.filter(
+          (row): row is { packId: string; ownerId: string; guesserId: string; score: number; guesses: number[] } =>
+            typeof row.packId === "string" && typeof row.ownerId === "string"
+        ),
+        pack.id,
+        userId,
+        partnerId,
+        sheets
+      );
+      if (face.myScore == null) continue;
+      correct += face.myScore;
+      asked += face.myCards;
+      n += 1;
+      if (face.myScore >= KNOW_ME_WIN) wins += 1;
+    }
+    if (n > 0) return { correct, asked, wins, guesses: n };
+  }
   const mine = guesses.filter((row) => row.guesserId === userId);
   return {
     correct: mine.reduce((sum, row) => sum + row.score, 0),

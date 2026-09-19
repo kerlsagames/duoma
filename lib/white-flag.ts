@@ -92,6 +92,36 @@ async function writeAll(rows: WhiteFlag[]) {
   await AsyncStorage.setItem(KEY, JSON.stringify(rows));
 }
 
+export function hydrateWhiteFlag(raw: unknown): WhiteFlag | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Partial<WhiteFlag>;
+  if (typeof row.id !== "string" || !row.id) return null;
+  if (typeof row.fromUserId !== "string" || typeof row.toUserId !== "string") return null;
+  const tone = FLAG_TONES.some((item) => item.id === row.tone)
+    ? (row.tone as FlagToneId)
+    : "can-we-reset";
+  const offer = PEACE_OFFERS.some((item) => item.id === row.offer)
+    ? (row.offer as PeaceOfferId)
+    : row.offer === null
+      ? null
+      : null;
+  const status =
+    row.status === "accepted" || row.status === "held" || row.status === "raised"
+      ? row.status
+      : "raised";
+  return {
+    id: row.id,
+    fromUserId: row.fromUserId,
+    toUserId: row.toUserId,
+    tone,
+    offer,
+    note: typeof row.note === "string" ? row.note : "",
+    status,
+    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : new Date().toISOString(),
+    resolvedAt: typeof row.resolvedAt === "string" ? row.resolvedAt : undefined,
+  };
+}
+
 export async function listWhiteFlags(): Promise<WhiteFlag[]> {
   const rows = await readAll();
   return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));

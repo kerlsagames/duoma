@@ -161,6 +161,7 @@ export function buildHomeNotifications(input: {
   roleplayInvites?: RoleplayInvite[];
   sexyVault?: SexyVaultItem[];
   calendarReminders?: CalendarReminder[];
+  whiteFlags?: { id: string; toUserId: string; fromUserId: string; status: string; createdAt: string; note?: string }[];
 }): StatusItem[] {
   const today = localDateKey();
   const myId = input.user?.id;
@@ -171,6 +172,18 @@ export function buildHomeNotifications(input: {
 
   const spicy = gameAlert(input);
   if (spicy) items.push({ ...spicy, sortAt: now });
+
+  (input.whiteFlags ?? [])
+    .filter((row) => row.status === "raised" && row.toUserId === myId)
+    .forEach((flag) => {
+      items.push({
+        id: `apology-${flag.id}`,
+        line: `${they} sent an apology / reset`,
+        when: recentWhen(flag.createdAt),
+        href: "/hub/apology",
+        sortAt: Date.parse(flag.createdAt) || now,
+      });
+    });
 
   (input.partnerPokes ?? [])
     .filter((row) => row.toUserId === myId)

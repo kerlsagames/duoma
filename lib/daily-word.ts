@@ -410,6 +410,42 @@ export function everSolved(state: WordleState): boolean {
   return state.days.some((day) => day.players.some((row) => row.solvedAt));
 }
 
+function richerPlayer(a: WordlePlayer, b: WordlePlayer): WordlePlayer {
+  if (b.guesses.length > a.guesses.length) return b;
+  if (a.guesses.length > b.guesses.length) return a;
+  if (b.solvedAt && !a.solvedAt) return b;
+  if (a.solvedAt && !b.solvedAt) return a;
+  if ((b.solvedAt ?? "") > (a.solvedAt ?? "")) return b;
+  return a;
+}
+
+export function mergeWordleStates(local: WordleState, remote: WordleState): WordleState {
+  const days = new Map<string, WordleDay>();
+  const put = (day: WordleDay) => {
+    const prev = days.get(day.dateKey);
+    if (!prev) {
+      days.set(day.dateKey, day);
+      return;
+    }
+    const players = new Map<string, WordlePlayer>();
+    for (const row of [...prev.players, ...day.players]) {
+      const have = players.get(row.userId);
+      players.set(row.userId, have ? richerPlayer(have, row) : row);
+    }
+    days.set(day.dateKey, {
+      dateKey: day.dateKey,
+      word: prev.word || day.word,
+      players: [...players.values()],
+    });
+  };
+  for (const day of local.days) put(day);
+  for (const day of remote.days) put(day);
+  return {
+    prefs: local.prefs,
+    days: [...days.values()].sort((a, b) => b.dateKey.localeCompare(a.dateKey)).slice(0, 21),
+  };
+}
+
 export const KEY_ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],

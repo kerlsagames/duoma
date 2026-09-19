@@ -90,14 +90,18 @@ export default function DailyWordScreen() {
   };
 
   const enter = () => {
-    const result = applyGuess(wordle, youId, draft, dateKey);
+    if (!user?.id) {
+      setError("Sign in first.");
+      return;
+    }
+    const result = applyGuess(wordle, user.id, draft, dateKey);
     if (result.error) {
       setError(result.error);
       return;
     }
     void patch((state) => ({
       ...state,
-      wordle: applyGuess(state.wordle ?? emptyWordle(), youId, draft, dateKey).state,
+      wordle: applyGuess(state.wordle ?? emptyWordle(), user.id, draft, dateKey).state,
     }));
     setDraft("");
     setError(null);

@@ -3,22 +3,21 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
 import { HANDWRITING, SERIF } from "@/lib/app-themes";
 import { useAppLook } from "@/lib/app-prefs";
+import { createId, nowIso } from "@/lib/ids";
+import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
 import {
   FLAG_TONES,
   PEACE_OFFERS,
   listWhiteFlags,
   offerLabel,
-  raiseWhiteFlag,
-  resolveWhiteFlag,
   toneLabel,
   type FlagToneId,
   type PeaceOfferId,
-  type WhiteFlag,
 } from "@/lib/white-flag";
 import { Ionicons } from "@expo/vector-icons";
 import type { Href } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -171,8 +170,9 @@ function ToneChip({
 }
 
 export default function ApologyScreen() {
-  const { user, partner } = useApp();
-  const [flags, setFlags] = useState<WhiteFlag[]>([]);
+  const { user, partner, notifyPartner, refreshPair } = useApp();
+  const { data, patch } = useMiniApps();
+  const flags = data.whiteFlags;
   const [tone, setTone] = useState<FlagToneId>("can-we-reset");
   const [offer, setOffer] = useState<PeaceOfferId | null>("big-hug");
   const [note, setNote] = useState("");
@@ -183,14 +183,25 @@ export default function ApologyScreen() {
     gentle: true,
     hideHistory: false,
   });
-
-  const refresh = useCallback(async () => {
-    setFlags(await listWhiteFlags());
-  }, []);
+  const adopted = useRef(false);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void refreshPair();
+  }, [refreshPair]);
+
+  useEffect(() => {
+    if (adopted.current) return;
+    adopted.current = true;
+    void listWhiteFlags().then((local) => {
+      if (!local.length) return;
+      void patch((state) => {
+        const have = new Set(state.whiteFlags.map((row) => row.id));
+        const extra = local.filter((row) => !have.has(row.id));
+        if (!extra.length) return state;
+        return { ...state, whiteFlags: [...extra, ...state.whiteFlags] };
+      });
+    });
+  }, [patch]);
 
   const incoming = useMemo(
     () =>
@@ -219,16 +230,27 @@ export default function ApologyScreen() {
     setBusy(true);
     setFlash(null);
     try {
-      await raiseWhiteFlag({
+      const row = {
+        id: createId(),
         fromUserId: user.id,
         toUserId: partner.id,
         tone,
         offer,
-        note,
+        note: note.trim(),
+        status: "raised" as const,
+        createdAt: nowIso(),
+      };
+      await patch((state) => ({
+        ...state,
+        whiteFlags: [row, ...state.whiteFlags],
+      }));
+      notifyPartner({
+        title: "Apology & reset",
+        body: `${user.displayName} raised a white flag.`,
+        url: "/hub/apology",
       });
       setNote("");
-      setFlash("White flag raised. The hard part was starting.");
-      await refresh();
+      setFlash("White flag raised. It should be on their phone now.");
     } finally {
       setBusy(false);
     }
@@ -237,8 +259,12 @@ export default function ApologyScreen() {
   const resolve = async (id: string, status: "accepted" | "held") => {
     setBusy(true);
     try {
-      await resolveWhiteFlag(id, status);
-      await refresh();
+      await patch((state) => ({
+        ...state,
+        whiteFlags: state.whiteFlags.map((row) =>
+          row.id === id ? { ...row, status, resolvedAt: nowIso() } : row
+        ),
+      }));
       setFlash(
         status === "accepted"
           ? "Reset accepted. Soft landing unlocked."
@@ -569,15 +595,23 @@ export default function ApologyScreen() {
                 void (async () => {
                   setBusy(true);
                   try {
-                    await raiseWhiteFlag({
-                      fromUserId: partner.id,
-                      toUserId: user.id,
-                      tone: "i-was-wrong",
-                      offer: "tea",
-                      note: "I got defensive. Want a soft reset with me?",
-                    });
+                    await patch((state) => ({
+                      ...state,
+                      whiteFlags: [
+                        {
+                          id: createId(),
+                          fromUserId: partner.id,
+                          toUserId: user.id,
+                          tone: "i-was-wrong",
+                          offer: "tea",
+                          note: "I got defensive. Want a soft reset with me?",
+                          status: "raised",
+                          createdAt: nowIso(),
+                        },
+                        ...state.whiteFlags,
+                      ],
+                    }));
                     setFlash("Demo flag received — try Accept & reset.");
-                    await refresh();
                   } finally {
                     setBusy(false);
                   }

@@ -132,6 +132,9 @@ export function sortMaintTasks(rows: Task[], sort: MaintSort, today = localDateK
     if (sort === "name") return a.label.localeCompare(b.label);
     const da = daysUntilDue(a.lastDone, a.everyDays, today);
     const db = daysUntilDue(b.lastDone, b.everyDays, today);
+    const aDone = !isOnceOff(a.everyDays) && Boolean(a.lastDone) && da > 0;
+    const bDone = !isOnceOff(b.everyDays) && Boolean(b.lastDone) && db > 0;
+    if (aDone !== bDone) return aDone ? 1 : -1;
     if (sort === "overdue") {
       const ao = da <= 0 ? 0 : 1;
       const bo = db <= 0 ? 0 : 1;

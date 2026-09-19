@@ -320,6 +320,7 @@ export function featureFromStatusId(id: string): string | null {
   if (id.startsWith("position")) return "positions";
   if (id.startsWith("roleplay")) return "roleplays";
   if (id.startsWith("ping") || id.startsWith("thought")) return "thought-pings";
+  if (id.startsWith("apology")) return "apology";
   return null;
 }
 

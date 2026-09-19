@@ -60,6 +60,9 @@ export default function MaintenanceScreen() {
       ...state,
       maintenance: state.maintenance.map((item) => {
         if (item.id !== id) return item;
+        if (isOnceOff(item.everyDays)) {
+          return { ...item, lastDone: today, gone: true, updatedAt: nowIso() };
+        }
         return {
           ...item,
           lastDone: today,
@@ -308,20 +311,23 @@ export default function MaintenanceScreen() {
               }}
             />
             {once ? null : (
-              <TextInput
-                value={days}
-                onChangeText={setDays}
-                keyboardType="numeric"
-                accessibilityLabel="Repeat every days"
-                style={{
-                  width: 56,
-                  color: tint,
-                  borderBottomWidth: 1,
-                  borderBottomColor: tint,
-                  paddingVertical: 6,
-                  textAlign: "center",
-                }}
-              />
+              <View style={{ width: 64, alignItems: "center" }}>
+                <TextInput
+                  value={days}
+                  onChangeText={setDays}
+                  keyboardType="numeric"
+                  accessibilityLabel="Repeat every days"
+                  style={{
+                    width: 56,
+                    color: tint,
+                    borderBottomWidth: 1,
+                    borderBottomColor: tint,
+                    paddingVertical: 6,
+                    textAlign: "center",
+                  }}
+                />
+                <Text style={{ marginTop: 2, color: muted, fontSize: 10 }}>days</Text>
+              </View>
             )}
             <Pressable
               onPress={() => {
@@ -409,6 +415,7 @@ function ListRow({
 }) {
   const late = isOverdue(row.lastDone, row.everyDays, today);
   const once = isOnceOff(row.everyDays);
+  const ticked = !once && Boolean(row.lastDone) && !late;
   return (
     <View
       style={{
@@ -420,21 +427,24 @@ function ListRow({
         borderColor: late ? "#C23B3B" : hexAlpha(accent, 0.28),
         paddingVertical: 12,
         paddingHorizontal: 12,
+        opacity: ticked ? 0.78 : 1,
       }}
     >
       <Pressable
-        onPress={onDone}
-        accessibilityLabel={`Mark ${row.label} done`}
+        onPress={ticked ? undefined : onDone}
+        accessibilityLabel={ticked ? `${row.label} done` : `Mark ${row.label} done`}
         style={{
           width: 28,
           height: 28,
           borderWidth: 1.5,
           borderColor: late ? "#E8A0A0" : accent,
-          backgroundColor: "transparent",
+          backgroundColor: ticked ? accent : "transparent",
           alignItems: "center",
           justifyContent: "center",
         }}
-      />
+      >
+        {ticked ? <Ionicons name="checkmark" size={18} color={INK} /> : null}
+      </Pressable>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: SERIF, fontSize: 16, color: late ? "#F6D6D0" : PAPER }}>
           {row.label}
@@ -447,9 +457,20 @@ function ListRow({
             color: late ? "#E8A0A0" : muted,
           }}
         >
-          {dueLabel(row.lastDone, row.everyDays, today)}
-          {once ? "" : ` · every ${row.everyDays}d`}
+          {once ? dueLabel(row.lastDone, row.everyDays, today) : `Every ${row.everyDays} days`}
         </Text>
+        {once ? null : (
+          <Text
+            style={{
+              marginTop: 2,
+              fontFamily: "SpaceMono",
+              fontSize: 10,
+              color: late ? "#E8A0A0" : muted,
+            }}
+          >
+            {dueLabel(row.lastDone, row.everyDays, today)}
+          </Text>
+        )}
       </View>
       <Pressable onPress={onRemove} hitSlop={8} accessibilityLabel={`Remove ${row.label}`}>
         <Ionicons name="close" size={18} color={muted} />

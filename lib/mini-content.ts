@@ -72,6 +72,9 @@ import {
   hydratePadNotes,
   type PadNote,
 } from "@/lib/notepad";
+import { hydrateWhiteFlag, type WhiteFlag } from "@/lib/white-flag";
+
+export type { WhiteFlag } from "@/lib/white-flag";
 
 export type { BudgetState, MoneyGoal } from "@/lib/money";
 
@@ -517,6 +520,7 @@ export type MiniState = {
   maintPrefs: MaintPrefs;
   worldChoice: WorldChoice;
   spark: SparkState;
+  whiteFlags: WhiteFlag[];
 };
 
 type PingIcon = ComponentProps<typeof Ionicons>["name"];
@@ -914,6 +918,7 @@ export function emptyMiniState(): MiniState {
     maintPrefs: { ...DEFAULT_MAINT_PREFS },
     worldChoice: emptyWorldChoice(),
     spark: emptySparkState(),
+    whiteFlags: [],
   };
 }
 
@@ -1039,6 +1044,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
     maintPrefs: hydrateMaintPrefs(row.maintPrefs),
     worldChoice: hydrateWorldChoice(row.worldChoice),
     spark: hydrateSparkState(row.spark),
+    whiteFlags: asArray(row.whiteFlags, base.whiteFlags)
+      .map(hydrateWhiteFlag)
+      .filter((item): item is WhiteFlag => Boolean(item)),
   };
 }
 

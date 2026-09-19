@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { mergeDoodleBoards } from "@/lib/doodle-game";
+import { mergeWordleStates } from "@/lib/daily-word";
 import { hydrateMiniState, type MiniState } from "@/lib/mini-content";
 import { hydrateDb } from "@/lib/storage";
 import type { AppDB } from "@/lib/types";
@@ -385,6 +387,8 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
     );
   }
   const kept = hydrateMiniState(next);
+  kept.wordle = mergeWordleStates(local.wordle, remote.wordle);
+  kept.doodle = mergeDoodleBoards(local.doodle, remote.doodle);
   kept.sexyVault = local.sexyVault;
   kept.sexyVaultPin = local.sexyVaultPin;
   kept.audioNotes = local.audioNotes;

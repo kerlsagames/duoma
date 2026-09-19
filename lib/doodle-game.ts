@@ -229,7 +229,7 @@ const PROMPTS: Record<DoodleCategoryId, string[]> = {
 export function emptyDoodleBoard(): DoodleBoard {
   return {
     strokes: [],
-    updatedAt: nowIso(),
+    updatedAt: "",
     updatedBy: null,
     enabledCategories: [...DEFAULT_DOODLE_CATEGORIES],
     round: null,
@@ -269,7 +269,10 @@ function hydrateRound(raw: unknown): DoodleRound | null {
     ? (row.category as DoodleCategoryId)
     : "objects";
   return {
-    id: typeof row.id === "string" ? row.id : createId(),
+    id:
+      typeof row.id === "string" && row.id
+        ? row.id
+        : `doodle:${row.drawerId ?? ""}:${row.createdAt ?? ""}`,
     drawerId: typeof row.drawerId === "string" ? row.drawerId : "",
     guesserId: typeof row.guesserId === "string" ? row.guesserId : "",
     options: [options[0]!, options[1]!, options[2]!],
@@ -279,7 +282,7 @@ function hydrateRound(raw: unknown): DoodleRound | null {
     guess: typeof row.guess === "string" ? row.guess : null,
     correct: typeof row.correct === "boolean" ? row.correct : null,
     status,
-    createdAt: typeof row.createdAt === "string" ? row.createdAt : nowIso(),
+    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : "",
     sentAt: typeof row.sentAt === "string" ? row.sentAt : null,
     guessedAt: typeof row.guessedAt === "string" ? row.guessedAt : null,
   };
@@ -304,7 +307,7 @@ export function hydrateDoodleBoard(raw: unknown): DoodleBoard {
       : {};
   return {
     strokes: asStrokes(row.strokes),
-    updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : base.updatedAt,
+    updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : "",
     updatedBy: typeof row.updatedBy === "string" ? row.updatedBy : null,
     enabledCategories: enabled.length ? enabled : base.enabledCategories,
     round: hydrateRound(row.round),
@@ -460,4 +463,61 @@ export function categoryForPrompt(text: string): DoodleCategoryId | null {
 
 export function doodleCategoryLabel(id: DoodleCategoryId): string {
   return DOODLE_CATEGORIES.find((item) => item.id === id)?.label ?? id;
+}
+
+const ROUND_RANK: Record<DoodleRoundStatus, number> = {
+  pick: 0,
+  draw: 1,
+  wait: 2,
+  revealed: 3,
+};
+
+function mergeDoodleRound(local: DoodleRound | null, remote: DoodleRound | null): DoodleRound | null {
+  if (!local) return remote;
+  if (!remote) return local;
+  if (local.id === remote.id) {
+    const newer = ROUND_RANK[local.status] >= ROUND_RANK[remote.status] ? local : remote;
+    return {
+      ...newer,
+      prompt: local.prompt || remote.prompt,
+      guess: local.guess || remote.guess,
+      strokes: local.strokes.length >= remote.strokes.length ? local.strokes : remote.strokes,
+      status: ROUND_RANK[local.status] >= ROUND_RANK[remote.status] ? local.status : remote.status,
+      sentAt: [local.sentAt, remote.sentAt].filter(Boolean).sort().at(-1) ?? null,
+      guessedAt: [local.guessedAt, remote.guessedAt].filter(Boolean).sort().at(-1) ?? null,
+    };
+  }
+  if ((local.status === "draw" || local.status === "wait") && remote.status === "pick") return local;
+  if ((remote.status === "draw" || remote.status === "wait") && local.status === "pick") return remote;
+  if (ROUND_RANK[local.status] !== ROUND_RANK[remote.status]) {
+    return ROUND_RANK[local.status] > ROUND_RANK[remote.status] ? local : remote;
+  }
+  return (local.createdAt || "") >= (remote.createdAt || "") ? local : remote;
+}
+
+export function mergeDoodleBoards(local: DoodleBoard, remote: DoodleBoard): DoodleBoard {
+  const history = new Map<string, DoodleRound>();
+  for (const row of [...local.history, ...remote.history]) {
+    const prev = history.get(row.id);
+    history.set(row.id, prev ? mergeDoodleRound(prev, row) ?? row : row);
+  }
+  const scores = { ...remote.scores };
+  for (const [id, value] of Object.entries(local.scores)) {
+    scores[id] = Math.max(scores[id] ?? 0, value);
+  }
+  const localStamp = local.updatedAt || "";
+  const remoteStamp = remote.updatedAt || "";
+  const newer = localStamp >= remoteStamp ? local : remote;
+  const round = mergeDoodleRound(local.round, remote.round);
+  return {
+    strokes: round?.strokes?.length ? round.strokes : newer.strokes,
+    updatedAt: newer.updatedAt,
+    updatedBy: newer.updatedBy,
+    enabledCategories: local.enabledCategories.length
+      ? local.enabledCategories
+      : remote.enabledCategories,
+    round,
+    scores,
+    history: [...history.values()].slice(0, 20),
+  };
 }
