@@ -192,6 +192,7 @@ export async function patchMini(
 ): Promise<MiniState> {
   const current = await loadMiniState();
   const next = fn(current);
+  if (next === current) return current;
   emit(next);
   if (activeCoupleId === undefined) return next;
   try {

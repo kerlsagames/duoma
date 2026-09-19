@@ -154,18 +154,45 @@ export function emptyBudget(): BudgetState {
   };
 }
 
+function seedGoalId(title: string): string {
+  return `goal:seed:${title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`;
+}
+
 export function defaultGoals(): MoneyGoal[] {
   return GOAL_SEEDS.map((row) => ({
-    id: createId(),
+    id: seedGoalId(row.title),
     title: row.title,
     target: row.target,
     saved: Math.round(row.target * 0.18),
     color: row.color,
     horizon: row.horizon,
     note: "",
-    createdAt: nowIso(),
+    createdAt: "",
     completedAt: null,
   }));
+}
+
+export function dedupeMoneyGoals(rows: MoneyGoal[]): MoneyGoal[] {
+  const map = new Map<string, MoneyGoal>();
+  for (const row of rows) {
+    const key = row.title.trim().toLowerCase();
+    if (!key) continue;
+    const prev = map.get(key);
+    if (!prev) {
+      map.set(key, row);
+      continue;
+    }
+    const richer =
+      row.saved > prev.saved ||
+      (row.saved === prev.saved && (row.completedAt || "") > (prev.completedAt || ""))
+        ? row
+        : prev;
+    map.set(key, richer);
+  }
+  return [...map.values()];
 }
 
 export function parseMoney(raw: string): number | null {
@@ -440,14 +467,14 @@ export function hydrateMoneyGoal(raw: unknown): MoneyGoal | null {
         ? "long"
         : "short";
   return {
-    id: asString(row.id) || createId(),
+    id: asString(row.id) || seedGoalId(title),
     title,
     target,
     saved,
     color: asString(row.color) || nextGoalColor([]),
     horizon,
     note: asString(row.note),
-    createdAt: asString(row.createdAt) || nowIso(),
+    createdAt: asString(row.createdAt),
     completedAt: asString(row.completedAt) || null,
   };
 }

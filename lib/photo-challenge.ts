@@ -8,22 +8,6 @@ import {
   type PhotoPromptCategory,
 } from "@/lib/photo-prompts";
 
-export function refreshUnknownPrompt(
-  week: PhotoWeek,
-  enabled?: PhotoPromptCategory[]
-): PhotoWeek {
-  if (week.locked || week.completedAt) return week;
-  if (photoPromptById(week.promptId)) return week;
-  if (PHOTO_PROMPT_ARCHIVE.some((row) => row.id === week.promptId)) return week;
-  const next = pickPhotoPrompt(week.usedPromptIds, enabled, week.weekKey);
-  if (next.id === week.promptId) return week;
-  return {
-    ...week,
-    promptId: next.id,
-    usedPromptIds: [...week.usedPromptIds, next.id].slice(-120),
-  };
-}
-
 export {
   PHOTO_CATEGORIES,
   PHOTO_PROMPTS,
@@ -174,7 +158,18 @@ export const POLAROID_TINTS = [
 ];
 
 export function photoPromptById(id: string): PhotoPrompt | null {
-  return photoPrompts().find((row) => row.id === id) ?? null;
+  const fromCatalog = photoPrompts(true).find((row) => row.id === id);
+  if (fromCatalog) return fromCatalog;
+  const raw = PHOTO_PROMPTS.find((row) => row.id === id);
+  if (raw) return raw;
+  const archived = PHOTO_PROMPT_ARCHIVE.find((row) => row.id === id);
+  if (!archived) return null;
+  return {
+    id: archived.id,
+    category: "wholesome",
+    title: archived.label,
+    label: archived.label,
+  };
 }
 
 export function photoPromptTitle(id: string): string {
@@ -200,7 +195,8 @@ export function currentPhotoWeekKey(from = new Date()): string {
 }
 
 export function photoWeekExpiresAt(weekKey: string): string {
-  const [year, month, day] = weekKey.split("-").map(Number);
+  const datePart = /^(\d{4}-\d{2}-\d{2})/.exec(weekKey)?.[1] ?? currentPhotoWeekKey();
+  const [year, month, day] = datePart.split("-").map(Number);
   const end = new Date(year, (month || 1) - 1, (day || 1) + 7, 0, 0, 0, 0);
   return end.toISOString();
 }
@@ -253,7 +249,10 @@ export function photoWeekIsLive(week: PhotoWeek | null, from = new Date()): bool
   if (!week) return false;
   const end = Date.parse(week.expiresAt);
   if (Number.isFinite(end)) return end > from.getTime();
-  return week.weekKey === currentPhotoWeekKey(from);
+  const started = Date.parse(week.startedAt);
+  if (Number.isFinite(started)) return started + 7 * 86400000 > from.getTime();
+  const monday = currentPhotoWeekKey(from);
+  return week.weekKey === monday || week.weekKey.startsWith(`${monday}`);
 }
 
 export type PhotoPrefs = {
@@ -288,18 +287,35 @@ export function hydratePhotoPrefs(raw: unknown): PhotoPrefs {
   };
 }
 
+function nextDealWeekKey(week: PhotoWeek | null, from: Date): string {
+  const monday = currentPhotoWeekKey(from);
+  if (!week || !week.weekKey.startsWith(monday)) return monday;
+  if (week.weekKey === monday) return `${monday}:2`;
+  const seq = Number(/:(\d+)$/.exec(week.weekKey)?.[1] ?? 2);
+  return `${monday}:${Number.isFinite(seq) && seq > 0 ? seq + 1 : 2}`;
+}
+
 export function startNextPhotoWeek(
   week: PhotoWeek | null,
   from = new Date(),
   enabled?: PhotoPromptCategory[]
 ): PhotoWeek {
-  const next = dealPhotoWeek(from, week?.usedPromptIds ?? [], enabled);
+  const used = week?.usedPromptIds ?? [];
+  const weekKey = nextDealWeekKey(week, from);
+  const prompt = pickPhotoPrompt(used, enabled, weekKey);
   const ends = new Date(from);
   ends.setDate(ends.getDate() + 7);
   return {
-    ...next,
-    weekKey: `${localDateKey(from)}-${from.getTime()}`,
+    weekKey,
+    promptId: prompt.id,
+    shufflesLeft: PHOTO_SHUFFLES,
+    locked: false,
+    agreedAt: null,
+    startedAt: nowIso(),
     expiresAt: ends.toISOString(),
+    usedPromptIds: [...used, prompt.id].slice(-48),
+    completedAt: null,
+    completedBy: null,
   };
 }
 
@@ -429,7 +445,9 @@ export function hydratePhotoWeek(raw: unknown): PhotoWeek | null {
     agreedAt: typeof row.agreedAt === "string" ? row.agreedAt : null,
     startedAt: typeof row.startedAt === "string" && row.startedAt ? row.startedAt : "",
     expiresAt:
-      typeof row.expiresAt === "string"
+      typeof row.expiresAt === "string" &&
+      row.expiresAt &&
+      Number.isFinite(Date.parse(row.expiresAt))
         ? row.expiresAt
         : photoWeekExpiresAt(row.weekKey),
     usedPromptIds: Array.isArray(row.usedPromptIds)
@@ -440,25 +458,55 @@ export function hydratePhotoWeek(raw: unknown): PhotoWeek | null {
   };
 }
 
+function unionUsedPromptIds(left: string[], right: string[]): string[] {
+  return [...new Set([...left, ...right])].slice(-120);
+}
+
+function withUsedUnion(winner: PhotoWeek, other: PhotoWeek): PhotoWeek {
+  const usedPromptIds = unionUsedPromptIds(winner.usedPromptIds, other.usedPromptIds);
+  if (
+    usedPromptIds.length === winner.usedPromptIds.length &&
+    usedPromptIds.every((id, index) => id === winner.usedPromptIds[index])
+  ) {
+    return winner;
+  }
+  return { ...winner, usedPromptIds };
+}
+
+function preferProgress(local: PhotoWeek, remote: PhotoWeek): PhotoWeek {
+  if (local.completedAt && !remote.completedAt) return local;
+  if (remote.completedAt && !local.completedAt) return remote;
+  if ((local.agreedAt || local.locked) && !(remote.agreedAt || remote.locked)) return local;
+  if ((remote.agreedAt || remote.locked) && !(local.agreedAt || local.locked)) return remote;
+  if (local.shufflesLeft !== remote.shufflesLeft) {
+    return local.shufflesLeft < remote.shufflesLeft ? local : remote;
+  }
+  if (local.usedPromptIds.length !== remote.usedPromptIds.length) {
+    return local.usedPromptIds.length >= remote.usedPromptIds.length ? local : remote;
+  }
+  const localStamp = local.startedAt || "";
+  const remoteStamp = remote.startedAt || "";
+  if (localStamp && remoteStamp && localStamp !== remoteStamp) {
+    return localStamp <= remoteStamp ? local : remote;
+  }
+  if (localStamp && !remoteStamp) return local;
+  if (remoteStamp && !localStamp) return remote;
+  if (local.promptId === remote.promptId) return local;
+  return local.promptId <= remote.promptId ? local : remote;
+}
+
 export function mergePhotoWeeks(local: PhotoWeek | null, remote: PhotoWeek | null): PhotoWeek | null {
   if (!local) return remote;
   if (!remote) return local;
-  if (local.weekKey === remote.weekKey) {
-    if (local.completedAt && !remote.completedAt) return local;
-    if (remote.completedAt && !local.completedAt) return remote;
-    if ((local.agreedAt || local.locked) && !(remote.agreedAt || remote.locked)) return local;
-    if ((remote.agreedAt || remote.locked) && !(local.agreedAt || local.locked)) return remote;
-    if (local.shufflesLeft !== remote.shufflesLeft) {
-      return local.shufflesLeft < remote.shufflesLeft ? local : remote;
+  if (local.weekKey !== remote.weekKey) {
+    const localLive = photoWeekIsLive(local);
+    const remoteLive = photoWeekIsLive(remote);
+    if (localLive !== remoteLive) {
+      return withUsedUnion(localLive ? local : remote, localLive ? remote : local);
     }
-    const localStamp = local.startedAt || "";
-    const remoteStamp = remote.startedAt || "";
-    if (localStamp && remoteStamp && localStamp !== remoteStamp) {
-      return localStamp <= remoteStamp ? local : remote;
-    }
-    return local.promptId ? local : remote;
   }
-  return (local.expiresAt || local.weekKey) >= (remote.expiresAt || remote.weekKey) ? local : remote;
+  const winner = preferProgress(local, remote);
+  return withUsedUnion(winner, winner === local ? remote : local);
 }
 
 export function formatCountdown(expiresAt: string, from = new Date()): string {

@@ -51,6 +51,7 @@ import {
 import { hydrateVoteIds } from "@/lib/vault-pin";
 import {
   defaultGoals,
+  dedupeMoneyGoals,
   emptyBudget,
   hydrateBudget,
   hydrateMoneyGoal,
@@ -1011,9 +1012,11 @@ export function hydrateMiniState(raw: unknown): MiniState {
     chores: asArray(row.chores, base.chores).filter(keepFairShareItem),
     fairSpins: asArray(row.fairSpins, base.fairSpins),
     trips: asArray(row.trips, base.trips).map(hydrateTrip).filter((row): row is Trip => Boolean(row)),
-    goals: asArray(row.goals, base.goals)
-      .map(hydrateMoneyGoal)
-      .filter((item): item is MoneyGoal => Boolean(item)),
+    goals: dedupeMoneyGoals(
+      asArray(row.goals, base.goals)
+        .map(hydrateMoneyGoal)
+        .filter((item): item is MoneyGoal => Boolean(item))
+    ),
     budget: hydrateBudget(row.budget),
     maintenance: asArray(row.maintenance, base.maintenance)
       .map(hydrateMaintTask)

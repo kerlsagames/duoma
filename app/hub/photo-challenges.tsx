@@ -21,7 +21,6 @@ import {
   photoWeekIsLive,
   pickImageFromDevice,
   prependPhoto,
-  refreshUnknownPrompt,
   shufflePhotoWeek,
   startNextPhotoWeek,
   type PhotoMemory,
@@ -68,16 +67,14 @@ export default function PhotoChallengesScreen() {
 
   useEffect(() => {
     if (!ready) return;
+    if (data.photoWeek && photoWeekIsLive(data.photoWeek)) return;
     void patch((state) => {
-      const cats = state.photoPrefs.categories;
-      if (photoWeekIsLive(state.photoWeek) && state.photoWeek) {
-        const next = refreshUnknownPrompt(state.photoWeek, cats);
-        if (next === state.photoWeek) return state;
-        return { ...state, photoWeek: next };
-      }
-      return { ...state, photoWeek: ensurePhotoWeek(state.photoWeek, new Date(), cats) };
+      if (state.photoWeek && photoWeekIsLive(state.photoWeek)) return state;
+      const next = ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories);
+      if (next === state.photoWeek) return state;
+      return { ...state, photoWeek: next };
     });
-  }, [ready, patch]);
+  }, [ready, patch, data.photoWeek]);
 
   const week = data.photoWeek;
 
@@ -124,13 +121,13 @@ export default function PhotoChallengesScreen() {
     if (locked) return;
     setError(null);
     setDraftImage(null);
-    await patch((state) => ({
-      ...state,
-      photoWeek: shufflePhotoWeek(
-        ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories),
-        state.photoPrefs.categories
-      ),
-    }));
+    await patch((state) => {
+      if (!state.photoWeek) return state;
+      return {
+        ...state,
+        photoWeek: shufflePhotoWeek(state.photoWeek, state.photoPrefs.categories),
+      };
+    });
   };
 
   const toggleCategory = async (id: PhotoPromptCategory) => {
@@ -149,12 +146,10 @@ export default function PhotoChallengesScreen() {
 
   const agree = async () => {
     setError(null);
-    await patch((state) => ({
-      ...state,
-      photoWeek: agreePhotoWeek(
-        ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories)
-      ),
-    }));
+    await patch((state) => {
+      if (!state.photoWeek) return state;
+      return { ...state, photoWeek: agreePhotoWeek(state.photoWeek) };
+    });
   };
 
   const pickPhoto = async () => {
@@ -194,7 +189,8 @@ export default function PhotoChallengesScreen() {
         weekKey: week.weekKey,
       });
       await patch((state) => {
-        const live = ensurePhotoWeek(state.photoWeek, new Date(), state.photoPrefs.categories);
+        const live = state.photoWeek;
+        if (!live) return state;
         const finished = completePhotoWeek(live, user.id);
         return {
           ...state,
