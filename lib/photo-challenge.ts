@@ -14,7 +14,9 @@ export function refreshUnknownPrompt(
 ): PhotoWeek {
   if (week.locked || week.completedAt) return week;
   if (photoPromptById(week.promptId)) return week;
-  const next = pickPhotoPrompt(week.usedPromptIds, enabled);
+  if (PHOTO_PROMPT_ARCHIVE.some((row) => row.id === week.promptId)) return week;
+  const next = pickPhotoPrompt(week.usedPromptIds, enabled, week.weekKey);
+  if (next.id === week.promptId) return week;
   return {
     ...week,
     promptId: next.id,
@@ -203,9 +205,18 @@ export function photoWeekExpiresAt(weekKey: string): string {
   return end.toISOString();
 }
 
+function hashSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 export function pickPhotoPrompt(
   avoidIds: string[] = [],
-  enabled: PhotoPromptCategory[] = PHOTO_CATEGORIES.map((row) => row.id)
+  enabled: PhotoPromptCategory[] = PHOTO_CATEGORIES.map((row) => row.id),
+  seed?: string
 ): PhotoPrompt {
   const avoid = new Set(avoidIds);
   const allowed = new Set(enabled.length ? enabled : PHOTO_CATEGORIES.map((row) => row.id));
@@ -213,6 +224,7 @@ export function pickPhotoPrompt(
   const inCats = live.filter((row) => allowed.has(row.category));
   const pool = inCats.filter((row) => !avoid.has(row.id));
   const source = pool.length ? pool : inCats.length ? inCats : live;
+  if (seed) return source[hashSeed(seed) % source.length]!;
   return source[Math.floor(Math.random() * source.length)]!;
 }
 
@@ -222,7 +234,7 @@ export function dealPhotoWeek(
   enabled?: PhotoPromptCategory[]
 ): PhotoWeek {
   const weekKey = currentPhotoWeekKey(from);
-  const prompt = pickPhotoPrompt(avoidIds, enabled);
+  const prompt = pickPhotoPrompt(avoidIds, enabled, weekKey);
   return {
     weekKey,
     promptId: prompt.id,
@@ -239,7 +251,9 @@ export function dealPhotoWeek(
 
 export function photoWeekIsLive(week: PhotoWeek | null, from = new Date()): boolean {
   if (!week) return false;
-  return new Date(week.expiresAt).getTime() > from.getTime();
+  const end = Date.parse(week.expiresAt);
+  if (Number.isFinite(end)) return end > from.getTime();
+  return week.weekKey === currentPhotoWeekKey(from);
 }
 
 export type PhotoPrefs = {
@@ -413,7 +427,7 @@ export function hydratePhotoWeek(raw: unknown): PhotoWeek | null {
     shufflesLeft: shuffles,
     locked: Boolean(row.locked) || shuffles <= 0 || Boolean(row.agreedAt),
     agreedAt: typeof row.agreedAt === "string" ? row.agreedAt : null,
-    startedAt: typeof row.startedAt === "string" ? row.startedAt : nowIso(),
+    startedAt: typeof row.startedAt === "string" && row.startedAt ? row.startedAt : "",
     expiresAt:
       typeof row.expiresAt === "string"
         ? row.expiresAt
@@ -424,6 +438,27 @@ export function hydratePhotoWeek(raw: unknown): PhotoWeek | null {
     completedAt: typeof row.completedAt === "string" ? row.completedAt : null,
     completedBy: typeof row.completedBy === "string" ? row.completedBy : null,
   };
+}
+
+export function mergePhotoWeeks(local: PhotoWeek | null, remote: PhotoWeek | null): PhotoWeek | null {
+  if (!local) return remote;
+  if (!remote) return local;
+  if (local.weekKey === remote.weekKey) {
+    if (local.completedAt && !remote.completedAt) return local;
+    if (remote.completedAt && !local.completedAt) return remote;
+    if ((local.agreedAt || local.locked) && !(remote.agreedAt || remote.locked)) return local;
+    if ((remote.agreedAt || remote.locked) && !(local.agreedAt || local.locked)) return remote;
+    if (local.shufflesLeft !== remote.shufflesLeft) {
+      return local.shufflesLeft < remote.shufflesLeft ? local : remote;
+    }
+    const localStamp = local.startedAt || "";
+    const remoteStamp = remote.startedAt || "";
+    if (localStamp && remoteStamp && localStamp !== remoteStamp) {
+      return localStamp <= remoteStamp ? local : remote;
+    }
+    return local.promptId ? local : remote;
+  }
+  return (local.expiresAt || local.weekKey) >= (remote.expiresAt || remote.weekKey) ? local : remote;
 }
 
 export function formatCountdown(expiresAt: string, from = new Date()): string {

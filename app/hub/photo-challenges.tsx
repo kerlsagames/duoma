@@ -77,7 +77,7 @@ export default function PhotoChallengesScreen() {
       }
       return { ...state, photoWeek: ensurePhotoWeek(state.photoWeek, new Date(), cats) };
     });
-  }, [ready, data.photoWeek, patch]);
+  }, [ready, patch]);
 
   const week = data.photoWeek;
 
