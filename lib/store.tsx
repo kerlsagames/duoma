@@ -739,6 +739,7 @@ type AppContextValue = {
   ready: boolean;
   usingCloud: boolean;
   cloudLive: boolean;
+  cloudSessionKnown: boolean;
   user: Profile | null;
   partner: Profile | null;
   couple: Couple | null;
@@ -1090,6 +1091,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [version, setVersion] = useState(0);
   const [pairError, setPairError] = useState<string | null>(null);
   const [cloudLive, setCloudLive] = useState(false);
+  const [cloudSessionKnown, setCloudSessionKnown] = useState(!cloudAccountsOn());
 
   const bump = useCallback(() => setVersion((value) => value + 1), []);
 
@@ -1187,6 +1189,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setReady(true);
       }
       try {
+        if (supabase) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          setCloudLive(Boolean(sessionData.session?.user));
+        }
+        setCloudSessionKnown(true);
         const absorbed = await applyCloudSession();
         if (supabase) {
           const { data: sessionData } = await supabase.auth.getSession();
@@ -1196,21 +1203,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await persist({ skipBackup: Boolean(absorbed) });
         }
       } catch {
+        setCloudSessionKnown(true);
         bump();
       }
     })();
 
     if (supabase) {
-      const { data } = supabase.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
-          setCloudLive(true);
-          void applyCloudSession().then((changed) => {
-            if (changed) void persist();
-          });
+      const auth = supabase;
+      const { data } = auth.auth.onAuthStateChange((event, session) => {
+        if (
+          event === "SIGNED_IN" ||
+          event === "USER_UPDATED" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "INITIAL_SESSION"
+        ) {
+          if (session?.user) {
+            setCloudLive(true);
+            setCloudSessionKnown(true);
+            void applyCloudSession().then((changed) => {
+              if (changed) void persist();
+            });
+            return;
+          }
+          if (event === "INITIAL_SESSION") {
+            void auth.auth.getSession().then(({ data: sessionData }) => {
+              setCloudLive(Boolean(sessionData.session?.user));
+              setCloudSessionKnown(true);
+            });
+          }
+          return;
         }
         if (event === "SIGNED_OUT") {
-          setCloudLive(false);
-          emit();
+          void auth.auth.getSession().then(({ data: sessionData }) => {
+            setCloudLive(Boolean(sessionData.session?.user));
+            setCloudSessionKnown(true);
+            emit();
+          });
         }
       });
       authSub = data.subscription;
@@ -1330,6 +1358,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const onVis = () => {
       if (typeof document !== "undefined" && document.visibilityState !== "visible") {
         return;
+      }
+      if (supabase) {
+        void supabase.auth.getSession().then(({ data }) => {
+          setCloudLive(Boolean(data.session?.user));
+          setCloudSessionKnown(true);
+        });
       }
       if (!sessionIsDemo()) {
         void absorbHubForCouple(couple.id).then(() => persist({ skipBackup: true }));
@@ -7173,6 +7207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ready,
     usingCloud: cloudAccountsOn(),
     cloudLive,
+    cloudSessionKnown,
     pairError,
     user,
     partner,

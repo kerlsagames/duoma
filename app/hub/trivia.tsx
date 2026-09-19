@@ -39,7 +39,7 @@ type ViewMode = "shop" | "rip" | "play" | "result";
 type PlayKind = "fill" | "guess";
 
 export default function TriviaScreen() {
-  const { user, partner } = useApp();
+  const { user, partner, refreshPair } = useApp();
   const { data, patch } = useMiniApps();
   const scrollRef = useRef<ScrollView>(null);
   const you = youLabel(user);
@@ -68,6 +68,28 @@ export default function TriviaScreen() {
   const sheets = data.knowMeSheets;
   const guesses = data.knowMeGuesses;
   const pack = packId ? knowMePackById(packId) : null;
+  const waitingOnThem = useMemo(() => {
+    if (!user?.id || !partner?.id) return false;
+    return KNOW_ME_PACKS.some((row) => {
+      const lane = packLane({
+        pack: row,
+        sheets,
+        guesses,
+        userId: user.id,
+        partnerId: partner.id,
+      });
+      return lane === "wait" || lane === "waitGuess";
+    });
+  }, [guesses, partner?.id, sheets, user?.id]);
+
+  useEffect(() => {
+    if (!waitingOnThem) return;
+    void refreshPair();
+    const tick = setInterval(() => void refreshPair(), 4000);
+    return () => clearInterval(tick);
+  }, [refreshPair, waitingOnThem]);
+
+  const waitingRef = useRef<Set<string>>(new Set());
 
   const gate = useMemo(
     () => ({
@@ -128,6 +150,30 @@ export default function TriviaScreen() {
     });
     go("result");
   };
+
+  useEffect(() => {
+    if (!user?.id || !partner?.id) return;
+    let reveal: string | null = null;
+    const nextWaiting = new Set<string>();
+    for (const row of KNOW_ME_PACKS) {
+      const lane = packLane({
+        pack: row,
+        sheets,
+        guesses,
+        userId: user.id,
+        partnerId: partner.id,
+      });
+      if (lane === "wait" || lane === "waitGuess") nextWaiting.add(row.id);
+      if (lane === "done" && waitingRef.current.has(row.id)) reveal = row.id;
+    }
+    waitingRef.current = nextWaiting;
+    if (!reveal && view === "result" && packId && result && !result.theirGuesses) {
+      const arrived = latestGuess(guesses, packId, user.id, partner.id);
+      if (arrived) reveal = packId;
+    }
+    if (!reveal) return;
+    if (view === "shop" || view === "result") openResult(reveal);
+  }, [guesses, packId, partner?.id, result, sheets, user?.id, view]);
 
   const pickOption = (index: number) => {
     const next = [...picks];

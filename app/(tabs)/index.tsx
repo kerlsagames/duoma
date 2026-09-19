@@ -70,7 +70,7 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { game, usingCloud, user, cloudLive, demoMode } =
+  const { game, usingCloud, user, cloudLive, cloudSessionKnown, demoMode } =
     useApp();
   const [favorites, setFavorites] = useState<HomeFavoriteSlot[]>(
     emptyFavoriteSlots()
@@ -211,7 +211,7 @@ export default function HomeScreen() {
 
         <InstallHomeScreenCard compact />
         <HomeConnectButton />
-        {usingCloud && user && !cloudLive && !demoMode ? (
+        {usingCloud && user && cloudSessionKnown && !cloudLive && !demoMode ? (
           <Pressable
             onPress={() => router.push("/login?reauth=1")}
             style={{
