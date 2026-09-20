@@ -1,4 +1,4 @@
-const SW_VERSION = "duoma-password-20260918";
+const SW_VERSION = "duoma-20260920-home";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -6,11 +6,32 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+      await self.clients.claim();
+      const windows = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      await Promise.all(
+        windows.map((client) => {
+          try {
+            client.postMessage({ type: "duoma-reload", version: SW_VERSION });
+          } catch {
+            // Ignore.
+          }
+          if ("navigate" in client) return client.navigate(client.url);
+          return undefined;
+        })
+      );
+    })()
   );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.mode !== "navigate") return;
+  event.respondWith(fetch(event.request, { cache: "no-store" }));
 });
 
 self.addEventListener("push", (event) => {
@@ -23,8 +44,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: "/icon-192.png?v=4",
-      badge: "/favicon.png?v=4",
+      icon: "/icon-192.png?v=5",
+      badge: "/favicon.png?v=5",
       data: { url: data.url || "/" },
     })
   );

@@ -77,12 +77,31 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
+const SW_FILE = "/sw.js?v=20260920-home";
+let swReloadArmed = false;
+let swListenersBound = false;
+
+function reloadForNewWorker() {
+  if (swReloadArmed) return;
+  swReloadArmed = true;
+  window.location.reload();
+}
+
 export async function registerDuomaWorker() {
   if (!isWebPushRuntime() || !("serviceWorker" in navigator)) return null;
   ensurePwaHead();
-  return navigator.serviceWorker.register("/sw.js?v=password-20260918", {
+  const registration = await navigator.serviceWorker.register(SW_FILE, {
     scope: "/",
   });
+  void registration.update();
+  if (!swListenersBound) {
+    swListenersBound = true;
+    navigator.serviceWorker.addEventListener("controllerchange", reloadForNewWorker);
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data?.type === "duoma-reload") reloadForNewWorker();
+    });
+  }
+  return registration;
 }
 
 function ensurePwaHead() {
