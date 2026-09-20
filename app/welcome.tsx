@@ -2,16 +2,35 @@ import { DuomaLogo } from "@/components/DuomaLogo";
 import { InstallHomeScreenCard } from "@/components/InstallHomeScreenCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Screen } from "@/components/ui/Screen";
+import { looksLikeEmail } from "@/lib/account-usage";
 import { SERIF } from "@/lib/app-themes";
 import { HUBS } from "@/lib/hubs";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, type Href } from "expo-router";
-import { Text, View } from "react-native";
+import { Redirect, useRouter, type Href } from "expo-router";
+import { useState } from "react";
+import { Text, TextInput, View } from "react-native";
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { savedPair, continueAsSaved, usingCloud, pairError } = useApp();
+  const {
+    ready,
+    user,
+    savedPair,
+    continueAsSaved,
+    usingCloud,
+    pairError,
+    requestEmailCode,
+    verifyEmailCode,
+  } = useApp();
+  const [forgot, setForgot] = useState(false);
+  const [email, setEmail] = useState(savedPair?.user.email ?? "");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+
+  if (ready && user) return <Redirect href="/" />;
 
   return (
     <Screen scroll>
@@ -117,9 +136,9 @@ export default function WelcomeScreen() {
                         (err.message === "SIGN_IN" || err.message === "CHECK_EMAIL")
                       ) {
                         const savedEmail = savedPair?.user.email
-                          ? `?email=${encodeURIComponent(savedPair.user.email)}`
+                          ? `&email=${encodeURIComponent(savedPair.user.email)}`
                           : "";
-                        router.replace(`/login${savedEmail}` as Href);
+                        router.replace(`/login?from=signin${savedEmail}` as Href);
                         return;
                       }
                       router.replace("/banned");
@@ -142,7 +161,7 @@ export default function WelcomeScreen() {
             <PrimaryButton
               label="Sign in"
               tone="ghost"
-              onPress={() => router.push("/login")}
+              onPress={() => router.push("/login?from=signin" as Href)}
             />
           ) : null}
           <PrimaryButton
@@ -150,6 +169,122 @@ export default function WelcomeScreen() {
             tone="ghost"
             onPress={() => router.push("/legal" as Href)}
           />
+          {usingCloud ? (
+            forgot ? (
+              <View className="mt-2 gap-3">
+                <Text className="text-center text-[14px] leading-5 text-mist/60">
+                  We’ll email a reset code. Then set a new password in Home settings.
+                </Text>
+                <TextInput
+                  value={email}
+                  onChangeText={(value) => {
+                    setEmail(value);
+                    setError(null);
+                  }}
+                  placeholder="Email"
+                  placeholderTextColor="rgba(244,244,246,0.35)"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  className="h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+                />
+                <TextInput
+                  value={code}
+                  onChangeText={(value) =>
+                    setCode(value.replace(/[^\d]/g, "").slice(0, 8))
+                  }
+                  placeholder="Reset code"
+                  placeholderTextColor="rgba(244,244,246,0.35)"
+                  keyboardType="number-pad"
+                  maxLength={8}
+                  className="h-14 rounded-2xl border border-white/15 bg-white/5 px-4 text-[16px] text-mist"
+                />
+                {note ? (
+                  <Text className="text-center text-[14px] leading-5 text-mist/70">
+                    {note}
+                  </Text>
+                ) : null}
+                {error ? (
+                  <Text className="text-center text-[14px] leading-5 text-crimson">
+                    {error}
+                  </Text>
+                ) : null}
+                <PrimaryButton
+                  label="Email me a reset code"
+                  loading={loading && !code}
+                  disabled={!looksLikeEmail(email.trim())}
+                  onPress={() => {
+                    void (async () => {
+                      if (!looksLikeEmail(email.trim())) {
+                        setError("That email does not look right.");
+                        return;
+                      }
+                      setError(null);
+                      setLoading(true);
+                      try {
+                        await requestEmailCode(email.trim());
+                        setNote("Reset code sent. Type it below, then set a password in Home settings.");
+                      } catch (err) {
+                        setError(
+                          err instanceof Error
+                            ? err.message
+                            : "Could not send a reset code."
+                        );
+                      } finally {
+                        setLoading(false);
+                      }
+                    })();
+                  }}
+                />
+                <PrimaryButton
+                  label="Use reset code"
+                  loading={loading && Boolean(code)}
+                  disabled={code.length < 6}
+                  onPress={() => {
+                    void (async () => {
+                      setError(null);
+                      setLoading(true);
+                      try {
+                        await verifyEmailCode(code);
+                        router.replace("/");
+                      } catch (err) {
+                        setError(
+                          err instanceof Error
+                            ? err.message
+                            : "Could not confirm that code."
+                        );
+                      } finally {
+                        setLoading(false);
+                      }
+                    })();
+                  }}
+                />
+                <PrimaryButton
+                  label="Cancel"
+                  tone="ghost"
+                  onPress={() => {
+                    setForgot(false);
+                    setCode("");
+                    setError(null);
+                    setNote(null);
+                  }}
+                />
+              </View>
+            ) : (
+              <PrimaryButton
+                label="I forgot my password"
+                tone="ghost"
+                onPress={() => {
+                  setForgot(true);
+                  setError(null);
+                  setNote(null);
+                  if (!email && savedPair?.user.email) {
+                    setEmail(savedPair.user.email);
+                  }
+                }}
+              />
+            )
+          ) : null}
         </View>
       </View>
     </Screen>
