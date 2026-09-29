@@ -14,6 +14,38 @@ export type CalendarPersonChip = {
   kind: "user" | "kid";
 };
 
+export function householdAdults(input: {
+  user?: { id: string; displayName: string } | null;
+  partner?: { id: string; displayName: string } | null;
+  couple?: { partnerA: string; partnerB: string | null } | null;
+  profiles?: { id: string; displayName: string }[] | null;
+}): CalendarPersonChip[] {
+  const profiles = input.profiles ?? [];
+  const nameOf = (id: string, fallback: string) => {
+    if (input.user?.id === id && input.user.displayName.trim()) {
+      return input.user.displayName.trim();
+    }
+    if (input.partner?.id === id && input.partner.displayName.trim()) {
+      return input.partner.displayName.trim();
+    }
+    const row = profiles.find((item) => item.id === id);
+    const label = row?.displayName.trim();
+    return label || fallback;
+  };
+  const rows: CalendarPersonChip[] = [];
+  const seen = new Set<string>();
+  const add = (id: string | null | undefined, fallback: string) => {
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    rows.push({ id, name: nameOf(id, fallback), kind: "user" });
+  };
+  add(input.user?.id, "You");
+  add(input.partner?.id, input.partner?.displayName.trim() || "Partner");
+  add(input.couple?.partnerA, input.user?.id === input.couple?.partnerA ? "You" : "Partner");
+  add(input.couple?.partnerB, input.user?.id === input.couple?.partnerB ? "You" : "Partner");
+  return rows;
+}
+
 export function hydrateCalendarKid(raw: unknown): CalendarKid | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Partial<CalendarKid>;

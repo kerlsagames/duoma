@@ -1,6 +1,7 @@
 import { HUB_TONES } from "@/lib/app-themes";
 import {
   giftKidsAsCalendar,
+  householdAdults,
   mergeCalendarKids,
   toggleAffectsPerson,
 } from "@/lib/calendar-people";
@@ -38,7 +39,7 @@ export function CalendarNoteOptions({
     affectsKidIds: string[];
   }) => void;
 }) {
-  const { user, partner } = useApp();
+  const { user, partner, couple, allProfiles } = useApp();
   const { data, patch } = useMiniApps();
   const [kidName, setKidName] = useState("");
   const kids = useMemo(
@@ -46,16 +47,17 @@ export function CalendarNoteOptions({
     [data.calendarKids, data.giftPeople]
   );
   const people = useMemo(() => {
-    const rows: { id: string; name: string; kind: "user" | "kid" }[] = [];
-    if (user) rows.push({ id: user.id, name: user.displayName, kind: "user" });
-    if (partner) {
-      rows.push({ id: partner.id, name: partner.displayName, kind: "user" });
-    }
-    for (const kid of kids) {
-      rows.push({ id: kid.id, name: kid.name, kind: "kid" });
-    }
-    return rows;
-  }, [user, partner, kids]);
+    const adults = householdAdults({
+      user,
+      partner,
+      couple,
+      profiles: allProfiles,
+    });
+    return [
+      ...adults,
+      ...kids.map((kid) => ({ id: kid.id, name: kid.name, kind: "kid" as const })),
+    ];
+  }, [user, partner, couple, allProfiles, kids]);
 
   const hint = repeatHint(repeat, date);
   const selected = (id: string, kind: "user" | "kid") => {
