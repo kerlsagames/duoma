@@ -44,6 +44,8 @@ import { bumpAppSeconds, currentDwellApp, mergeAppSeconds } from "@/lib/app-dwel
 import { resolveCardGenders } from "@/lib/personalize";
 import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke";
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
+import { asCalendarRepeat } from "@/lib/calendar-repeat";
+import { normalizeAffects } from "@/lib/calendar-people";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
 import {
@@ -167,6 +169,7 @@ import type {
   PositionSave,
   PlayItemRating,
   CalendarCustomEvent,
+  CalendarEventWrite,
   ChickenPlay,
   ErrandItem,
   ErrandKind,
@@ -987,23 +990,8 @@ type AppContextValue = {
   }) => Promise<void>;
   setFeaturedMilestone: (id: string) => Promise<void>;
   removeMilestone: (id: string) => Promise<void>;
-  addCalendarEvent: (input: {
-    title: string;
-    notes?: string;
-    date: string;
-    happenedAt?: string;
-    allDay?: boolean;
-  }) => Promise<CalendarCustomEvent>;
-  updateCalendarEvent: (
-    id: string,
-    input: {
-      title: string;
-      notes?: string;
-      date: string;
-      happenedAt?: string;
-      allDay?: boolean;
-    }
-  ) => Promise<void>;
+  addCalendarEvent: (input: CalendarEventWrite) => Promise<CalendarCustomEvent>;
+  updateCalendarEvent: (id: string, input: CalendarEventWrite) => Promise<void>;
   removeCalendarEvent: (id: string) => Promise<void>;
   addErrandItem: (input: {
     title: string;
@@ -6018,13 +6006,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addCalendarEvent = useCallback(
-    async (input: {
-      title: string;
-      notes?: string;
-      date: string;
-      happenedAt?: string;
-      allDay?: boolean;
-    }) => {
+    async (input: CalendarEventWrite) => {
       if (!user || !couple) throw new Error("Pair up first.");
       const title = input.title.trim();
       if (!title) throw new Error("Add a title.");
@@ -6033,6 +6015,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const stamp = nowIso();
       const allDay = input.allDay !== false;
+      const people = normalizeAffects(input);
       const row: CalendarCustomEvent = {
         id: createId(),
         coupleId: couple.id,
@@ -6044,6 +6027,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdBy: user.id,
         createdAt: stamp,
         updatedAt: stamp,
+        repeat: asCalendarRepeat(input.repeat),
+        ...people,
       };
       db = { ...db, calendarEvents: [...db.calendarEvents, row] };
       await persist();
@@ -6053,21 +6038,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const updateCalendarEvent = useCallback(
-    async (
-      id: string,
-      input: {
-        title: string;
-        notes?: string;
-        date: string;
-        happenedAt?: string;
-        allDay?: boolean;
-      }
-    ) => {
+    async (id: string, input: CalendarEventWrite) => {
       const title = input.title.trim();
       if (!title) throw new Error("Add a title.");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
         throw new Error("Use a date like 2026-09-10.");
       }
+      const people = normalizeAffects(input);
       db = {
         ...db,
         calendarEvents: db.calendarEvents.map((row) =>
@@ -6079,6 +6056,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 date: input.date,
                 happenedAt: input.happenedAt ?? row.happenedAt,
                 allDay: input.allDay ?? row.allDay,
+                repeat: asCalendarRepeat(input.repeat ?? row.repeat),
+                ...people,
                 updatedAt: nowIso(),
               }
             : row

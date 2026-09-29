@@ -6,6 +6,19 @@ import {
 } from "@/lib/birthdays";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { sexPositions } from "@/lib/sex-positions";
+import {
+  affectsLabel,
+  giftKidsAsCalendar,
+  mergeCalendarKids,
+  type CalendarKid,
+} from "@/lib/calendar-people";
+import type { GiftPerson } from "@/lib/gifts";
+import {
+  eventRepeat,
+  expandEventDates,
+  happenedAtOnDate,
+  repeatLabel,
+} from "@/lib/calendar-repeat";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
 import { dueOn, isActiveMaintTask } from "@/lib/maintenance";
 import { holidaysAround } from "@/lib/holidays";
@@ -111,6 +124,8 @@ export type CalendarActivityInput = {
   jarNotes: JarNote[];
   curiosityAnswers: CuriosityAnswer[];
   calendarEvents: CalendarCustomEvent[];
+  calendarKids?: CalendarKid[];
+  giftPeople?: GiftPerson[];
   birthdays?: Birthday[];
   trips?: Trip[];
   maintenance?: MaintTask[];
@@ -440,28 +455,47 @@ export function buildCalendarActivities(
     });
   }
 
+  const kids = mergeCalendarKids(
+    input.calendarKids ?? [],
+    giftKidsAsCalendar(input.giftPeople ?? [])
+  );
   for (const row of input.calendarEvents) {
     const allDay = row.allDay !== false;
     const position = isPositionCalendarEvent(row);
-    items.push({
-      id: `custom:${row.id}`,
-      kind: position ? "position" : "custom",
-      dateKey: row.date,
-      at: row.happenedAt,
-      title: row.title,
-      subtitle: row.notes.trim()
-        ? row.notes.slice(0, 80)
-        : row.source === "roleplay"
-          ? "Roleplay"
-          : position
-            ? "Position"
-            : allDay
-              ? "All day"
-              : "Your note",
-      mark: position ? "play" : "custom",
-      href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
-      allDay,
+    const dates = expandEventDates(row);
+    const people = affectsLabel(row, {
+      userId: user?.id,
+      userName: user?.displayName,
+      partnerId: partner?.id,
+      partnerName: partner?.displayName,
+      kids,
     });
+    const cadence = repeatLabel(eventRepeat(row));
+    const fallback = row.source === "roleplay"
+      ? "Roleplay"
+      : position
+        ? "Position"
+        : allDay
+          ? "All day"
+          : "Your note";
+    const subtitleBits = [
+      people !== "Everyone" || cadence ? people : null,
+      cadence,
+      row.notes.trim() ? row.notes.slice(0, 80) : null,
+    ].filter((bit): bit is string => Boolean(bit));
+    for (const dateKey of dates) {
+      items.push({
+        id: `custom:${row.id}:${dateKey}`,
+        kind: position ? "position" : "custom",
+        dateKey,
+        at: allDay ? row.happenedAt : happenedAtOnDate(row.happenedAt, dateKey),
+        title: row.title,
+        subtitle: subtitleBits.join(" · ") || fallback,
+        mark: position ? "play" : "custom",
+        href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
+        allDay,
+      });
+    }
   }
 
   const yearNow = new Date().getFullYear();

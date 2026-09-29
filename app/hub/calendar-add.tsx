@@ -8,12 +8,14 @@ import {
   turningAge,
   type BirthdayCircle,
 } from "@/lib/birthdays";
+import { CalendarNoteOptions } from "@/components/hub/CalendarNoteOptions";
 import { ReminderLeads } from "@/components/hub/ReminderLeads";
 import { isoFromDateAndTime, formatLongDate } from "@/lib/dates";
 import { reminderItemKey, type ReminderLead } from "@/lib/calendar-reminders";
 import { useCalendarPrefs } from "@/lib/useCalendarPrefs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
+import type { CalendarRepeat } from "@/lib/types";
 import { Screen } from "@/components/ui/Screen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,6 +45,10 @@ export default function CalendarAddScreen() {
   const [yearText, setYearText] = useState("");
   const [allDay, setAllDay] = useState(true);
   const [time, setTime] = useState("09:00");
+  const [repeat, setRepeat] = useState<CalendarRepeat>("none");
+  const [affectsAll, setAffectsAll] = useState(true);
+  const [affectsUserIds, setAffectsUserIds] = useState<string[]>([]);
+  const [affectsKidIds, setAffectsKidIds] = useState<string[]>([]);
   const [leads, setLeads] = useState<ReminderLead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -86,6 +92,10 @@ export default function CalendarAddScreen() {
         happenedAt: allDay
           ? defaultHappenedAt(date)
           : isoFromDateAndTime(date, time),
+        repeat,
+        affectsAll,
+        affectsUserIds,
+        affectsKidIds,
       });
       persistLeads(row.id, reminderLeads);
       router.replace(
@@ -176,7 +186,7 @@ export default function CalendarAddScreen() {
           {date
             ? kind === "birthday" && parsed
               ? `Repeats every year on ${formatBirthdayDate(parsed.month, parsed.day)}. Shows on the General tab.`
-              : `Lands on ${formatLongDate(date)}. Dates, reminders, wins — anything you want on the shared month.`
+              : `Lands on ${formatLongDate(date)}. Repeat it, say who it covers, and keep reminders on the shared month.`
             : "Pick a day from the calendar first."}
         </Text>
 
@@ -283,6 +293,20 @@ export default function CalendarAddScreen() {
               })}
             </View>
             {allDay ? null : <TimeField value={time} onChange={setTime} />}
+
+            <CalendarNoteOptions
+              date={date ?? ""}
+              repeat={repeat}
+              onRepeat={setRepeat}
+              affectsAll={affectsAll}
+              affectsUserIds={affectsUserIds}
+              affectsKidIds={affectsKidIds}
+              onAffects={(next) => {
+                setAffectsAll(next.affectsAll);
+                setAffectsUserIds(next.affectsUserIds);
+                setAffectsKidIds(next.affectsKidIds);
+              }}
+            />
           </>
         ) : (
           <>

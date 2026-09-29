@@ -60,6 +60,10 @@ import {
 } from "@/lib/money";
 import { emptyGifts, hydrateGifts, type GiftItem, type GiftPerson } from "@/lib/gifts";
 import {
+  hydrateCalendarKid,
+  type CalendarKid,
+} from "@/lib/calendar-people";
+import {
   emptyHowNotes,
   emptyHowPlainOn,
   emptyHowWords,
@@ -514,6 +518,7 @@ export type MiniState = {
   birthdayGroups: BirthdayGroup[];
   giftPeople: GiftPerson[];
   giftItems: GiftItem[];
+  calendarKids: CalendarKid[];
   howNotes: HowNote[];
   howWordsOn: string[];
   howPlainOn: boolean;
@@ -912,6 +917,7 @@ export function emptyMiniState(): MiniState {
     birthdayGroups: emptyBirthdayGroups(),
     giftPeople: emptyGifts().people,
     giftItems: emptyGifts().items,
+    calendarKids: [],
     howNotes: emptyHowNotes(),
     howWordsOn: emptyHowWords(),
     howPlainOn: emptyHowPlainOn(),
@@ -1040,6 +1046,9 @@ export function hydrateMiniState(raw: unknown): MiniState {
     birthdayGroups: hydrateBirthdayGroups(row.birthdayGroups),
     giftPeople: hydrateGifts(row.giftPeople, row.giftItems).people,
     giftItems: hydrateGifts(row.giftPeople, row.giftItems).items,
+    calendarKids: asArray(row.calendarKids, base.calendarKids)
+      .map(hydrateCalendarKid)
+      .filter((item): item is CalendarKid => Boolean(item)),
     howNotes: hydrateHowNotes(row.howNotes),
     howWordsOn: hydrateHowWordsOn(row.howWordsOn),
     howPlainOn: hydrateHowPlainOn(row.howPlainOn),

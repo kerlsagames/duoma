@@ -678,6 +678,8 @@ export type ErrandItem = {
   doneBy: string | null;
 };
 
+export type CalendarRepeat = "none" | "weekly" | "fortnightly" | "monthly" | "yearly";
+
 /** User-added calendar entries (dates, plans, notes). */
 export type CalendarCustomEvent = {
   id: string;
@@ -694,6 +696,24 @@ export type CalendarCustomEvent = {
   updatedAt: string;
   /** Positions and roleplays land on Desire, not General. */
   source?: "position" | "roleplay";
+  /** How this note repeats from `date`. Older notes have none. */
+  repeat?: CalendarRepeat;
+  /** True when the whole household is on this note. */
+  affectsAll?: boolean;
+  affectsUserIds?: string[];
+  affectsKidIds?: string[];
+};
+
+export type CalendarEventWrite = {
+  title: string;
+  notes?: string;
+  date: string;
+  happenedAt?: string;
+  allDay?: boolean;
+  repeat?: CalendarRepeat;
+  affectsAll?: boolean;
+  affectsUserIds?: string[];
+  affectsKidIds?: string[];
 };
 
 export type AppDB = {

@@ -187,6 +187,23 @@ function parseCalendarEvent(payload: unknown): CalendarCustomEvent | null {
     payload.source === "position" || payload.source === "roleplay"
       ? payload.source
       : undefined;
+  const repeat =
+    payload.repeat === "weekly" ||
+    payload.repeat === "fortnightly" ||
+    payload.repeat === "monthly" ||
+    payload.repeat === "yearly"
+      ? payload.repeat
+      : "none";
+  const affectsUserIds = Array.isArray(payload.affectsUserIds)
+    ? payload.affectsUserIds.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
+    : [];
+  const affectsKidIds = Array.isArray(payload.affectsKidIds)
+    ? payload.affectsKidIds.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
+    : [];
+  const affectsAll =
+    payload.affectsAll === false && (affectsUserIds.length > 0 || affectsKidIds.length > 0)
+      ? false
+      : true;
   return {
     id,
     coupleId,
@@ -199,6 +216,10 @@ function parseCalendarEvent(payload: unknown): CalendarCustomEvent | null {
     createdAt: asString(payload.createdAt) || new Date().toISOString(),
     updatedAt: asString(payload.updatedAt) || asString(payload.createdAt) || new Date().toISOString(),
     source,
+    repeat,
+    affectsAll,
+    affectsUserIds: affectsAll ? [] : affectsUserIds,
+    affectsKidIds: affectsAll ? [] : affectsKidIds,
   };
 }
 

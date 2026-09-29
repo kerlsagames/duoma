@@ -11,6 +11,11 @@ import {
 } from "@/lib/dates";
 import { dueOn, isActiveMaintTask } from "@/lib/maintenance";
 import type { MaintTask, Trip } from "@/lib/mini-content";
+import {
+  eventRepeat,
+  happenedAtOnDate,
+  nextOccurrence,
+} from "@/lib/calendar-repeat";
 import type { CalendarCustomEvent } from "@/lib/types";
 import type { Href } from "expo-router";
 import { Platform } from "react-native";
@@ -253,17 +258,18 @@ export function buildCalendarReminders(input: {
 
   for (const row of input.events) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date)) continue;
-    if (daysUntil(row.date, now) < 0) continue;
+    const dateKey = nextOccurrence(row.date, eventRepeat(row), now);
+    if (!dateKey) continue;
     const allDay = row.allDay !== false;
-    const timed = allDay ? null : new Date(row.happenedAt);
+    const timed = allDay ? null : new Date(happenedAtOnDate(row.happenedAt, dateKey));
     const eventAt =
       timed && !Number.isNaN(timed.getTime())
         ? timed
-        : eventInstant(row.date, null);
+        : eventInstant(dateKey, null);
     pushReminder(items, {
       kind: "custom",
       targetId: row.id,
-      dateKey: row.date,
+      dateKey,
       eventAt,
       leads: leadsForItem(input.prefs, "custom", row.id),
       title: row.title,

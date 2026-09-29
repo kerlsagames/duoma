@@ -8,10 +8,19 @@ import {
 } from "@/lib/dates";
 import { holidaysAround } from "@/lib/holidays";
 import { HUB_TONES } from "@/lib/app-themes";
+import { CalendarNoteOptions } from "@/components/hub/CalendarNoteOptions";
 import { ItemReminders } from "@/components/hub/ReminderLeads";
+import {
+  giftKidsAsCalendar,
+  mergeCalendarKids,
+  affectsLabel,
+  normalizeAffects,
+} from "@/lib/calendar-people";
+import { eventRepeat, repeatLabel } from "@/lib/calendar-repeat";
 import { useMiniApps } from "@/lib/mini-apps";
 import { categoryById, questionById } from "@/lib/talk";
 import { useApp } from "@/lib/store";
+import type { CalendarCustomEvent, CalendarRepeat } from "@/lib/types";
 import { Screen } from "@/components/ui/Screen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
@@ -529,7 +538,10 @@ export default function CalendarItemScreen() {
       <CustomEventEditor
         event={row}
         onSave={async (input) => {
-          await updateCalendarEvent(row.id, input);
+          await updateCalendarEvent(row.id, {
+            ...input,
+            date: row.date,
+          });
         }}
         onDelete={async () => {
           await removeCalendarEvent(row.id);
@@ -553,31 +565,48 @@ function CustomEventEditor({
   onSave,
   onDelete,
 }: {
-  event: {
-    id: string;
-    title: string;
-    notes: string;
-    date: string;
-    happenedAt: string;
-    allDay: boolean;
-  };
+  event: CalendarCustomEvent;
   onSave: (input: {
     title: string;
     notes?: string;
     date: string;
     happenedAt?: string;
     allDay?: boolean;
+    repeat?: CalendarRepeat;
+    affectsAll?: boolean;
+    affectsUserIds?: string[];
+    affectsKidIds?: string[];
   }) => Promise<void>;
   onDelete: () => Promise<void>;
 }) {
+  const people = normalizeAffects(event);
   const [title, setTitle] = useState(event.title);
   const [notes, setNotes] = useState(event.notes);
   const [allDay, setAllDay] = useState(event.allDay !== false);
   const [time, setTime] = useState(
     clockTimeValue(event.happenedAt) || "09:00"
   );
+  const [repeat, setRepeat] = useState<CalendarRepeat>(eventRepeat(event));
+  const [affectsAll, setAffectsAll] = useState(people.affectsAll !== false);
+  const [affectsUserIds, setAffectsUserIds] = useState(people.affectsUserIds ?? []);
+  const [affectsKidIds, setAffectsKidIds] = useState(people.affectsKidIds ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { user, partner } = useApp();
+  const { data } = useMiniApps();
+  const whoLine = affectsLabel(
+    { affectsAll, affectsUserIds, affectsKidIds },
+    {
+      userId: user?.id,
+      userName: user?.displayName,
+      partnerId: partner?.id,
+      partnerName: partner?.displayName,
+      kids: mergeCalendarKids(
+        data.calendarKids,
+        giftKidsAsCalendar(data.giftPeople)
+      ),
+    }
+  );
 
   const save = async () => {
     setError(null);
@@ -591,6 +620,10 @@ function CustomEventEditor({
         happenedAt: allDay
           ? event.happenedAt
           : isoFromDateAndTime(event.date, time),
+        repeat,
+        affectsAll,
+        affectsUserIds,
+        affectsKidIds,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -618,6 +651,8 @@ function CustomEventEditor({
         <Text style={{ marginTop: 8, fontSize: 15, color: T.muted }}>
           {formatLongDate(event.date)}
           {allDay ? " · all day" : ` · ${time}`}
+          {repeatLabel(repeat) ? ` · ${repeatLabel(repeat)}` : ""}
+          {` · ${whoLine}`}
         </Text>
 
         <Text
@@ -765,6 +800,20 @@ function CustomEventEditor({
             />
           )
         )}
+
+        <CalendarNoteOptions
+          date={event.date}
+          repeat={repeat}
+          onRepeat={setRepeat}
+          affectsAll={affectsAll}
+          affectsUserIds={affectsUserIds}
+          affectsKidIds={affectsKidIds}
+          onAffects={(next) => {
+            setAffectsAll(next.affectsAll);
+            setAffectsUserIds(next.affectsUserIds);
+            setAffectsKidIds(next.affectsKidIds);
+          }}
+        />
 
         <ItemReminders kind="custom" id={event.id} allDay={allDay} />
 

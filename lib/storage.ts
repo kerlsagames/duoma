@@ -371,6 +371,23 @@ function hydrateDareSave(
 function hydrateCalendarEvent(
   row: AppDB["calendarEvents"][number]
 ): AppDB["calendarEvents"][number] {
+  const repeat =
+    row.repeat === "weekly" ||
+    row.repeat === "fortnightly" ||
+    row.repeat === "monthly" ||
+    row.repeat === "yearly"
+      ? row.repeat
+      : "none";
+  const affectsUserIds = Array.isArray(row.affectsUserIds)
+    ? row.affectsUserIds.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
+    : [];
+  const affectsKidIds = Array.isArray(row.affectsKidIds)
+    ? row.affectsKidIds.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
+    : [];
+  const affectsAll =
+    row.affectsAll === false && (affectsUserIds.length > 0 || affectsKidIds.length > 0)
+      ? false
+      : true;
   return {
     ...row,
     notes: row.notes ?? "",
@@ -381,6 +398,10 @@ function hydrateCalendarEvent(
       row.source === "position" || row.source === "roleplay"
         ? row.source
         : undefined,
+    repeat,
+    affectsAll,
+    affectsUserIds: affectsAll ? [] : affectsUserIds,
+    affectsKidIds: affectsAll ? [] : affectsKidIds,
   };
 }
 
