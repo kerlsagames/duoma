@@ -8,7 +8,14 @@ import {
 } from "@/lib/dates";
 import { holidaysAround } from "@/lib/holidays";
 import { HUB_TONES } from "@/lib/app-themes";
+import { CalendarNoteFields } from "@/components/hub/CalendarNoteFields";
 import { ItemReminders } from "@/components/hub/ReminderLeads";
+import {
+  hydrateCovers,
+  hydrateRepeat,
+  type CalendarCovers,
+  type CalendarRepeat,
+} from "@/lib/calendar-repeat";
 import { useMiniApps } from "@/lib/mini-apps";
 import { categoryById, questionById } from "@/lib/talk";
 import { useApp } from "@/lib/store";
@@ -560,6 +567,9 @@ function CustomEventEditor({
     date: string;
     happenedAt: string;
     allDay: boolean;
+    repeat?: CalendarRepeat;
+    covers?: CalendarCovers;
+    source?: "position" | "roleplay" | "dare";
   };
   onSave: (input: {
     title: string;
@@ -567,12 +577,16 @@ function CustomEventEditor({
     date: string;
     happenedAt?: string;
     allDay?: boolean;
+    repeat?: CalendarRepeat;
+    covers?: CalendarCovers;
   }) => Promise<void>;
   onDelete: () => Promise<void>;
 }) {
   const [title, setTitle] = useState(event.title);
   const [notes, setNotes] = useState(event.notes);
   const [allDay, setAllDay] = useState(event.allDay !== false);
+  const [repeat, setRepeat] = useState<CalendarRepeat>(hydrateRepeat(event.repeat));
+  const [covers, setCovers] = useState<CalendarCovers>(hydrateCovers(event.covers));
   const [time, setTime] = useState(
     clockTimeValue(event.happenedAt) || "09:00"
   );
@@ -591,6 +605,8 @@ function CustomEventEditor({
         happenedAt: allDay
           ? event.happenedAt
           : isoFromDateAndTime(event.date, time),
+        repeat,
+        covers,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -764,6 +780,15 @@ function CustomEventEditor({
               }}
             />
           )
+        )}
+
+        {event.source ? null : (
+          <CalendarNoteFields
+            repeat={repeat}
+            covers={covers}
+            onRepeat={setRepeat}
+            onCovers={setCovers}
+          />
         )}
 
         <ItemReminders kind="custom" id={event.id} allDay={allDay} />

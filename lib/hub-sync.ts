@@ -183,15 +183,35 @@ function parseCalendarEvent(payload: unknown): CalendarCustomEvent | null {
   const title = asString(payload.title);
   const date = asString(payload.date);
   if (!id || !coupleId || !title || !date) return null;
+  const notes = asString(payload.notes);
   const source =
-    payload.source === "position" || payload.source === "roleplay"
+    payload.source === "position" ||
+    payload.source === "roleplay" ||
+    payload.source === "dare"
       ? payload.source
-      : undefined;
+      : notes.trim() === "Desire dare"
+        ? "dare"
+        : undefined;
+  const repeat =
+    payload.repeat === "day" ||
+    payload.repeat === "week" ||
+    payload.repeat === "2week" ||
+    payload.repeat === "month" ||
+    payload.repeat === "year"
+      ? payload.repeat
+      : "none";
+  const covers =
+    payload.covers === "m" ||
+    payload.covers === "f" ||
+    payload.covers === "both" ||
+    payload.covers === "kids"
+      ? payload.covers
+      : "all";
   return {
     id,
     coupleId,
     title,
-    notes: asString(payload.notes),
+    notes,
     date,
     happenedAt: asString(payload.happenedAt) || asString(payload.createdAt) || date,
     allDay: payload.allDay !== false,
@@ -199,6 +219,8 @@ function parseCalendarEvent(payload: unknown): CalendarCustomEvent | null {
     createdAt: asString(payload.createdAt) || new Date().toISOString(),
     updatedAt: asString(payload.updatedAt) || asString(payload.createdAt) || new Date().toISOString(),
     source,
+    repeat,
+    covers,
   };
 }
 

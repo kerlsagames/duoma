@@ -1,4 +1,6 @@
 import { defaultHappenedAt } from "@/lib/calendar-activity";
+import type { CalendarCovers, CalendarRepeat } from "@/lib/calendar-repeat";
+import { CalendarNoteFields } from "@/components/hub/CalendarNoteFields";
 import { HUB_TONES } from "@/lib/app-themes";
 import {
   createBirthday,
@@ -43,6 +45,8 @@ export default function CalendarAddScreen() {
   const [yearText, setYearText] = useState("");
   const [allDay, setAllDay] = useState(true);
   const [time, setTime] = useState("09:00");
+  const [repeat, setRepeat] = useState<CalendarRepeat>("none");
+  const [covers, setCovers] = useState<CalendarCovers>("all");
   const [leads, setLeads] = useState<ReminderLead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -86,6 +90,8 @@ export default function CalendarAddScreen() {
         happenedAt: allDay
           ? defaultHappenedAt(date)
           : isoFromDateAndTime(date, time),
+        repeat,
+        covers,
       });
       persistLeads(row.id, reminderLeads);
       router.replace(
@@ -283,6 +289,12 @@ export default function CalendarAddScreen() {
               })}
             </View>
             {allDay ? null : <TimeField value={time} onChange={setTime} />}
+            <CalendarNoteFields
+              repeat={repeat}
+              covers={covers}
+              onRepeat={setRepeat}
+              onCovers={setCovers}
+            />
           </>
         ) : (
           <>

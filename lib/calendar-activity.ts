@@ -4,6 +4,16 @@ import {
   turningAge,
   type Birthday,
 } from "@/lib/birthdays";
+import {
+  calendarWindow,
+  coversLabel,
+  hydrateCovers,
+  hydrateRepeat,
+  occurrenceDates,
+  occurrenceIso,
+  repeatLabel,
+  type CalendarCovers,
+} from "@/lib/calendar-repeat";
 import { curiosityQuestionById } from "@/lib/curiosityQuestions";
 import { sexPositions } from "@/lib/sex-positions";
 import { dateKeyFromIso, localDateKey } from "@/lib/dates";
@@ -96,6 +106,7 @@ export type CalendarActivity = {
   mark: CalendarMark;
   href: string;
   allDay?: boolean;
+  covers?: CalendarCovers;
 };
 
 export type CalendarActivityInput = {
@@ -230,6 +241,11 @@ function nightSubtitle(night: GameSession): string {
   return night.status.replace(/_/g, " ");
 }
 
+export function isDareCalendarEvent(row: CalendarCustomEvent): boolean {
+  if (row.source === "dare") return true;
+  return row.notes.trim() === "Desire dare";
+}
+
 function isPositionCalendarEvent(row: CalendarCustomEvent): boolean {
   if (row.source === "position" || row.source === "roleplay") return true;
   if (row.title === "Try a position") return true;
@@ -356,6 +372,9 @@ export function buildCalendarActivities(
   }
 
   for (const row of input.spicyDares) {
+    const nightKey = row.customWhen?.slice(0, 10) ?? "";
+    // A yes already drops the planned night on Desire & Connect.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(nightKey)) continue;
     const stamp = row.completedAt ?? row.answeredAt ?? row.createdAt;
     const label =
       row.status === "done"
@@ -440,28 +459,48 @@ export function buildCalendarActivities(
     });
   }
 
+  const window = calendarWindow();
   for (const row of input.calendarEvents) {
     const allDay = row.allDay !== false;
-    const position = isPositionCalendarEvent(row);
-    items.push({
-      id: `custom:${row.id}`,
-      kind: position ? "position" : "custom",
-      dateKey: row.date,
-      at: row.happenedAt,
-      title: row.title,
-      subtitle: row.notes.trim()
+    const dare = isDareCalendarEvent(row);
+    const position = !dare && isPositionCalendarEvent(row);
+    const repeat = dare || position ? "none" : hydrateRepeat(row.repeat);
+    const covers = hydrateCovers(row.covers);
+    const dates =
+      repeat === "none"
+        ? [row.date]
+        : occurrenceDates(row.date, repeat, window.start, window.end);
+    const noteBits = [
+      repeat === "none" ? "" : repeatLabel(repeat),
+      coversLabel(covers),
+      row.notes.trim(),
+    ].filter(Boolean);
+    const subtitle = dare
+      ? row.notes.trim() && row.notes.trim() !== "Desire dare"
         ? row.notes.slice(0, 80)
-        : row.source === "roleplay"
-          ? "Roleplay"
-          : position
-            ? "Position"
-            : allDay
-              ? "All day"
-              : "Your note",
-      mark: position ? "play" : "custom",
-      href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
-      allDay,
-    });
+        : "Dare"
+      : row.source === "roleplay"
+        ? "Roleplay"
+        : position
+          ? row.notes.trim().slice(0, 80) || "Position"
+          : noteBits.join(" · ") || (allDay ? "All day" : "Your note");
+    for (const dateKey of dates) {
+      items.push({
+        id: repeat === "none" ? `custom:${row.id}` : `custom:${row.id}:${dateKey}`,
+        kind: dare ? "dare" : position ? "position" : "custom",
+        dateKey,
+        at:
+          repeat === "none"
+            ? row.happenedAt
+            : occurrenceIso(row.happenedAt, dateKey, allDay),
+        title: row.title,
+        subtitle,
+        mark: dare ? "dare" : position ? "play" : "custom",
+        href: `/hub/calendar-item?kind=custom&id=${encodeURIComponent(row.id)}`,
+        allDay,
+        covers: dare || position ? undefined : covers,
+      });
+    }
   }
 
   const yearNow = new Date().getFullYear();

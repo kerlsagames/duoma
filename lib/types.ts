@@ -1,3 +1,4 @@
+import type { CalendarCovers, CalendarRepeat } from "@/lib/calendar-repeat";
 import type { ChickenPlay } from "@/lib/chicken";
 import type { FeedbackNote } from "@/lib/feedback";
 import type { ContentReport } from "@/lib/reports";
@@ -692,8 +693,12 @@ export type CalendarCustomEvent = {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  /** Positions and roleplays land on Desire, not General. */
-  source?: "position" | "roleplay";
+  /** Positions, roleplays, and dares land on Desire & Connect, not General. */
+  source?: "position" | "roleplay" | "dare";
+  /** How often a note comes back. One-off notes omit this. */
+  repeat?: CalendarRepeat;
+  /** Who the note is for. Omitted notes count as everyone. */
+  covers?: CalendarCovers;
 };
 
 export type AppDB = {

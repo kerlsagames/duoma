@@ -167,6 +167,34 @@ export function buildRandomDeck(
   return picked;
 }
 
+/**
+ * Next card in a stable title order. Skip uses this so it walks forward
+ * instead of leaping to a random card.
+ */
+export function nextOrderedCard(
+  bank: Card[],
+  stage: CardStage,
+  excludeIds: Set<string>,
+  enabledFlavorTags: string[] | null | undefined,
+  afterTitle: string,
+  allow?: (card: Card) => boolean
+): Card | null {
+  const pool = bank.filter(
+    (card) =>
+      card.stage === stage &&
+      card.isActive &&
+      !excludeIds.has(card.id) &&
+      cardAllowedByFlavorTags(card, enabledFlavorTags ?? null) &&
+      (allow ? allow(card) : true)
+  );
+  if (pool.length === 0) return null;
+  const ordered = [...pool].sort(
+    (a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id)
+  );
+  const pivot = afterTitle.trim();
+  return ordered.find((card) => card.title.localeCompare(pivot) > 0) ?? ordered[0]!;
+}
+
 export function replacementCard(
   bank: Card[],
   stage: CardStage,

@@ -371,16 +371,35 @@ function hydrateDareSave(
 function hydrateCalendarEvent(
   row: AppDB["calendarEvents"][number]
 ): AppDB["calendarEvents"][number] {
+  const notes = row.notes ?? "";
+  const source =
+    row.source === "position" || row.source === "roleplay" || row.source === "dare"
+      ? row.source
+      : notes.trim() === "Desire dare"
+        ? "dare"
+        : undefined;
   return {
     ...row,
-    notes: row.notes ?? "",
+    notes,
     happenedAt: row.happenedAt ?? row.createdAt,
     allDay: row.allDay !== false,
     updatedAt: row.updatedAt ?? row.createdAt,
-    source:
-      row.source === "position" || row.source === "roleplay"
-        ? row.source
-        : undefined,
+    source,
+    repeat:
+      row.repeat === "day" ||
+      row.repeat === "week" ||
+      row.repeat === "2week" ||
+      row.repeat === "month" ||
+      row.repeat === "year"
+        ? row.repeat
+        : "none",
+    covers:
+      row.covers === "m" ||
+      row.covers === "f" ||
+      row.covers === "both" ||
+      row.covers === "kids"
+        ? row.covers
+        : "all",
   };
 }
 

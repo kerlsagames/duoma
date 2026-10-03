@@ -77,7 +77,7 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-const SW_FILE = "/sw.js?v=20260920-home";
+const SW_FILE = "/sw.js?v=20261003-phones";
 let swReloadArmed = false;
 let swListenersBound = false;
 

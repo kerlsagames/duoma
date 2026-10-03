@@ -11,6 +11,7 @@ import {
   dealDoodleOptions,
   DOODLE_CATEGORIES,
   doodleCategoryLabel,
+  doodleTeamScore,
   leaveDoodleDrawing,
   recentPrompts,
   startDoodleRound,
@@ -146,9 +147,8 @@ export default function DoodleScreen() {
     return id === "partner" ? themName : youName;
   };
 
-  const youScore = board.scores[youId] ?? 0;
-  const themScore = board.scores[themId] ?? 0;
-  const drawingStrokes = round?.strokes?.length ? round.strokes : board.strokes;
+  const teamScore = doodleTeamScore(board.history);
+  const drawingStrokes = round ? round.strokes : board.strokes;
   const strokes = live ? [...drawingStrokes, live] : drawingStrokes;
   const drawing = ready && round?.status === "draw" && seat === "drawer";
 
@@ -364,16 +364,10 @@ export default function DoodleScreen() {
               color: MUTED,
             }}
           >
-            {youName} {youScore}  ·  {themName} {themScore}
+            Team {teamScore}
           </Text>
         ) : (
-          <Scorecard
-            youName={youName}
-            themName={themName}
-            youScore={youScore}
-            themScore={themScore}
-            history={board.history}
-          />
+          <Scorecard teamScore={teamScore} history={board.history} />
         )}
 
         {!round ? (
@@ -502,6 +496,7 @@ export default function DoodleScreen() {
         {round?.status === "revealed" ? (
           <RevealBlock
             round={round}
+            teamScore={teamScore}
             drawerName={nameFor(round.drawerId)}
             guesserName={nameFor(round.guesserId)}
             onNext={nextRound}
@@ -552,16 +547,10 @@ export default function DoodleScreen() {
 }
 
 function Scorecard({
-  youName,
-  themName,
-  youScore,
-  themScore,
+  teamScore,
   history,
 }: {
-  youName: string;
-  themName: string;
-  youScore: number;
-  themScore: number;
+  teamScore: number;
   history: DoodleRound[];
 }) {
   const recent = history.slice(0, 4);
@@ -583,16 +572,15 @@ function Scorecard({
           color: MUTED,
         }}
       >
-        SCORECARD
+        TEAM SCORE
       </Text>
-      <View style={{ marginTop: 8, flexDirection: "row", gap: 10 }}>
-        <ScoreSeat name={youName} score={youScore} lean="-1.2deg" />
-        <ScoreSeat name={themName} score={themScore} lean="1.4deg" />
-      </View>
+      <Text style={{ fontFamily: HANDWRITING, fontSize: 42, color: PAPER, marginTop: -2 }}>
+        {teamScore}
+      </Text>
       {recent.length ? (
         <Text
           style={{
-            marginTop: 10,
+            marginTop: 4,
             fontFamily: HANDWRITING,
             fontSize: 16,
             color: MUTED,
@@ -605,50 +593,15 @@ function Scorecard({
       ) : (
         <Text
           style={{
-            marginTop: 10,
+            marginTop: 4,
             fontFamily: HANDWRITING,
             fontSize: 16,
             color: MUTED,
           }}
         >
-          First point wins bragging rights on the fridge.
+          One score for both of you. Keep drawing.
         </Text>
       )}
-    </View>
-  );
-}
-
-function ScoreSeat({
-  name,
-  score,
-  lean,
-}: {
-  name: string;
-  score: number;
-  lean: string;
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: PAPER,
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        transform: [{ rotate: lean }],
-      }}
-    >
-      <Text
-        numberOfLines={1}
-        style={{ fontFamily: SERIF, fontSize: 14, color: INK }}
-      >
-        {name}
-      </Text>
-      <Text style={{ fontFamily: HANDWRITING, fontSize: 34, color: INK, marginTop: -4 }}>
-        {score}
-      </Text>
-      <Text style={{ color: "rgba(42,28,18,0.45)", letterSpacing: 2 }}>
-        {"★".repeat(Math.min(score, 8)) || "☆"}
-      </Text>
     </View>
   );
 }
@@ -926,7 +879,7 @@ function IdleBlock({
           color: MUTED,
         }}
       >
-        A correct guess scores both of you. Then they draw.
+        A correct guess adds one to the team score. Then they draw.
       </Text>
       <Pressable
         onPress={onYou}
@@ -1092,11 +1045,13 @@ function Paper({
 
 function RevealBlock({
   round,
+  teamScore,
   drawerName,
   guesserName,
   onNext,
 }: {
   round: DoodleRound;
+  teamScore: number;
   drawerName: string;
   guesserName: string;
   onNext: () => void;
@@ -1111,7 +1066,7 @@ function RevealBlock({
           color: round.correct ? "#C8E6C0" : "#E8A0A0",
         }}
       >
-        {round.correct ? "Both of you score." : "No points this time."}
+        {round.correct ? `Team score ${teamScore}` : `No point. Team score ${teamScore}`}
       </Text>
       <Text
         style={{
