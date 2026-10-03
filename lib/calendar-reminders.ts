@@ -3,6 +3,11 @@ import {
   type Birthday,
 } from "@/lib/birthdays";
 import {
+  nextOccurrenceOnOrAfter,
+  occurrenceIso,
+  hydrateRepeat,
+} from "@/lib/calendar-repeat";
+import {
   dateAtLocalHours,
   daysUntil,
   endOfLocalDay,
@@ -253,17 +258,19 @@ export function buildCalendarReminders(input: {
 
   for (const row of input.events) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date)) continue;
-    if (daysUntil(row.date, now) < 0) continue;
+    const today = localDateKey(now);
+    const dateKey = nextOccurrenceOnOrAfter(row.date, hydrateRepeat(row.repeat), today);
+    if (!dateKey || daysUntil(dateKey, now) < 0) continue;
     const allDay = row.allDay !== false;
-    const timed = allDay ? null : new Date(row.happenedAt);
+    const timed = allDay ? null : new Date(occurrenceIso(row.happenedAt, dateKey, false));
     const eventAt =
       timed && !Number.isNaN(timed.getTime())
         ? timed
-        : eventInstant(row.date, null);
+        : eventInstant(dateKey, null);
     pushReminder(items, {
       kind: "custom",
       targetId: row.id,
-      dateKey: row.date,
+      dateKey,
       eventAt,
       leads: leadsForItem(input.prefs, "custom", row.id),
       title: row.title,

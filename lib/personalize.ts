@@ -103,6 +103,84 @@ function applyGenderTokens(text: string, who: "player" | "partner", gender: Gend
   return next;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** "pussy or cock" on one card was rewriting both sides into the same part. Keep the one they have. */
+function collapseEitherOr(text: string, who: "player" | "partner", gender: Gender): string {
+  const female = gender === "female";
+  const keep = female ? "pussy" : "cock";
+  const drop = female ? "cock" : "pussy";
+  let next = text.replace(
+    new RegExp(`\\{${who}_${drop}\\}\\s+or\\s+\\{${who}_${keep}\\}`, "gi"),
+    `{${who}_${keep}}`
+  );
+  next = next.replace(
+    new RegExp(`\\{${who}_${keep}\\}\\s+or\\s+\\{${who}_${drop}\\}`, "gi"),
+    `{${who}_${keep}}`
+  );
+  if (female) {
+    next = next.replace(new RegExp(`clit\\s+or\\s+\\{${who}_cock\\}`, "gi"), "clit");
+    next = next.replace(new RegExp(`\\{${who}_cock\\}\\s+or\\s+clit`, "gi"), "clit");
+  } else {
+    next = next.replace(
+      new RegExp(`clit\\s+or\\s+\\{${who}_cock\\}`, "gi"),
+      `{${who}_cock}`
+    );
+    next = next.replace(
+      new RegExp(`\\{${who}_cock\\}\\s+or\\s+clit`, "gi"),
+      `{${who}_cock}`
+    );
+  }
+  return next;
+}
+
+function collapsePlayerCockOrFingers(text: string, gender: Gender): string {
+  if (gender === "female") {
+    return text
+      .replace(/\{player_cock\}\s+or\s+two fingers/gi, "two fingers")
+      .replace(/two fingers\s+or\s+\{player_cock\}/gi, "two fingers");
+  }
+  return text
+    .replace(/\{player_cock\}\s+or\s+two fingers/gi, "{player_cock}")
+    .replace(/two fingers\s+or\s+\{player_cock\}/gi, "{player_cock}");
+}
+
+const NAMED_ANATOMY: Record<Gender, [string, string][]> = {
+  male: [
+    ["pussy", "cock"],
+    ["clit", "cock"],
+    ["tits", "chest"],
+    ["breasts", "chest"],
+  ],
+  female: [
+    ["cock", "pussy"],
+    ["dick", "pussy"],
+    ["balls", "lips"],
+  ],
+};
+
+function alignNamedAnatomy(text: string, name: string, gender: Gender): string {
+  const trimmed = name.trim();
+  if (
+    !trimmed ||
+    trimmed.toLowerCase() === "you" ||
+    trimmed.toLowerCase() === "your partner"
+  ) {
+    return text;
+  }
+  const nameRe = escapeRegExp(trimmed);
+  let next = text;
+  for (const [from, to] of NAMED_ANATOMY[gender]) {
+    next = next.replace(
+      new RegExp(`\\b${nameRe}(?:'s|’s)\\s+${from}\\b`, "gi"),
+      `${trimmed}'s ${to}`
+    );
+  }
+  return next;
+}
+
 export function personalize(
   text: string,
   names: NamePair,
@@ -111,12 +189,19 @@ export function personalize(
 ): string {
   if (!text) return text;
   let source = text;
+  if (genders) {
+    source = collapseEitherOr(source, "player", genders.player);
+    source = collapseEitherOr(source, "partner", genders.partner);
+    source = collapsePlayerCockOrFingers(source, genders.player);
+    source = applyGenderTokens(source, "player", genders.player);
+    source = applyGenderTokens(source, "partner", genders.partner);
+  }
   if (shared) {
     source = source
-      .replace(/^\{player\}, /i, "")
-      .replace(/\{player\}, /g, "")
-      .replaceAll("{player}'s", "your")
-      .replaceAll("{player}", "you");
+      .replace(/\{player\}'s/gi, "your")
+      .replace(/\{player\}’s/g, "your")
+      .replace(/\{player\}, /gi, "")
+      .replace(/\{player\}/g, "you");
     source = source.replace(/^[a-z]/, (letter) => letter.toUpperCase());
   }
   let out = source
@@ -126,8 +211,6 @@ export function personalize(
     .replace(/\byour partner\b/gi, names.partner);
 
   if (genders) {
-    out = applyGenderTokens(out, "player", genders.player);
-    out = applyGenderTokens(out, "partner", genders.partner);
     // Dual wording in older cards → pick by the person being touched (partner).
     out = out.replace(/clitoral\/prostate/gi, () =>
       genders.partner === "female" ? "clitoral" : "prostate"
@@ -160,6 +243,10 @@ export function personalize(
         .replace(/\bF\b/g, f)
         .replace(/\bM\b/g, m);
     }
+    out = alignNamedAnatomy(out, names.player, genders.player);
+    out = alignNamedAnatomy(out, names.partner, genders.partner);
+    if (f) out = alignNamedAnatomy(out, f, "female");
+    if (m) out = alignNamedAnatomy(out, m, "male");
   }
 
   return out;

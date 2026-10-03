@@ -472,6 +472,17 @@ const ROUND_RANK: Record<DoodleRoundStatus, number> = {
   revealed: 3,
 };
 
+export function doodleTeamScore(history: DoodleRound[]): number {
+  const seen = new Set<string>();
+  let score = 0;
+  for (const row of history) {
+    if (!row.correct || seen.has(row.id)) continue;
+    seen.add(row.id);
+    score += 1;
+  }
+  return score;
+}
+
 function mergeDoodleRound(local: DoodleRound | null, remote: DoodleRound | null): DoodleRound | null {
   if (!local) return remote;
   if (!remote) return local;
@@ -487,12 +498,13 @@ function mergeDoodleRound(local: DoodleRound | null, remote: DoodleRound | null)
       guessedAt: [local.guessedAt, remote.guessedAt].filter(Boolean).sort().at(-1) ?? null,
     };
   }
-  if ((local.status === "draw" || local.status === "wait") && remote.status === "pick") return local;
-  if ((remote.status === "draw" || remote.status === "wait") && local.status === "pick") return remote;
-  if (ROUND_RANK[local.status] !== ROUND_RANK[remote.status]) {
-    return ROUND_RANK[local.status] > ROUND_RANK[remote.status] ? local : remote;
-  }
-  return (local.createdAt || "") >= (remote.createdAt || "") ? local : remote;
+  // A finished round must not outrank the next one. Rank only matters inside one round.
+  const localAt = local.createdAt || "";
+  const remoteAt = remote.createdAt || "";
+  if (localAt !== remoteAt) return localAt > remoteAt ? local : remote;
+  if (local.status !== "revealed") return local;
+  if (remote.status !== "revealed") return remote;
+  return local;
 }
 
 export function mergeDoodleBoards(local: DoodleBoard, remote: DoodleBoard): DoodleBoard {
@@ -509,8 +521,14 @@ export function mergeDoodleBoards(local: DoodleBoard, remote: DoodleBoard): Dood
   const remoteStamp = remote.updatedAt || "";
   const newer = localStamp >= remoteStamp ? local : remote;
   const round = mergeDoodleRound(local.round, remote.round);
+  for (const finished of [local.round, remote.round]) {
+    if (!finished || finished.status !== "revealed") continue;
+    if (round && finished.id === round.id) continue;
+    const prev = history.get(finished.id);
+    history.set(finished.id, prev ? mergeDoodleRound(prev, finished) ?? finished : finished);
+  }
   return {
-    strokes: round?.strokes?.length ? round.strokes : newer.strokes,
+    strokes: round ? round.strokes : newer.strokes,
     updatedAt: newer.updatedAt,
     updatedBy: newer.updatedBy,
     enabledCategories: local.enabledCategories.length

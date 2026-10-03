@@ -9,6 +9,7 @@ import {
   handSizeForPace,
   isSimpleOpenStage,
   nextActiveStage,
+  nextOrderedCard,
   normalizePassLimit,
   normalizeShuffleLimit,
   normalizeStageCounts,
@@ -19,7 +20,7 @@ import {
   STAGE_ORDER,
 } from "@/games/get-spicy/engine";
 import { cardAllowedByFlavorTags, defaultEnabledFlavorTags, normalizeFlavorTags } from "@/games/get-spicy/flavor-tags";
-import { cardFinishClimax, climaxHintForCard } from "@/games/get-spicy/finish-climax";
+import { cardFinishClimax, climaxHintForCard, finishCardFitsBeat } from "@/games/get-spicy/finish-climax";
 import {
   mergeHubBundle,
   pullCoupleHub,
@@ -993,6 +994,8 @@ type AppContextValue = {
     date: string;
     happenedAt?: string;
     allDay?: boolean;
+    repeat?: CalendarCustomEvent["repeat"];
+    covers?: CalendarCustomEvent["covers"];
   }) => Promise<CalendarCustomEvent>;
   updateCalendarEvent: (
     id: string,
@@ -1002,6 +1005,8 @@ type AppContextValue = {
       date: string;
       happenedAt?: string;
       allDay?: boolean;
+      repeat?: CalendarCustomEvent["repeat"];
+      covers?: CalendarCustomEvent["covers"];
     }
   ) => Promise<void>;
   removeCalendarEvent: (id: string) => Promise<void>;
@@ -4151,7 +4156,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [couple, game]);
 
   const skipSimpleCard = useCallback(async () => {
-    if (!game || !user || game.status !== "playing") return;
+    if (!game || !user || !couple || game.status !== "playing") return;
     if (game.pace !== "simple") {
       throw new Error("Skip is for Keep it simple.");
     }
@@ -4160,24 +4165,78 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!active) {
       throw new Error("No card to skip.");
     }
+    const skipped = cards.find((item) => item.id === active.cardId);
+    const actorId = active.playedBy ?? game.turnUserId ?? user.id;
+    const used = new Set(
+      deckRows.filter((item) => item.id !== active.id).map((item) => item.cardId)
+    );
+    used.add(active.cardId);
+    const beat =
+      active.stage === "finish_off"
+        ? game.finishAwaitingMale
+          ? "M"
+          : "F"
+        : null;
+    const actorProfile = profileById(actorId);
+    const actorPartnerId = partnerIdOf(actorId);
+    const finishGenders = beat
+      ? resolveCardGenders({
+          userGender: actorProfile?.gender ?? user.gender,
+          partnerGender:
+            profileById(actorPartnerId)?.gender ??
+            partner?.gender ??
+            profileById(partnerIdOf(user.id))?.gender,
+          userId: actorId,
+          partnerId: actorPartnerId ?? partnerIdOf(user.id),
+          playedById: actorId,
+        })
+      : null;
+    const next = nextOrderedCard(
+      cards,
+      active.stage,
+      used,
+      game.flavorTags,
+      skipped?.title ?? "",
+      beat
+        ? (card) => finishCardFitsBeat(card, beat, finishGenders)
+        : undefined
+    );
+    if (!next) {
+      throw new Error("No other card in this part.");
+    }
+    const maxOrder = deckRows.reduce((max, item) => Math.max(max, item.sortOrder), -1);
+    const activeRow: DeckCard = {
+      id: createId(),
+      gameId: game.id,
+      cardId: next.id,
+      stage: next.stage,
+      sortOrder: maxOrder + 1,
+      status: "active",
+      playedBy: actorId,
+    };
     db = {
       ...db,
-      deck: db.deck.map((item) =>
-        item.id === active.id ? { ...item, status: "blocked" as const } : item
-      ),
+      deck: [
+        ...db.deck.filter((item) => item.gameId !== game.id),
+        ...deckRows.map((item) =>
+          item.id === active.id ? { ...item, status: "blocked" as const } : item
+        ),
+        activeRow,
+      ],
       games: db.games.map((row) =>
         row.id === game.id
           ? sessionFields(row, {
-              activeCardId: null,
-              activePlayedBy: null,
+              activeCardId: activeRow.id,
+              activePlayedBy: actorId,
               handCardIds: [],
-              turnUserId: active.playedBy ?? row.turnUserId,
+              turnUserId: actorId,
+              currentStage: active.stage,
             })
           : row
       ),
     };
     await persist();
-  }, [game, user]);
+  }, [cards, couple, game, partner, user]);
 
   const blockCard = useCallback(async () => {
     if (!game || !user || game.status !== "playing") return;
@@ -5087,6 +5146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             createdBy: user.id,
             createdAt: stamp,
             updatedAt: stamp,
+            source: "dare",
           },
         ];
       }
@@ -6024,6 +6084,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       date: string;
       happenedAt?: string;
       allDay?: boolean;
+      repeat?: CalendarCustomEvent["repeat"];
+      covers?: CalendarCustomEvent["covers"];
     }) => {
       if (!user || !couple) throw new Error("Pair up first.");
       const title = input.title.trim();
@@ -6044,6 +6106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdBy: user.id,
         createdAt: stamp,
         updatedAt: stamp,
+        repeat: input.repeat ?? "none",
+        covers: input.covers ?? "all",
       };
       db = { ...db, calendarEvents: [...db.calendarEvents, row] };
       await persist();
@@ -6061,6 +6125,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         date: string;
         happenedAt?: string;
         allDay?: boolean;
+        repeat?: CalendarCustomEvent["repeat"];
+        covers?: CalendarCustomEvent["covers"];
       }
     ) => {
       const title = input.title.trim();
@@ -6079,6 +6145,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 date: input.date,
                 happenedAt: input.happenedAt ?? row.happenedAt,
                 allDay: input.allDay ?? row.allDay,
+                repeat: input.repeat ?? row.repeat ?? "none",
+                covers: input.covers ?? row.covers ?? "all",
                 updatedAt: nowIso(),
               }
             : row

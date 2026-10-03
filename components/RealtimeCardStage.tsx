@@ -11,7 +11,7 @@ import {
   type NamePair,
 } from "@/lib/personalize";
 import type { Card, CardStage, DeckCard } from "@/lib/types";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 type Props = {
   stage: CardStage | null;
@@ -69,8 +69,14 @@ export function RealtimeCardStage({
       <View className={shared ? "" : "flex-1 justify-center"}>
         <View
           className="rounded-[28px] border border-neon/30 bg-white/5 p-6"
-          style={{ minHeight: shared ? 220 : 280 }}
+          style={{ height: shared ? 300 : undefined, minHeight: shared ? 300 : 280 }}
         >
+          <ScrollView
+            style={shared ? { flex: 1 } : { flexGrow: 0 }}
+            contentContainerStyle={{ paddingBottom: 8 }}
+            scrollEnabled={shared}
+            showsVerticalScrollIndicator={false}
+          >
           {showLive ? (
             <>
               {actorLabel ? (
@@ -138,6 +144,7 @@ export function RealtimeCardStage({
               </Text>
             </>
           )}
+          </ScrollView>
         </View>
       </View>
     </View>

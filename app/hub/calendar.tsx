@@ -1,4 +1,6 @@
 import { LookPanel } from "@/components/hub/AppSettings";
+import { CoversFilter } from "@/components/hub/CalendarNoteFields";
+import { coversMatches, type CalendarCovers } from "@/lib/calendar-repeat";
 import { MonthGrid } from "@/components/hub/MonthGrid";
 import { WeekGrid } from "@/components/hub/WeekGrid";
 import { HubScreen } from "@/components/hub/HubScreen";
@@ -78,6 +80,7 @@ export default function CalendarScreen() {
   const look = useAppLook("calendar", HUB_TONES.calendar.accent, {});
   const [expanded, setExpanded] = useState(false);
   const [lane, setLane] = useState<CalendarLane>("life");
+  const [who, setWho] = useState<CalendarCovers>("all");
   const allActivities = useCalendarActivities();
 
   useEffect(() => {
@@ -103,9 +106,17 @@ export default function CalendarScreen() {
         return lane === "life";
       }
       if (prefs.enabledKinds[row.kind] === false) return false;
-      return laneForKind(row.kind) === lane;
+      if (laneForKind(row.kind) !== lane) return false;
+      if (
+        lane === "life" &&
+        row.kind === "custom" &&
+        !coversMatches(row.covers ?? "all", who)
+      ) {
+        return false;
+      }
+      return true;
     });
-  }, [allActivities, lane, prefs.enabledKinds, prefs.periodPlacement, prefs.showSimpleIntimacy]);
+  }, [allActivities, lane, prefs.enabledKinds, prefs.periodPlacement, prefs.showSimpleIntimacy, who]);
   const marks = useMemo(() => marksByDate(activities), [activities]);
   const dayItems = useMemo(
     () => activitiesForDate(activities, selected),
@@ -205,6 +216,7 @@ export default function CalendarScreen() {
             setExpanded(false);
           }}
         />
+        {lane === "life" ? <CoversFilter value={who} onChange={setWho} /> : null}
 
         {layout === "agenda" ? (
           <View style={{ flex: 1, minHeight: 0 }}>
