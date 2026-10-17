@@ -46,6 +46,7 @@ import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke"
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { asCalendarRepeat } from "@/lib/calendar-repeat";
 import { normalizeAffects } from "@/lib/calendar-people";
+import { pruneStaleErrands } from "@/lib/errands";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
 import {
@@ -1001,6 +1002,7 @@ type AppContextValue = {
   toggleErrandDone: (id: string) => Promise<void>;
   removeErrandItem: (id: string) => Promise<void>;
   clearDoneErrands: (kind?: ErrandKind | "all") => Promise<void>;
+  pruneDoneErrands: () => Promise<void>;
   spinMeal: (input?: {
     pool?: MealCategoryId[];
     mealId?: string | null;
@@ -1623,9 +1625,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const errandItems = useMemo(
     () =>
-      db.errandItems
-        .filter((row) => row.coupleId === couple?.id)
-        .sort((a, b) => {
+      pruneStaleErrands(
+        db.errandItems.filter((row) => row.coupleId === couple?.id)
+      ).sort((a, b) => {
           const aDone = a.doneAt ? 1 : 0;
           const bDone = b.doneAt ? 1 : 0;
           if (aDone !== bDone) return aDone - bDone;
@@ -6090,6 +6092,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         notes: (input.notes ?? "").trim(),
         createdBy: user.id,
         createdAt: stamp,
+        updatedAt: stamp,
         doneAt: null,
         doneBy: null,
       };
@@ -6109,9 +6112,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         errandItems: db.errandItems.map((row) => {
           if (row.id !== id) return row;
           if (row.doneAt) {
-            return { ...row, doneAt: null, doneBy: null };
+            return { ...row, doneAt: null, doneBy: null, updatedAt: stamp };
           }
-          return { ...row, doneAt: stamp, doneBy: user.id };
+          return { ...row, doneAt: stamp, doneBy: user.id, updatedAt: stamp };
         }),
       };
       await persist();
@@ -6143,6 +6146,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [couple]
   );
+
+  const pruneDoneErrands = useCallback(async () => {
+    const next = pruneStaleErrands(db.errandItems);
+    if (next.length === db.errandItems.length) return;
+    db = { ...db, errandItems: next };
+    await persist();
+  }, []);
 
   const spinMeal = useCallback(
     async (input?: {
@@ -7401,6 +7411,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleErrandDone,
     removeErrandItem,
     clearDoneErrands,
+    pruneDoneErrands,
     spinMeal,
     voteMeal,
     sendMealWant,

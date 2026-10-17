@@ -16,6 +16,7 @@ import {
 import { noteHeading, type MealPlanNote } from "@/lib/meal-plan";
 import { useMiniApps } from "@/lib/mini-apps";
 import { useApp } from "@/lib/store";
+import { isErrandStillListed } from "@/lib/errands";
 import type { ErrandItem, ErrandKind } from "@/lib/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
@@ -36,6 +37,7 @@ export default function GroceriesErrandsScreen() {
     toggleErrandDone,
     removeErrandItem,
     clearDoneErrands,
+    pruneDoneErrands,
   } = useApp();
   const { data } = useMiniApps();
   const router = useRouter();
@@ -51,17 +53,31 @@ export default function GroceriesErrandsScreen() {
     void readErrandPrefs().then((prefs) => setQuickAdd(prefs.quickAdd));
   }, []);
 
+  useEffect(() => {
+    void pruneDoneErrands();
+    const tick = setInterval(() => {
+      void pruneDoneErrands();
+    }, 30_000);
+    return () => clearInterval(tick);
+  }, [pruneDoneErrands]);
+
   const persistQuick = (next: QuickAddItem[]) => {
     setQuickAdd(next);
     void writeErrandPrefs({ quickAdd: next });
   };
 
   const groceries = useMemo(
-    () => errandItems.filter((row) => row.kind === "grocery"),
+    () =>
+      errandItems.filter(
+        (row) => row.kind === "grocery" && isErrandStillListed(row)
+      ),
     [errandItems]
   );
   const errands = useMemo(
-    () => errandItems.filter((row) => row.kind === "errand"),
+    () =>
+      errandItems.filter(
+        (row) => row.kind === "errand" && isErrandStillListed(row)
+      ),
     [errandItems]
   );
   const plannedMeals = useMemo(

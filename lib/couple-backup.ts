@@ -165,7 +165,7 @@ function coupleRowKey(table: string, row: Record<string, unknown>): string {
 }
 
 function stampOf(row: Record<string, unknown>): string {
-  const keys = ["updatedAt", "completedAt", "answeredAt", "openedAt", "createdAt"];
+  const keys = ["updatedAt", "completedAt", "answeredAt", "openedAt", "doneAt", "createdAt"];
   for (const key of keys) {
     const value = row[key];
     if (typeof value === "string" && value) return value;

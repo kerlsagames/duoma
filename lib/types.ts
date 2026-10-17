@@ -673,6 +673,7 @@ export type ErrandItem = {
   notes: string;
   createdBy: string;
   createdAt: string;
+  updatedAt: string;
   /** ISO timestamp when checked off; null = still open. */
   doneAt: string | null;
   doneBy: string | null;

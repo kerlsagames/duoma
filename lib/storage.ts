@@ -283,12 +283,15 @@ function hydrateMealWant(
 function hydrateErrandItem(
   row: AppDB["errandItems"][number]
 ): AppDB["errandItems"][number] {
+  const doneAt = row.doneAt ?? null;
   return {
     ...row,
     kind: row.kind === "errand" ? "errand" : "grocery",
     title: row.title?.trim() || "Item",
     notes: row.notes ?? "",
-    doneAt: row.doneAt ?? null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt || doneAt || row.createdAt,
+    doneAt,
     doneBy: row.doneBy ?? null,
   };
 }
