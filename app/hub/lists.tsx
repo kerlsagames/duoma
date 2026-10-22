@@ -156,7 +156,12 @@ export default function ListsScreen() {
       setCreateOpen(false);
       setTitle("");
       setEmoji("✨");
-      if (row) router.push(`/hub/list/${row.id}` as Href);
+      if (row) {
+        router.push({
+          pathname: "/hub/list/[id]",
+          params: { id: row.id },
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create list");
     } finally {
@@ -278,7 +283,12 @@ export default function ListsScreen() {
                 return (
                   <Pressable
                     key={list.id}
-                    onPress={() => router.push(`/hub/list/${list.id}` as Href)}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/hub/list/[id]",
+                        params: { id: list.id },
+                      })
+                    }
                     style={{
                       borderRadius: 24,
                       borderWidth: 2,
@@ -437,9 +447,10 @@ export default function ListsScreen() {
                   <Pressable
                     key={list.id}
                     onPress={() =>
-                      router.push(
-                        `/hub/list/${list.id}?section=vault` as Href
-                      )
+                      router.push({
+                        pathname: "/hub/list/[id]",
+                        params: { id: list.id, section: "vault" },
+                      })
                     }
                     style={{
                       borderRadius: 24,

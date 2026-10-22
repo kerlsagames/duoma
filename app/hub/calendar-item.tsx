@@ -280,7 +280,12 @@ export default function CalendarItemScreen() {
           ) : null}
           {list ? (
             <Pressable
-              onPress={() => router.push(`/hub/list/${list.id}` as Href)}
+              onPress={() =>
+                router.push({
+                  pathname: "/hub/list/[id]",
+                  params: { id: list.id },
+                })
+              }
               style={{ marginTop: 18 }}
             >
               <Text style={{ fontSize: 15, fontWeight: "600", color: T.accent }}>

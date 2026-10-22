@@ -9,15 +9,17 @@ import {
 } from "@/lib/app-themes";
 import {
   averageScore,
+  findListByRouteId,
   formatDoneDate,
   listFieldCopy,
+  routeParam,
   scoreLabel,
   starterDef,
 } from "@/lib/lists";
 import { themLabel, themLabelTitle } from "@/lib/names";
 import { useApp } from "@/lib/store";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter, type Href } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Modal,
@@ -200,11 +202,19 @@ function NotepadRow({
 
 export default function ListDetailScreen() {
   const router = useRouter();
-  const { id, section } = useLocalSearchParams<{
-    id: string;
-    section?: string;
+  const params = useLocalSearchParams<{
+    id: string | string[];
+    section?: string | string[];
   }>();
-  const focusVault = section === "vault";
+  const pathname = usePathname();
+  const id = useMemo(() => {
+    const fromParam = routeParam(params.id);
+    if (fromParam) return fromParam;
+    const parts = pathname.split("/").filter(Boolean);
+    const at = parts.lastIndexOf("list");
+    return at >= 0 ? parts.slice(at + 1).join("/") : "";
+  }, [params.id, pathname]);
+  const focusVault = routeParam(params.section) === "vault";
   const {
     user,
     partner,
@@ -226,20 +236,24 @@ export default function ListDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [rateEntryId, setRateEntryId] = useState<string | null>(null);
   const [pendingScore, setPendingScore] = useState(7.5);
+  const [listsReady, setListsReady] = useState(false);
 
   useEffect(() => {
-    void ensureStarterLists();
+    let alive = true;
+    void ensureStarterLists().finally(() => {
+      if (alive) setListsReady(true);
+    });
+    return () => {
+      alive = false;
+    };
   }, [ensureStarterLists]);
 
   useEffect(() => {
+    if (!listsReady) return;
     void refreshPair();
-    const timers = [800, 2000, 4000].map((ms) =>
-      setTimeout(() => void refreshPair(), ms)
-    );
-    return () => timers.forEach(clearTimeout);
-  }, [id, refreshPair]);
+  }, [listsReady, refreshPair]);
 
-  const list = coupleLists.find((row) => row.id === id) ?? null;
+  const list = findListByRouteId(coupleLists, id);
 
   const copy = listFieldCopy({
     starterKey: list?.starterKey,
@@ -306,6 +320,24 @@ export default function ListDetailScreen() {
   };
 
   if (!list) {
+    if (!listsReady) {
+      return (
+        <Screen background={T.background}>
+          <View className="flex-1 justify-center px-1">
+            <Text
+              style={{
+                fontFamily: LISTS_DISPLAY,
+                fontSize: 22,
+                color: T.ink,
+                fontWeight: "700",
+              }}
+            >
+              Opening list…
+            </Text>
+          </View>
+        </Screen>
+      );
+    }
     return (
       <Screen background={T.background}>
         <View className="flex-1 justify-center px-1">

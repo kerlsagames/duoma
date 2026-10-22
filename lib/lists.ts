@@ -180,6 +180,25 @@ export function starsLabel(value: number | null) {
   return scoreLabel(value);
 }
 
+/** Expo Router can split a hyphenated id into an array — join it back. */
+export function routeParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value.filter(Boolean).join("-");
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function findListByRouteId<T extends { id: string }>(
+  lists: T[],
+  routeId: string
+): T | null {
+  if (!routeId) return null;
+  const exact = lists.find((row) => row.id === routeId);
+  if (exact) return exact;
+  const prefixed = lists.filter(
+    (row) => row.id.startsWith(routeId) || routeId.startsWith(row.id)
+  );
+  return prefixed.length === 1 ? prefixed[0]! : null;
+}
+
 export function formatDoneDate(iso: string | null | undefined) {
   if (!iso) return null;
   const date = new Date(iso);
