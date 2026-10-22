@@ -451,10 +451,12 @@ function hydrateCoupleList(row: AppDB["coupleLists"][number]): AppDB["coupleList
 }
 
 function hydrateListEntry(row: AppDB["listEntries"][number]): AppDB["listEntries"][number] {
+  const completedAt = row.completedAt ?? null;
   return {
     ...row,
     notes: row.notes ?? "",
-    completedAt: row.completedAt ?? null,
+    updatedAt: row.updatedAt || completedAt || row.createdAt,
+    completedAt,
     completedBy: row.completedBy ?? null,
   };
 }

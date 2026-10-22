@@ -2557,6 +2557,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           notes: "",
           createdBy: demo.id,
           createdAt: nowIso(),
+          updatedAt: stamp,
           completedAt: null,
           completedBy: null,
         },
@@ -2568,6 +2569,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           notes: "",
           createdBy: demo.id,
           createdAt: nowIso(),
+          updatedAt: stamp,
           completedAt: stamp,
           completedBy: demo.id,
         },
@@ -2579,6 +2581,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           notes: "",
           createdBy: demo.id,
           createdAt: nowIso(),
+          updatedAt: stamp,
           completedAt: stamp,
           completedBy: demo.id,
         },
@@ -2590,6 +2593,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           notes: "",
           createdBy: demo.id,
           createdAt: nowIso(),
+          updatedAt: stamp,
           completedAt: stamp,
           completedBy: demo.id,
         },
@@ -6880,6 +6884,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!list) throw new Error("List not found.");
       const title = input.title.trim();
       if (!title) throw new Error("Add a title first.");
+      const stamp = nowIso();
       const row: ListEntry = {
         id: createId(),
         listId: list.id,
@@ -6887,7 +6892,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         title,
         notes: (input.notes ?? "").trim(),
         createdBy: user.id,
-        createdAt: nowIso(),
+        createdAt: stamp,
+        updatedAt: stamp,
         completedAt: null,
         completedBy: null,
       };
@@ -6910,13 +6916,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       if (!entry) throw new Error("Item not found.");
       if (entry.completedAt) return;
+      const stamp = nowIso();
+      const titleKey = entry.title.trim().toLowerCase();
       db = {
         ...db,
-        listEntries: db.listEntries.map((row) =>
-          row.id === entryId
-            ? { ...row, completedAt: nowIso(), completedBy: user.id }
-            : row
-        ),
+        listEntries: db.listEntries.map((row) => {
+          if (row.coupleId !== couple.id || row.listId !== entry.listId) return row;
+          if (row.completedAt) return row;
+          const same =
+            row.id === entryId || row.title.trim().toLowerCase() === titleKey;
+          if (!same) return row;
+          return { ...row, completedAt: stamp, completedBy: user.id, updatedAt: stamp };
+        }),
       };
       await persist();
     },
@@ -6969,11 +6980,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         (row) => row.id === entryId && row.coupleId === couple.id
       );
       if (!entry) throw new Error("Item not found.");
+      const stamp = nowIso();
       db = {
         ...db,
         listEntries: db.listEntries.map((row) =>
           row.id === entryId
-            ? { ...row, completedAt: null, completedBy: null }
+            ? { ...row, completedAt: null, completedBy: null, updatedAt: stamp }
             : row
         ),
         listEntryRatings: db.listEntryRatings.filter(

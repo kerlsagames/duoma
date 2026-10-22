@@ -42,6 +42,7 @@ export type GiftItem = {
   status: "open" | "bought" | "given";
   dateKey: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 export const GIFT_OCCASIONS: {
@@ -323,6 +324,7 @@ export function addGiftItem(
   const title = input.title.trim();
   if (!title || !input.personId) return items;
   const year = input.year ?? currentGiftYear();
+  const stamp = nowIso();
   return [
     ...items,
     {
@@ -336,17 +338,30 @@ export function addGiftItem(
       year,
       status: input.status ?? "open",
       dateKey: input.dateKey ?? null,
-      createdAt: nowIso(),
+      createdAt: stamp,
+      updatedAt: stamp,
     },
   ];
 }
 
+function giftTitleKey(title: string): string {
+  return title.trim().toLowerCase();
+}
+
 export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
-  return items.map((row) =>
-    row.id === itemId && row.status === "open"
-      ? { ...row, status: "bought" as const }
-      : row
-  );
+  const target = items.find((row) => row.id === itemId);
+  if (!target || target.status !== "open") return items;
+  const stamp = nowIso();
+  const titleKey = giftTitleKey(target.title);
+  return items.map((row) => {
+    if (row.status !== "open") return row;
+    const same =
+      row.id === itemId ||
+      (row.personId === target.personId &&
+        row.lane === target.lane &&
+        giftTitleKey(row.title) === titleKey);
+    return same ? { ...row, status: "bought" as const, updatedAt: stamp } : row;
+  });
 }
 
 export function markGiftGiven(
@@ -372,6 +387,7 @@ export function markGiftGiven(
       year,
       from: input.from?.trim() || row.from,
       occasion: input.occasion ?? row.occasion,
+      updatedAt: nowIso(),
     };
   });
 }
@@ -586,7 +602,43 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
         ? row.dateKey
         : null,
     createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
+    updatedAt:
+      typeof row.updatedAt === "string" && row.updatedAt
+        ? row.updatedAt
+        : typeof row.createdAt === "string" && row.createdAt
+          ? row.createdAt
+          : nowIso(),
   };
+}
+
+export function giftStamp(row: GiftItem): string {
+  return row.updatedAt || row.createdAt || "";
+}
+
+function giftProgress(row: GiftItem): number {
+  if (row.status === "given") return 2;
+  if (row.status === "bought") return 1;
+  return 0;
+}
+
+/** A bought/given tick wins over the still-open copy with the same createdAt. */
+export function preferGiftItem(local: GiftItem, remote: GiftItem): GiftItem {
+  const localStamp = giftStamp(local);
+  const remoteStamp = giftStamp(remote);
+  if (localStamp !== remoteStamp) {
+    return remoteStamp > localStamp ? remote : local;
+  }
+  return giftProgress(remote) >= giftProgress(local) ? remote : local;
+}
+
+export function mergeGiftItems(local: GiftItem[], remote: GiftItem[]): GiftItem[] {
+  const map = new Map<string, GiftItem>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    map.set(row.id, prev ? preferGiftItem(prev, row) : row);
+  }
+  return [...map.values()];
 }
 
 export function hydrateGifts(rawPeople: unknown, rawItems: unknown): {

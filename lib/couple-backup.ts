@@ -8,8 +8,9 @@ import { mergePeriodStates } from "@/lib/period";
 import { mergeSparkStates } from "@/lib/spark";
 import { mergeWorldChoices } from "@/lib/worlds";
 import { hydrateMiniState, type MiniState, type WhoLast } from "@/lib/mini-content";
+import { mergeGiftItems } from "@/lib/gifts";
 import { hydrateDb } from "@/lib/storage";
-import type { AppDB, GameSession } from "@/lib/types";
+import type { AppDB, GameSession, ListEntry } from "@/lib/types";
 
 type CoupleSlice = Omit<AppDB, "profiles" | "couples" | "pushSubscriptions">;
 
@@ -188,6 +189,41 @@ function mergeByKey<T>(
     if (!prev || stamp(row) >= stamp(prev)) map.set(key, row);
   }
   return [...map.values()];
+}
+
+function mergeByPrefer<T>(
+  local: T[],
+  incoming: T[],
+  keyOf: (row: T) => string,
+  prefer: (localRow: T, incomingRow: T) => T
+): T[] {
+  const map = new Map<string, T>();
+  for (const row of local) map.set(keyOf(row), row);
+  for (const row of incoming) {
+    const key = keyOf(row);
+    if (!key) continue;
+    const prev = map.get(key);
+    map.set(key, prev ? prefer(prev, row) : row);
+  }
+  return [...map.values()];
+}
+
+function listStamp(row: ListEntry): string {
+  return row.updatedAt || row.completedAt || row.createdAt || "";
+}
+
+/** A ticked list row stays done unless the open copy is a newer reopen. */
+export function preferListEntry(local: ListEntry, remote: ListEntry): ListEntry {
+  const localDone = Boolean(local.completedAt);
+  const remoteDone = Boolean(remote.completedAt);
+  const localAt = listStamp(local);
+  const remoteAt = listStamp(remote);
+  if (localDone !== remoteDone) {
+    if (!remoteDone && remoteAt > localAt) return remote;
+    if (!localDone && localAt > remoteAt) return local;
+    return localDone ? local : remote;
+  }
+  return remoteAt >= localAt ? remote : local;
 }
 
 function hasCoupleId(row: unknown): row is { coupleId: string; id?: string } {
@@ -380,12 +416,19 @@ export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>
     const others = (db[key] as { coupleId?: string }[]).filter((row) => row.coupleId !== coupleId);
     (next as unknown as Record<string, unknown>)[key] = [
       ...others,
-      ...mergeByKey(
-        localRows,
-        remoteRows,
-        (row) => coupleRowKey(key, row as Record<string, unknown>),
-        (row) => stampOf(row as Record<string, unknown>)
-      ),
+      key === "listEntries"
+        ? mergeByPrefer(
+            localRows as ListEntry[],
+            remoteRows as ListEntry[],
+            (row) => row.id,
+            preferListEntry
+          )
+        : mergeByKey(
+            localRows,
+            remoteRows,
+            (row) => coupleRowKey(key, row as Record<string, unknown>),
+            (row) => stampOf(row as Record<string, unknown>)
+          ),
     ];
   }
   return next;
@@ -437,6 +480,7 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
   kept.period = mergePeriodStates(local.period, remote.period);
   kept.worldChoice = mergeWorldChoices(local.worldChoice, remote.worldChoice);
   kept.whoLast = mergeWhoLast(local.whoLast, remote.whoLast);
+  kept.giftItems = mergeGiftItems(local.giftItems ?? [], remote.giftItems ?? []);
   kept.sexyVault = local.sexyVault;
   kept.sexyVaultPin = local.sexyVaultPin || remote.sexyVaultPin;
   kept.audioNotes = local.audioNotes;

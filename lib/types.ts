@@ -359,6 +359,7 @@ export type ListEntry = {
   notes: string;
   createdBy: string;
   createdAt: string;
+  updatedAt: string;
   completedAt: string | null;
   completedBy: string | null;
 };
