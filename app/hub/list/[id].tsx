@@ -208,11 +208,11 @@ export default function ListDetailScreen() {
   }>();
   const pathname = usePathname();
   const id = useMemo(() => {
+    const pathId = decodeURIComponent(
+      pathname.match(/\/list\/([^/?#]+)/)?.[1] ?? ""
+    );
     const fromParam = routeParam(params.id);
-    if (fromParam) return fromParam;
-    const parts = pathname.split("/").filter(Boolean);
-    const at = parts.lastIndexOf("list");
-    return at >= 0 ? parts.slice(at + 1).join("/") : "";
+    return pathId || fromParam;
   }, [params.id, pathname]);
   const focusVault = routeParam(params.section) === "vault";
   const {
@@ -226,7 +226,6 @@ export default function ListDetailScreen() {
     completeListEntry,
     rateListEntry,
     reopenListEntry,
-    refreshPair,
   } = useApp();
   const them = themLabel(partner);
   const themTitle = themLabelTitle(partner);
@@ -247,11 +246,6 @@ export default function ListDetailScreen() {
       alive = false;
     };
   }, [ensureStarterLists]);
-
-  useEffect(() => {
-    if (!listsReady) return;
-    void refreshPair();
-  }, [listsReady, refreshPair]);
 
   const list = findListByRouteId(coupleLists, id);
 

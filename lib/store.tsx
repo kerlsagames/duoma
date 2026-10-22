@@ -30,6 +30,7 @@ import {
 import {
   absorbCoupleState,
   adoptMemberRows,
+  aliasCoupleIds,
   isCoupleUuid,
   mergeCoupleDb,
   remapCoupleSlice,
@@ -544,6 +545,18 @@ function coupleForUser(userId: string | null): Couple | null {
     (couple) => couple.partnerA === userId || couple.partnerB === userId
   );
   return hits.find((row) => isCoupleUuid(row.id)) ?? hits[0] ?? null;
+}
+
+function coupleIdsForUser(userId: string | null, coupleId?: string | null): Set<string> {
+  const ids = coupleId ? aliasCoupleIds(db, coupleId) : new Set<string>();
+  if (!userId) return ids;
+  for (const row of db.couples) {
+    if (row.partnerA === userId || row.partnerB === userId) {
+      ids.add(row.id);
+      for (const alias of aliasCoupleIds(db, row.id)) ids.add(alias);
+    }
+  }
+  return ids;
 }
 
 function otherUserId(couple: Couple, userId: string): string | null {
@@ -1872,20 +1885,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [version]
   );
   const coupleLists = useMemo(
-    () =>
-      db.coupleLists
-        .filter((row) => row.coupleId === couple?.id)
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    () => {
+      const ids = coupleIdsForUser(sessionUserId, couple?.id);
+      return db.coupleLists
+        .filter((row) => ids.has(row.coupleId))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
   const listEntries = useMemo(
-    () => db.listEntries.filter((row) => row.coupleId === couple?.id),
+    () => {
+      const ids = coupleIdsForUser(sessionUserId, couple?.id);
+      return db.listEntries.filter((row) => ids.has(row.coupleId));
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
   const listEntryRatings = useMemo(
-    () => db.listEntryRatings.filter((row) => row.coupleId === couple?.id),
+    () => {
+      const ids = coupleIdsForUser(sessionUserId, couple?.id);
+      return db.listEntryRatings.filter((row) => ids.has(row.coupleId));
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]
   );
@@ -6821,8 +6842,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const ensureStarterLists = useCallback(async () => {
     if (!user || !couple) return;
-    const existing = db.coupleLists.filter((row) => row.coupleId === couple.id);
-    if (existing.length > 0) return;
+    const aliases = coupleIdsForUser(user.id, couple.id);
+    const existing = db.coupleLists.filter((row) => aliases.has(row.coupleId));
+    if (existing.length > 0) {
+      const stray = existing.some((row) => row.coupleId !== couple.id);
+      if (!stray) return;
+      db = {
+        ...db,
+        coupleLists: db.coupleLists.map((row) =>
+          aliases.has(row.coupleId) ? { ...row, coupleId: couple.id } : row
+        ),
+        listEntries: db.listEntries.map((row) =>
+          aliases.has(row.coupleId) ? { ...row, coupleId: couple.id } : row
+        ),
+        listEntryRatings: db.listEntryRatings.map((row) =>
+          aliases.has(row.coupleId) ? { ...row, coupleId: couple.id } : row
+        ),
+      };
+      await persist();
+      return;
+    }
     db = {
       ...db,
       coupleLists: [...db.coupleLists, ...seedStarterLists(couple.id, user.id)],
