@@ -52,6 +52,7 @@ import { HOME_HEADER_WIDGETS, type HubId } from "@/lib/hubs";
 import { useMiniApps } from "@/lib/mini-apps";
 import { subscribeHomeSettings, subscribeHomeStats } from "@/lib/home-chrome";
 import { useApp } from "@/lib/store";
+import { DUOMA_BUILD, reloadLatestBuild } from "@/lib/push";
 import { votePinReset } from "@/lib/vault-pin";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -1125,6 +1126,17 @@ function HomeSettingsSheet({
             </Text>
             <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
               Two-column hubs, all sections on, original colours, black background.
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => void reloadLatestBuild()}
+            style={{ marginTop: 4, paddingVertical: 10 }}
+          >
+            <Text style={{ color: "#FF007F", fontSize: 14, fontWeight: "700" }}>
+              Load latest app
+            </Text>
+            <Text style={{ marginTop: 2, color: "rgba(244,244,246,0.45)", fontSize: 12 }}>
+              Drop the Home Screen cache and pull the live site. This build is {DUOMA_BUILD}.
             </Text>
           </Pressable>
 

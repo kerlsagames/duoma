@@ -1,4 +1,4 @@
-const SW_VERSION = "duoma-20261001-calendar";
+const SW_VERSION = "duoma-20261113-wishlist";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

@@ -77,7 +77,8 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-const SW_FILE = "/sw.js?v=20261001-calendar";
+export const DUOMA_BUILD = "13 Nov wishlist";
+const SW_FILE = "/sw.js?v=20261113-wishlist";
 let swReloadArmed = false;
 let swListenersBound = false;
 
@@ -85,6 +86,24 @@ function reloadForNewWorker() {
   if (swReloadArmed) return;
   swReloadArmed = true;
   window.location.reload();
+}
+
+/** Drop the Home Screen cache and load the live site again. */
+export async function reloadLatestBuild() {
+  if (!isWebPushRuntime()) return;
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map((row) => row.unregister()));
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+  } catch {
+    // Still reload.
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", "20261113-wishlist");
+  window.location.replace(url.toString());
 }
 
 export async function registerDuomaWorker() {
