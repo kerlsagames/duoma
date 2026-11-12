@@ -18,6 +18,7 @@ import {
   addGiftPerson,
   allOpenItems,
   boughtItems,
+  collapseGiftPeople,
   collapseSecretLists,
   currentGiftYear,
   ensureCouplePeople,
@@ -110,13 +111,27 @@ export default function GiftsScreen() {
       user?.id,
       partner?.id
     );
+    const folded = collapseGiftPeople(nextPeople, data.giftItems);
     const collapsed = user?.id
-      ? collapseSecretLists(nextPeople, data.giftItems, user.id)
-      : { people: nextPeople, items: data.giftItems };
-    if (
-      collapsed.people === data.giftPeople &&
-      collapsed.items === data.giftItems
-    ) {
+      ? collapseSecretLists(folded.people, folded.items, user.id)
+      : folded;
+    const samePeople =
+      collapsed.people.length === data.giftPeople.length &&
+      collapsed.people.every((row, index) => {
+        const prev = data.giftPeople[index];
+        return (
+          prev &&
+          prev.id === row.id &&
+          prev.userId === row.userId &&
+          prev.slot === row.slot &&
+          prev.name === row.name
+        );
+      });
+    const sameItems =
+      collapsed.items === data.giftItems ||
+      (collapsed.items.length === data.giftItems.length &&
+        collapsed.items.every((row, index) => row === data.giftItems[index]));
+    if (samePeople && sameItems) {
       return;
     }
     void patch((state) => ({

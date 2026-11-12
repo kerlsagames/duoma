@@ -536,6 +536,22 @@ export function visibleGiftPeople(
 
 export const SECRET_LIST_NAME = "Secret list";
 
+function uniqueCouplePeople(people: GiftPerson[]): GiftPerson[] {
+  const seen = new Set<string>();
+  const out: GiftPerson[] = [];
+  for (const row of people) {
+    const key = row.userId
+      ? `user:${row.userId}`
+      : row.slot || row.kind === "you" || row.kind === "them"
+        ? `couple:${row.name.trim().toLowerCase()}`
+        : row.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+
 export function groupedPeople(people: GiftPerson[]): {
   us: GiftPerson[];
   kids: GiftPerson[];
@@ -543,7 +559,7 @@ export function groupedPeople(people: GiftPerson[]): {
   privateLists: GiftPerson[];
 } {
   return {
-    us: people.filter((row) => row.slot === "you" || row.slot === "them"),
+    us: uniqueCouplePeople(people.filter((row) => row.slot === "you" || row.slot === "them")),
     kids: people.filter((row) => row.kind === "child" && !row.hidden),
     rest: people.filter((row) => !row.slot && row.kind !== "child" && !row.hidden),
     privateLists: people.filter((row) => row.hidden),
@@ -551,7 +567,7 @@ export function groupedPeople(people: GiftPerson[]): {
 }
 
 export function sharedGiftPeople(people: GiftPerson[]): GiftPerson[] {
-  return people.filter((row) => !row.hidden);
+  return uniqueCouplePeople(people.filter((row) => !row.hidden));
 }
 
 export function secretListForUser(
@@ -777,12 +793,8 @@ export function preferGiftItem(local: GiftItem, remote: GiftItem): GiftItem {
   return remoteAt >= localAt ? remote : local;
 }
 
-function personIdentityKey(row: GiftPerson): string {
-  if (row.hidden) return `secret:${row.ownerUserId || row.id}`;
-  if (row.userId) return `user:${row.userId}`;
-  const name = row.name.trim().toLowerCase();
-  if (row.slot || row.kind === "you" || row.kind === "them") return `couple:${name}`;
-  return `${row.kind}:${name}`;
+function isCouplePerson(row: GiftPerson): boolean {
+  return Boolean(row.slot || row.kind === "you" || row.kind === "them");
 }
 
 function preferGiftPerson(keeper: GiftPerson, other: GiftPerson): GiftPerson {
@@ -799,32 +811,91 @@ function preferGiftPerson(keeper: GiftPerson, other: GiftPerson): GiftPerson {
   };
 }
 
-/** Merge Alana-on-this-phone with Alana-on-theirs, never you-with-you. */
+function findPersonRoot(parent: Map<string, string>, id: string): string {
+  let cur = parent.get(id) ?? id;
+  while (parent.get(cur) && parent.get(cur) !== cur) {
+    cur = parent.get(cur)!;
+  }
+  return cur;
+}
+
+function unionPerson(parent: Map<string, string>, keeperId: string, otherId: string) {
+  const a = findPersonRoot(parent, keeperId);
+  const b = findPersonRoot(parent, otherId);
+  if (a !== b) parent.set(b, a);
+}
+
+/** One Craig, one Alana — merge by profile id and by name, not by you/them. */
 export function collapseGiftPeople(
   people: GiftPerson[],
   items: GiftItem[]
 ): { people: GiftPerson[]; items: GiftItem[] } {
-  const remap = new Map<string, string>();
-  const keep = new Map<string, GiftPerson>();
+  const parent = new Map<string, string>();
+  for (const row of people) parent.set(row.id, row.id);
+
+  const byUser = new Map<string, string>();
+  const byCoupleName = new Map<string, string>();
+  const byOther = new Map<string, string>();
+  const bySecret = new Map<string, string>();
+
   for (const row of people) {
-    const key = personIdentityKey(row);
-    const prev = keep.get(key);
-    if (!prev) {
-      keep.set(key, row);
+    if (row.hidden) {
+      const key = `secret:${row.ownerUserId || row.id}`;
+      const prev = bySecret.get(key);
+      if (prev) unionPerson(parent, prev, row.id);
+      else bySecret.set(key, row.id);
       continue;
     }
-    remap.set(row.id, prev.id);
-    keep.set(key, preferGiftPerson(prev, row));
+    if (isCouplePerson(row)) {
+      if (row.userId) {
+        const prev = byUser.get(row.userId);
+        if (prev) unionPerson(parent, prev, row.id);
+        else byUser.set(row.userId, row.id);
+      }
+      const name = row.name.trim().toLowerCase();
+      if (!isPlaceholderName(name)) {
+        const prev = byCoupleName.get(name);
+        if (prev) unionPerson(parent, prev, row.id);
+        else byCoupleName.set(name, row.id);
+      }
+      continue;
+    }
+    const key = `${row.kind}:${row.name.trim().toLowerCase()}`;
+    const prev = byOther.get(key);
+    if (prev) unionPerson(parent, prev, row.id);
+    else byOther.set(key, row.id);
   }
-  const nextPeople = [...keep.values()];
-  if (remap.size === 0) return { people: nextPeople, items };
-  return {
-    people: nextPeople,
-    items: items.map((row) => {
-      const personId = remap.get(row.personId);
-      return personId ? { ...row, personId } : row;
-    }),
-  };
+
+  const remap = new Map<string, string>();
+  const keepers = new Map<string, GiftPerson>();
+  const order: GiftPerson[] = [];
+  for (const row of people) {
+    const root = findPersonRoot(parent, row.id);
+    if (root !== row.id) remap.set(row.id, root);
+    const prev = keepers.get(root);
+    if (!prev) {
+      keepers.set(root, row);
+      order.push(row);
+      continue;
+    }
+    const merged = preferGiftPerson(prev, row);
+    keepers.set(root, merged);
+    const index = order.findIndex((person) => person.id === prev.id);
+    if (index >= 0) order[index] = merged;
+  }
+
+  const nextPeople = order.map((row) => keepers.get(row.id) ?? row);
+  const nextItems =
+    remap.size === 0
+      ? items
+      : items.map((row) => {
+          const personId = remap.get(row.personId);
+          return personId ? { ...row, personId } : row;
+        });
+  if (remap.size === 0 && nextPeople.length === people.length) {
+    return { people: nextPeople, items: nextItems };
+  }
+  return { people: nextPeople, items: nextItems };
 }
 
 export function collapseGiftItems(items: GiftItem[]): GiftItem[] {
