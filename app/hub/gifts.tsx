@@ -38,6 +38,7 @@ import {
   personById,
   removeGiftItem,
   removeGiftPerson,
+  updateGiftItem,
   SECRET_LIST_NAME,
   secretListForUser,
   sharedGiftPeople,
@@ -105,7 +106,9 @@ export default function GiftsScreen() {
     const nextPeople = ensureCouplePeople(
       data.giftPeople,
       user?.displayName ?? "You",
-      partner?.displayName ?? "Them"
+      partner?.displayName ?? "Them",
+      user?.id,
+      partner?.id
     );
     const collapsed = user?.id
       ? collapseSecretLists(nextPeople, data.giftItems, user.id)
@@ -128,6 +131,7 @@ export default function GiftsScreen() {
     user?.displayName,
     user?.id,
     partner?.displayName,
+    partner?.id,
     patch,
   ]);
 
@@ -311,16 +315,23 @@ export default function GiftsScreen() {
                 });
                 if (nextId) setPadPersonId(nextId);
               }}
-              onAdd={(personId, title) => {
+              onAdd={(personId, title, price) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId,
                     title,
+                    price,
                     lane: personById(state.giftPeople, personId)?.slot === "you" ? "wish" : "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
                   }),
+                }));
+              }}
+              onEdit={(item, next) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: updateGiftItem(state.giftItems, item.id, next),
                 }));
               }}
               onBuy={(item) => {
@@ -373,6 +384,7 @@ export default function GiftsScreen() {
                             personId: ensured.person.id,
                             title: item.title,
                             notes: item.notes,
+                            price: item.price,
                             lane: "shop",
                             occasion: item.occasion,
                             year: item.year,
@@ -1003,6 +1015,7 @@ function ClassicPad({
   onBuy,
   onGive,
   onRemove,
+  onEdit,
   onSecret,
   onAddBought,
   onLogGift,
@@ -1014,10 +1027,11 @@ function ClassicPad({
   onSelect: (id: string) => void;
   onAddPerson: () => void;
   onOpenSecret: () => void;
-  onAdd: (personId: string, title: string) => void;
+  onAdd: (personId: string, title: string, price?: string) => void;
   onBuy: (item: GiftItem) => void;
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
+  onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
   onSecret?: (item: GiftItem) => void;
   onAddBought?: (personId: string, title: string) => void;
   onLogGift?: (personId: string) => void;
@@ -1110,9 +1124,10 @@ function ClassicPad({
               ? "Write what you’re getting them. Partner can’t see this list."
               : `Write on ${selected.name}’s list. Tick the box when you’ve bought it.`
           }
-          onAdd={(title) => onAdd(selected.id, title)}
+          onAdd={(title, price) => onAdd(selected.id, title, price)}
           onToggle={onBuy}
           onRemove={onRemove}
+          onEdit={onEdit}
           onSecret={steal}
         />
         <BoughtList

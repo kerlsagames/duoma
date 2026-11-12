@@ -24,6 +24,8 @@ export type GiftPerson = {
   emoji: string;
   notes: string;
   slot: GiftPersonSlot | null;
+  /** Profile this list belongs to, for you/them so phones do not swap names. */
+  userId: string | null;
   /** Partner never sees this list. */
   hidden: boolean;
   ownerUserId: string | null;
@@ -40,9 +42,11 @@ export type GiftItem = {
   occasion: GiftOccasionId;
   year: number;
   status: "open" | "bought" | "given";
+  price: string;
   dateKey: string | null;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 };
 
 export const GIFT_OCCASIONS: {
@@ -143,27 +147,56 @@ export function personById(people: GiftPerson[], id: string): GiftPerson | null 
   return people.find((row) => row.id === id) ?? null;
 }
 
+export function liveGiftItem(row: GiftItem): boolean {
+  return !row.deletedAt;
+}
+
+export function formatGiftPrice(price: string | null | undefined): string {
+  const raw = (price ?? "").trim();
+  if (!raw) return "";
+  if (/^\$/.test(raw) || /[a-z]/i.test(raw)) return raw;
+  return `$${raw}`;
+}
+
 export function openItems(items: GiftItem[], personId: string, lane: GiftLane): GiftItem[] {
   return items
-    .filter((row) => row.personId === personId && row.lane === lane && row.status === "open")
+    .filter(
+      (row) =>
+        liveGiftItem(row) &&
+        row.personId === personId &&
+        row.lane === lane &&
+        row.status === "open"
+    )
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function allOpenItems(items: GiftItem[], personId: string): GiftItem[] {
   return items
-    .filter((row) => row.personId === personId && row.status === "open")
+    .filter(
+      (row) => liveGiftItem(row) && row.personId === personId && row.status === "open"
+    )
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export function boughtItems(items: GiftItem[], personId?: string): GiftItem[] {
   return items
-    .filter((row) => row.status === "bought" && (!personId || row.personId === personId))
+    .filter(
+      (row) =>
+        liveGiftItem(row) &&
+        row.status === "bought" &&
+        (!personId || row.personId === personId)
+    )
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function givenItems(items: GiftItem[], personId?: string): GiftItem[] {
   return items
-    .filter((row) => row.status === "given" && (!personId || row.personId === personId))
+    .filter(
+      (row) =>
+        liveGiftItem(row) &&
+        row.status === "given" &&
+        (!personId || row.personId === personId)
+    )
     .sort((a, b) => {
       const aKey = a.dateKey ?? `${a.year}-12-31`;
       const bKey = b.dateKey ?? `${b.year}-12-31`;
@@ -193,34 +226,84 @@ export function groupGivenByOccasion(
 
 export function shopCount(items: GiftItem[], personId: string): number {
   return items.filter(
-    (row) => row.personId === personId && row.lane === "shop" && row.status === "open"
+    (row) =>
+      liveGiftItem(row) &&
+      row.personId === personId &&
+      row.lane === "shop" &&
+      row.status === "open"
   ).length;
 }
 
 export function wishCount(items: GiftItem[], personId: string): number {
   return items.filter(
-    (row) => row.personId === personId && row.lane === "wish" && row.status === "open"
+    (row) =>
+      liveGiftItem(row) &&
+      row.personId === personId &&
+      row.lane === "wish" &&
+      row.status === "open"
   ).length;
+}
+
+function namesMatch(left: string, right: string): boolean {
+  return left.trim().toLowerCase() === right.trim().toLowerCase();
+}
+
+function isPlaceholderName(name: string): boolean {
+  const value = name.trim().toLowerCase();
+  return value === "you" || value === "them" || value === "";
 }
 
 export function ensureCouplePeople(
   people: GiftPerson[],
   youName: string,
-  themName: string
+  themName: string,
+  youUserId?: string | null,
+  themUserId?: string | null
 ): GiftPerson[] {
   const you = youName.trim() || "You";
   const them = themName.trim() || "Them";
-  const youRow = people.find((row) => row.slot === "you");
-  const themRow = people.find((row) => row.slot === "them");
+  let next = people.map((row) => {
+    if (row.hidden) return row;
+    let userId = row.userId;
+    if (!userId && youUserId && namesMatch(row.name, you)) userId = youUserId;
+    if (!userId && themUserId && namesMatch(row.name, them)) userId = themUserId;
+    if (!userId && youUserId && row.slot === "you" && !namesMatch(row.name, them)) {
+      userId = youUserId;
+    }
+    if (!userId && themUserId && row.slot === "them" && !namesMatch(row.name, you)) {
+      userId = themUserId;
+    }
+    let slot = row.slot;
+    if (youUserId && userId === youUserId) slot = "you";
+    else if (themUserId && userId === themUserId) slot = "them";
+    const name = slot === "you" ? you : slot === "them" ? them : row.name;
+    const kind = slot ?? row.kind;
+    if (
+      userId === row.userId &&
+      slot === row.slot &&
+      name === row.name &&
+      kind === row.kind
+    ) {
+      return row;
+    }
+    return { ...row, userId, slot, name, kind };
+  });
+  const youRow =
+    next.find((row) => !row.hidden && youUserId && row.userId === youUserId) ??
+    next.find((row) => !row.hidden && row.slot === "you");
+  const themRow =
+    next.find((row) => !row.hidden && themUserId && row.userId === themUserId) ??
+    next.find((row) => !row.hidden && row.slot === "them");
   if (
     youRow &&
     themRow &&
     youRow.name === you &&
-    themRow.name === them
+    themRow.name === them &&
+    (!youUserId || youRow.userId === youUserId) &&
+    (!themUserId || themRow.userId === themUserId)
   ) {
-    return people;
+    return next;
   }
-  let next = [...people];
   if (!youRow) {
     next = [
       {
@@ -230,16 +313,17 @@ export function ensureCouplePeople(
         emoji: "✨",
         notes: "",
         slot: "you",
+        userId: youUserId ?? null,
         hidden: false,
         ownerUserId: null,
         createdAt: nowIso(),
       },
       ...next,
     ];
-  } else if (youRow.name !== you) {
-    next = next.map((row) => (row.slot === "you" ? { ...row, name: you } : row));
   }
-  const themNow = next.find((row) => row.slot === "them");
+  const themNow =
+    next.find((row) => !row.hidden && themUserId && row.userId === themUserId) ??
+    next.find((row) => !row.hidden && row.slot === "them");
   if (!themNow) {
     const youIndex = next.findIndex((row) => row.slot === "you");
     const insertAt = youIndex >= 0 ? youIndex + 1 : 0;
@@ -252,14 +336,13 @@ export function ensureCouplePeople(
         emoji: "💛",
         notes: "",
         slot: "them",
+        userId: themUserId ?? null,
         hidden: false,
         ownerUserId: null,
         createdAt: nowIso(),
       },
       ...next.slice(insertAt),
     ];
-  } else if (themNow.name !== them) {
-    next = next.map((row) => (row.slot === "them" ? { ...row, name: them } : row));
   }
   return next;
 }
@@ -287,6 +370,7 @@ export function addGiftPerson(
       emoji: input.emoji?.trim() || (hidden ? "🔒" : defaultEmoji(input.kind)),
       notes: input.notes?.trim() ?? "",
       slot: null,
+      userId: null,
       hidden,
       ownerUserId: hidden ? input.ownerUserId ?? null : null,
       createdAt: nowIso(),
@@ -318,6 +402,7 @@ export function addGiftItem(
     occasion?: GiftOccasionId;
     year?: number;
     status?: "open" | "bought" | "given";
+    price?: string;
     dateKey?: string | null;
   }
 ): GiftItem[] {
@@ -331,6 +416,7 @@ export function addGiftItem(
     status === "open" &&
     items.some(
       (row) =>
+        liveGiftItem(row) &&
         row.status === "open" &&
         row.personId === input.personId &&
         row.lane === input.lane &&
@@ -351,9 +437,11 @@ export function addGiftItem(
       occasion: input.occasion ?? "just-because",
       year,
       status,
+      price: (input.price ?? "").trim(),
       dateKey: input.dateKey ?? null,
       createdAt: stamp,
       updatedAt: stamp,
+      deletedAt: null,
     },
   ];
 }
@@ -363,18 +451,37 @@ function giftTitleKey(title: string): string {
 }
 
 export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
-  const target = items.find((row) => row.id === itemId);
+  const target = items.find((row) => row.id === itemId && liveGiftItem(row));
   if (!target || target.status !== "open") return items;
   const stamp = nowIso();
   const titleKey = giftTitleKey(target.title);
   return items.map((row) => {
-    if (row.status !== "open") return row;
+    if (!liveGiftItem(row) || row.status !== "open") return row;
     const same =
       row.id === itemId ||
       (row.personId === target.personId &&
         row.lane === target.lane &&
         giftTitleKey(row.title) === titleKey);
     return same ? { ...row, status: "bought" as const, updatedAt: stamp } : row;
+  });
+}
+
+export function updateGiftItem(
+  items: GiftItem[],
+  itemId: string,
+  patch: { title?: string; price?: string; notes?: string }
+): GiftItem[] {
+  const title = patch.title?.trim();
+  const stamp = nowIso();
+  return items.map((row) => {
+    if (row.id !== itemId || !liveGiftItem(row)) return row;
+    return {
+      ...row,
+      title: title || row.title,
+      price: patch.price !== undefined ? patch.price.trim() : row.price,
+      notes: patch.notes !== undefined ? patch.notes : row.notes,
+      updatedAt: stamp,
+    };
   });
 }
 
@@ -407,7 +514,17 @@ export function markGiftGiven(
 }
 
 export function removeGiftItem(items: GiftItem[], itemId: string): GiftItem[] {
-  return items.filter((row) => row.id !== itemId);
+  const target = items.find((row) => row.id === itemId);
+  if (!target) return items;
+  const stamp = nowIso();
+  const titleKey = giftTitleKey(target.title);
+  return items.map((row) => {
+    if (row.deletedAt) return row;
+    const same =
+      row.id === itemId ||
+      (row.personId === target.personId && giftTitleKey(row.title) === titleKey);
+    return same ? { ...row, deletedAt: stamp, updatedAt: stamp } : row;
+  });
 }
 
 export function visibleGiftPeople(
@@ -526,6 +643,7 @@ export function ensurePrivatePerson(
     emoji: "🔒",
     notes: "Hide from your partner.",
     slot: null,
+    userId: null,
     hidden: true,
     ownerUserId: userId,
     createdAt: nowIso(),
@@ -582,6 +700,7 @@ export function hydrateGiftPerson(raw: unknown): GiftPerson | null {
     emoji: typeof row.emoji === "string" && row.emoji.trim() ? row.emoji.trim() : defaultEmoji(kind),
     notes: typeof row.notes === "string" ? row.notes : "",
     slot,
+    userId: typeof row.userId === "string" && row.userId ? row.userId : null,
     hidden: Boolean(row.hidden),
     ownerUserId:
       typeof row.ownerUserId === "string" && row.ownerUserId ? row.ownerUserId : null,
@@ -611,6 +730,7 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
     year,
     status:
       row.status === "given" ? "given" : row.status === "bought" ? "bought" : "open",
+    price: typeof row.price === "string" ? row.price : "",
     dateKey:
       typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
         ? row.dateKey
@@ -622,11 +742,13 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
         : typeof row.createdAt === "string" && row.createdAt
           ? row.createdAt
           : "",
+    deletedAt:
+      typeof row.deletedAt === "string" && row.deletedAt ? row.deletedAt : null,
   };
 }
 
 export function giftStamp(row: GiftItem): string {
-  return row.updatedAt || row.createdAt || "";
+  return row.updatedAt || row.deletedAt || row.createdAt || "";
 }
 
 function giftProgress(row: GiftItem): number {
@@ -635,39 +757,69 @@ function giftProgress(row: GiftItem): number {
   return 0;
 }
 
-/** Bought/given always beats open — a tick must not bounce back onto the pad. */
+/** A delete or bought/given tick beats the still-open copy. */
 export function preferGiftItem(local: GiftItem, remote: GiftItem): GiftItem {
+  const localDel = Boolean(local.deletedAt);
+  const remoteDel = Boolean(remote.deletedAt);
+  const localAt = giftStamp(local);
+  const remoteAt = giftStamp(remote);
+  if (localDel !== remoteDel) {
+    if (localDel && localAt >= remoteAt) return local;
+    if (remoteDel && remoteAt >= localAt) return remote;
+    return localDel ? remote : local;
+  }
+  if (localDel && remoteDel) return remoteAt >= localAt ? remote : local;
   const localProgress = giftProgress(local);
   const remoteProgress = giftProgress(remote);
   if (localProgress !== remoteProgress) {
     return remoteProgress > localProgress ? remote : local;
   }
-  const localStamp = giftStamp(local);
-  const remoteStamp = giftStamp(remote);
-  return remoteStamp >= localStamp ? remote : local;
+  return remoteAt >= localAt ? remote : local;
 }
 
+function personIdentityKey(row: GiftPerson): string {
+  if (row.hidden) return `secret:${row.ownerUserId || row.id}`;
+  if (row.userId) return `user:${row.userId}`;
+  const name = row.name.trim().toLowerCase();
+  if (row.slot || row.kind === "you" || row.kind === "them") return `couple:${name}`;
+  return `${row.kind}:${name}`;
+}
+
+function preferGiftPerson(keeper: GiftPerson, other: GiftPerson): GiftPerson {
+  const name =
+    isPlaceholderName(keeper.name) && !isPlaceholderName(other.name)
+      ? other.name
+      : keeper.name;
+  return {
+    ...keeper,
+    name,
+    userId: keeper.userId || other.userId,
+    notes: keeper.notes || other.notes,
+    emoji: keeper.emoji || other.emoji,
+  };
+}
+
+/** Merge Alana-on-this-phone with Alana-on-theirs, never you-with-you. */
 export function collapseGiftPeople(
   people: GiftPerson[],
   items: GiftItem[]
 ): { people: GiftPerson[]; items: GiftItem[] } {
   const remap = new Map<string, string>();
-  const keep: GiftPerson[] = [];
-  const slotKeep = new Map<GiftPersonSlot, GiftPerson>();
+  const keep = new Map<string, GiftPerson>();
   for (const row of people) {
-    if (row.slot) {
-      const prev = slotKeep.get(row.slot);
-      if (prev) {
-        remap.set(row.id, prev.id);
-        continue;
-      }
-      slotKeep.set(row.slot, row);
+    const key = personIdentityKey(row);
+    const prev = keep.get(key);
+    if (!prev) {
+      keep.set(key, row);
+      continue;
     }
-    keep.push(row);
+    remap.set(row.id, prev.id);
+    keep.set(key, preferGiftPerson(prev, row));
   }
-  if (remap.size === 0) return { people: keep, items };
+  const nextPeople = [...keep.values()];
+  if (remap.size === 0) return { people: nextPeople, items };
   return {
-    people: keep,
+    people: nextPeople,
     items: items.map((row) => {
       const personId = remap.get(row.personId);
       return personId ? { ...row, personId } : row;

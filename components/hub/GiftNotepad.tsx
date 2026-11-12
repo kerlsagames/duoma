@@ -1,5 +1,5 @@
 import { GIFTS_TONE as T, HANDWRITING, SERIF } from "@/lib/app-themes";
-import { formatGiftDate, occasionMeta, type GiftItem } from "@/lib/gifts";
+import { formatGiftDate, formatGiftPrice, occasionMeta, type GiftItem } from "@/lib/gifts";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -12,22 +12,43 @@ export function GiftNotepad({
   onAdd,
   onToggle,
   onRemove,
+  onEdit,
   onSecret,
 }: {
   items: GiftItem[];
   empty: string;
-  onAdd: (title: string) => void;
+  onAdd: (title: string, price?: string) => void;
   onToggle: (item: GiftItem) => void;
   onRemove: (id: string) => void;
+  onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
   onSecret?: (item: GiftItem) => void;
 }) {
   const [draft, setDraft] = useState("");
+  const [draftPrice, setDraftPrice] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPrice, setEditPrice] = useState("");
 
   const submit = () => {
     const title = draft.trim();
     if (!title) return;
-    onAdd(title);
+    onAdd(title, draftPrice.trim());
     setDraft("");
+    setDraftPrice("");
+  };
+
+  const startEdit = (item: GiftItem) => {
+    if (!onEdit) return;
+    setEditingId(item.id);
+    setEditTitle(item.title);
+    setEditPrice(item.price);
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !onEdit) return;
+    const item = items.find((row) => row.id === editingId);
+    if (item) onEdit(item, { title: editTitle, price: editPrice });
+    setEditingId(null);
   };
 
   return (
@@ -83,21 +104,69 @@ export function GiftNotepad({
                 borderColor: T.ribbon,
               }}
             />
-            <Text
-              style={{
-                flex: 1,
-                fontFamily: HANDWRITING,
-                fontSize: 20,
-                color: T.paperInk,
-              }}
-              numberOfLines={1}
-            >
-              {item.title}
-              {item.notes ? `  · ${item.notes}` : ""}
-            </Text>
-            <Text style={{ fontSize: 10, color: T.paperMuted }}>
-              {occasionMeta(item.occasion).short}
-            </Text>
+            {editingId === item.id ? (
+              <>
+                <TextInput
+                  value={editTitle}
+                  onChangeText={setEditTitle}
+                  onSubmitEditing={saveEdit}
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    height: LINE - 4,
+                    fontFamily: HANDWRITING,
+                    fontSize: 20,
+                    color: T.paperInk,
+                    padding: 0,
+                  }}
+                />
+                <TextInput
+                  value={editPrice}
+                  onChangeText={setEditPrice}
+                  onSubmitEditing={saveEdit}
+                  placeholder="$"
+                  placeholderTextColor="rgba(42,28,18,0.32)"
+                  keyboardType="numeric"
+                  style={{
+                    width: 64,
+                    height: LINE - 4,
+                    fontFamily: SERIF,
+                    fontSize: 14,
+                    color: T.paperInk,
+                    textAlign: "right",
+                    padding: 0,
+                  }}
+                />
+                <Pressable onPress={saveEdit} hitSlop={6}>
+                  <Text style={{ fontSize: 11, fontWeight: "800", color: T.ribbon }}>
+                    Save
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Pressable
+                  onPress={() => startEdit(item)}
+                  style={{ flex: 1, justifyContent: "center", minHeight: LINE - 8 }}
+                  accessibilityLabel={`Edit ${item.title}`}
+                >
+                  <Text
+                    style={{
+                      fontFamily: HANDWRITING,
+                      fontSize: 20,
+                      color: T.paperInk,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {item.title}
+                    {item.notes ? `  · ${item.notes}` : ""}
+                  </Text>
+                </Pressable>
+                <Text style={{ fontSize: 12, color: T.paperMuted, minWidth: 36, textAlign: "right" }}>
+                  {formatGiftPrice(item.price)}
+                </Text>
+              </>
+            )}
             {onSecret ? (
               <Pressable
                 onPress={() => onSecret(item)}
@@ -137,6 +206,23 @@ export function GiftNotepad({
             fontFamily: HANDWRITING,
             fontSize: 20,
             color: T.paperInk,
+          }}
+        />
+        <TextInput
+          value={draftPrice}
+          onChangeText={setDraftPrice}
+          onSubmitEditing={submit}
+          placeholder="Price"
+          placeholderTextColor="rgba(42,28,18,0.32)"
+          keyboardType="numeric"
+          returnKeyType="done"
+          style={{
+            width: 64,
+            height: LINE,
+            fontFamily: SERIF,
+            fontSize: 14,
+            color: T.paperInk,
+            textAlign: "right",
           }}
         />
       </View>
@@ -289,6 +375,11 @@ export function BoughtList({
             >
               {item.title}
             </Text>
+            {formatGiftPrice(item.price) ? (
+              <Text style={{ fontSize: 12, color: T.paperMuted }}>
+                {formatGiftPrice(item.price)}
+              </Text>
+            ) : null}
             <Pressable
               onPress={() => onRemove(item.id)}
               hitSlop={6}

@@ -29,8 +29,10 @@ import {
   markGiftGiven,
   occasionMeta,
   openItems,
+  formatGiftPrice,
   removeGiftItem,
   removeGiftPerson,
+  updateGiftItem,
   type GiftItem,
   type GiftLane,
   type GiftOccasionId,
@@ -63,7 +65,9 @@ export default function GiftPersonScreen() {
   const [lane, setLane] = useState<GiftLane>("shop");
   const [addDest, setAddDest] = useState<AddDest>("wish");
   const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
   const [notes, setNotes] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
   const [occasion, setOccasion] = useState<GiftOccasionId>("christmas");
   const [year, setYear] = useState(currentGiftYear());
   const [giveId, setGiveId] = useState<string | null>(null);
@@ -106,10 +110,26 @@ export default function GiftPersonScreen() {
   const resetAdd = () => {
     setSheet(null);
     setTitle("");
+    setPrice("");
     setNotes("");
+    setEditId(null);
     setOccasion("christmas");
     setYear(currentGiftYear());
     setError(null);
+  };
+
+  const openEdit = (item: GiftItem) => {
+    setEditId(item.id);
+    setTitle(item.title);
+    setPrice(item.price);
+    setNotes(item.notes);
+    setAddDest(
+      item.status === "bought" ? "bought" : item.lane === "wish" ? "wish" : "shop"
+    );
+    setLane(item.lane);
+    setOccasion(item.occasion);
+    setError(null);
+    setSheet("add");
   };
 
   const openAdd = (next: AddDest) => {
@@ -134,16 +154,19 @@ export default function GiftPersonScreen() {
     setError(null);
     await patch((state) => ({
       ...state,
-      giftItems: addGiftItem(state.giftItems, {
-        personId: person.id,
-        title,
-        notes,
-        lane: addDest === "wish" ? "wish" : "shop",
-        occasion,
-        year: parsedYear,
-        status: addDest === "given" ? "given" : addDest === "bought" ? "bought" : "open",
-        dateKey: addDest === "given" ? localDateKey() : null,
-      }),
+      giftItems: editId
+        ? updateGiftItem(state.giftItems, editId, { title, price, notes })
+        : addGiftItem(state.giftItems, {
+            personId: person.id,
+            title,
+            notes,
+            price,
+            lane: addDest === "wish" ? "wish" : "shop",
+            occasion,
+            year: parsedYear,
+            status: addDest === "given" ? "given" : addDest === "bought" ? "bought" : "open",
+            dateKey: addDest === "given" ? localDateKey() : null,
+          }),
     }));
     resetAdd();
   };
@@ -196,6 +219,7 @@ export default function GiftPersonScreen() {
           personId: ensured.person.id,
           title: item.title,
           notes: item.notes,
+          price: item.price,
           lane: "shop",
           occasion: item.occasion,
           year: item.year,
@@ -317,16 +341,23 @@ export default function GiftPersonScreen() {
             <GiftNotepad
               items={allOpenItems(data.giftItems, person.id)}
               empty="Write a gift. Tick the box when you’ve bought it."
-              onAdd={(title) => {
+              onAdd={(nextTitle, nextPrice) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId: person.id,
-                    title,
+                    title: nextTitle,
+                    price: nextPrice,
                     lane: person.slot === "you" ? "wish" : "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
                   }),
+                }));
+              }}
+              onEdit={(item, next) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: updateGiftItem(state.giftItems, item.id, next),
                 }));
               }}
               onToggle={(item) => {
@@ -398,6 +429,7 @@ export default function GiftPersonScreen() {
                 : undefined
             }
             onRemove={setRemoveItemId}
+            onEdit={openEdit}
           />
 
           <ListBlock
@@ -418,6 +450,7 @@ export default function GiftPersonScreen() {
               setSheet("give");
             }}
             onRemove={setRemoveItemId}
+            onEdit={openEdit}
           />
           <ListBlock
             kicker="Bought"
@@ -437,6 +470,7 @@ export default function GiftPersonScreen() {
               setSheet("give");
             }}
             onRemove={setRemoveItemId}
+            onEdit={openEdit}
           />
             </>
           )}
@@ -629,6 +663,15 @@ export default function GiftPersonScreen() {
               lane === "wish" ? "Noise-cancelling headphones…" : "Red bottle of wine…"
             }
             placeholderTextColor={T.dim}
+            style={field}
+          />
+          <Text style={[label, { marginTop: 14 }]}>Price (optional)</Text>
+          <TextInput
+            value={price}
+            onChangeText={setPrice}
+            placeholder="$45"
+            placeholderTextColor={T.dim}
+            keyboardType="numeric"
             style={field}
           />
           <Text style={[label, { marginTop: 14 }]}>Note (optional)</Text>
@@ -860,6 +903,7 @@ function ListBlock({
   onGive,
   onSecret,
   onRemove,
+  onEdit,
 }: {
   kicker: string;
   title: string;
@@ -871,6 +915,7 @@ function ListBlock({
   onGive: (item: GiftItem) => void;
   onSecret?: (item: GiftItem) => void;
   onRemove: (id: string) => void;
+  onEdit?: (item: GiftItem) => void;
 }) {
   return (
     <View style={{ marginTop: 14 }}>
@@ -940,7 +985,11 @@ function ListBlock({
                 minHeight: 34,
               }}
             >
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Pressable
+                onPress={() => onEdit?.(item)}
+                disabled={!onEdit}
+                style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
                 <Text
                   style={{
                     flex: 1,
@@ -953,9 +1002,9 @@ function ListBlock({
                   {item.title}
                 </Text>
                 <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
-                  {occasionMeta(item.occasion).short}
+                  {formatGiftPrice(item.price)}
                 </Text>
-              </View>
+              </Pressable>
               <Pressable onPress={() => onGive(item)} hitSlop={6}>
                 <Text style={{ color: T.gold, fontWeight: "800", fontSize: 11 }}>Given</Text>
               </Pressable>
