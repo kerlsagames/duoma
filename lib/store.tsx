@@ -47,7 +47,7 @@ import { pokeAppMeta, POKE_COOLDOWN_MS, latestPokeAt } from "@/lib/partner-poke"
 import { chickenDareById, chickenPackById, type ChickenPackId } from "@/lib/chicken";
 import { asCalendarRepeat } from "@/lib/calendar-repeat";
 import { normalizeAffects } from "@/lib/calendar-people";
-import { pruneStaleErrands } from "@/lib/errands";
+import { collapseErrandDuplicates, errandLabelKey, pruneStaleErrands } from "@/lib/errands";
 import { createId, createInviteCode, nowIso } from "@/lib/ids";
 import { daysUntil, formatLongDate, localDateKey } from "@/lib/dates";
 import {
@@ -1639,7 +1639,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const errandItems = useMemo(
     () =>
       pruneStaleErrands(
-        db.errandItems.filter((row) => row.coupleId === couple?.id)
+        collapseErrandDuplicates(
+          db.errandItems.filter((row) => row.coupleId === couple?.id)
+        )
       ).sort((a, b) => {
           const aDone = a.doneAt ? 1 : 0;
           const bDone = b.doneAt ? 1 : 0;
@@ -6108,6 +6110,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user || !couple) throw new Error("Pair up first.");
       const title = input.title.trim();
       if (!title) throw new Error("Add an item.");
+      const key = errandLabelKey(title);
+      const existing = db.errandItems.find(
+        (row) =>
+          row.coupleId === couple.id &&
+          row.kind === input.kind &&
+          !row.doneAt &&
+          errandLabelKey(row.title) === key
+      );
+      if (existing) return existing;
       const stamp = nowIso();
       const row: ErrandItem = {
         id: createId(),
@@ -6131,15 +6142,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const toggleErrandDone = useCallback(
     async (id: string) => {
       if (!user) throw new Error("Sign in first.");
+      const target = db.errandItems.find((row) => row.id === id);
+      if (!target) return;
       const stamp = nowIso();
+      const key = errandLabelKey(target.title);
+      const markingDone = !target.doneAt;
       db = {
         ...db,
         errandItems: db.errandItems.map((row) => {
-          if (row.id !== id) return row;
-          if (row.doneAt) {
-            return { ...row, doneAt: null, doneBy: null, updatedAt: stamp };
+          const sameLine =
+            row.id === id ||
+            (row.coupleId === target.coupleId &&
+              row.kind === target.kind &&
+              errandLabelKey(row.title) === key);
+          if (!sameLine) return row;
+          if (markingDone) {
+            if (row.doneAt) return row;
+            return { ...row, doneAt: stamp, doneBy: user.id, updatedAt: stamp };
           }
-          return { ...row, doneAt: stamp, doneBy: user.id, updatedAt: stamp };
+          return { ...row, doneAt: null, doneBy: null, updatedAt: stamp };
         }),
       };
       await persist();
@@ -6173,10 +6194,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const pruneDoneErrands = useCallback(async () => {
-    const next = pruneStaleErrands(db.errandItems);
-    if (next.length === db.errandItems.length) return;
-    db = { ...db, errandItems: next };
-    await persist();
+    // Keep crossed-off rows in storage so a live merge cannot resurrect them
+    // as open. The pad already hides anything older than two hours.
   }, []);
 
   const spinMeal = useCallback(

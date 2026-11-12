@@ -325,6 +325,20 @@ export function addGiftItem(
   if (!title || !input.personId) return items;
   const year = input.year ?? currentGiftYear();
   const stamp = nowIso();
+  const status = input.status ?? "open";
+  const titleKey = giftTitleKey(title);
+  if (
+    status === "open" &&
+    items.some(
+      (row) =>
+        row.status === "open" &&
+        row.personId === input.personId &&
+        row.lane === input.lane &&
+        giftTitleKey(row.title) === titleKey
+    )
+  ) {
+    return items;
+  }
   return [
     ...items,
     {
@@ -336,7 +350,7 @@ export function addGiftItem(
       lane: input.lane,
       occasion: input.occasion ?? "just-because",
       year,
-      status: input.status ?? "open",
+      status,
       dateKey: input.dateKey ?? null,
       createdAt: stamp,
       updatedAt: stamp,
@@ -601,13 +615,13 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
       typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
         ? row.dateKey
         : null,
-    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
+    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : "",
     updatedAt:
       typeof row.updatedAt === "string" && row.updatedAt
         ? row.updatedAt
         : typeof row.createdAt === "string" && row.createdAt
           ? row.createdAt
-          : nowIso(),
+          : "",
   };
 }
 
@@ -621,14 +635,54 @@ function giftProgress(row: GiftItem): number {
   return 0;
 }
 
-/** A bought/given tick wins over the still-open copy with the same createdAt. */
+/** Bought/given always beats open — a tick must not bounce back onto the pad. */
 export function preferGiftItem(local: GiftItem, remote: GiftItem): GiftItem {
+  const localProgress = giftProgress(local);
+  const remoteProgress = giftProgress(remote);
+  if (localProgress !== remoteProgress) {
+    return remoteProgress > localProgress ? remote : local;
+  }
   const localStamp = giftStamp(local);
   const remoteStamp = giftStamp(remote);
-  if (localStamp !== remoteStamp) {
-    return remoteStamp > localStamp ? remote : local;
+  return remoteStamp >= localStamp ? remote : local;
+}
+
+export function collapseGiftPeople(
+  people: GiftPerson[],
+  items: GiftItem[]
+): { people: GiftPerson[]; items: GiftItem[] } {
+  const remap = new Map<string, string>();
+  const keep: GiftPerson[] = [];
+  const slotKeep = new Map<GiftPersonSlot, GiftPerson>();
+  for (const row of people) {
+    if (row.slot) {
+      const prev = slotKeep.get(row.slot);
+      if (prev) {
+        remap.set(row.id, prev.id);
+        continue;
+      }
+      slotKeep.set(row.slot, row);
+    }
+    keep.push(row);
   }
-  return giftProgress(remote) >= giftProgress(local) ? remote : local;
+  if (remap.size === 0) return { people: keep, items };
+  return {
+    people: keep,
+    items: items.map((row) => {
+      const personId = remap.get(row.personId);
+      return personId ? { ...row, personId } : row;
+    }),
+  };
+}
+
+export function collapseGiftItems(items: GiftItem[]): GiftItem[] {
+  const map = new Map<string, GiftItem>();
+  for (const row of items) {
+    const key = `${row.personId}:${row.lane}:${giftTitleKey(row.title)}`;
+    const prev = map.get(key);
+    map.set(key, prev ? preferGiftItem(prev, row) : row);
+  }
+  return [...map.values()];
 }
 
 export function mergeGiftItems(local: GiftItem[], remote: GiftItem[]): GiftItem[] {
@@ -638,7 +692,7 @@ export function mergeGiftItems(local: GiftItem[], remote: GiftItem[]): GiftItem[
     const prev = map.get(row.id);
     map.set(row.id, prev ? preferGiftItem(prev, row) : row);
   }
-  return [...map.values()];
+  return collapseGiftItems([...map.values()]);
 }
 
 export function hydrateGifts(rawPeople: unknown, rawItems: unknown): {

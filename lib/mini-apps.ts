@@ -187,24 +187,38 @@ export async function bindMiniAppsCouple(coupleId: string | null): Promise<MiniS
   return next;
 }
 
+let patchChain: Promise<unknown> = Promise.resolve();
+
 export async function patchMini(
   fn: (state: MiniState) => MiniState
 ): Promise<MiniState> {
-  const current = await loadMiniState();
-  const next = fn(current);
-  if (next === current) return current;
-  emit(next);
-  if (activeCoupleId === undefined) return next;
-  try {
-    await writeKey(storageKey(activeCoupleId), JSON.stringify(next));
-    const coupleId = activeCoupleId;
-    if (coupleId) {
+  const run = patchChain.then(async () => {
+    const current = await loadMiniState();
+    const next = fn(current);
+    if (next === current) return current;
+    emit(next);
+    if (activeCoupleId === undefined) return next;
+    try {
+      await writeKey(storageKey(activeCoupleId), JSON.stringify(next));
+    } catch {
+      // Keep the in-memory update even if disk fails.
+    }
+    return next;
+  });
+  patchChain = run.then(
+    () => undefined,
+    () => undefined
+  );
+  const next = await run;
+  const coupleId = activeCoupleId;
+  if (coupleId) {
+    try {
       const backup = await import("@/lib/couple-backup");
       await backup.scheduleFromMini(coupleId);
       await backup.flushCoupleBackup();
+    } catch {
+      // Local tick still sits in memory.
     }
-  } catch {
-    // Keep the in-memory update even if disk fails.
   }
   return next;
 }

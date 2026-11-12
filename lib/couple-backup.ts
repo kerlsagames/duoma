@@ -8,9 +8,10 @@ import { mergePeriodStates } from "@/lib/period";
 import { mergeSparkStates } from "@/lib/spark";
 import { mergeWorldChoices } from "@/lib/worlds";
 import { hydrateMiniState, type MiniState, type WhoLast } from "@/lib/mini-content";
-import { mergeGiftItems } from "@/lib/gifts";
+import { mergeErrandItems } from "@/lib/errands";
+import { collapseGiftItems, collapseGiftPeople, mergeGiftItems } from "@/lib/gifts";
 import { hydrateDb } from "@/lib/storage";
-import type { AppDB, GameSession, ListEntry } from "@/lib/types";
+import type { AppDB, ErrandItem, GameSession, ListEntry } from "@/lib/types";
 
 type CoupleSlice = Omit<AppDB, "profiles" | "couples" | "pushSubscriptions">;
 
@@ -423,6 +424,8 @@ export function mergeCoupleDb(db: AppDB, coupleId: string, slice: Partial<AppDB>
             (row) => row.id,
             preferListEntry
           )
+        : key === "errandItems"
+          ? mergeErrandItems(localRows as ErrandItem[], remoteRows as ErrandItem[])
         : mergeByKey(
             localRows,
             remoteRows,
@@ -453,8 +456,9 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
     ...Object.keys(remote).filter((key) => Array.isArray(remoteRecord[key])),
   ]);
   const keepOnPhone = new Set(["sexyVault", "audioNotes", "photos"]);
+  const typedArrays = new Set(["giftItems", "giftPeople"]);
   for (const key of arrayKeys) {
-    if (keepOnPhone.has(key)) continue;
+    if (keepOnPhone.has(key) || typedArrays.has(key)) continue;
     const localRows = (localRecord[key] as unknown[]) ?? [];
     const remoteRows = (remoteRecord[key] as unknown[]) ?? [];
     if (localRows.every((row) => typeof row === "string") && remoteRows.every((row) => typeof row === "string")) {
@@ -480,7 +484,16 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
   kept.period = mergePeriodStates(local.period, remote.period);
   kept.worldChoice = mergeWorldChoices(local.worldChoice, remote.worldChoice);
   kept.whoLast = mergeWhoLast(local.whoLast, remote.whoLast);
-  kept.giftItems = mergeGiftItems(local.giftItems ?? [], remote.giftItems ?? []);
+  const giftPeople = mergeByKey(
+    local.giftPeople ?? [],
+    remote.giftPeople ?? [],
+    (row) => row.id,
+    (row) => row.createdAt || ""
+  );
+  const giftItems = mergeGiftItems(local.giftItems ?? [], remote.giftItems ?? []);
+  const collapsed = collapseGiftPeople(giftPeople, giftItems);
+  kept.giftPeople = collapsed.people;
+  kept.giftItems = collapseGiftItems(collapsed.items);
   kept.sexyVault = local.sexyVault;
   kept.sexyVaultPin = local.sexyVaultPin || remote.sexyVaultPin;
   kept.audioNotes = local.audioNotes;
@@ -616,15 +629,20 @@ export async function pushCoupleState(coupleId: string, db: AppDB): Promise<void
     let mini = localMini;
     let working = db;
     if (remote) {
-      mini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
       const disk = await readLatestDb(db);
       working = mergeCoupleDb(disk, coupleId, remote.db);
-      working = mergeCoupleDb(working, coupleId, sliceCoupleDb(db, coupleId));
+      const latest = await readLatestDb(working);
+      working = mergeCoupleDb(working, coupleId, sliceCoupleDb(latest, coupleId));
       restoring = true;
       try {
-        if (!miniCloudEqual(localMini, mini)) {
-          await patchMini(() => mini);
-        }
+        await patchMini((current) => {
+          const mergedMini = mergeMiniStates(
+            current,
+            sanitizeMiniForCloud(remote.mini)
+          );
+          return miniCloudEqual(current, mergedMini) ? current : mergedMini;
+        });
+        mini = await loadMiniState();
       } finally {
         restoring = false;
       }
@@ -683,23 +701,30 @@ export async function absorbCoupleState(coupleId: string, db: AppDB): Promise<Ap
   try {
     const disk = await readLatestDb(db);
     const withRemote = mergeCoupleDb(disk, coupleId, remote.db);
-    const merged = mergeCoupleDb(withRemote, coupleId, sliceCoupleDb(db, coupleId));
-    const { loadMiniState, patchMini } = await import("@/lib/mini-apps");
-    const localMini = await loadMiniState();
-    const nextMini = mergeMiniStates(localMini, sanitizeMiniForCloud(remote.mini));
-    if (!miniCloudEqual(localMini, nextMini)) {
-      await patchMini(() => nextMini);
-    }
+    const latest = await readLatestDb(withRemote);
+    const merged = mergeCoupleDb(
+      withRemote,
+      coupleId,
+      sliceCoupleDb(latest, coupleId)
+    );
+    const { patchMini } = await import("@/lib/mini-apps");
+    await patchMini((current) => {
+      const nextMini = mergeMiniStates(current, sanitizeMiniForCloud(remote.mini));
+      return miniCloudEqual(current, nextMini) ? current : nextMini;
+    });
     return merged;
   } catch {
     return mergeCoupleDb(db, coupleId, remote.db);
   } finally {
     restoring = false;
+    const job = queued;
+    queued = null;
+    if (job) void pushCoupleState(job.coupleId, job.db);
   }
 }
 
 export async function scheduleFromMini(coupleId: string | null) {
-  if (!coupleId || restoring) return;
+  if (!coupleId) return;
   const { readDb } = await import("@/lib/storage");
   const db = await readDb();
   scheduleCoupleBackup(coupleId, db);
