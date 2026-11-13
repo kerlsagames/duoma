@@ -1,8 +1,17 @@
 import { GIFTS_TONE as T, HANDWRITING, SERIF } from "@/lib/app-themes";
 import { formatGiftDate, formatGiftPrice, occasionMeta, type GiftItem } from "@/lib/gifts";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  PanResponder,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  type GestureResponderEvent,
+  type PanResponderGestureState,
+} from "react-native";
 
 const LINE = 40;
 
@@ -92,6 +101,15 @@ export function PriceBox({
   );
 }
 
+function moveGiftRow(list: GiftItem[], from: number, to: number): GiftItem[] {
+  if (from === to || from < 0 || to < 0 || to >= list.length) return list;
+  const next = list.slice();
+  const [row] = next.splice(from, 1);
+  if (!row) return list;
+  next.splice(to, 0, row);
+  return next;
+}
+
 const NAME_COL = 108;
 const writeStyle = {
   height: LINE - 8,
@@ -113,6 +131,7 @@ export function GiftNotepad({
   people,
   oneOff = false,
   hideCosts = false,
+  onReorder,
 }: {
   items: GiftItem[];
   empty: string;
@@ -125,6 +144,7 @@ export function GiftNotepad({
   people?: { id: string; name: string }[];
   oneOff?: boolean;
   hideCosts?: boolean;
+  onReorder?: (orderedIds: string[]) => void;
 }) {
   const [draft, setDraft] = useState("");
   const [draftName, setDraftName] = useState("");
@@ -134,6 +154,76 @@ export function GiftNotepad({
   const [editTitle, setEditTitle] = useState("");
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [liveItems, setLiveItems] = useState(items);
+  const liveRef = useRef(items);
+  const itemsRef = useRef(items);
+  const dragFrom = useRef(0);
+  const startIdRef = useRef<string | null>(null);
+  const onReorderRef = useRef(onReorder);
+  onReorderRef.current = onReorder;
+  itemsRef.current = items;
+  liveRef.current = liveItems;
+
+  useEffect(() => {
+    if (!draggingId) setLiveItems(items);
+  }, [items, draggingId]);
+
+  const rows = draggingId ? liveItems : items;
+
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (
+          _event: GestureResponderEvent,
+          gesture: PanResponderGestureState
+        ) => Math.abs(gesture.dy) > 4,
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          const id = startIdRef.current;
+          const source = itemsRef.current;
+          if (!id) return;
+          setEditingId(null);
+          setDraggingId(id);
+          dragFrom.current = source.findIndex((row) => row.id === id);
+          liveRef.current = source;
+          setLiveItems(source);
+        },
+        onPanResponderMove: (
+          _event: GestureResponderEvent,
+          gesture: PanResponderGestureState
+        ) => {
+          const id = startIdRef.current;
+          if (!id) return;
+          const to = Math.max(
+            0,
+            Math.min(
+              liveRef.current.length - 1,
+              dragFrom.current + Math.round(gesture.dy / LINE)
+            )
+          );
+          const from = liveRef.current.findIndex((row) => row.id === id);
+          const next = moveGiftRow(liveRef.current, from, to);
+          liveRef.current = next;
+          setLiveItems(next);
+        },
+        onPanResponderRelease: () => {
+          const ordered = liveRef.current.map((row) => row.id);
+          startIdRef.current = null;
+          setDraggingId(null);
+          onReorderRef.current?.(ordered);
+        },
+        onPanResponderTerminate: () => {
+          startIdRef.current = null;
+          setDraggingId(null);
+          liveRef.current = itemsRef.current;
+          setLiveItems(itemsRef.current);
+        },
+      }),
+    []
+  );
 
   const submit = () => {
     const title = draft.trim();
@@ -172,7 +262,7 @@ export function GiftNotepad({
         marginTop: 14,
         backgroundColor: T.paper,
         borderRadius: 3,
-        overflow: "hidden",
+        overflow: draggingId ? "visible" : "hidden",
         borderWidth: 1,
         borderColor: "rgba(42,28,18,0.12)",
       }}
@@ -181,7 +271,7 @@ export function GiftNotepad({
         <View
           style={{
             minHeight: LINE * 2,
-            paddingLeft: 40,
+            paddingLeft: 52,
             paddingRight: 12,
             justifyContent: "center",
             borderBottomWidth: 1,
@@ -193,20 +283,53 @@ export function GiftNotepad({
           </Text>
         </View>
       ) : (
-        items.map((item) => (
+        rows.map((item) => (
           <View
             key={item.id}
             style={{
               minHeight: LINE,
-              paddingLeft: 12,
+              paddingLeft: 8,
               paddingRight: 8,
               borderBottomWidth: 1,
               borderBottomColor: "rgba(42,28,18,0.1)",
               flexDirection: "row",
               alignItems: "center",
               gap: 8,
+              backgroundColor: draggingId === item.id ? "rgba(212,164,90,0.18)" : T.paper,
+              zIndex: draggingId === item.id ? 2 : 0,
             }}
           >
+            <View
+              onTouchStart={() => {
+                startIdRef.current = item.id;
+              }}
+              onStartShouldSetResponderCapture={() => {
+                startIdRef.current = item.id;
+                return false;
+              }}
+              {...pan.panHandlers}
+              accessibilityLabel={`Reorder ${item.title}`}
+              accessibilityHint="Hold and drag to change the order"
+              style={[
+                {
+                  width: 22,
+                  height: 32,
+                  flexGrow: 0,
+                  flexShrink: 0,
+                  alignItems: "center",
+                  justifyContent: "center",
+                },
+                Platform.OS === "web"
+                  ? ({
+                      cursor: "grab",
+                      touchAction: "none",
+                      userSelect: "none",
+                    } as unknown as object)
+                  : null,
+              ]}
+            >
+              <Ionicons name="menu" size={18} color="rgba(42,28,18,0.42)" />
+            </View>
             <Pressable
               onPress={() => onToggle(item)}
               hitSlop={8}
@@ -425,6 +548,7 @@ export function GiftNotepad({
           borderBottomColor: "rgba(42,28,18,0.1)",
         }}
       >
+        <View style={{ width: 22, flexGrow: 0, flexShrink: 0 }} />
         <View
           style={{
             width: 18,

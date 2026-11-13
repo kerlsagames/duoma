@@ -7,6 +7,7 @@ import {
   ensureOtherPerson,
   giftPersonLabel,
   removeGiftPerson,
+  reorderGiftItems,
   swapCoupleGiftItems,
   type GiftItem,
   type GiftPerson,
@@ -37,6 +38,7 @@ function item(partial: Partial<GiftItem> & Pick<GiftItem, "id" | "personId" | "t
     status: "open",
     price: "",
     forName: "",
+    sortOrder: 0,
     dateKey: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -180,6 +182,17 @@ assert(
   afterAdd.people.some((row) => row.id === withOther.person.id) &&
     afterAdd.items[0]?.personId !== withOther.person.id
 );
+
+const shuffled = reorderGiftItems(
+  [
+    item({ id: "a", personId: "charlotte", title: "first", sortOrder: 1 }),
+    item({ id: "b", personId: "charlotte", title: "second", sortOrder: 2 }),
+    item({ id: "c", personId: "charlotte", title: "third", sortOrder: 3 }),
+  ],
+  ["c", "a", "b"]
+);
+assert("reorder puts third first", shuffled.find((row) => row.id === "c")?.sortOrder === 1);
+assert("reorder puts first second", shuffled.find((row) => row.id === "a")?.sortOrder === 2);
 
 if (failed) {
   console.error(`${failed} failed`);

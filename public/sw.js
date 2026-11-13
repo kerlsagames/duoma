@@ -1,4 +1,4 @@
-const SW_VERSION = "duoma-20261113-lock";
+const SW_VERSION = "duoma-20261113-drag";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

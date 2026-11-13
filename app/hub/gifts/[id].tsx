@@ -35,6 +35,7 @@ import {
   formatGiftPrice,
   removeGiftItem,
   removeGiftPerson,
+  reorderGiftItems,
   updateGiftItem,
   type GiftItem,
   type GiftLane,
@@ -410,6 +411,12 @@ export default function GiftPersonScreen() {
                 }));
               }}
               onRemove={setRemoveItemId}
+              onReorder={(orderedIds) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: reorderGiftItems(state.giftItems, orderedIds),
+                }));
+              }}
               onSecret={
                 person.slot === "them" && !person.hidden
                   ? (item) => void sendToPrivate(item)

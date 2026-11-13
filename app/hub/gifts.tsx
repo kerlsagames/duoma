@@ -42,6 +42,7 @@ import {
   personById,
   removeGiftItem,
   removeGiftPerson,
+  reorderGiftItems,
   updateGiftItem,
   OTHER_LIST_NAME,
   SECRET_LIST_NAME,
@@ -450,6 +451,12 @@ export default function GiftsScreen() {
                 setError(null);
                 setLogPersonId(personId);
                 setSheet("log");
+              }}
+              onReorder={(orderedIds) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: reorderGiftItems(state.giftItems, orderedIds),
+                }));
               }}
             />
           ) : (
@@ -1129,6 +1136,7 @@ function ClassicPad({
   onAddBought,
   onLogGift,
   hideCosts,
+  onReorder,
 }: {
   people: ReturnType<typeof visibleGiftPeople>;
   other: ReturnType<typeof otherListFor>;
@@ -1150,6 +1158,7 @@ function ClassicPad({
   onAddBought?: (personId: string, title: string, price?: string) => void;
   onLogGift?: (personId: string) => void;
   hideCosts?: boolean;
+  onReorder?: (orderedIds: string[]) => void;
 }) {
   const nameOf = useGiftPersonName();
   const catalog = [...people, other, secret].filter(
@@ -1298,6 +1307,7 @@ function ClassicPad({
           onEdit={onEdit}
           onMove={onMove}
           hideCosts={hideCosts}
+          onReorder={onReorder}
           people={people.map((person) => ({ id: person.id, name: nameOf(person) }))}
         />
         <BoughtList

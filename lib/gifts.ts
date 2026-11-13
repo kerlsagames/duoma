@@ -47,6 +47,8 @@ export type GiftItem = {
   price: string;
   /** Who a one-off Other-list gift is for. */
   forName: string;
+  /** Lower numbers sit higher on that person’s notepad. */
+  sortOrder: number;
   dateKey: string | null;
   createdAt: string;
   updatedAt: string;
@@ -193,6 +195,13 @@ export function formatGiftPrice(price: string | null | undefined): string {
   return `$${raw}`;
 }
 
+function compareGiftOrder(a: GiftItem, b: GiftItem): number {
+  const ao = a.sortOrder || 0;
+  const bo = b.sortOrder || 0;
+  if (ao !== bo) return ao - bo;
+  return a.createdAt.localeCompare(b.createdAt);
+}
+
 export function openItems(items: GiftItem[], personId: string, lane: GiftLane): GiftItem[] {
   return items
     .filter(
@@ -202,7 +211,7 @@ export function openItems(items: GiftItem[], personId: string, lane: GiftLane): 
         row.lane === lane &&
         row.status === "open"
     )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort(compareGiftOrder);
 }
 
 export function allOpenItems(items: GiftItem[], personId: string): GiftItem[] {
@@ -210,7 +219,20 @@ export function allOpenItems(items: GiftItem[], personId: string): GiftItem[] {
     .filter(
       (row) => liveGiftItem(row) && row.personId === personId && row.status === "open"
     )
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    .sort(compareGiftOrder);
+}
+
+export function reorderGiftItems(items: GiftItem[], orderedIds: string[]): GiftItem[] {
+  const stamp = nowIso();
+  const rank = new Map(orderedIds.map((id, index) => [id, index + 1]));
+  let changed = false;
+  const next = items.map((row) => {
+    const sortOrder = rank.get(row.id);
+    if (sortOrder === undefined || row.sortOrder === sortOrder) return row;
+    changed = true;
+    return { ...row, sortOrder, updatedAt: stamp };
+  });
+  return changed ? next : items;
 }
 
 export function boughtItems(items: GiftItem[], personId?: string): GiftItem[] {
@@ -535,6 +557,15 @@ export function addGiftItem(
   const stamp = nowIso();
   const status = input.status ?? "open";
   const titleKey = giftTitleKey(title);
+  const sortOrder =
+    items
+      .filter(
+        (row) =>
+          liveGiftItem(row) &&
+          row.personId === input.personId &&
+          row.status === status
+      )
+      .reduce((max, row) => Math.max(max, row.sortOrder || 0), 0) + 1;
   if (
     status === "open" &&
     items.some(
@@ -563,6 +594,7 @@ export function addGiftItem(
       status,
       price: (input.price ?? "").trim(),
       forName: (input.forName ?? "").trim(),
+      sortOrder,
       dateKey: input.dateKey ?? null,
       createdAt: stamp,
       updatedAt: stamp,
@@ -983,6 +1015,10 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
       row.status === "given" ? "given" : row.status === "bought" ? "bought" : "open",
     price: typeof row.price === "string" ? row.price : "",
     forName: typeof row.forName === "string" ? row.forName : "",
+    sortOrder:
+      typeof row.sortOrder === "number" && Number.isFinite(row.sortOrder)
+        ? row.sortOrder
+        : 0,
     dateKey:
       typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
         ? row.dateKey
