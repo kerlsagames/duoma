@@ -87,6 +87,15 @@ function PriceBox({
   );
 }
 
+const NAME_COL = 108;
+const writeStyle = {
+  height: LINE - 8,
+  fontFamily: HANDWRITING,
+  fontSize: 20,
+  color: T.paperInk,
+  padding: 0,
+} as const;
+
 export function GiftNotepad({
   items,
   empty,
@@ -97,28 +106,39 @@ export function GiftNotepad({
   onMove,
   onSecret,
   people,
+  oneOff = false,
 }: {
   items: GiftItem[];
   empty: string;
-  onAdd: (title: string, price?: string) => void;
+  onAdd: (title: string, price?: string, forName?: string) => void;
   onToggle: (item: GiftItem) => void;
   onRemove: (id: string) => void;
-  onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
+  onEdit?: (item: GiftItem, next: { title: string; price: string; forName?: string }) => void;
   onMove?: (item: GiftItem, personId: string) => void;
   onSecret?: (item: GiftItem) => void;
   people?: { id: string; name: string }[];
+  oneOff?: boolean;
 }) {
   const [draft, setDraft] = useState("");
+  const [draftName, setDraftName] = useState("");
   const [draftPrice, setDraftPrice] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
 
   const submit = () => {
     const title = draft.trim();
-    if (!title) return;
-    onAdd(title, draftPrice.trim());
+    const forName = draftName.trim();
+    if (oneOff) {
+      if (!title || !forName) return;
+      onAdd(title, draftPrice.trim(), forName);
+    } else {
+      if (!title) return;
+      onAdd(title, draftPrice.trim());
+    }
     setDraft("");
+    setDraftName("");
     setDraftPrice("");
   };
 
@@ -126,13 +146,14 @@ export function GiftNotepad({
     if (!onEdit) return;
     setEditingId(item.id);
     setEditTitle(item.title);
+    setEditName(item.forName);
     setEditPrice(item.price);
   };
 
   const saveEdit = () => {
     if (!editingId || !onEdit) return;
     const item = items.find((row) => row.id === editingId);
-    if (item) onEdit(item, { title: editTitle, price: editPrice });
+    if (item) onEdit(item, { title: editTitle, price: editPrice, forName: editName });
     setEditingId(null);
   };
 
@@ -192,19 +213,33 @@ export function GiftNotepad({
             {editingId === item.id ? (
               <View style={{ flex: 1, minWidth: 0, gap: 6, paddingVertical: 6 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  {oneOff ? (
+                    <TextInput
+                      value={editName}
+                      onChangeText={setEditName}
+                      onSubmitEditing={saveEdit}
+                      autoFocus
+                      placeholder="Who?"
+                      placeholderTextColor="rgba(42,28,18,0.32)"
+                      style={{
+                        ...writeStyle,
+                        width: NAME_COL,
+                        flexGrow: 0,
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : null}
                   <TextInput
                     value={editTitle}
                     onChangeText={setEditTitle}
                     onSubmitEditing={saveEdit}
-                    autoFocus
+                    autoFocus={!oneOff}
+                    placeholder={oneOff ? "Present" : undefined}
+                    placeholderTextColor="rgba(42,28,18,0.32)"
                     style={{
+                      ...writeStyle,
                       flex: 1,
                       minWidth: 0,
-                      height: LINE - 8,
-                      fontFamily: HANDWRITING,
-                      fontSize: 20,
-                      color: T.paperInk,
-                      padding: 0,
                     }}
                   />
                   <PriceBox
@@ -213,7 +248,7 @@ export function GiftNotepad({
                     onSubmit={saveEdit}
                     editable
                   />
-                  <Pressable onPress={saveEdit} hitSlop={6}>
+                  <Pressable onPress={saveEdit} hitSlop={6} style={{ flexShrink: 0 }}>
                     <Text style={{ fontSize: 12, fontWeight: "800", color: T.ribbon }}>
                       Save
                     </Text>
@@ -256,6 +291,30 @@ export function GiftNotepad({
               </View>
             ) : (
               <>
+                {oneOff ? (
+                  <Pressable
+                    onPress={() => startEdit(item)}
+                    style={{
+                      width: NAME_COL,
+                      flexGrow: 0,
+                      flexShrink: 0,
+                      justifyContent: "center",
+                      minHeight: LINE - 8,
+                    }}
+                    accessibilityLabel={`Edit ${item.forName || "name"}`}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: HANDWRITING,
+                        fontSize: 20,
+                        color: T.paperInk,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {item.forName || " "}
+                    </Text>
+                  </Pressable>
+                ) : null}
                 <Pressable
                   onPress={() => startEdit(item)}
                   style={{ flex: 1, minWidth: 0, justifyContent: "center", minHeight: LINE - 8 }}
@@ -270,7 +329,7 @@ export function GiftNotepad({
                     numberOfLines={1}
                   >
                     {item.title}
-                    {item.notes ? `  · ${item.notes}` : ""}
+                    {!oneOff && item.notes ? `  · ${item.notes}` : ""}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -300,7 +359,7 @@ export function GiftNotepad({
       <View
         style={{
           minHeight: LINE,
-          paddingLeft: 40,
+          paddingLeft: oneOff ? 12 : 40,
           paddingRight: 10,
           flexDirection: "row",
           alignItems: "center",
@@ -309,20 +368,38 @@ export function GiftNotepad({
           borderBottomColor: "rgba(42,28,18,0.1)",
         }}
       >
+        {oneOff ? (
+          <>
+            <View style={{ width: 18, flexShrink: 0 }} />
+            <TextInput
+              value={draftName}
+              onChangeText={setDraftName}
+              onSubmitEditing={submit}
+              placeholder="Who?"
+              placeholderTextColor="rgba(42,28,18,0.32)"
+              returnKeyType="next"
+              style={{
+                ...writeStyle,
+                width: NAME_COL,
+                flexGrow: 0,
+                flexShrink: 0,
+                height: LINE,
+              }}
+            />
+          </>
+        ) : null}
         <TextInput
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={submit}
-          placeholder="Write a gift…"
+          placeholder={oneOff ? "Present" : "Write a gift…"}
           placeholderTextColor="rgba(42,28,18,0.32)"
           returnKeyType="done"
           style={{
+            ...writeStyle,
             flex: 1,
             minWidth: 0,
             height: LINE,
-            fontFamily: HANDWRITING,
-            fontSize: 20,
-            color: T.paperInk,
           }}
         />
         <PriceBox
@@ -479,7 +556,7 @@ export function BoughtList({
               }}
               numberOfLines={1}
             >
-              {item.title}
+              {item.forName ? `${item.forName}  ·  ${item.title}` : item.title}
             </Text>
             {formatGiftPrice(item.price) ? (
               <Text
@@ -631,7 +708,7 @@ export function GiftBookList({
               }}
               numberOfLines={1}
             >
-              {item.title}
+              {item.forName ? `${item.forName}  ·  ${item.title}` : item.title}
             </Text>
             <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
               {occasionMeta(item.occasion).short}

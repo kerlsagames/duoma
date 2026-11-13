@@ -77,8 +77,8 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-export const DUOMA_BUILD = "13 Nov price";
-const SW_FILE = "/sw.js?v=20261113-price";
+export const DUOMA_BUILD = "13 Nov other";
+const SW_FILE = "/sw.js?v=20261113-other";
 let swReloadArmed = false;
 let swListenersBound = false;
 
@@ -102,7 +102,7 @@ export async function reloadLatestBuild() {
     // Still reload.
   }
   const url = new URL(window.location.href);
-  url.searchParams.set("v", "20261113-price");
+  url.searchParams.set("v", "20261113-other");
   window.location.replace(url.toString());
 }
 

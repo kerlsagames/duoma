@@ -20,6 +20,7 @@ import {
   canRemoveGiftPerson,
   currentGiftYear,
   ensurePrivatePerson,
+  isOtherList,
   formatGiftDate,
   giftPersonLabel,
   giftYearChoices,
@@ -236,6 +237,7 @@ export default function GiftPersonScreen() {
           title: item.title,
           notes: item.notes,
           price: item.price,
+          forName: item.forName,
           lane: "shop",
           occasion: item.occasion,
           year: item.year,
@@ -356,14 +358,20 @@ export default function GiftPersonScreen() {
             <>
             <GiftNotepad
               items={allOpenItems(data.giftItems, person.id)}
-              empty="Write a gift. Tick the box when you’ve bought it."
-              onAdd={(nextTitle, nextPrice) => {
+              oneOff={isOtherList(person)}
+              empty={
+                isOtherList(person)
+                  ? "Name on the left, present on the right. For one-off gifts."
+                  : "Write a gift. Tick the box when you’ve bought it."
+              }
+              onAdd={(nextTitle, nextPrice, forName) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId: person.id,
                     title: nextTitle,
                     price: nextPrice,
+                    forName,
                     lane: person.slot === "you" ? "wish" : "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
@@ -1030,7 +1038,7 @@ function ListBlock({
                   }}
                   numberOfLines={1}
                 >
-                  {item.title}
+                  {item.forName ? `${item.forName}  ·  ${item.title}` : item.title}
                 </Text>
                 <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
                   {formatGiftPrice(item.price)}

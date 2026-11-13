@@ -45,6 +45,8 @@ export type GiftItem = {
   year: number;
   status: "open" | "bought" | "given";
   price: string;
+  /** Who a one-off Other-list gift is for. */
+  forName: string;
   dateKey: string | null;
   createdAt: string;
   updatedAt: string;
@@ -173,6 +175,7 @@ export function canRemoveGiftPerson(
   themName?: string | null
 ): boolean {
   if (row.hidden) return false;
+  if (isOtherList(row)) return false;
   if (youUserId && row.userId === youUserId) return false;
   if (themUserId && row.userId === themUserId) return false;
   const you = youName?.trim() ?? "";
@@ -491,6 +494,7 @@ export function removeGiftPerson(
 ): { people: GiftPerson[]; items: GiftItem[] } {
   const row = people.find((person) => person.id === personId);
   if (!row || !liveGiftPerson(row)) return { people, items };
+  if (isOtherList(row)) return { people, items };
   if (row.slot && isCouplePerson(row) && (row.userId || isPlaceholderName(row.name))) {
     return { people, items };
   }
@@ -516,6 +520,7 @@ export function addGiftItem(
     title: string;
     notes?: string;
     from?: string;
+    forName?: string;
     lane: GiftLane;
     occasion?: GiftOccasionId;
     year?: number;
@@ -538,7 +543,8 @@ export function addGiftItem(
         row.status === "open" &&
         row.personId === input.personId &&
         row.lane === input.lane &&
-        giftTitleKey(row.title) === titleKey
+        giftTitleKey(row.title) === titleKey &&
+        giftTitleKey(row.forName) === giftTitleKey(input.forName ?? "")
     )
   ) {
     return items;
@@ -556,6 +562,7 @@ export function addGiftItem(
       year,
       status,
       price: (input.price ?? "").trim(),
+      forName: (input.forName ?? "").trim(),
       dateKey: input.dateKey ?? null,
       createdAt: stamp,
       updatedAt: stamp,
@@ -579,7 +586,8 @@ export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
       row.id === itemId ||
       (row.personId === target.personId &&
         row.lane === target.lane &&
-        giftTitleKey(row.title) === titleKey);
+        giftTitleKey(row.title) === titleKey &&
+        giftTitleKey(row.forName) === giftTitleKey(target.forName));
     return same ? { ...row, status: "bought" as const, updatedAt: stamp } : row;
   });
 }
@@ -587,7 +595,7 @@ export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
 export function updateGiftItem(
   items: GiftItem[],
   itemId: string,
-  patch: { title?: string; price?: string; notes?: string; personId?: string }
+  patch: { title?: string; price?: string; notes?: string; personId?: string; forName?: string }
 ): GiftItem[] {
   const title = patch.title?.trim();
   const stamp = nowIso();
@@ -599,6 +607,7 @@ export function updateGiftItem(
       price: patch.price !== undefined ? patch.price.trim() : row.price,
       notes: patch.notes !== undefined ? patch.notes : row.notes,
       personId: patch.personId || row.personId,
+      forName: patch.forName !== undefined ? patch.forName.trim() : row.forName,
       updatedAt: stamp,
     };
   });
@@ -666,7 +675,9 @@ export function removeGiftItem(items: GiftItem[], itemId: string): GiftItem[] {
     if (row.deletedAt) return row;
     const same =
       row.id === itemId ||
-      (row.personId === target.personId && giftTitleKey(row.title) === titleKey);
+      (row.personId === target.personId &&
+        giftTitleKey(row.title) === titleKey &&
+        giftTitleKey(row.forName) === giftTitleKey(target.forName));
     return same ? { ...row, deletedAt: stamp, updatedAt: stamp } : row;
   });
 }
@@ -681,6 +692,20 @@ export function visibleGiftPeople(
 }
 
 export const SECRET_LIST_NAME = "Secret list";
+export const OTHER_LIST_NAME = "Other";
+export const OTHER_LIST_NOTE = "One-off gifts.";
+
+export function isOtherList(row: GiftPerson): boolean {
+  return (
+    !row.hidden &&
+    !row.slot &&
+    (row.notes === OTHER_LIST_NOTE || namesMatch(row.name, OTHER_LIST_NAME))
+  );
+}
+
+export function otherListFor(people: GiftPerson[]): GiftPerson | null {
+  return people.find((row) => liveGiftPerson(row) && isOtherList(row)) ?? null;
+}
 
 function uniqueCouplePeople(people: GiftPerson[]): GiftPerson[] {
   const seen = new Set<string>();
@@ -708,7 +733,14 @@ export function groupedPeople(people: GiftPerson[]): {
   return {
     us: uniqueCouplePeople(people.filter((row) => row.slot === "you" || row.slot === "them")),
     kids: people.filter((row) => liveGiftPerson(row) && row.kind === "child" && !row.hidden),
-    rest: people.filter((row) => liveGiftPerson(row) && !row.slot && row.kind !== "child" && !row.hidden),
+    rest: people.filter(
+      (row) =>
+        liveGiftPerson(row) &&
+        !row.slot &&
+        row.kind !== "child" &&
+        !row.hidden &&
+        !isOtherList(row)
+    ),
     privateLists: people.filter((row) => liveGiftPerson(row) && row.hidden),
   };
 }
@@ -822,6 +854,51 @@ export function ensurePrivatePerson(
   return { people: [...people, person], person };
 }
 
+export function ensureOtherPerson(
+  people: GiftPerson[]
+): { people: GiftPerson[]; person: GiftPerson } {
+  const existing = otherListFor(people);
+  if (existing) {
+    if (existing.name === OTHER_LIST_NAME && existing.notes === OTHER_LIST_NOTE) {
+      return { people, person: existing };
+    }
+    return {
+      people: people.map((row) =>
+        row.id === existing.id
+          ? {
+              ...row,
+              name: OTHER_LIST_NAME,
+              emoji: "🎁",
+              notes: OTHER_LIST_NOTE,
+            }
+          : row
+      ),
+      person: {
+        ...existing,
+        name: OTHER_LIST_NAME,
+        emoji: "🎁",
+        notes: OTHER_LIST_NOTE,
+      },
+    };
+  }
+  const stamp = nowIso();
+  const person: GiftPerson = {
+    id: createId(),
+    name: OTHER_LIST_NAME,
+    kind: "other",
+    emoji: "🎁",
+    notes: OTHER_LIST_NOTE,
+    slot: null,
+    userId: null,
+    hidden: false,
+    ownerUserId: null,
+    createdAt: stamp,
+    updatedAt: stamp,
+    deletedAt: null,
+  };
+  return { people: [...people, person], person };
+}
+
 function defaultEmoji(kind: GiftPersonKind): string {
   if (kind === "child") return "🧸";
   if (kind === "family") return "🏠";
@@ -907,6 +984,7 @@ export function hydrateGiftItem(raw: unknown): GiftItem | null {
     status:
       row.status === "given" ? "given" : row.status === "bought" ? "bought" : "open",
     price: typeof row.price === "string" ? row.price : "",
+    forName: typeof row.forName === "string" ? row.forName : "",
     dateKey:
       typeof row.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateKey)
         ? row.dateKey
@@ -1014,6 +1092,12 @@ export function collapseGiftPeople(
       else bySecret.set(key, row.id);
       continue;
     }
+    if (isOtherList(row)) {
+      const prev = byOther.get("one-off");
+      if (prev) unionPerson(parent, prev, row.id);
+      else byOther.set("one-off", row.id);
+      continue;
+    }
     if (isCouplePerson(row)) {
       if (row.userId) {
         const prev = byUser.get(row.userId);
@@ -1075,7 +1159,7 @@ export function collapseGiftPeople(
 export function collapseGiftItems(items: GiftItem[]): GiftItem[] {
   const map = new Map<string, GiftItem>();
   for (const row of items) {
-    const key = `${row.personId}:${row.lane}:${giftTitleKey(row.title)}`;
+    const key = `${row.personId}:${row.lane}:${giftTitleKey(row.title)}:${giftTitleKey(row.forName)}`;
     const prev = map.get(key);
     map.set(key, prev ? preferGiftItem(prev, row) : row);
   }

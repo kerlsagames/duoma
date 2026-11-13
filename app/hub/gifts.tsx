@@ -23,6 +23,7 @@ import {
   collapseSecretLists,
   currentGiftYear,
   ensureCouplePeople,
+  ensureOtherPerson,
   ensurePrivatePerson,
   formatGiftDate,
   GIFT_KIND_OPTIONS,
@@ -41,7 +42,10 @@ import {
   removeGiftItem,
   removeGiftPerson,
   updateGiftItem,
+  OTHER_LIST_NAME,
   SECRET_LIST_NAME,
+  isOtherList,
+  otherListFor,
   secretListForUser,
   sharedGiftPeople,
   shopCount,
@@ -319,7 +323,10 @@ export default function GiftsScreen() {
 
           {classic ? (
             <ClassicPad
-              people={sharedGiftPeople(visibleGiftPeople(data.giftPeople, user?.id))}
+              people={sharedGiftPeople(visibleGiftPeople(data.giftPeople, user?.id)).filter(
+                (row) => !isOtherList(row)
+              )}
+              other={otherListFor(data.giftPeople)}
               secret={secretListForUser(data.giftPeople, user?.id)}
               items={data.giftItems}
               selectedId={padPersonId}
@@ -349,13 +356,23 @@ export default function GiftsScreen() {
                 });
                 if (nextId) setPadPersonId(nextId);
               }}
-              onAdd={(personId, title, price) => {
+              onOpenOther={async () => {
+                let nextId = "";
+                await patch((state) => {
+                  const ensured = ensureOtherPerson(state.giftPeople);
+                  nextId = ensured.person.id;
+                  return { ...state, giftPeople: ensured.people };
+                });
+                if (nextId) setPadPersonId(nextId);
+              }}
+              onAdd={(personId, title, price, forName) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId,
                     title,
                     price,
+                    forName,
                     lane: personById(state.giftPeople, personId)?.slot === "you" ? "wish" : "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
@@ -425,6 +442,7 @@ export default function GiftsScreen() {
                             title: item.title,
                             notes: item.notes,
                             price: item.price,
+                            forName: item.forName,
                             lane: "shop",
                             occasion: item.occasion,
                             year: item.year,
@@ -507,6 +525,41 @@ export default function GiftsScreen() {
                 onOpen={(id) => router.push(`/hub/gifts/${id}` as Href)}
                 onRemove={setRemoveId}
               />
+              <Pressable
+                onPress={async () => {
+                  let nextId = "";
+                  await patch((state) => {
+                    const ensured = ensureOtherPerson(state.giftPeople);
+                    nextId = ensured.person.id;
+                    return { ...state, giftPeople: ensured.people };
+                  });
+                  if (nextId) router.push(`/hub/gifts/${nextId}` as Href);
+                }}
+                style={{
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: T.gold,
+                  backgroundColor: T.goldSoft,
+                  paddingVertical: 12,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>🎁</Text>
+                <Text
+                  style={{
+                    flex: 1,
+                    fontFamily: SERIF,
+                    fontSize: 16,
+                    color: T.ink,
+                    fontWeight: "700",
+                  }}
+                >
+                  {OTHER_LIST_NAME}
+                </Text>
+              </Pressable>
               <PersonGroup
                 kicker="Secret list"
                 people={groups.privateLists.slice(0, 1)}
@@ -1064,6 +1117,7 @@ export default function GiftsScreen() {
 
 function ClassicPad({
   people,
+  other,
   secret,
   items,
   selectedId,
@@ -1073,6 +1127,7 @@ function ClassicPad({
   onSwapCouple,
   canRemovePerson,
   onOpenSecret,
+  onOpenOther,
   onAdd,
   onBuy,
   onGive,
@@ -1084,6 +1139,7 @@ function ClassicPad({
   onLogGift,
 }: {
   people: ReturnType<typeof visibleGiftPeople>;
+  other: ReturnType<typeof otherListFor>;
   secret: ReturnType<typeof secretListForUser>;
   items: GiftItem[];
   selectedId: string | null;
@@ -1093,11 +1149,12 @@ function ClassicPad({
   onSwapCouple?: () => void;
   canRemovePerson?: (person: GiftPerson) => boolean;
   onOpenSecret: () => void;
-  onAdd: (personId: string, title: string, price?: string) => void;
+  onOpenOther: () => void;
+  onAdd: (personId: string, title: string, price?: string, forName?: string) => void;
   onBuy: (item: GiftItem) => void;
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
-  onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
+  onEdit?: (item: GiftItem, next: { title: string; price: string; forName?: string }) => void;
   onMove?: (item: GiftItem, personId: string) => void;
   onSecret?: (item: GiftItem) => void;
   onAddBought?: (personId: string, title: string) => void;
@@ -1105,11 +1162,14 @@ function ClassicPad({
 }) {
   const nameOf = useGiftPersonName();
   const selected =
+    (other && selectedId === other.id ? other : null) ??
     (secret && selectedId === secret.id ? secret : null) ??
     people.find((row) => row.id === selectedId) ??
     people[0] ??
+    other ??
     secret ??
     null;
+  const otherOn = Boolean(other && selected?.id === other.id);
   const rows = selected ? allOpenItems(items, selected.id) : [];
   const bought = selected ? boughtItems(items, selected.id) : [];
   const given = selected ? givenItems(items, selected.id) : [];
@@ -1162,6 +1222,27 @@ function ClassicPad({
           );
         })}
         <Pressable
+          onPress={onOpenOther}
+          style={{
+            borderRadius: 999,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            backgroundColor: otherOn ? T.gold : T.surface,
+            borderWidth: 1,
+            borderColor: otherOn ? T.gold : T.border,
+          }}
+        >
+          <Text
+            style={{
+              color: otherOn ? "#1A1408" : T.ink,
+              fontWeight: "700",
+              fontSize: 13,
+            }}
+          >
+            🎁 {OTHER_LIST_NAME}
+          </Text>
+        </Pressable>
+        <Pressable
           onPress={onOpenSecret}
           style={{
             borderRadius: 999,
@@ -1207,12 +1288,15 @@ function ClassicPad({
         <>
         <GiftNotepad
           items={rows}
+          oneOff={otherOn}
           empty={
             selected.hidden
               ? "Write what you’re getting them. Partner can’t see this list."
-              : `Write on ${selected.name}’s list. Tick the box when you’ve bought it.`
+              : otherOn
+                ? "Name on the left, present on the right. For one-off gifts."
+                : `Write on ${selected.name}’s list. Tick the box when you’ve bought it.`
           }
-          onAdd={(title, price) => onAdd(selected.id, title, price)}
+          onAdd={(title, price, forName) => onAdd(selected.id, title, price, forName)}
           onToggle={onBuy}
           onRemove={onRemove}
           onEdit={onEdit}
