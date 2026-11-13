@@ -696,11 +696,7 @@ export const OTHER_LIST_NAME = "Other";
 export const OTHER_LIST_NOTE = "One-off gifts.";
 
 export function isOtherList(row: GiftPerson): boolean {
-  return (
-    !row.hidden &&
-    !row.slot &&
-    (row.notes === OTHER_LIST_NOTE || namesMatch(row.name, OTHER_LIST_NAME))
-  );
+  return !row.hidden && !row.slot && row.notes === OTHER_LIST_NOTE;
 }
 
 export function otherListFor(people: GiftPerson[]): GiftPerson | null {
@@ -1081,10 +1077,12 @@ export function collapseGiftPeople(
 
   const byUser = new Map<string, string>();
   const byCoupleName = new Map<string, string>();
-  const byOther = new Map<string, string>();
+  const byNamed = new Map<string, string>();
   const bySecret = new Map<string, string>();
+  const byOtherBucket = new Map<string, string>();
 
   for (const row of people) {
+    if (!liveGiftPerson(row)) continue;
     if (row.hidden) {
       const key = `secret:${row.ownerUserId || row.id}`;
       const prev = bySecret.get(key);
@@ -1093,9 +1091,9 @@ export function collapseGiftPeople(
       continue;
     }
     if (isOtherList(row)) {
-      const prev = byOther.get("one-off");
+      const prev = byOtherBucket.get("one-off");
       if (prev) unionPerson(parent, prev, row.id);
-      else byOther.set("one-off", row.id);
+      else byOtherBucket.set("one-off", row.id);
       continue;
     }
     if (isCouplePerson(row)) {
@@ -1119,9 +1117,9 @@ export function collapseGiftPeople(
       continue;
     }
     const key = `${row.kind}:${row.name.trim().toLowerCase()}`;
-    const prev = byOther.get(key);
+    const prev = byNamed.get(key);
     if (prev) unionPerson(parent, prev, row.id);
-    else byOther.set(key, row.id);
+    else byNamed.set(key, row.id);
   }
 
   const remap = new Map<string, string>();

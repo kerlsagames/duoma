@@ -77,7 +77,7 @@ export function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-export const DUOMA_BUILD = "13 Nov other";
+export const DUOMA_BUILD = "13 Nov lists";
 const SW_FILE = "/sw.js?v=20261113-other";
 let swReloadArmed = false;
 let swListenersBound = false;

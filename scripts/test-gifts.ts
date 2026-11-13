@@ -4,6 +4,7 @@ import {
   canRemoveGiftPerson,
   collapseGiftPeople,
   ensureCouplePeople,
+  ensureOtherPerson,
   giftPersonLabel,
   removeGiftPerson,
   swapCoupleGiftItems,
@@ -113,6 +114,72 @@ const swapped = swapCoupleGiftItems(
 );
 assert("swap moves hoselink to Alana", swapped.find((row) => row.id === "h")?.personId === "a");
 assert("swap moves date nights to Craig", swapped.find((row) => row.id === "d")?.personId === "c");
+
+const charlotte = person({
+  id: "charlotte",
+  name: "Charlotte",
+  slot: null,
+  kind: "child",
+});
+const nana = person({ id: "nana", name: "Nana", slot: null, kind: "family" });
+const otherA = person({
+  id: "other-a",
+  name: "Other",
+  slot: null,
+  kind: "other",
+  notes: "One-off gifts.",
+});
+const otherB = person({
+  id: "other-b",
+  name: "Other",
+  slot: null,
+  kind: "other",
+  notes: "One-off gifts.",
+});
+const pad = collapseGiftPeople(
+  [charlotte, nana, otherA, otherB],
+  [
+    item({ id: "shorts", personId: "charlotte", title: "footy shorts" }),
+    item({ id: "tea", personId: "nana", title: "tea" }),
+    item({ id: "card", personId: "other-b", title: "thank you card", forName: "Teacher" }),
+  ]
+);
+const shorts = pad.items.find((row) => row.id === "shorts");
+const tea = pad.items.find((row) => row.id === "tea");
+const card = pad.items.find((row) => row.id === "card");
+const otherKeepers = pad.people.filter(
+  (row) => !row.deletedAt && row.notes === "One-off gifts."
+);
+assert("footy shorts stay on Charlotte", shorts?.personId === "charlotte");
+assert("tea stays on Nana", tea?.personId === "nana");
+assert("duplicate Other lists collapse to one", otherKeepers.length === 1);
+assert(
+  "one-off card follows the Other keeper",
+  Boolean(otherKeepers[0] && card?.personId === otherKeepers[0].id)
+);
+assert(
+  "Charlotte is not eaten by Other",
+  pad.people.some((row) => row.id === "charlotte" && !row.deletedAt)
+);
+
+const withOther = ensureOtherPerson([charlotte, nana]);
+const afterAdd = collapseGiftPeople(
+  withOther.people,
+  addGiftItem([], {
+    personId: charlotte.id,
+    title: "footy shorts",
+    lane: "shop",
+  })
+);
+assert(
+  "adding to Charlotte with Other present stays on Charlotte",
+  afterAdd.items[0]?.personId === charlotte.id
+);
+assert(
+  "Other is a separate list",
+  afterAdd.people.some((row) => row.id === withOther.person.id) &&
+    afterAdd.items[0]?.personId !== withOther.person.id
+);
 
 if (failed) {
   console.error(`${failed} failed`);

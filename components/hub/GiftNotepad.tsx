@@ -15,11 +15,13 @@ function PriceBox({
   onChangeText,
   onSubmit,
   editable,
+  autoFocus,
 }: {
   value: string;
   onChangeText?: (next: string) => void;
   onSubmit?: () => void;
   editable?: boolean;
+  autoFocus?: boolean;
 }) {
   const digits = priceDigits(value);
   return (
@@ -29,7 +31,6 @@ function PriceBox({
         height: 32,
         flexGrow: 0,
         flexShrink: 0,
-        marginLeft: "auto",
         paddingHorizontal: 6,
         borderRadius: 8,
         borderWidth: 1.5,
@@ -58,6 +59,7 @@ function PriceBox({
           placeholder="0"
           placeholderTextColor="rgba(42,28,18,0.38)"
           keyboardType="numeric"
+          autoFocus={autoFocus}
           accessibilityLabel="Price"
           style={{
             width: 40,
@@ -123,6 +125,7 @@ export function GiftNotepad({
   const [draftName, setDraftName] = useState("");
   const [draftPrice, setDraftPrice] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editField, setEditField] = useState<"title" | "price">("title");
   const [editTitle, setEditTitle] = useState("");
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
@@ -142,9 +145,10 @@ export function GiftNotepad({
     setDraftPrice("");
   };
 
-  const startEdit = (item: GiftItem) => {
+  const startEdit = (item: GiftItem, field: "title" | "price" = "title") => {
     if (!onEdit) return;
     setEditingId(item.id);
+    setEditField(field);
     setEditTitle(item.title);
     setEditName(item.forName);
     setEditPrice(item.price);
@@ -205,6 +209,8 @@ export function GiftNotepad({
               style={{
                 width: 18,
                 height: 18,
+                flexGrow: 0,
+                flexShrink: 0,
                 borderRadius: 4,
                 borderWidth: 1.5,
                 borderColor: T.ribbon,
@@ -213,7 +219,7 @@ export function GiftNotepad({
             {editingId === item.id ? (
               <View style={{ flex: 1, minWidth: 0, gap: 6, paddingVertical: 6 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  {oneOff ? (
+                  {oneOff && editField === "title" ? (
                     <TextInput
                       value={editName}
                       onChangeText={setEditName}
@@ -228,25 +234,51 @@ export function GiftNotepad({
                         flexShrink: 0,
                       }}
                     />
+                  ) : oneOff ? (
+                    <Text
+                      style={{
+                        ...writeStyle,
+                        width: NAME_COL,
+                        flexGrow: 0,
+                        flexShrink: 0,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {editName || item.forName}
+                    </Text>
                   ) : null}
-                  <TextInput
-                    value={editTitle}
-                    onChangeText={setEditTitle}
-                    onSubmitEditing={saveEdit}
-                    autoFocus={!oneOff}
-                    placeholder={oneOff ? "Present" : undefined}
-                    placeholderTextColor="rgba(42,28,18,0.32)"
-                    style={{
-                      ...writeStyle,
-                      flex: 1,
-                      minWidth: 0,
-                    }}
-                  />
+                  {editField === "title" ? (
+                    <TextInput
+                      value={editTitle}
+                      onChangeText={setEditTitle}
+                      onSubmitEditing={saveEdit}
+                      autoFocus={!oneOff}
+                      placeholder={oneOff ? "Present" : undefined}
+                      placeholderTextColor="rgba(42,28,18,0.32)"
+                      style={{
+                        ...writeStyle,
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        ...writeStyle,
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {editTitle || item.title}
+                    </Text>
+                  )}
                   <PriceBox
                     value={editPrice}
                     onChangeText={setEditPrice}
                     onSubmit={saveEdit}
                     editable
+                    autoFocus={editField === "price"}
                   />
                   <Pressable onPress={saveEdit} hitSlop={6} style={{ flexShrink: 0 }}>
                     <Text style={{ fontSize: 12, fontWeight: "800", color: T.ribbon }}>
@@ -333,9 +365,10 @@ export function GiftNotepad({
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => startEdit(item)}
+                  onPress={() => startEdit(item, "price")}
                   hitSlop={6}
-                  style={{ flexGrow: 0, flexShrink: 0, marginLeft: "auto" }}
+                  style={{ flexGrow: 0, flexShrink: 0 }}
+                  accessibilityLabel={`Edit price for ${item.title}`}
                 >
                   <PriceBox value={item.price} />
                 </Pressable>
@@ -359,7 +392,7 @@ export function GiftNotepad({
       <View
         style={{
           minHeight: LINE,
-          paddingLeft: oneOff ? 12 : 40,
+          paddingLeft: 12,
           paddingRight: 10,
           flexDirection: "row",
           alignItems: "center",
@@ -368,9 +401,20 @@ export function GiftNotepad({
           borderBottomColor: "rgba(42,28,18,0.1)",
         }}
       >
+        <View
+          style={{
+            width: 18,
+            height: 18,
+            flexGrow: 0,
+            flexShrink: 0,
+            borderRadius: 4,
+            borderWidth: 1.5,
+            borderColor: T.ribbon,
+            opacity: 0.45,
+          }}
+        />
         {oneOff ? (
           <>
-            <View style={{ width: 18, flexShrink: 0 }} />
             <TextInput
               value={draftName}
               onChangeText={setDraftName}

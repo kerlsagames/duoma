@@ -143,6 +143,20 @@ export default function GiftsScreen() {
       collapsed.items === data.giftItems ||
       (collapsed.items.length === data.giftItems.length &&
         collapsed.items.every((row, index) => row === data.giftItems[index]));
+    if (padPersonId) {
+      const stillThere = collapsed.people.some(
+        (row) => row.id === padPersonId && !row.deletedAt
+      );
+      if (!stillThere) {
+        const oldItem = data.giftItems.find((row) => row.personId === padPersonId);
+        const moved = oldItem
+          ? collapsed.items.find((row) => row.id === oldItem.id)
+          : null;
+        if (moved && moved.personId !== padPersonId) {
+          setPadPersonId(moved.personId);
+        }
+      }
+    }
     if (samePeople && sameItems) {
       return;
     }
@@ -154,7 +168,7 @@ export default function GiftsScreen() {
   }, [
     ready,
     data.giftPeople,
-    data.giftItems,
+    padPersonId,
     user?.displayName,
     user?.id,
     partner?.displayName,
@@ -1161,15 +1175,15 @@ function ClassicPad({
   onLogGift?: (personId: string) => void;
 }) {
   const nameOf = useGiftPersonName();
+  const catalog = [...people, other, secret].filter(
+    (row): row is NonNullable<typeof row> => Boolean(row)
+  );
   const selected =
-    (other && selectedId === other.id ? other : null) ??
-    (secret && selectedId === secret.id ? secret : null) ??
-    people.find((row) => row.id === selectedId) ??
-    people[0] ??
-    other ??
-    secret ??
-    null;
+    catalog.find((row) => row.id === selectedId) ??
+    (selectedId ? null : people[0] ?? other ?? secret ?? null);
   const otherOn = Boolean(other && selected?.id === other.id);
+  const youPerson = people.find((row) => row.slot === "you") ?? null;
+  const themPerson = people.find((row) => row.slot === "them") ?? null;
   const rows = selected ? allOpenItems(items, selected.id) : [];
   const bought = selected ? boughtItems(items, selected.id) : [];
   const given = selected ? givenItems(items, selected.id) : [];
@@ -1277,16 +1291,46 @@ function ClassicPad({
           <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>+ Person</Text>
         </Pressable>
       </View>
-      {onSwapCouple && people.filter((row) => row.slot).length >= 2 ? (
-        <Pressable onPress={onSwapCouple} style={{ marginTop: 10, alignSelf: "flex-start" }}>
-          <Text style={{ color: T.gold, fontWeight: "700", fontSize: 13 }}>
-            Gifts on the wrong person? Swap our lists
+      {onSwapCouple && youPerson && themPerson ? (
+        <Pressable
+          onPress={onSwapCouple}
+          style={{
+            marginTop: 12,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: T.gold,
+            backgroundColor: T.goldSoft,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+          }}
+        >
+          <Text style={{ color: T.gold, fontWeight: "800", fontSize: 14 }}>
+            {`Swap ${nameOf(youPerson)} and ${nameOf(themPerson)}’s gifts`}
+          </Text>
+          <Text style={{ marginTop: 2, color: T.muted, fontSize: 12, lineHeight: 16 }}>
+            Use this if Hoselink or Date nights / BBQ / Yeti landed on the wrong person.
           </Text>
         </Pressable>
       ) : null}
       {selected ? (
         <>
+        <Text
+          style={{
+            marginTop: 14,
+            fontFamily: SERIF,
+            fontSize: 18,
+            fontWeight: "700",
+            color: T.ink,
+          }}
+        >
+          {otherOn
+            ? "Other · one-off gifts"
+            : selected.hidden
+              ? SECRET_LIST_NAME
+              : `${nameOf(selected)}’s list`}
+        </Text>
         <GiftNotepad
+          key={selected.id}
           items={rows}
           oneOff={otherOn}
           empty={
@@ -1321,7 +1365,9 @@ function ClassicPad({
         </>
       ) : (
         <Text style={{ marginTop: 16, fontFamily: SERIF, color: T.muted }}>
-          Add someone to start a list.
+          {people.length || other || secret
+            ? "Pick a person to write on their list."
+            : "Add someone to start a list."}
         </Text>
       )}
     </View>
