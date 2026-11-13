@@ -30,6 +30,8 @@ export type GiftPerson = {
   hidden: boolean;
   ownerUserId: string | null;
   createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 };
 
 export type GiftItem = {
@@ -99,8 +101,16 @@ export const PERSON_EMOJIS = [
 
 export function giftPersonLabel(
   person: GiftPerson,
-  names: { you?: string | null; them?: string | null }
+  names: { you?: string | null; them?: string | null },
+  ids?: { youId?: string | null; themId?: string | null }
 ): string {
+  if (ids?.youId && person.userId === ids.youId) {
+    return names.you?.trim() || person.name;
+  }
+  if (ids?.themId && person.userId === ids.themId) {
+    return names.them?.trim() || person.name;
+  }
+  if (!isPlaceholderName(person.name)) return person.name;
   if (person.slot === "you") return names.you?.trim() || person.name;
   if (person.slot === "them") return names.them?.trim() || person.name;
   return person.name;
@@ -149,6 +159,28 @@ export function personById(people: GiftPerson[], id: string): GiftPerson | null 
 
 export function liveGiftItem(row: GiftItem): boolean {
   return !row.deletedAt;
+}
+
+export function liveGiftPerson(row: GiftPerson): boolean {
+  return !row.deletedAt;
+}
+
+export function canRemoveGiftPerson(
+  row: GiftPerson,
+  youUserId?: string | null,
+  themUserId?: string | null,
+  youName?: string | null,
+  themName?: string | null
+): boolean {
+  if (row.hidden) return false;
+  if (youUserId && row.userId === youUserId) return false;
+  if (themUserId && row.userId === themUserId) return false;
+  const you = youName?.trim() ?? "";
+  const them = themName?.trim() ?? "";
+  if (row.slot && you && namesMatch(row.name, you)) return false;
+  if (row.slot && them && namesMatch(row.name, them)) return false;
+  if (row.slot && isPlaceholderName(row.name)) return false;
+  return true;
 }
 
 export function formatGiftPrice(price: string | null | undefined): string {
@@ -253,6 +285,26 @@ function isPlaceholderName(name: string): boolean {
   return value === "you" || value === "them" || value === "";
 }
 
+function isCouplePerson(row: GiftPerson): boolean {
+  return Boolean(row.slot || row.kind === "you" || row.kind === "them");
+}
+
+function stampCoupleRow(
+  row: GiftPerson,
+  patch: Partial<GiftPerson>
+): GiftPerson {
+  const next = { ...row, ...patch };
+  if (
+    next.userId === row.userId &&
+    next.slot === row.slot &&
+    next.name === row.name &&
+    next.kind === row.kind
+  ) {
+    return row;
+  }
+  return { ...next, updatedAt: nowIso() };
+}
+
 export function ensureCouplePeople(
   people: GiftPerson[],
   youName: string,
@@ -263,37 +315,83 @@ export function ensureCouplePeople(
   const you = youName.trim() || "You";
   const them = themName.trim() || "Them";
   let next = people.map((row) => {
-    if (row.hidden) return row;
+    if (row.hidden || !liveGiftPerson(row)) return row;
     let userId = row.userId;
-    if (!userId && youUserId && namesMatch(row.name, you)) userId = youUserId;
-    if (!userId && themUserId && namesMatch(row.name, them)) userId = themUserId;
-    if (!userId && youUserId && row.slot === "you" && !namesMatch(row.name, them)) {
+    if (!userId && youUserId && !isPlaceholderName(row.name) && namesMatch(row.name, you)) {
       userId = youUserId;
     }
-    if (!userId && themUserId && row.slot === "them" && !namesMatch(row.name, you)) {
+    if (!userId && themUserId && !isPlaceholderName(row.name) && namesMatch(row.name, them)) {
       userId = themUserId;
     }
     let slot = row.slot;
-    if (youUserId && userId === youUserId) slot = "you";
-    else if (themUserId && userId === themUserId) slot = "them";
-    const name = slot === "you" ? you : slot === "them" ? them : row.name;
-    const kind = slot ?? row.kind;
-    if (
-      userId === row.userId &&
-      slot === row.slot &&
-      name === row.name &&
-      kind === row.kind
-    ) {
+    let name = row.name;
+    if (youUserId && userId === youUserId) {
+      slot = "you";
+      name = you;
+    } else if (themUserId && userId === themUserId) {
+      slot = "them";
+      name = them;
+    }
+    return stampCoupleRow(row, { userId, slot, name, kind: slot ?? row.kind });
+  });
+
+  let viewerYouTaken = next.some(
+    (row) => liveGiftPerson(row) && !row.hidden && youUserId && row.userId === youUserId
+  );
+  let viewerThemTaken = next.some(
+    (row) => liveGiftPerson(row) && !row.hidden && themUserId && row.userId === themUserId
+  );
+  next = next.map((row) => {
+    if (row.hidden || !liveGiftPerson(row) || row.userId || !isCouplePerson(row)) {
       return row;
     }
-    return { ...row, userId, slot, name, kind };
+    if (row.slot === "you") {
+      if (!viewerYouTaken && youUserId) {
+        viewerYouTaken = true;
+        return stampCoupleRow(row, {
+          userId: youUserId,
+          slot: "you",
+          name: isPlaceholderName(row.name) ? you : row.name,
+          kind: "you",
+        });
+      }
+      if (themUserId) {
+        return stampCoupleRow(row, {
+          userId: themUserId,
+          slot: "them",
+          name: isPlaceholderName(row.name) ? them : row.name,
+          kind: "them",
+        });
+      }
+    }
+    if (row.slot === "them") {
+      if (!viewerThemTaken && themUserId) {
+        viewerThemTaken = true;
+        return stampCoupleRow(row, {
+          userId: themUserId,
+          slot: "them",
+          name: isPlaceholderName(row.name) ? them : row.name,
+          kind: "them",
+        });
+      }
+      if (youUserId) {
+        return stampCoupleRow(row, {
+          userId: youUserId,
+          slot: "you",
+          name: isPlaceholderName(row.name) ? you : row.name,
+          kind: "you",
+        });
+      }
+    }
+    return row;
   });
+
   const youRow =
-    next.find((row) => !row.hidden && youUserId && row.userId === youUserId) ??
-    next.find((row) => !row.hidden && row.slot === "you");
+    next.find((row) => liveGiftPerson(row) && !row.hidden && youUserId && row.userId === youUserId) ??
+    next.find((row) => liveGiftPerson(row) && !row.hidden && row.slot === "you");
   const themRow =
-    next.find((row) => !row.hidden && themUserId && row.userId === themUserId) ??
-    next.find((row) => !row.hidden && row.slot === "them");
+    next.find((row) => liveGiftPerson(row) && !row.hidden && themUserId && row.userId === themUserId) ??
+    next.find((row) => liveGiftPerson(row) && !row.hidden && row.slot === "them");
   if (
     youRow &&
     themRow &&
@@ -304,6 +402,7 @@ export function ensureCouplePeople(
   ) {
     return next;
   }
+  const stamp = nowIso();
   if (!youRow) {
     next = [
       {
@@ -316,16 +415,18 @@ export function ensureCouplePeople(
         userId: youUserId ?? null,
         hidden: false,
         ownerUserId: null,
-        createdAt: nowIso(),
+        createdAt: stamp,
+        updatedAt: stamp,
+        deletedAt: null,
       },
       ...next,
     ];
   }
   const themNow =
-    next.find((row) => !row.hidden && themUserId && row.userId === themUserId) ??
-    next.find((row) => !row.hidden && row.slot === "them");
+    next.find((row) => liveGiftPerson(row) && !row.hidden && themUserId && row.userId === themUserId) ??
+    next.find((row) => liveGiftPerson(row) && !row.hidden && row.slot === "them");
   if (!themNow) {
-    const youIndex = next.findIndex((row) => row.slot === "you");
+    const youIndex = next.findIndex((row) => liveGiftPerson(row) && row.slot === "you");
     const insertAt = youIndex >= 0 ? youIndex + 1 : 0;
     next = [
       ...next.slice(0, insertAt),
@@ -339,7 +440,9 @@ export function ensureCouplePeople(
         userId: themUserId ?? null,
         hidden: false,
         ownerUserId: null,
-        createdAt: nowIso(),
+        createdAt: stamp,
+        updatedAt: stamp,
+        deletedAt: null,
       },
       ...next.slice(insertAt),
     ];
@@ -361,6 +464,7 @@ export function addGiftPerson(
   const name = input.name.trim();
   if (!name) return people;
   const hidden = Boolean(input.hidden);
+  const stamp = nowIso();
   return [
     ...people,
     {
@@ -373,7 +477,9 @@ export function addGiftPerson(
       userId: null,
       hidden,
       ownerUserId: hidden ? input.ownerUserId ?? null : null,
-      createdAt: nowIso(),
+      createdAt: stamp,
+      updatedAt: stamp,
+      deletedAt: null,
     },
   ];
 }
@@ -384,10 +490,22 @@ export function removeGiftPerson(
   personId: string
 ): { people: GiftPerson[]; items: GiftItem[] } {
   const row = people.find((person) => person.id === personId);
-  if (!row || row.slot) return { people, items };
+  if (!row || !liveGiftPerson(row)) return { people, items };
+  if (row.slot && isCouplePerson(row) && (row.userId || isPlaceholderName(row.name))) {
+    return { people, items };
+  }
+  const stamp = nowIso();
   return {
-    people: people.filter((person) => person.id !== personId),
-    items: items.filter((item) => item.personId !== personId),
+    people: people.map((person) =>
+      person.id === personId
+        ? { ...person, deletedAt: stamp, updatedAt: stamp }
+        : person
+    ),
+    items: items.map((item) =>
+      item.personId === personId && liveGiftItem(item)
+        ? { ...item, deletedAt: stamp, updatedAt: stamp }
+        : item
+    ),
   };
 }
 
@@ -469,7 +587,7 @@ export function markGiftBought(items: GiftItem[], itemId: string): GiftItem[] {
 export function updateGiftItem(
   items: GiftItem[],
   itemId: string,
-  patch: { title?: string; price?: string; notes?: string }
+  patch: { title?: string; price?: string; notes?: string; personId?: string }
 ): GiftItem[] {
   const title = patch.title?.trim();
   const stamp = nowIso();
@@ -480,8 +598,34 @@ export function updateGiftItem(
       title: title || row.title,
       price: patch.price !== undefined ? patch.price.trim() : row.price,
       notes: patch.notes !== undefined ? patch.notes : row.notes,
+      personId: patch.personId || row.personId,
       updatedAt: stamp,
     };
+  });
+}
+
+export function swapCoupleGiftItems(
+  people: GiftPerson[],
+  items: GiftItem[],
+  youUserId?: string | null,
+  themUserId?: string | null
+): GiftItem[] {
+  const you =
+    people.find(
+      (row) => liveGiftPerson(row) && !row.hidden && youUserId && row.userId === youUserId
+    ) ??
+    people.find((row) => liveGiftPerson(row) && !row.hidden && row.slot === "you");
+  const them =
+    people.find(
+      (row) => liveGiftPerson(row) && !row.hidden && themUserId && row.userId === themUserId
+    ) ??
+    people.find((row) => liveGiftPerson(row) && !row.hidden && row.slot === "them");
+  if (!you || !them || you.id === them.id) return items;
+  const stamp = nowIso();
+  return items.map((row) => {
+    if (row.personId === you.id) return { ...row, personId: them.id, updatedAt: stamp };
+    if (row.personId === them.id) return { ...row, personId: you.id, updatedAt: stamp };
+    return row;
   });
 }
 
@@ -531,7 +675,9 @@ export function visibleGiftPeople(
   people: GiftPerson[],
   userId: string | undefined
 ): GiftPerson[] {
-  return people.filter((row) => !row.hidden || row.ownerUserId === userId);
+  return people.filter(
+    (row) => liveGiftPerson(row) && (!row.hidden || row.ownerUserId === userId)
+  );
 }
 
 export const SECRET_LIST_NAME = "Secret list";
@@ -540,9 +686,10 @@ function uniqueCouplePeople(people: GiftPerson[]): GiftPerson[] {
   const seen = new Set<string>();
   const out: GiftPerson[] = [];
   for (const row of people) {
+    if (!liveGiftPerson(row)) continue;
     const key = row.userId
       ? `user:${row.userId}`
-      : row.slot || row.kind === "you" || row.kind === "them"
+      : !isPlaceholderName(row.name) && (row.slot || row.kind === "you" || row.kind === "them")
         ? `couple:${row.name.trim().toLowerCase()}`
         : row.id;
     if (seen.has(key)) continue;
@@ -560,9 +707,9 @@ export function groupedPeople(people: GiftPerson[]): {
 } {
   return {
     us: uniqueCouplePeople(people.filter((row) => row.slot === "you" || row.slot === "them")),
-    kids: people.filter((row) => row.kind === "child" && !row.hidden),
-    rest: people.filter((row) => !row.slot && row.kind !== "child" && !row.hidden),
-    privateLists: people.filter((row) => row.hidden),
+    kids: people.filter((row) => liveGiftPerson(row) && row.kind === "child" && !row.hidden),
+    rest: people.filter((row) => liveGiftPerson(row) && !row.slot && row.kind !== "child" && !row.hidden),
+    privateLists: people.filter((row) => liveGiftPerson(row) && row.hidden),
   };
 }
 
@@ -576,7 +723,8 @@ export function secretListForUser(
 ): GiftPerson | null {
   if (!userId) return null;
   return (
-    people.find((row) => row.hidden && row.ownerUserId === userId) ?? null
+    people.find((row) => liveGiftPerson(row) && row.hidden && row.ownerUserId === userId) ??
+    null
   );
 }
 
@@ -586,7 +734,9 @@ export function collapseSecretLists(
   items: GiftItem[],
   userId: string
 ): { people: GiftPerson[]; items: GiftItem[] } {
-  const mine = people.filter((row) => row.hidden && row.ownerUserId === userId);
+  const mine = people.filter(
+    (row) => liveGiftPerson(row) && row.hidden && row.ownerUserId === userId
+  );
   if (mine.length === 0) return { people, items };
   const keeper =
     mine.find(
@@ -625,7 +775,9 @@ export function ensurePrivatePerson(
   people: GiftPerson[],
   userId: string
 ): { people: GiftPerson[]; person: GiftPerson } {
-  const existing = people.find((row) => row.hidden && row.ownerUserId === userId);
+  const existing = people.find(
+    (row) => liveGiftPerson(row) && row.hidden && row.ownerUserId === userId
+  );
   if (existing) {
     if (
       existing.name === SECRET_LIST_NAME &&
@@ -652,6 +804,7 @@ export function ensurePrivatePerson(
       },
     };
   }
+  const stamp = nowIso();
   const person: GiftPerson = {
     id: createId(),
     name: SECRET_LIST_NAME,
@@ -662,7 +815,9 @@ export function ensurePrivatePerson(
     userId: null,
     hidden: true,
     ownerUserId: userId,
-    createdAt: nowIso(),
+    createdAt: stamp,
+    updatedAt: stamp,
+    deletedAt: null,
   };
   return { people: [...people, person], person };
 }
@@ -709,6 +864,7 @@ export function hydrateGiftPerson(raw: unknown): GiftPerson | null {
       : kind === "you" || kind === "them"
         ? kind
         : null;
+  const createdAt = typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso();
   return {
     id: row.id,
     name,
@@ -720,7 +876,11 @@ export function hydrateGiftPerson(raw: unknown): GiftPerson | null {
     hidden: Boolean(row.hidden),
     ownerUserId:
       typeof row.ownerUserId === "string" && row.ownerUserId ? row.ownerUserId : null,
-    createdAt: typeof row.createdAt === "string" && row.createdAt ? row.createdAt : nowIso(),
+    createdAt,
+    updatedAt:
+      typeof row.updatedAt === "string" && row.updatedAt ? row.updatedAt : createdAt,
+    deletedAt:
+      typeof row.deletedAt === "string" && row.deletedAt ? row.deletedAt : null,
   };
 }
 
@@ -793,11 +953,17 @@ export function preferGiftItem(local: GiftItem, remote: GiftItem): GiftItem {
   return remoteAt >= localAt ? remote : local;
 }
 
-function isCouplePerson(row: GiftPerson): boolean {
-  return Boolean(row.slot || row.kind === "you" || row.kind === "them");
+function personStamp(row: GiftPerson): string {
+  return row.updatedAt || row.deletedAt || row.createdAt || "";
 }
 
 function preferGiftPerson(keeper: GiftPerson, other: GiftPerson): GiftPerson {
+  const keeperDel = Boolean(keeper.deletedAt);
+  const otherDel = Boolean(other.deletedAt);
+  if (keeperDel !== otherDel) return keeperDel ? keeper : other;
+  if (keeperDel && otherDel) {
+    return personStamp(other) >= personStamp(keeper) ? other : keeper;
+  }
   const name =
     isPlaceholderName(keeper.name) && !isPlaceholderName(other.name)
       ? other.name
@@ -808,6 +974,8 @@ function preferGiftPerson(keeper: GiftPerson, other: GiftPerson): GiftPerson {
     userId: keeper.userId || other.userId,
     notes: keeper.notes || other.notes,
     emoji: keeper.emoji || other.emoji,
+    updatedAt:
+      personStamp(other) >= personStamp(keeper) ? other.updatedAt : keeper.updatedAt,
   };
 }
 
@@ -855,8 +1023,14 @@ export function collapseGiftPeople(
       const name = row.name.trim().toLowerCase();
       if (!isPlaceholderName(name)) {
         const prev = byCoupleName.get(name);
-        if (prev) unionPerson(parent, prev, row.id);
-        else byCoupleName.set(name, row.id);
+        if (prev) {
+          const prevRow = people.find((person) => person.id === prev);
+          if (!prevRow?.userId || !row.userId || prevRow.userId === row.userId) {
+            unionPerson(parent, prev, row.id);
+          }
+        } else {
+          byCoupleName.set(name, row.id);
+        }
       }
       continue;
     }
@@ -916,6 +1090,16 @@ export function mergeGiftItems(local: GiftItem[], remote: GiftItem[]): GiftItem[
     map.set(row.id, prev ? preferGiftItem(prev, row) : row);
   }
   return collapseGiftItems([...map.values()]);
+}
+
+export function mergeGiftPeople(local: GiftPerson[], remote: GiftPerson[]): GiftPerson[] {
+  const map = new Map<string, GiftPerson>();
+  for (const row of local) map.set(row.id, row);
+  for (const row of remote) {
+    const prev = map.get(row.id);
+    map.set(row.id, prev ? preferGiftPerson(prev, row) : row);
+  }
+  return [...map.values()];
 }
 
 export function hydrateGifts(rawPeople: unknown, rawItems: unknown): {

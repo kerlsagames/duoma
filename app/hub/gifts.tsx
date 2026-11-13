@@ -18,6 +18,7 @@ import {
   addGiftPerson,
   allOpenItems,
   boughtItems,
+  canRemoveGiftPerson,
   collapseGiftPeople,
   collapseSecretLists,
   currentGiftYear,
@@ -44,6 +45,7 @@ import {
   secretListForUser,
   sharedGiftPeople,
   shopCount,
+  swapCoupleGiftItems,
   visibleGiftPeople,
   wishCount,
   yearsInGiftBook,
@@ -65,10 +67,14 @@ type Sheet = "person" | "log" | "give" | null;
 function useGiftPersonName() {
   const { user, partner } = useApp();
   return (person: GiftPerson) =>
-    giftPersonLabel(person, {
-      you: user?.displayName,
-      them: partner?.displayName,
-    });
+    giftPersonLabel(
+      person,
+      {
+        you: user?.displayName,
+        them: partner?.displayName,
+      },
+      { youId: user?.id, themId: partner?.id }
+    );
 }
 
 export default function GiftsScreen() {
@@ -95,6 +101,7 @@ export default function GiftsScreen() {
   const [logDate, setLogDate] = useState(localDateKey());
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
+  const [swapLists, setSwapLists] = useState(false);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
   const [padPersonId, setPadPersonId] = useState<string | null>(null);
   const [giveItem, setGiveItem] = useState<GiftItem | null>(null);
@@ -124,7 +131,8 @@ export default function GiftsScreen() {
           prev.id === row.id &&
           prev.userId === row.userId &&
           prev.slot === row.slot &&
-          prev.name === row.name
+          prev.name === row.name &&
+          prev.deletedAt === row.deletedAt
         );
       });
     const sameItems =
@@ -320,6 +328,17 @@ export default function GiftsScreen() {
                 setError(null);
                 setSheet("person");
               }}
+              onRemovePerson={setRemoveId}
+              onSwapCouple={() => setSwapLists(true)}
+              canRemovePerson={(person) =>
+                canRemoveGiftPerson(
+                  person,
+                  user?.id,
+                  partner?.id,
+                  user?.displayName,
+                  partner?.displayName
+                )
+              }
               onOpenSecret={async () => {
                 if (!user?.id) return;
                 let nextId = "";
@@ -347,6 +366,12 @@ export default function GiftsScreen() {
                 void patch((state) => ({
                   ...state,
                   giftItems: updateGiftItem(state.giftItems, item.id, next),
+                }));
+              }}
+              onMove={(item, personId) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: updateGiftItem(state.giftItems, item.id, { personId }),
                 }));
               }}
               onBuy={(item) => {
@@ -1014,6 +1039,25 @@ export default function GiftsScreen() {
         onConfirm={() => void confirmRemove()}
         onCancel={() => setRemoveId(null)}
       />
+      <ConfirmDialog
+        open={swapLists}
+        title="Swap our gifts?"
+        body={`${user?.displayName?.trim() || "You"} and ${partner?.displayName?.trim() || "them"} trade every present. Use this if gifts landed on the wrong person.`}
+        confirmLabel="Swap lists"
+        onConfirm={() => {
+          setSwapLists(false);
+          void patch((state) => ({
+            ...state,
+            giftItems: swapCoupleGiftItems(
+              state.giftPeople,
+              state.giftItems,
+              user?.id,
+              partner?.id
+            ),
+          }));
+        }}
+        onCancel={() => setSwapLists(false)}
+      />
     </View>
   );
 }
@@ -1025,12 +1069,16 @@ function ClassicPad({
   selectedId,
   onSelect,
   onAddPerson,
+  onRemovePerson,
+  onSwapCouple,
+  canRemovePerson,
   onOpenSecret,
   onAdd,
   onBuy,
   onGive,
   onRemove,
   onEdit,
+  onMove,
   onSecret,
   onAddBought,
   onLogGift,
@@ -1041,12 +1089,16 @@ function ClassicPad({
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAddPerson: () => void;
+  onRemovePerson?: (id: string) => void;
+  onSwapCouple?: () => void;
+  canRemovePerson?: (person: GiftPerson) => boolean;
   onOpenSecret: () => void;
   onAdd: (personId: string, title: string, price?: string) => void;
   onBuy: (item: GiftItem) => void;
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
+  onMove?: (item: GiftItem, personId: string) => void;
   onSecret?: (item: GiftItem) => void;
   onAddBought?: (personId: string, title: string) => void;
   onLogGift?: (personId: string) => void;
@@ -1070,10 +1122,12 @@ function ClassicPad({
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {people.map((person) => {
           const on = selected?.id === person.id;
+          const removable = Boolean(canRemovePerson?.(person) && onRemovePerson);
           return (
             <Pressable
               key={person.id}
               onPress={() => onSelect(person.id)}
+              onLongPress={removable ? () => onRemovePerson?.(person.id) : undefined}
               style={{
                 borderRadius: 999,
                 paddingHorizontal: 12,
@@ -1081,6 +1135,9 @@ function ClassicPad({
                 backgroundColor: on ? T.gold : T.surface,
                 borderWidth: 1,
                 borderColor: on ? T.gold : T.border,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
               }}
             >
               <Text
@@ -1092,6 +1149,15 @@ function ClassicPad({
               >
                 {person.emoji} {nameOf(person)}
               </Text>
+              {removable ? (
+                <Pressable
+                  onPress={() => onRemovePerson?.(person.id)}
+                  hitSlop={8}
+                  accessibilityLabel={`Remove ${nameOf(person)}`}
+                >
+                  <Ionicons name="close" size={14} color={on ? "#1A1408" : T.muted} />
+                </Pressable>
+              ) : null}
             </Pressable>
           );
         })}
@@ -1130,6 +1196,13 @@ function ClassicPad({
           <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>+ Person</Text>
         </Pressable>
       </View>
+      {onSwapCouple && people.filter((row) => row.slot).length >= 2 ? (
+        <Pressable onPress={onSwapCouple} style={{ marginTop: 10, alignSelf: "flex-start" }}>
+          <Text style={{ color: T.gold, fontWeight: "700", fontSize: 13 }}>
+            Gifts on the wrong person? Swap our lists
+          </Text>
+        </Pressable>
+      ) : null}
       {selected ? (
         <>
         <GiftNotepad
@@ -1143,7 +1216,9 @@ function ClassicPad({
           onToggle={onBuy}
           onRemove={onRemove}
           onEdit={onEdit}
+          onMove={onMove}
           onSecret={steal}
+          people={people.map((person) => ({ id: person.id, name: nameOf(person) }))}
         />
         <BoughtList
           items={bought}

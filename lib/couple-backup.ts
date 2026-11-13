@@ -9,7 +9,7 @@ import { mergeSparkStates } from "@/lib/spark";
 import { mergeWorldChoices } from "@/lib/worlds";
 import { hydrateMiniState, type MiniState, type WhoLast } from "@/lib/mini-content";
 import { mergeErrandItems } from "@/lib/errands";
-import { collapseGiftItems, collapseGiftPeople, mergeGiftItems } from "@/lib/gifts";
+import { collapseGiftItems, collapseGiftPeople, mergeGiftItems, mergeGiftPeople } from "@/lib/gifts";
 import { hydrateDb } from "@/lib/storage";
 import type { AppDB, ErrandItem, GameSession, ListEntry } from "@/lib/types";
 
@@ -484,12 +484,7 @@ export function mergeMiniStates(local: MiniState, remote: MiniState): MiniState 
   kept.period = mergePeriodStates(local.period, remote.period);
   kept.worldChoice = mergeWorldChoices(local.worldChoice, remote.worldChoice);
   kept.whoLast = mergeWhoLast(local.whoLast, remote.whoLast);
-  const giftPeople = mergeByKey(
-    local.giftPeople ?? [],
-    remote.giftPeople ?? [],
-    (row) => row.id,
-    (row) => row.createdAt || ""
-  );
+  const giftPeople = mergeGiftPeople(local.giftPeople ?? [], remote.giftPeople ?? []);
   const giftItems = mergeGiftItems(local.giftItems ?? [], remote.giftItems ?? []);
   const collapsed = collapseGiftPeople(giftPeople, giftItems);
   kept.giftPeople = collapsed.people;

@@ -17,6 +17,7 @@ import {
   addGiftItem,
   allOpenItems,
   boughtItems,
+  canRemoveGiftPerson,
   currentGiftYear,
   ensurePrivatePerson,
   formatGiftDate,
@@ -55,10 +56,14 @@ export default function GiftPersonScreen() {
   const { data, patch } = useMiniApps();
   const person = data.giftPeople.find((row) => row.id === id) ?? null;
   const nameOf = (row: GiftPerson) =>
-    giftPersonLabel(row, {
-      you: user?.displayName,
-      them: partner?.displayName,
-    });
+    giftPersonLabel(
+      row,
+      {
+        you: user?.displayName,
+        them: partner?.displayName,
+      },
+      { youId: user?.id, themId: partner?.id }
+    );
   const liveName = person ? nameOf(person) : "";
 
   const [sheet, setSheet] = useState<Sheet>(null);
@@ -198,7 +203,18 @@ export default function GiftPersonScreen() {
   };
 
   const confirmRemovePerson = async () => {
-    if (!person || person.slot) return;
+    if (
+      !person ||
+      !canRemoveGiftPerson(
+        person,
+        user?.id,
+        partner?.id,
+        user?.displayName,
+        partner?.displayName
+      )
+    ) {
+      return;
+    }
     const personId = person.id;
     setRemovePerson(false);
     await patch((state) => {
@@ -360,6 +376,15 @@ export default function GiftPersonScreen() {
                   giftItems: updateGiftItem(state.giftItems, item.id, next),
                 }));
               }}
+              onMove={(item, personId) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: updateGiftItem(state.giftItems, item.id, { personId }),
+                }));
+              }}
+              people={data.giftPeople
+                .filter((row) => !row.deletedAt && (!row.hidden || row.ownerUserId === user?.id))
+                .map((row) => ({ id: row.id, name: nameOf(row) }))}
               onToggle={(item) => {
                 void patch((state) => ({
                   ...state,
@@ -570,7 +595,13 @@ export default function GiftPersonScreen() {
           </View>
           )}
 
-          {!person.slot ? (
+          {canRemoveGiftPerson(
+            person,
+            user?.id,
+            partner?.id,
+            user?.displayName,
+            partner?.displayName
+          ) ? (
             <Pressable
               onPress={() => setRemovePerson(true)}
               style={{ marginTop: 28, alignSelf: "flex-start" }}

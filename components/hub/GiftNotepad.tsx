@@ -4,7 +4,88 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-const LINE = 36;
+const LINE = 40;
+
+function priceDigits(price: string | null | undefined): string {
+  return (price ?? "").trim().replace(/^\$/, "");
+}
+
+function PriceBox({
+  value,
+  onChangeText,
+  onSubmit,
+  editable,
+}: {
+  value: string;
+  onChangeText?: (next: string) => void;
+  onSubmit?: () => void;
+  editable?: boolean;
+}) {
+  const digits = priceDigits(value);
+  return (
+    <View
+      style={{
+        flexShrink: 0,
+        minWidth: 88,
+        height: 32,
+        paddingHorizontal: 8,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: T.ribbon,
+        backgroundColor: "rgba(196,60,74,0.14)",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 2,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: SERIF,
+          fontSize: 16,
+          fontWeight: "800",
+          color: T.ribbon,
+        }}
+      >
+        $
+      </Text>
+      {editable ? (
+        <TextInput
+          value={digits}
+          onChangeText={onChangeText}
+          onSubmitEditing={onSubmit}
+          placeholder="0"
+          placeholderTextColor="rgba(42,28,18,0.38)"
+          keyboardType="numeric"
+          accessibilityLabel="Price"
+          style={{
+            flex: 1,
+            minWidth: 44,
+            height: 30,
+            fontFamily: SERIF,
+            fontSize: 16,
+            fontWeight: "800",
+            color: T.paperInk,
+            padding: 0,
+          }}
+        />
+      ) : (
+        <Text
+          style={{
+            flex: 1,
+            minWidth: 44,
+            fontFamily: SERIF,
+            fontSize: 16,
+            fontWeight: "800",
+            color: digits ? T.paperInk : "rgba(42,28,18,0.38)",
+          }}
+          numberOfLines={1}
+        >
+          {digits || " "}
+        </Text>
+      )}
+    </View>
+  );
+}
 
 export function GiftNotepad({
   items,
@@ -13,7 +94,9 @@ export function GiftNotepad({
   onToggle,
   onRemove,
   onEdit,
+  onMove,
   onSecret,
+  people,
 }: {
   items: GiftItem[];
   empty: string;
@@ -21,7 +104,9 @@ export function GiftNotepad({
   onToggle: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   onEdit?: (item: GiftItem, next: { title: string; price: string }) => void;
+  onMove?: (item: GiftItem, personId: string) => void;
   onSecret?: (item: GiftItem) => void;
+  people?: { id: string; name: string }[];
 }) {
   const [draft, setDraft] = useState("");
   const [draftPrice, setDraftPrice] = useState("");
@@ -105,49 +190,75 @@ export function GiftNotepad({
               }}
             />
             {editingId === item.id ? (
-              <>
-                <TextInput
-                  value={editTitle}
-                  onChangeText={setEditTitle}
-                  onSubmitEditing={saveEdit}
-                  autoFocus
-                  style={{
-                    flex: 1,
-                    height: LINE - 4,
-                    fontFamily: HANDWRITING,
-                    fontSize: 20,
-                    color: T.paperInk,
-                    padding: 0,
-                  }}
-                />
-                <TextInput
-                  value={editPrice}
-                  onChangeText={setEditPrice}
-                  onSubmitEditing={saveEdit}
-                  placeholder="$"
-                  placeholderTextColor="rgba(42,28,18,0.32)"
-                  keyboardType="numeric"
-                  style={{
-                    width: 64,
-                    height: LINE - 4,
-                    fontFamily: SERIF,
-                    fontSize: 14,
-                    color: T.paperInk,
-                    textAlign: "right",
-                    padding: 0,
-                  }}
-                />
-                <Pressable onPress={saveEdit} hitSlop={6}>
-                  <Text style={{ fontSize: 11, fontWeight: "800", color: T.ribbon }}>
-                    Save
-                  </Text>
-                </Pressable>
-              </>
+              <View style={{ flex: 1, minWidth: 0, gap: 6, paddingVertical: 6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <TextInput
+                    value={editTitle}
+                    onChangeText={setEditTitle}
+                    onSubmitEditing={saveEdit}
+                    autoFocus
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      height: LINE - 8,
+                      fontFamily: HANDWRITING,
+                      fontSize: 20,
+                      color: T.paperInk,
+                      padding: 0,
+                    }}
+                  />
+                  <PriceBox
+                    value={editPrice}
+                    onChangeText={setEditPrice}
+                    onSubmit={saveEdit}
+                    editable
+                  />
+                  <Pressable onPress={saveEdit} hitSlop={6}>
+                    <Text style={{ fontSize: 12, fontWeight: "800", color: T.ribbon }}>
+                      Save
+                    </Text>
+                  </Pressable>
+                </View>
+                {onMove && people && people.length > 1 ? (
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                    {people.map((person) => {
+                      const on = person.id === item.personId;
+                      return (
+                        <Pressable
+                          key={person.id}
+                          onPress={() => {
+                            onMove(item, person.id);
+                            setEditingId(null);
+                          }}
+                          style={{
+                            borderRadius: 999,
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            backgroundColor: on ? T.gold : "rgba(42,28,18,0.06)",
+                            borderWidth: 1,
+                            borderColor: on ? T.gold : "rgba(42,28,18,0.16)",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: "800",
+                              color: on ? "#1A1408" : T.paperInk,
+                            }}
+                          >
+                            {person.name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
+              </View>
             ) : (
               <>
                 <Pressable
                   onPress={() => startEdit(item)}
-                  style={{ flex: 1, justifyContent: "center", minHeight: LINE - 8 }}
+                  style={{ flex: 1, minWidth: 0, justifyContent: "center", minHeight: LINE - 8 }}
                   accessibilityLabel={`Edit ${item.title}`}
                 >
                   <Text
@@ -162,9 +273,9 @@ export function GiftNotepad({
                     {item.notes ? `  · ${item.notes}` : ""}
                   </Text>
                 </Pressable>
-                <Text style={{ fontSize: 12, color: T.paperMuted, minWidth: 36, textAlign: "right" }}>
-                  {formatGiftPrice(item.price)}
-                </Text>
+                <Pressable onPress={() => startEdit(item)} hitSlop={6}>
+                  <PriceBox value={item.price} />
+                </Pressable>
               </>
             )}
             {onSecret ? (
@@ -202,28 +313,18 @@ export function GiftNotepad({
           returnKeyType="done"
           style={{
             flex: 1,
+            minWidth: 0,
             height: LINE,
             fontFamily: HANDWRITING,
             fontSize: 20,
             color: T.paperInk,
           }}
         />
-        <TextInput
+        <PriceBox
           value={draftPrice}
           onChangeText={setDraftPrice}
-          onSubmitEditing={submit}
-          placeholder="Price"
-          placeholderTextColor="rgba(42,28,18,0.32)"
-          keyboardType="numeric"
-          returnKeyType="done"
-          style={{
-            width: 64,
-            height: LINE,
-            fontFamily: SERIF,
-            fontSize: 14,
-            color: T.paperInk,
-            textAlign: "right",
-          }}
+          onSubmit={submit}
+          editable
         />
       </View>
       {Array.from({ length: Math.max(1, 6 - items.length) }).map((_, index) => (
@@ -376,7 +477,15 @@ export function BoughtList({
               {item.title}
             </Text>
             {formatGiftPrice(item.price) ? (
-              <Text style={{ fontSize: 12, color: T.paperMuted }}>
+              <Text
+                style={{
+                  flexShrink: 0,
+                  fontFamily: SERIF,
+                  fontSize: 16,
+                  fontWeight: "800",
+                  color: T.ribbon,
+                }}
+              >
                 {formatGiftPrice(item.price)}
               </Text>
             ) : null}

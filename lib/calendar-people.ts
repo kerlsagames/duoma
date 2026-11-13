@@ -61,7 +61,7 @@ export function hydrateCalendarKid(raw: unknown): CalendarKid | null {
 
 export function giftKidsAsCalendar(people: GiftPerson[]): CalendarKid[] {
   return people
-    .filter((row) => row.kind === "child" && !row.hidden)
+    .filter((row) => row.kind === "child" && !row.hidden && !row.deletedAt)
     .map((row) => ({
       id: row.id,
       name: row.name.trim(),
