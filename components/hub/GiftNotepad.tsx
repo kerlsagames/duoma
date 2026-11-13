@@ -25,17 +25,18 @@ function PriceBox({
   return (
     <View
       style={{
-        flexShrink: 0,
-        minWidth: 88,
+        width: 72,
         height: 32,
-        paddingHorizontal: 8,
+        flexGrow: 0,
+        flexShrink: 0,
+        marginLeft: "auto",
+        paddingHorizontal: 6,
         borderRadius: 8,
         borderWidth: 1.5,
         borderColor: T.ribbon,
         backgroundColor: "rgba(196,60,74,0.14)",
         flexDirection: "row",
         alignItems: "center",
-        gap: 2,
       }}
     >
       <Text
@@ -44,6 +45,7 @@ function PriceBox({
           fontSize: 16,
           fontWeight: "800",
           color: T.ribbon,
+          marginRight: 2,
         }}
       >
         $
@@ -58,8 +60,7 @@ function PriceBox({
           keyboardType="numeric"
           accessibilityLabel="Price"
           style={{
-            flex: 1,
-            minWidth: 44,
+            width: 40,
             height: 30,
             fontFamily: SERIF,
             fontSize: 16,
@@ -71,8 +72,7 @@ function PriceBox({
       ) : (
         <Text
           style={{
-            flex: 1,
-            minWidth: 44,
+            width: 40,
             fontFamily: SERIF,
             fontSize: 16,
             fontWeight: "800",
@@ -273,7 +273,11 @@ export function GiftNotepad({
                     {item.notes ? `  · ${item.notes}` : ""}
                   </Text>
                 </Pressable>
-                <Pressable onPress={() => startEdit(item)} hitSlop={6}>
+                <Pressable
+                  onPress={() => startEdit(item)}
+                  hitSlop={6}
+                  style={{ flexGrow: 0, flexShrink: 0, marginLeft: "auto" }}
+                >
                   <PriceBox value={item.price} />
                 </Pressable>
               </>
@@ -300,6 +304,7 @@ export function GiftNotepad({
           paddingRight: 10,
           flexDirection: "row",
           alignItems: "center",
+          gap: 8,
           borderBottomWidth: 1,
           borderBottomColor: "rgba(42,28,18,0.1)",
         }}
