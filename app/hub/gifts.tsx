@@ -451,29 +451,6 @@ export default function GiftsScreen() {
                 setLogPersonId(personId);
                 setSheet("log");
               }}
-              onSecret={
-                user?.id
-                  ? (item) => {
-                      void patch((state) => {
-                        const ensured = ensurePrivatePerson(state.giftPeople, user.id);
-                        return {
-                          ...state,
-                          giftPeople: ensured.people,
-                          giftItems: addGiftItem(state.giftItems, {
-                            personId: ensured.person.id,
-                            title: item.title,
-                            notes: item.notes,
-                            price: item.price,
-                            forName: item.forName,
-                            lane: "shop",
-                            occasion: item.occasion,
-                            year: item.year,
-                          }),
-                        };
-                      });
-                    }
-                  : undefined
-              }
             />
           ) : (
           <>
@@ -1149,7 +1126,6 @@ function ClassicPad({
   onRemove,
   onEdit,
   onMove,
-  onSecret,
   onAddBought,
   onLogGift,
   hideCosts,
@@ -1171,7 +1147,6 @@ function ClassicPad({
   onRemove: (id: string) => void;
   onEdit?: (item: GiftItem, next: { title: string; price: string; forName?: string }) => void;
   onMove?: (item: GiftItem, personId: string) => void;
-  onSecret?: (item: GiftItem) => void;
   onAddBought?: (personId: string, title: string, price?: string) => void;
   onLogGift?: (personId: string) => void;
   hideCosts?: boolean;
@@ -1187,8 +1162,6 @@ function ClassicPad({
   const rows = selected ? allOpenItems(items, selected.id) : [];
   const bought = selected ? boughtItems(items, selected.id) : [];
   const given = selected ? givenItems(items, selected.id) : [];
-  const steal =
-    selected && selected.slot === "them" && !selected.hidden ? onSecret : undefined;
   const secretOn = Boolean(secret && selected?.id === secret.id);
 
   return (
@@ -1324,7 +1297,6 @@ function ClassicPad({
           onRemove={onRemove}
           onEdit={onEdit}
           onMove={onMove}
-          onSecret={steal}
           hideCosts={hideCosts}
           people={people.map((person) => ({ id: person.id, name: nameOf(person) }))}
         />
