@@ -4,6 +4,7 @@ import {
   GiftBookList,
   GiftModeToggle,
   GiftNotepad,
+  PriceBox,
 } from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
@@ -49,7 +50,6 @@ import {
   secretListForUser,
   sharedGiftPeople,
   shopCount,
-  swapCoupleGiftItems,
   visibleGiftPeople,
   wishCount,
   yearsInGiftBook,
@@ -89,6 +89,7 @@ export default function GiftsScreen() {
   const [tab, setTab] = useState<Tab>("people");
   const look = useAppLook("gifts", T.gold, {
     hideLedger: false,
+    hideCosts: false,
     compactPeople: true,
     classicMode: true,
   });
@@ -105,13 +106,13 @@ export default function GiftsScreen() {
   const [logDate, setLogDate] = useState(localDateKey());
   const [error, setError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
-  const [swapLists, setSwapLists] = useState(false);
   const [ledgerYear, setLedgerYear] = useState(currentGiftYear());
   const [padPersonId, setPadPersonId] = useState<string | null>(null);
   const [giveItem, setGiveItem] = useState<GiftItem | null>(null);
   const [giveOccasion, setGiveOccasion] = useState<GiftOccasionId>("just-because");
   const [giveDate, setGiveDate] = useState(localDateKey());
   const [giveFrom, setGiveFrom] = useState("Us");
+  const [givePrice, setGivePrice] = useState("");
 
   useEffect(() => {
     if (!ready) return;
@@ -303,6 +304,11 @@ export default function GiftsScreen() {
                   label: "Classic notepad",
                   hint: "Write gifts like notes, with a checkbox.",
                 },
+                {
+                  key: "hideCosts",
+                  label: "Hide prices",
+                  hint: "Turn off the dollar boxes. Left on by default.",
+                },
               ]}
             />
           }
@@ -350,7 +356,7 @@ export default function GiftsScreen() {
                 setSheet("person");
               }}
               onRemovePerson={setRemoveId}
-              onSwapCouple={() => setSwapLists(true)}
+              hideCosts={Boolean(look.prefs.hideCosts)}
               canRemovePerson={(person) =>
                 canRemoveGiftPerson(
                   person,
@@ -418,6 +424,7 @@ export default function GiftsScreen() {
                 );
                 setGiveDate(localDateKey());
                 setGiveFrom("Us");
+                setGivePrice(item.price);
                 setError(null);
                 setSheet("give");
               }}
@@ -425,12 +432,13 @@ export default function GiftsScreen() {
                 ...state,
                 giftItems: removeGiftItem(state.giftItems, id),
               }))}
-              onAddBought={(personId, title) => {
+              onAddBought={(personId, title, price) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId,
                     title,
+                    price,
                     lane: "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
@@ -1057,6 +1065,18 @@ export default function GiftsScreen() {
             accent={T.gold}
             background={T.surface}
           />
+          {look.prefs.hideCosts ? null : (
+            <>
+              <Text style={[label, { marginTop: 14 }]}>Price</Text>
+              <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
+                <PriceBox
+                  value={givePrice}
+                  onChangeText={setGivePrice}
+                  editable
+                />
+              </View>
+            </>
+          )}
           {error ? (
             <Text style={{ marginTop: 12, color: T.ribbon, fontFamily: SERIF }}>
               {error}
@@ -1076,6 +1096,7 @@ export default function GiftsScreen() {
                   year,
                   from: giveFrom,
                   occasion: giveOccasion,
+                  price: givePrice,
                 }),
               }));
               setLedgerYear(year);
@@ -1106,25 +1127,6 @@ export default function GiftsScreen() {
         onConfirm={() => void confirmRemove()}
         onCancel={() => setRemoveId(null)}
       />
-      <ConfirmDialog
-        open={swapLists}
-        title="Swap our gifts?"
-        body={`${user?.displayName?.trim() || "You"} and ${partner?.displayName?.trim() || "them"} trade every present. Use this if gifts landed on the wrong person.`}
-        confirmLabel="Swap lists"
-        onConfirm={() => {
-          setSwapLists(false);
-          void patch((state) => ({
-            ...state,
-            giftItems: swapCoupleGiftItems(
-              state.giftPeople,
-              state.giftItems,
-              user?.id,
-              partner?.id
-            ),
-          }));
-        }}
-        onCancel={() => setSwapLists(false)}
-      />
     </View>
   );
 }
@@ -1138,7 +1140,6 @@ function ClassicPad({
   onSelect,
   onAddPerson,
   onRemovePerson,
-  onSwapCouple,
   canRemovePerson,
   onOpenSecret,
   onOpenOther,
@@ -1151,6 +1152,7 @@ function ClassicPad({
   onSecret,
   onAddBought,
   onLogGift,
+  hideCosts,
 }: {
   people: ReturnType<typeof visibleGiftPeople>;
   other: ReturnType<typeof otherListFor>;
@@ -1160,7 +1162,6 @@ function ClassicPad({
   onSelect: (id: string) => void;
   onAddPerson: () => void;
   onRemovePerson?: (id: string) => void;
-  onSwapCouple?: () => void;
   canRemovePerson?: (person: GiftPerson) => boolean;
   onOpenSecret: () => void;
   onOpenOther: () => void;
@@ -1171,8 +1172,9 @@ function ClassicPad({
   onEdit?: (item: GiftItem, next: { title: string; price: string; forName?: string }) => void;
   onMove?: (item: GiftItem, personId: string) => void;
   onSecret?: (item: GiftItem) => void;
-  onAddBought?: (personId: string, title: string) => void;
+  onAddBought?: (personId: string, title: string, price?: string) => void;
   onLogGift?: (personId: string) => void;
+  hideCosts?: boolean;
 }) {
   const nameOf = useGiftPersonName();
   const catalog = [...people, other, secret].filter(
@@ -1182,8 +1184,6 @@ function ClassicPad({
     catalog.find((row) => row.id === selectedId) ??
     (selectedId ? null : people[0] ?? other ?? secret ?? null);
   const otherOn = Boolean(other && selected?.id === other.id);
-  const youPerson = people.find((row) => row.slot === "you") ?? null;
-  const themPerson = people.find((row) => row.slot === "them") ?? null;
   const rows = selected ? allOpenItems(items, selected.id) : [];
   const bought = selected ? boughtItems(items, selected.id) : [];
   const given = selected ? givenItems(items, selected.id) : [];
@@ -1291,27 +1291,6 @@ function ClassicPad({
           <Text style={{ color: T.gold, fontWeight: "800", fontSize: 13 }}>+ Person</Text>
         </Pressable>
       </View>
-      {onSwapCouple && youPerson && themPerson ? (
-        <Pressable
-          onPress={onSwapCouple}
-          style={{
-            marginTop: 12,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: T.gold,
-            backgroundColor: T.goldSoft,
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-          }}
-        >
-          <Text style={{ color: T.gold, fontWeight: "800", fontSize: 14 }}>
-            {`Swap ${nameOf(youPerson)} and ${nameOf(themPerson)}’s gifts`}
-          </Text>
-          <Text style={{ marginTop: 2, color: T.muted, fontSize: 12, lineHeight: 16 }}>
-            Use this if Hoselink or Date nights / BBQ / Yeti landed on the wrong person.
-          </Text>
-        </Pressable>
-      ) : null}
       {selected ? (
         <>
         <Text
@@ -1346,20 +1325,24 @@ function ClassicPad({
           onEdit={onEdit}
           onMove={onMove}
           onSecret={steal}
+          hideCosts={hideCosts}
           people={people.map((person) => ({ id: person.id, name: nameOf(person) }))}
         />
         <BoughtList
           items={bought}
           onGive={onGive}
           onRemove={onRemove}
+          onEdit={onEdit}
+          hideCosts={hideCosts}
           onAdd={
             selected && onAddBought
-              ? (title) => onAddBought(selected.id, title)
+              ? (title, price) => onAddBought(selected.id, title, price)
               : undefined
           }
         />
         <GiftBookList
           items={given}
+          hideCosts={hideCosts}
           onLog={selected && onLogGift ? () => onLogGift(selected.id) : undefined}
         />
         </>

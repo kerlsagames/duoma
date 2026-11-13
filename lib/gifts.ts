@@ -646,6 +646,7 @@ export function markGiftGiven(
     year?: number;
     from?: string;
     occasion?: GiftOccasionId;
+    price?: string;
   }
 ): GiftItem[] {
   return items.map((row) => {
@@ -661,6 +662,7 @@ export function markGiftGiven(
       year,
       from: input.from?.trim() || row.from,
       occasion: input.occasion ?? row.occasion,
+      price: input.price !== undefined ? input.price.trim() : row.price,
       updatedAt: nowIso(),
     };
   });

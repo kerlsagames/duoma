@@ -4,6 +4,7 @@ import {
   GiftBookList,
   GiftModeToggle,
   GiftNotepad,
+  PriceBox,
 } from "@/components/hub/GiftNotepad";
 import { Stage } from "@/components/hub/Stage";
 import { SheetOverlay } from "@/components/hub/SheetOverlay";
@@ -80,11 +81,13 @@ export default function GiftPersonScreen() {
   const [giveDate, setGiveDate] = useState(localDateKey());
   const [giveFrom, setGiveFrom] = useState("Us");
   const [giveOccasion, setGiveOccasion] = useState<GiftOccasionId>("birthday");
+  const [givePrice, setGivePrice] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [removePerson, setRemovePerson] = useState(false);
   const look = useAppLook("gifts", T.gold, {
     hideLedger: false,
+    hideCosts: false,
     compactPeople: true,
     classicMode: true,
   });
@@ -187,6 +190,7 @@ export default function GiftPersonScreen() {
         year: parsedYear,
         from: giveFrom,
         occasion: giveOccasion,
+        price: givePrice,
       }),
     }));
     setSheet(null);
@@ -307,6 +311,11 @@ export default function GiftPersonScreen() {
                   label: "Classic notepad",
                   hint: "Write gifts like notes, with a checkbox.",
                 },
+                {
+                  key: "hideCosts",
+                  label: "Hide prices",
+                  hint: "Turn off the dollar boxes. Left on by default.",
+                },
               ]}
             />
           }
@@ -359,6 +368,7 @@ export default function GiftPersonScreen() {
             <GiftNotepad
               items={allOpenItems(data.giftItems, person.id)}
               oneOff={isOtherList(person)}
+              hideCosts={Boolean(look.prefs.hideCosts)}
               empty={
                 isOtherList(person)
                   ? "Name on the left, present on the right. For one-off gifts."
@@ -408,6 +418,13 @@ export default function GiftPersonScreen() {
             />
             <BoughtList
               items={bought}
+              hideCosts={Boolean(look.prefs.hideCosts)}
+              onEdit={(item, next) => {
+                void patch((state) => ({
+                  ...state,
+                  giftItems: updateGiftItem(state.giftItems, item.id, next),
+                }));
+              }}
               onGive={(item) => {
                 setGiveId(item.id);
                 setGiveFrom(person.slot === "you" ? liveName : "Us");
@@ -415,15 +432,17 @@ export default function GiftPersonScreen() {
                 setGiveOccasion(
                   item.occasion === "just-because" ? "birthday" : item.occasion
                 );
+                setGivePrice(item.price);
                 setSheet("give");
               }}
               onRemove={setRemoveItemId}
-              onAdd={(nextTitle) => {
+              onAdd={(nextTitle, nextPrice) => {
                 void patch((state) => ({
                   ...state,
                   giftItems: addGiftItem(state.giftItems, {
                     personId: person.id,
                     title: nextTitle,
+                    price: nextPrice,
                     lane: "shop",
                     occasion: "just-because",
                     year: currentGiftYear(),
@@ -434,6 +453,7 @@ export default function GiftPersonScreen() {
             />
             <GiftBookList
               items={given}
+              hideCosts={Boolean(look.prefs.hideCosts)}
               onLog={() => openAdd("given")}
             />
             </>
@@ -893,6 +913,18 @@ export default function GiftPersonScreen() {
             accent={T.gold}
             background={T.surface}
           />
+          {look.prefs.hideCosts ? null : (
+            <>
+              <Text style={[label, { marginTop: 16 }]}>Price</Text>
+              <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
+                <PriceBox
+                  value={givePrice}
+                  onChangeText={setGivePrice}
+                  editable
+                />
+              </View>
+            </>
+          )}
           <Pressable
             onPress={() => void saveGiven()}
             style={{

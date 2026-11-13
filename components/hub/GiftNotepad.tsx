@@ -10,7 +10,9 @@ function priceDigits(price: string | null | undefined): string {
   return (price ?? "").trim().replace(/^\$/, "");
 }
 
-function PriceBox({
+const PRICE_GREEN = "#2F7A4A";
+
+export function PriceBox({
   value,
   onChangeText,
   onSubmit,
@@ -24,6 +26,7 @@ function PriceBox({
   autoFocus?: boolean;
 }) {
   const digits = priceDigits(value);
+  const filled = Boolean(digits);
   return (
     <View
       style={{
@@ -34,8 +37,8 @@ function PriceBox({
         paddingHorizontal: 6,
         borderRadius: 8,
         borderWidth: 1.5,
-        borderColor: T.ribbon,
-        backgroundColor: "rgba(196,60,74,0.14)",
+        borderColor: filled ? PRICE_GREEN : T.ribbon,
+        backgroundColor: filled ? "rgba(86,160,108,0.22)" : "rgba(196,60,74,0.14)",
         flexDirection: "row",
         alignItems: "center",
       }}
@@ -45,7 +48,7 @@ function PriceBox({
           fontFamily: SERIF,
           fontSize: 16,
           fontWeight: "800",
-          color: T.ribbon,
+          color: filled ? PRICE_GREEN : T.ribbon,
           marginRight: 2,
         }}
       >
@@ -109,6 +112,7 @@ export function GiftNotepad({
   onSecret,
   people,
   oneOff = false,
+  hideCosts = false,
 }: {
   items: GiftItem[];
   empty: string;
@@ -120,6 +124,7 @@ export function GiftNotepad({
   onSecret?: (item: GiftItem) => void;
   people?: { id: string; name: string }[];
   oneOff?: boolean;
+  hideCosts?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [draftName, setDraftName] = useState("");
@@ -273,13 +278,15 @@ export function GiftNotepad({
                       {editTitle || item.title}
                     </Text>
                   )}
-                  <PriceBox
-                    value={editPrice}
-                    onChangeText={setEditPrice}
-                    onSubmit={saveEdit}
-                    editable
-                    autoFocus={editField === "price"}
-                  />
+                  {hideCosts ? null : (
+                    <PriceBox
+                      value={editPrice}
+                      onChangeText={setEditPrice}
+                      onSubmit={saveEdit}
+                      editable
+                      autoFocus={editField === "price"}
+                    />
+                  )}
                   <Pressable onPress={saveEdit} hitSlop={6} style={{ flexShrink: 0 }}>
                     <Text style={{ fontSize: 12, fontWeight: "800", color: T.ribbon }}>
                       Save
@@ -364,14 +371,16 @@ export function GiftNotepad({
                     {!oneOff && item.notes ? `  · ${item.notes}` : ""}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => startEdit(item, "price")}
-                  hitSlop={6}
-                  style={{ flexGrow: 0, flexShrink: 0 }}
-                  accessibilityLabel={`Edit price for ${item.title}`}
-                >
-                  <PriceBox value={item.price} />
-                </Pressable>
+                {hideCosts ? null : (
+                  <Pressable
+                    onPress={() => startEdit(item, "price")}
+                    hitSlop={6}
+                    style={{ flexGrow: 0, flexShrink: 0 }}
+                    accessibilityLabel={`Edit price for ${item.title}`}
+                  >
+                    <PriceBox value={item.price} />
+                  </Pressable>
+                )}
               </>
             )}
             {onSecret ? (
@@ -379,12 +388,27 @@ export function GiftNotepad({
                 onPress={() => onSecret(item)}
                 hitSlop={6}
                 accessibilityLabel={`Send ${item.title} to secret list`}
+                style={{ flexGrow: 0, flexShrink: 0 }}
               >
-                <Ionicons name="lock-closed-outline" size={14} color={T.ribbon} />
+                <Ionicons name="lock-closed-outline" size={16} color={T.ribbon} />
               </Pressable>
             ) : null}
-            <Pressable onPress={() => onRemove(item.id)} hitSlop={6}>
-              <Ionicons name="close" size={14} color={T.paperMuted} />
+            <Pressable
+              onPress={() => onRemove(item.id)}
+              hitSlop={8}
+              accessibilityLabel={`Remove ${item.title}`}
+              style={{
+                width: 28,
+                height: 28,
+                flexGrow: 0,
+                flexShrink: 0,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(196,60,74,0.16)",
+              }}
+            >
+              <Ionicons name="close" size={16} color={T.ribbon} />
             </Pressable>
           </View>
         ))
@@ -436,8 +460,8 @@ export function GiftNotepad({
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={submit}
-          placeholder={oneOff ? "Present" : "Write a gift…"}
-          placeholderTextColor="rgba(42,28,18,0.32)"
+          placeholder={oneOff ? "Present" : items.length ? "Add another gift…" : "Write a gift…"}
+          placeholderTextColor="rgba(42,28,18,0.42)"
           returnKeyType="done"
           style={{
             ...writeStyle,
@@ -446,12 +470,29 @@ export function GiftNotepad({
             height: LINE,
           }}
         />
-        <PriceBox
-          value={draftPrice}
-          onChangeText={setDraftPrice}
-          onSubmit={submit}
-          editable
-        />
+        {hideCosts ? null : (
+          <PriceBox
+            value={draftPrice}
+            onChangeText={setDraftPrice}
+            onSubmit={submit}
+            editable
+          />
+        )}
+        <Pressable
+          onPress={submit}
+          hitSlop={6}
+          accessibilityLabel="Add gift"
+          style={{
+            flexGrow: 0,
+            flexShrink: 0,
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            backgroundColor: T.gold,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: "800", color: "#1A1408" }}>Add</Text>
+        </Pressable>
       </View>
       {Array.from({ length: Math.max(1, 6 - items.length) }).map((_, index) => (
         <View
@@ -527,19 +568,34 @@ export function BoughtList({
   onGive,
   onRemove,
   onAdd,
+  onEdit,
+  hideCosts = false,
 }: {
   items: GiftItem[];
   onGive: (item: GiftItem) => void;
   onRemove: (id: string) => void;
   /** Add a bought present without putting it on the wishlist first. */
-  onAdd?: (title: string) => void;
+  onAdd?: (title: string, price?: string) => void;
+  onEdit?: (item: GiftItem, next: { title: string; price: string; forName?: string }) => void;
+  hideCosts?: boolean;
 }) {
   const [draft, setDraft] = useState("");
+  const [draftPrice, setDraftPrice] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+
   const submit = () => {
     const title = draft.trim();
     if (!title || !onAdd) return;
-    onAdd(title);
+    onAdd(title, draftPrice.trim());
     setDraft("");
+    setDraftPrice("");
+  };
+
+  const savePrice = (item: GiftItem) => {
+    if (!onEdit) return;
+    onEdit(item, { title: item.title, price: editPrice, forName: item.forName });
+    setEditingId(null);
   };
 
   return (
@@ -564,7 +620,7 @@ export function BoughtList({
           color: T.muted,
         }}
       >
-        Already wrapped, or bought without a wish. Give it to land it in the gift book.
+        Already wrapped, or bought without a wish. Tap $ to add what it cost, then Give it into the gift book.
       </Text>
       <View
         style={{
@@ -583,6 +639,7 @@ export function BoughtList({
               minHeight: LINE,
               paddingLeft: 12,
               paddingRight: 8,
+              paddingVertical: 6,
               borderBottomWidth: 1,
               borderBottomColor: "rgba(42,28,18,0.1)",
               flexDirection: "row",
@@ -590,10 +647,11 @@ export function BoughtList({
               gap: 8,
             }}
           >
-            <Ionicons name="bag-check-outline" size={16} color={T.ribbon} />
+            <Ionicons name="bag-check-outline" size={16} color={PRICE_GREEN} />
             <Text
               style={{
                 flex: 1,
+                minWidth: 0,
                 fontFamily: HANDWRITING,
                 fontSize: 20,
                 color: T.paperInk,
@@ -602,40 +660,42 @@ export function BoughtList({
             >
               {item.forName ? `${item.forName}  ·  ${item.title}` : item.title}
             </Text>
-            {formatGiftPrice(item.price) ? (
-              <Text
-                style={{
-                  flexShrink: 0,
-                  fontFamily: SERIF,
-                  fontSize: 16,
-                  fontWeight: "800",
-                  color: T.ribbon,
+            {hideCosts ? null : editingId === item.id ? (
+              <>
+                <PriceBox
+                  value={editPrice}
+                  onChangeText={setEditPrice}
+                  onSubmit={() => savePrice(item)}
+                  editable
+                  autoFocus
+                />
+                <Pressable onPress={() => savePrice(item)} hitSlop={6} style={{ flexShrink: 0 }}>
+                  <Text style={{ fontSize: 12, fontWeight: "800", color: T.ribbon }}>
+                    Save
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  if (!onEdit) return;
+                  setEditingId(item.id);
+                  setEditPrice(item.price);
                 }}
+                hitSlop={6}
+                accessibilityLabel={`Edit price for ${item.title}`}
+                style={{ flexGrow: 0, flexShrink: 0 }}
               >
-                {formatGiftPrice(item.price)}
-              </Text>
-            ) : null}
-            <Pressable
-              onPress={() => onRemove(item.id)}
-              hitSlop={6}
-              accessibilityLabel={`Remove ${item.title} from list`}
-              style={{
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: "rgba(42,28,18,0.16)",
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: "700", color: T.paperMuted }}>
-                Remove
-              </Text>
-            </Pressable>
+                <PriceBox value={item.price} />
+              </Pressable>
+            )}
             <Pressable
               onPress={() => onGive(item)}
               hitSlop={6}
               accessibilityLabel={`Give ${item.title}`}
               style={{
+                flexGrow: 0,
+                flexShrink: 0,
                 paddingHorizontal: 10,
                 paddingVertical: 4,
                 borderRadius: 999,
@@ -645,6 +705,23 @@ export function BoughtList({
               <Text style={{ fontSize: 11, fontWeight: "800", color: "#1A1408" }}>
                 Give
               </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onRemove(item.id)}
+              hitSlop={8}
+              accessibilityLabel={`Remove ${item.title} from list`}
+              style={{
+                width: 28,
+                height: 28,
+                flexGrow: 0,
+                flexShrink: 0,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(196,60,74,0.16)",
+              }}
+            >
+              <Ionicons name="close" size={16} color={T.ribbon} />
             </Pressable>
           </View>
         ))}
@@ -665,16 +742,39 @@ export function BoughtList({
               onChangeText={setDraft}
               onSubmitEditing={submit}
               placeholder="Add a bought gift…"
-              placeholderTextColor="rgba(42,28,18,0.32)"
+              placeholderTextColor="rgba(42,28,18,0.42)"
               returnKeyType="done"
               style={{
                 flex: 1,
+                minWidth: 0,
                 height: LINE,
                 fontFamily: HANDWRITING,
                 fontSize: 20,
                 color: T.paperInk,
               }}
             />
+            {hideCosts ? null : (
+              <PriceBox
+                value={draftPrice}
+                onChangeText={setDraftPrice}
+                onSubmit={submit}
+                editable
+              />
+            )}
+            <Pressable
+              onPress={submit}
+              hitSlop={6}
+              style={{
+                flexGrow: 0,
+                flexShrink: 0,
+                borderRadius: 999,
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                backgroundColor: T.gold,
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: "800", color: "#1A1408" }}>Add</Text>
+            </Pressable>
           </View>
         ) : items.length === 0 ? (
           <View style={{ minHeight: LINE, paddingLeft: 12, justifyContent: "center" }}>
@@ -691,9 +791,11 @@ export function BoughtList({
 export function GiftBookList({
   items,
   onLog,
+  hideCosts = false,
 }: {
   items: GiftItem[];
   onLog?: () => void;
+  hideCosts?: boolean;
 }) {
   return (
     <View style={{ marginTop: 20 }}>
@@ -754,6 +856,19 @@ export function GiftBookList({
             >
               {item.forName ? `${item.forName}  ·  ${item.title}` : item.title}
             </Text>
+            {hideCosts || !formatGiftPrice(item.price) ? null : (
+              <Text
+                style={{
+                  flexShrink: 0,
+                  fontFamily: SERIF,
+                  fontSize: 16,
+                  fontWeight: "800",
+                  color: PRICE_GREEN,
+                }}
+              >
+                {formatGiftPrice(item.price)}
+              </Text>
+            )}
             <Text style={{ fontSize: 11, color: T.paperMuted }} numberOfLines={1}>
               {occasionMeta(item.occasion).short}
               {` · ${formatGiftDate(item.dateKey, item.year)}`}
